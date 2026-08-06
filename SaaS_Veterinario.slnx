@@ -2,6 +2,10 @@
   <Folder Name="/src/">
     <Project Path="src/API/API.csproj" />
   </Folder>
+  <Folder Name="/src/Clients/">
+    <Project Path="src/Clients/BlazorWeb/BlazorWeb.csproj" />
+    <Project Path="src/Clients/SharedUI/SharedUI.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/" />
   <Folder Name="/src/Modules/Core/" />
   <Folder Name="/src/Modules/Core/Application/">
@@ -22,6 +26,16 @@
   </Folder>
   <Folder Name="/src/Modules/Fiscal/Infrastructure/">
     <Project Path="src/Modules/Fiscal/Infrastructure/Fiscal.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Inventory/" />
+  <Folder Name="/src/Modules/Inventory/Application/">
+    <Project Path="src/Modules/Inventory/Application/Inventory.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Inventory/Domain/">
+    <Project Path="src/Modules/Inventory/Domain/Inventory.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Inventory/Infrastructure/">
+    <Project Path="src/Modules/Inventory/Infrastructure/Inventory.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Petshop/" />
   <Folder Name="/src/Modules/Petshop/Application/">
@@ -53,10 +67,14 @@
   <Folder Name="/src/Modules/Veterinary/Infrastructure/">
     <Project Path="src/Modules/Veterinary/Infrastructure/Veterinary.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/API.IntegrationTests/API.IntegrationTests.csproj" />
+    <Project Path="tests/Clients.Tests/Clients.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Modules/">
     <Project Path="tests/Modules/Core.Tests/Core.Tests.csproj" />
     <Project Path="tests/Modules/Fiscal.Tests/Fiscal.Tests.csproj" />
+    <Project Path="tests/Modules/Inventory.Tests/Inventory.Tests.csproj" />
     <Project Path="tests/Modules/Petshop.Tests/Petshop.Tests.csproj" />
     <Project Path="tests/Modules/Sales.Tests/Sales.Tests.csproj" />
     <Project Path="tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj" />
