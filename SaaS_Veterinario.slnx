@@ -13,6 +13,16 @@
   <Folder Name="/src/Modules/Core/Infrastructure/">
     <Project Path="src/Modules/Core/Infrastructure/Core.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Fiscal/" />
+  <Folder Name="/src/Modules/Fiscal/Application/">
+    <Project Path="src/Modules/Fiscal/Application/Fiscal.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Fiscal/Domain/">
+    <Project Path="src/Modules/Fiscal/Domain/Fiscal.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Fiscal/Infrastructure/">
+    <Project Path="src/Modules/Fiscal/Infrastructure/Fiscal.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Petshop/" />
   <Folder Name="/src/Modules/Petshop/Application/">
     <Project Path="src/Modules/Petshop/Application/Petshop.Application.csproj" />
@@ -46,6 +56,7 @@
   <Folder Name="/tests/" />
   <Folder Name="/tests/Modules/">
     <Project Path="tests/Modules/Core.Tests/Core.Tests.csproj" />
+    <Project Path="tests/Modules/Fiscal.Tests/Fiscal.Tests.csproj" />
     <Project Path="tests/Modules/Petshop.Tests/Petshop.Tests.csproj" />
     <Project Path="tests/Modules/Sales.Tests/Sales.Tests.csproj" />
     <Project Path="tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj" />
