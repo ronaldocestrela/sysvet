@@ -1,0 +1,53 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/API/API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Core/" />
+  <Folder Name="/src/Modules/Core/Application/">
+    <Project Path="src/Modules/Core/Application/Core.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Core/Domain/">
+    <Project Path="src/Modules/Core/Domain/Core.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Core/Infrastructure/">
+    <Project Path="src/Modules/Core/Infrastructure/Core.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Petshop/" />
+  <Folder Name="/src/Modules/Petshop/Application/">
+    <Project Path="src/Modules/Petshop/Application/Petshop.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Petshop/Domain/">
+    <Project Path="src/Modules/Petshop/Domain/Petshop.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Petshop/Infrastructure/">
+    <Project Path="src/Modules/Petshop/Infrastructure/Petshop.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Sales/" />
+  <Folder Name="/src/Modules/Sales/Application/">
+    <Project Path="src/Modules/Sales/Application/Sales.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Sales/Domain/">
+    <Project Path="src/Modules/Sales/Domain/Sales.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Sales/Infrastructure/">
+    <Project Path="src/Modules/Sales/Infrastructure/Sales.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Veterinary/" />
+  <Folder Name="/src/Modules/Veterinary/Application/">
+    <Project Path="src/Modules/Veterinary/Application/Veterinary.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Veterinary/Domain/">
+    <Project Path="src/Modules/Veterinary/Domain/Veterinary.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Veterinary/Infrastructure/">
+    <Project Path="src/Modules/Veterinary/Infrastructure/Veterinary.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Modules/">
+    <Project Path="tests/Modules/Core.Tests/Core.Tests.csproj" />
+    <Project Path="tests/Modules/Petshop.Tests/Petshop.Tests.csproj" />
+    <Project Path="tests/Modules/Sales.Tests/Sales.Tests.csproj" />
+    <Project Path="tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,59 @@
+## Visual Studio / .NET Core / Rider
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+out/
+build/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][InN]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Gemini / Antigravity workspace
+.gemini/
+
+# Compiled Files
+*.dll
+*.exe
+*.pdb
+*.cache
+*.nupkg
+
+# Test Results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# OS generated files
+.DS_Store
+Thumbs.db
