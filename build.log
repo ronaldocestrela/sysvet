@@ -1,0 +1,40 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Core.Domain -> /home/kley/sysvet/src/Modules/Core/Domain/bin/Debug/net10.0/Core.Domain.dll
+  SharedUI -> /home/kley/sysvet/src/Clients/SharedUI/bin/Debug/net10.0/SharedUI.dll
+  Petshop.Domain -> /home/kley/sysvet/src/Modules/Petshop/Domain/bin/Debug/net10.0/Petshop.Domain.dll
+  Inventory.Domain -> /home/kley/sysvet/src/Modules/Inventory/Domain/bin/Debug/net10.0/Inventory.Domain.dll
+  Veterinary.Domain -> /home/kley/sysvet/src/Modules/Veterinary/Domain/bin/Debug/net10.0/Veterinary.Domain.dll
+  Core.Application -> /home/kley/sysvet/src/Modules/Core/Application/bin/Debug/net10.0/Core.Application.dll
+  Sales.Domain -> /home/kley/sysvet/src/Modules/Sales/Domain/bin/Debug/net10.0/Sales.Domain.dll
+  Fiscal.Domain -> /home/kley/sysvet/src/Modules/Fiscal/Domain/bin/Debug/net10.0/Fiscal.Domain.dll
+/home/kley/sysvet/tests/Modules/Core.Tests/Application/BehaviorsTests.cs(1,12): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'Core' (are you missing an assembly reference?) [/home/kley/sysvet/tests/Modules/Core.Tests/Core.Tests.csproj]
+  Core.Infrastructure -> /home/kley/sysvet/src/Modules/Core/Infrastructure/bin/Debug/net10.0/Core.Infrastructure.dll
+  Petshop.Application -> /home/kley/sysvet/src/Modules/Petshop/Application/bin/Debug/net10.0/Petshop.Application.dll
+  Veterinary.Application -> /home/kley/sysvet/src/Modules/Veterinary/Application/bin/Debug/net10.0/Veterinary.Application.dll
+  Inventory.Application -> /home/kley/sysvet/src/Modules/Inventory/Application/bin/Debug/net10.0/Inventory.Application.dll
+  Fiscal.Application -> /home/kley/sysvet/src/Modules/Fiscal/Application/bin/Debug/net10.0/Fiscal.Application.dll
+  Clients.Tests -> /home/kley/sysvet/tests/Clients.Tests/bin/Debug/net10.0/Clients.Tests.dll
+  Sales.Application -> /home/kley/sysvet/src/Modules/Sales/Application/bin/Debug/net10.0/Sales.Application.dll
+  Veterinary.Infrastructure -> /home/kley/sysvet/src/Modules/Veterinary/Infrastructure/bin/Debug/net10.0/Veterinary.Infrastructure.dll
+  Petshop.Infrastructure -> /home/kley/sysvet/src/Modules/Petshop/Infrastructure/bin/Debug/net10.0/Petshop.Infrastructure.dll
+  Fiscal.Infrastructure -> /home/kley/sysvet/src/Modules/Fiscal/Infrastructure/bin/Debug/net10.0/Fiscal.Infrastructure.dll
+  Petshop.Tests -> /home/kley/sysvet/tests/Modules/Petshop.Tests/bin/Debug/net10.0/Petshop.Tests.dll
+  Sales.Infrastructure -> /home/kley/sysvet/src/Modules/Sales/Infrastructure/bin/Debug/net10.0/Sales.Infrastructure.dll
+  Veterinary.Tests -> /home/kley/sysvet/tests/Modules/Veterinary.Tests/bin/Debug/net10.0/Veterinary.Tests.dll
+  Sales.Tests -> /home/kley/sysvet/tests/Modules/Sales.Tests/bin/Debug/net10.0/Sales.Tests.dll
+  Inventory.Tests -> /home/kley/sysvet/tests/Modules/Inventory.Tests/bin/Debug/net10.0/Inventory.Tests.dll
+  Fiscal.Tests -> /home/kley/sysvet/tests/Modules/Fiscal.Tests/bin/Debug/net10.0/Fiscal.Tests.dll
+  Inventory.Infrastructure -> /home/kley/sysvet/src/Modules/Inventory/Infrastructure/bin/Debug/net10.0/Inventory.Infrastructure.dll
+  API -> /home/kley/sysvet/src/API/bin/Debug/net10.0/API.dll
+  API.IntegrationTests -> /home/kley/sysvet/tests/API.IntegrationTests/bin/Debug/net10.0/API.IntegrationTests.dll
+  BlazorWeb -> /home/kley/sysvet/src/Clients/BlazorWeb/bin/Debug/net10.0/BlazorWeb.dll
+  BlazorWeb (Blazor output) -> /home/kley/sysvet/src/Clients/BlazorWeb/bin/Debug/net10.0/wwwroot
+
+Build FAILED.
+
+/home/kley/sysvet/tests/Modules/Core.Tests/Application/BehaviorsTests.cs(1,12): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'Core' (are you missing an assembly reference?) [/home/kley/sysvet/tests/Modules/Core.Tests/Core.Tests.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:05.17

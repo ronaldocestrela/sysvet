@@ -4,7 +4,9 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHealthChecks();
 builder.Services.AddApiDocumentation();
+builder.Services.AddCoreModule();
 
 var app = builder.Build();
 
@@ -22,7 +24,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.MapHealthChecks("/health");
+app.MapCoreEndpoints();
+
 // Hello world route for testing PoC
 app.MapGet("/", () => "SysVet API is running!");
 
 app.Run();
+
+public partial class Program { }

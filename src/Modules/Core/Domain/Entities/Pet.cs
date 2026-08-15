@@ -11,6 +11,10 @@ public class Pet : Entity
     public PetSex Sex { get; private set; }
     public Guid TutorId { get; private set; }
 
+#pragma warning disable CS8618
+    protected Pet() : base(Guid.NewGuid()) { }
+#pragma warning restore CS8618
+
     private Pet(Guid id, string name, PetSpecies species, string breed, PetSex sex, Guid tutorId)
         : base(id)
     {

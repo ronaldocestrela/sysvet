@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace API.Extensions;
 
 /// <summary>
@@ -13,6 +15,22 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApiDocumentation(this IServiceCollection services)
     {
         services.AddOpenApi();
+        return services;
+    }
+
+    /// <summary>
+    /// Registra os serviços, handlers e infraestrutura do módulo Core.
+    /// </summary>
+    public static IServiceCollection AddCoreModule(this IServiceCollection services)
+    {
+        services.AddDbContext<Core.Infrastructure.Persistence.CoreDbContext>(options =>
+        {
+            options.UseSqlite("Data Source=sysvet.db");
+        });
+
+        // Register default TenantContext for migrations/startup
+        services.AddScoped<Core.Domain.ITenantContext, API.Services.DefaultTenantContext>();
+
         return services;
     }
 }

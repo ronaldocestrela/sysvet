@@ -19,6 +19,10 @@ public class Tutor : AggregateRoot
     /// </summary>
     public IReadOnlyCollection<Pet> Pets => _pets.AsReadOnly();
 
+#pragma warning disable CS8618
+    protected Tutor() : base(Guid.NewGuid()) { }
+#pragma warning restore CS8618
+
     private Tutor(Guid id, string name, Email email, Cpf cpf, Phone phone)
         : base(id)
     {
