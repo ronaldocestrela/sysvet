@@ -1,0 +1,72 @@
+@typeparam TItem
+
+<div class="data-grid-container">
+    @if (Items == null)
+    {
+        <LoadingState IsLoading="true" Message="Carregando dados..." />
+    }
+    else if (!Items.Any())
+    {
+        <div class="empty-state">
+            Nenhum registro encontrado.
+        </div>
+    }
+    else
+    {
+        <table class="data-grid">
+            <thead>
+                <tr>
+                    @HeaderTemplate
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Items)
+                {
+                    <tr>
+                        @RowTemplate(item)
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+    [Parameter] public RenderFragment? HeaderTemplate { get; set; }
+    [Parameter] public RenderFragment<TItem> RowTemplate { get; set; } = default!;
+}
+
+<style>
+    .data-grid-container {
+        overflow-x: auto;
+    }
+
+    .data-grid {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .data-grid th {
+        background-color: var(--color-bg);
+        padding: var(--spacing-md);
+        font-weight: var(--font-weight-bold);
+        border-bottom: 2px solid var(--color-border);
+    }
+
+    .data-grid td {
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .data-grid tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-xl);
+        color: var(--color-text-muted);
+    }
+</style>

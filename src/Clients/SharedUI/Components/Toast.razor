@@ -1,0 +1,97 @@
+<div class="toast-container">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast @toast.Type.ToString().ToLower()">
+            <div class="toast-message">@toast.Message</div>
+            <button class="toast-close" @onclick="() => RemoveToast(toast)">&times;</button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ToastItem> _toasts = new();
+
+    public void ShowToast(string message, ToastType type = ToastType.Info)
+    {
+        var toast = new ToastItem { Message = message, Type = type };
+        _toasts.Add(toast);
+        StateHasChanged();
+
+        // Auto remove after 3 seconds
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000);
+            await InvokeAsync(() => RemoveToast(toast));
+        });
+    }
+
+    private void RemoveToast(ToastItem toast)
+    {
+        if (_toasts.Contains(toast))
+        {
+            _toasts.Remove(toast);
+            StateHasChanged();
+        }
+    }
+
+    private class ToastItem
+    {
+        public string Message { get; set; } = string.Empty;
+        public ToastType Type { get; set; }
+    }
+
+    public enum ToastType
+    {
+        Info,
+        Success,
+        Warning,
+        Error
+    }
+}
+
+<style>
+    .toast-container {
+        position: fixed;
+        bottom: var(--spacing-xl);
+        right: var(--spacing-xl);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .toast {
+        min-width: 250px;
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: slideIn 0.3s ease-out forwards;
+    }
+
+    .toast.info { background-color: var(--color-info); }
+    .toast.success { background-color: var(--color-success); }
+    .toast.warning { background-color: var(--color-warning); color: #333; }
+    .toast.error { background-color: var(--color-danger); }
+
+    .toast-close {
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.25rem;
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+    .toast-close:hover {
+        opacity: 1;
+    }
+
+    @@keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>

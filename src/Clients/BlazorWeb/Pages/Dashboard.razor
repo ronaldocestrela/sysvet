@@ -1,0 +1,56 @@
+@page "/"
+@using SharedUI.Components
+
+<div class="header-section">
+    <h1>Dashboard</h1>
+    <SyncStatusBadge />
+</div>
+
+<div class="dashboard-grid">
+    <div class="card stat-card">
+        <h3>Tutores</h3>
+        <p class="stat-value">124</p>
+    </div>
+    
+    <div class="card stat-card">
+        <h3>Pets</h3>
+        <p class="stat-value">256</p>
+    </div>
+    
+    <div class="card stat-card">
+        <h3>Consultas Hoje</h3>
+        <p class="stat-value">8</p>
+    </div>
+</div>
+
+<style>
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-lg);
+    }
+    
+    .stat-card {
+        text-align: center;
+    }
+    
+    .stat-card h3 {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-md);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
+        margin: 0;
+    }
+</style>

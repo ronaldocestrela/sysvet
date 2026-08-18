@@ -93,6 +93,15 @@ public static class ServiceCollectionExtensions
         // Register default TenantContext for migrations/startup
         services.AddScoped<Core.Domain.ITenantContext, API.Services.DefaultTenantContext>();
 
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(Core.Application.Pets.Commands.CreatePetCommand).Assembly);
+            cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.ValidationBehavior<,>));
+        });
+
+        FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(Core.Application.Pets.Commands.CreatePetCommand).Assembly);
+
         return services;
     }
 }

@@ -1,0 +1,72 @@
+@page "/pets"
+@using SharedUI.Components
+
+<div class="header-section">
+    <h1>Pets</h1>
+    <button class="btn btn-primary">Novo Pet</button>
+</div>
+
+<div class="card">
+    <DataGrid Items="_pets">
+        <HeaderTemplate>
+            <th>Nome</th>
+            <th>Espécie</th>
+            <th>Raça</th>
+            <th>Sexo</th>
+            <th>Ações</th>
+        </HeaderTemplate>
+        <RowTemplate Context="pet">
+            <td>@pet.Name</td>
+            <td>@pet.Species</td>
+            <td>@pet.Breed</td>
+            <td>@pet.Sex</td>
+            <td>
+                <button class="btn btn-sm btn-info">Editar</button>
+            </td>
+        </RowTemplate>
+    </DataGrid>
+</div>
+
+@code {
+    private List<PetDto>? _pets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPetsAsync();
+    }
+
+    private async Task LoadPetsAsync()
+    {
+        try
+        {
+            await Task.Delay(500);
+            _pets = new List<PetDto>
+            {
+                new PetDto { Id = Guid.NewGuid(), Name = "Rex", Species = "Dog", Breed = "Golden", Sex = "Male" },
+                new PetDto { Id = Guid.NewGuid(), Name = "Miau", Species = "Cat", Breed = "Persa", Sex = "Female" }
+            };
+        }
+        catch (Exception)
+        {
+            _pets = new List<PetDto>();
+        }
+    }
+
+    public class PetDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Species { get; set; } = string.Empty;
+        public string Breed { get; set; } = string.Empty;
+        public string Sex { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+    }
+</style>

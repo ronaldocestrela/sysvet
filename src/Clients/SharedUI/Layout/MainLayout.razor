@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+
+<div class="app-container">
+    <NavMenu />
+
+    <main class="main-content">
+        <header class="top-bar">
+            <!-- Em breve: botão de sync, perfil, etc -->
+            <h2>SysVet | VetNexus</h2>
+        </header>
+
+        <div class="content-body">
+            @Body
+        </div>
+    </main>
+</div>
+
+<style>
+    .top-bar {
+        background-color: var(--color-surface);
+        padding: var(--spacing-md) var(--spacing-xl);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+    }
+</style>

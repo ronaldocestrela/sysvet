@@ -1,0 +1,102 @@
+@page "/login"
+@using SharedUI.Components
+@using SharedUI.Services
+@using System.ComponentModel.DataAnnotations
+@inject IAuthState AuthState
+@inject INavigationService Navigation
+@inject HttpClient Http
+
+<div class="login-page">
+    <div class="login-card">
+        <h2 class="text-center">VetNexus</h2>
+        <p class="text-center text-muted mb-4">Faça login para acessar o sistema.</p>
+
+        <EditForm Model="@_loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <FormField Label="E-mail" Error="@_errorMsg">
+                <InputText @bind-Value="_loginModel.Email" type="email" placeholder="seu@email.com" class="form-control" />
+            </FormField>
+
+            <FormField Label="Senha">
+                <InputText @bind-Value="_loginModel.Password" type="password" placeholder="Sua senha" class="form-control" />
+            </FormField>
+
+            <LoadingState IsLoading="_isLoading" Message="Autenticando...">
+                <button type="submit" class="btn btn-primary w-100 mt-3">Entrar</button>
+            </LoadingState>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginModel _loginModel = new();
+    private bool _isLoading;
+    private string _errorMsg = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        _isLoading = true;
+        _errorMsg = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            // Placeholder: Em produção, isso fará um POST para /api/v1/auth/login
+            await Task.Delay(1000); 
+
+            if (_loginModel.Email == "admin@vetnexus.com" && _loginModel.Password == "admin123")
+            {
+                await AuthState.LoginAsync("fake-jwt-token-for-now");
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                _errorMsg = "Credenciais inválidas. Tente admin@vetnexus.com / admin123";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMsg = $"Erro ao tentar fazer login: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private class LoginModel
+    {
+        [Required(ErrorMessage = "O E-mail é obrigatório.")]
+        [EmailAddress(ErrorMessage = "Formato de E-mail inválido.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "A senha é obrigatória.")]
+        public string Password { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .login-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: var(--color-bg);
+    }
+    
+    .login-card {
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: var(--spacing-xl);
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .text-center { text-align: center; }
+    .text-muted { color: var(--color-text-muted); }
+    .mb-4 { margin-bottom: var(--spacing-xl); }
+    .mt-3 { margin-top: var(--spacing-lg); }
+    .w-100 { width: 100%; }
+</style>

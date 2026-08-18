@@ -1,0 +1,134 @@
+@page "/tutors"
+@using SharedUI.Components
+@inject HttpClient Http
+
+<div class="header-section">
+    <h1>Tutores</h1>
+    <button class="btn btn-primary" @onclick="OpenAddModal">Novo Tutor</button>
+</div>
+
+<div class="card">
+    <DataGrid Items="_tutors">
+        <HeaderTemplate>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Ações</th>
+        </HeaderTemplate>
+        <RowTemplate Context="tutor">
+            <td>@tutor.Name</td>
+            <td>@tutor.Email</td>
+            <td>@tutor.Phone</td>
+            <td>
+                <button class="btn btn-sm btn-info" @onclick="() => EditTutor(tutor)">Editar</button>
+            </td>
+        </RowTemplate>
+    </DataGrid>
+</div>
+
+<Modal @bind-IsVisible="_showModal" Title="@(_editingTutor == null ? "Novo Tutor" : "Editar Tutor")">
+    <ChildContent>
+        <FormField Label="Nome">
+            <input type="text" @bind="_currentTutor.Name" />
+        </FormField>
+        <FormField Label="E-mail">
+            <input type="email" @bind="_currentTutor.Email" />
+        </FormField>
+        <FormField Label="CPF">
+            <input type="text" @bind="_currentTutor.Cpf" />
+        </FormField>
+        <FormField Label="Telefone">
+            <input type="tel" @bind="_currentTutor.Phone" />
+        </FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="CloseModal">Cancelar</button>
+        <button class="btn btn-primary" @onclick="SaveTutor">Salvar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private List<TutorDto>? _tutors;
+    private bool _showModal;
+    private TutorDto? _editingTutor;
+    private TutorDto _currentTutor = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTutorsAsync();
+    }
+
+    private async Task LoadTutorsAsync()
+    {
+        try
+        {
+            // Simulate API call for now. When backend is fully connected, this will use Http
+            await Task.Delay(500);
+            _tutors = new List<TutorDto>
+            {
+                new TutorDto { Id = Guid.NewGuid(), Name = "João Silva", Email = "joao@email.com", Cpf = "11122233344", Phone = "11999998888" },
+                new TutorDto { Id = Guid.NewGuid(), Name = "Maria Souza", Email = "maria@email.com", Cpf = "55566677788", Phone = "11888887777" }
+            };
+        }
+        catch (Exception)
+        {
+            _tutors = new List<TutorDto>();
+        }
+    }
+
+    private void OpenAddModal()
+    {
+        _editingTutor = null;
+        _currentTutor = new TutorDto();
+        _showModal = true;
+    }
+
+    private void EditTutor(TutorDto tutor)
+    {
+        _editingTutor = tutor;
+        _currentTutor = new TutorDto
+        {
+            Id = tutor.Id,
+            Name = tutor.Name,
+            Email = tutor.Email,
+            Cpf = tutor.Cpf,
+            Phone = tutor.Phone
+        };
+        _showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showModal = false;
+    }
+
+    private async Task SaveTutor()
+    {
+        // TODO: Enviar request para API (POST ou PUT)
+        _showModal = false;
+        await LoadTutorsAsync();
+    }
+
+    public class TutorDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Cpf { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .btn-sm {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+</style>

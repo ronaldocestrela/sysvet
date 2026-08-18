@@ -1,0 +1,64 @@
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3>VetNexus</h3>
+    </div>
+
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="tutors">
+                <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Tutores
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="pets">
+                <span class="bi bi-heptagon-fill-nav-menu" aria-hidden="true"></span> Pets
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+<style>
+    .sidebar {
+        width: 250px;
+        background-color: var(--color-text-main);
+        color: white;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-header {
+        padding: var(--spacing-lg);
+        background-color: rgba(0,0,0,0.2);
+    }
+    
+    .sidebar-header h3 {
+        margin: 0;
+        color: var(--color-surface);
+    }
+
+    .nav-item {
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .nav-link {
+        color: rgba(255,255,255,0.8);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+        display: block;
+    }
+
+    .nav-link:hover {
+        color: white;
+        background-color: rgba(255,255,255,0.1);
+    }
+    
+    .nav-link.active {
+        color: white;
+        background-color: var(--color-primary);
+    }
+</style>
