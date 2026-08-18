@@ -16,11 +16,9 @@ public static class EndpointExtensions
     /// <returns>O construtor de rotas configurado.</returns>
     public static IEndpointRouteBuilder MapCoreEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/v1/core")
-            .WithTags("Core");
-
-        // Os endpoints específicos serão registrados aqui quando o módulo estiver implementado
-        // group.MapGet("/tutors", ...);
+        // Mapeia endpoints dos recursos Core
+        builder.MapTutorEndpoints();
+        builder.MapPetEndpoints();
 
         return builder;
     }

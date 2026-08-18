@@ -61,6 +61,30 @@ public class Tutor : AggregateRoot
         return Result.Success(tutor);
     }
 
+    public Result Update(string name, Email email, Phone phone)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length < 2)
+        {
+            return Result.Failure(new Error("Tutor.InvalidName", "O nome do tutor deve ter pelo menos 2 caracteres."));
+        }
+
+        if (email is null)
+        {
+            return Result.Failure(new Error("Tutor.NullEmail", "O e-mail é obrigatório."));
+        }
+
+        if (phone is null)
+        {
+            return Result.Failure(new Error("Tutor.NullPhone", "O telefone é obrigatório."));
+        }
+
+        Name = name.Trim();
+        Email = email;
+        Phone = phone;
+
+        return Result.Success();
+    }
+
     /// <summary>
     /// Adiciona um pet à lista do tutor.
     /// </summary>

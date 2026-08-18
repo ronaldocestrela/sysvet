@@ -1,4 +1,9 @@
+using Core.Infrastructure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace API.Extensions;
 
@@ -21,12 +26,69 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Registra os serviços, handlers e infraestrutura do módulo Core.
     /// </summary>
-    public static IServiceCollection AddCoreModule(this IServiceCollection services)
+    public static IServiceCollection AddCoreModule(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<Core.Infrastructure.Persistence.CoreDbContext>(options =>
         {
             options.UseSqlite("Data Source=sysvet.db");
         });
+
+        // Identity
+        services.AddIdentity<AppUser, IdentityRole>()
+            .AddEntityFrameworkStores<Core.Infrastructure.Persistence.CoreDbContext>()
+            .AddDefaultTokenProviders();
+
+        // JWT Configuration
+        var jwtSettingsSection = configuration.GetSection(JwtSettings.SectionName);
+        var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
+        
+        if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Secret))
+        {
+            // Default settings for testing if not present in appsettings
+            jwtSettings = new JwtSettings { Secret = "super_secret_key_12345_for_testing_purposes_only!", Issuer = "sysvet", Audience = "sysvet", ExpiryMinutes = 60 };
+        }
+
+        services.Configure<JwtSettings>(options => 
+        {
+            options.Secret = jwtSettings.Secret;
+            options.Issuer = jwtSettings.Issuer;
+            options.Audience = jwtSettings.Audience;
+            options.ExpiryMinutes = jwtSettings.ExpiryMinutes;
+        });
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+            };
+        });
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("Veterinarian", policy => policy.RequireRole("Veterinarian", "Admin"));
+            options.AddPolicy("Receptionist", policy => policy.RequireRole("Receptionist", "Admin"));
+            options.AddPolicy("Cashier", policy => policy.RequireRole("Cashier", "Admin"));
+        });
+
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<Core.Domain.ITutorRepository, Core.Infrastructure.Persistence.Repositories.TutorRepository>();
+        services.AddScoped<Core.Domain.IPetRepository, Core.Infrastructure.Persistence.Repositories.PetRepository>();
+        services.AddScoped<Core.Domain.IUnitOfWork>(provider => provider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>());
+        
+        services.AddScoped<Core.Domain.Auditing.IAuditLogger, Core.Infrastructure.Auditing.AuditLogger>();
 
         // Register default TenantContext for migrations/startup
         services.AddScoped<Core.Domain.ITenantContext, API.Services.DefaultTenantContext>();

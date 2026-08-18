@@ -1,12 +1,14 @@
 using API.Extensions;
+using Core.Infrastructure.Identity;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddHealthChecks();
+builder.Services.AddProblemDetails();
 builder.Services.AddApiDocumentation();
-builder.Services.AddCoreModule();
+builder.Services.AddCoreModule(builder.Configuration);
 
 var app = builder.Build();
 
@@ -22,10 +24,19 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Tratamento de exceções padrão do .NET para mapear ProblemDetails
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseMiddleware<TenantClaimMiddleware>();
+app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapCoreEndpoints();
+app.MapAuthEndpoints();
 
 // Hello world route for testing PoC
 app.MapGet("/", () => "SysVet API is running!");
