@@ -1,15 +1,20 @@
 # ADR 002: Estratégia de Sincronização (Offline-First)
 
 ## Status
-Em Análise (PoC Requerida)
+Decidido (Outbox Pattern)
 
 ## Contexto
 Clínicas veterinárias frequentemente enfrentam instabilidade de internet e precisam continuar operando (Offline-First) de forma transparente, com sincronização automática quando a conexão é restabelecida.
 
 ## Decisão
-Foi decidido **realizar uma Prova de Conceito (PoC)** entre duas abordagens antes de uma decisão final:
-1. **Dotmim.Sync**: Biblioteca pronta para sincronização de banco de dados.
-2. **Outbox Pattern Manual**: Implementação customizada de mensageria baseada em eventos de domínio para sincronizar dados.
+Após a execução de Provas de Conceito (PoCs) na suíte `PoC.SyncTests`, decidimos adotar o **Outbox Pattern (Transactional Outbox)** implementado manualmente na aplicação (Background Worker no cliente pushing requisições pendentes para a API Central).
+
+A abordagem via `Dotmim.Sync` foi descontinuada devido à exigência de alterar schemas no SQL Server com tabelas de tracking e incompatibilidade com SQLite InMemory/arquivos SQLite locais como nó servidor para testes TDD.
+
+Documentação detalhada e pontos de atenção (Resolução de Conflitos, Pull/Reversa e Garantia FIFO/Stop-on-first-error): veja [`ADR_002_Sincronizacao.md`](file:///home/kley/sysvet/ADR_002_Sincronizacao.md).
 
 ## Consequências
-- A PoC determinará o balanço ideal entre esforço de desenvolvimento, performance e confiabilidade na sincronização. O resultado guiará a implementação da Fase 3 do projeto.
+- Implementaremos `OutboxMessage` no `OfflineDbContext`.
+- Worker/HostedService no MAUI/Blazor enviará requisições HTTP seguras com retry exponencial.
+- Endpoints de sync no Backend tratarão idempotência, resolução de conflito (LWW / RowVersion) e sincronização reversa (Pull por timestamp).
+

@@ -25,7 +25,7 @@ public class RegisterTutorCommandHandlerTests
     public async Task Handle_WithValidCommand_ShouldReturnSuccessAndSave()
     {
         // Arrange
-        var command = new RegisterTutorCommand("John Doe", "john@example.com", "12345678909", "11999999999");
+        var command = new RegisterTutorCommand(Guid.NewGuid(), "John Doe", "john@example.com", "12345678909", "11999999999");
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -40,7 +40,7 @@ public class RegisterTutorCommandHandlerTests
     public async Task Handle_WithInvalidEmail_ShouldReturnFailure()
     {
         // Arrange
-        var command = new RegisterTutorCommand("John Doe", "invalid-email", "12345678909", "11999999999");
+        var command = new RegisterTutorCommand(Guid.NewGuid(), "John Doe", "invalid-email", "12345678909", "11999999999");
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

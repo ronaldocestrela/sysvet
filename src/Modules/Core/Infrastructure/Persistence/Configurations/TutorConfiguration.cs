@@ -12,6 +12,9 @@ public class TutorConfiguration : IEntityTypeConfiguration<Tutor>
 
         builder.HasKey(t => t.Id);
 
+        builder.Property(t => t.RowVersion)
+            .IsRowVersion();
+
         builder.Property(t => t.Name)
             .IsRequired()
             .HasMaxLength(150);

@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Core.Domain.Entities;
+using Core.Domain;
+using Clients.Infrastructure.Sync;
+using System.Text.Json;
 
 namespace Clients.Infrastructure;
 
@@ -7,6 +10,7 @@ public class OfflineDbContext : DbContext
 {
     public DbSet<Tutor> Tutors => Set<Tutor>();
     public DbSet<Pet> Pets => Set<Pet>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public OfflineDbContext(DbContextOptions<OfflineDbContext> options)
         : base(options)
@@ -45,5 +49,82 @@ public class OfflineDbContext : DbContext
             builder.Property(p => p.Sex).IsRequired().HasConversion<string>();
             builder.HasOne<Tutor>().WithMany(t => t.Pets).HasForeignKey(p => p.TutorId);
         });
+
+        modelBuilder.Entity<OutboxMessage>(builder =>
+        {
+            builder.HasKey(o => o.Id);
+        });
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var entries = ChangeTracker.Entries<Entity>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+            .ToList();
+
+        var outboxMessages = new List<OutboxMessage>();
+
+        foreach (var entry in entries)
+        {
+            entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
+
+            if (entry.Entity is Tutor tutor)
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    var cmd = new 
+                    { 
+                        Id = tutor.Id, 
+                        Name = tutor.Name, 
+                        Email = tutor.Email.Address, 
+                        Cpf = tutor.Cpf.Number, 
+                        Phone = tutor.Phone.Number 
+                    };
+                    outboxMessages.Add(new OutboxMessage
+                    {
+                        Type = "RegisterTutorCommand",
+                        Payload = JsonSerializer.Serialize(cmd)
+                    });
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    var cmd = new 
+                    { 
+                        Id = tutor.Id, 
+                        Name = tutor.Name, 
+                        Email = tutor.Email.Address, 
+                        Cpf = tutor.Cpf.Number, 
+                        Phone = tutor.Phone.Number 
+                    };
+                    outboxMessages.Add(new OutboxMessage
+                    {
+                        Type = "UpdateTutorCommand",
+                        Payload = JsonSerializer.Serialize(cmd)
+                    });
+                }
+            }
+            else if (entry.Entity is Pet pet)
+            {
+                // We'll implement Pet commands later if they don't exist yet, for now just basic structure
+                if (entry.State == EntityState.Added)
+                {
+                    // var cmd = new CreatePetCommand(pet.Id, pet.TutorId, pet.Name, pet.Species, pet.Breed, pet.Sex.ToString());
+                    // outboxMessages.Add(new OutboxMessage { Type = "CreatePetCommand", Payload = JsonSerializer.Serialize(cmd) });
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    // var cmd = new UpdatePetCommand(pet.Id, pet.Name, pet.Species, pet.Breed, pet.Sex.ToString());
+                    // outboxMessages.Add(new OutboxMessage { Type = "UpdatePetCommand", Payload = JsonSerializer.Serialize(cmd) });
+                }
+            }
+        }
+
+        if (outboxMessages.Any())
+        {
+            OutboxMessages.AddRange(outboxMessages);
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 }
+

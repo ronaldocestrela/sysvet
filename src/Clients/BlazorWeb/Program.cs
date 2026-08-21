@@ -29,6 +29,15 @@ builder.Services.AddDbContext<Clients.Infrastructure.OfflineDbContext>(options =
 });
 builder.Services.AddScoped(typeof(Clients.Infrastructure.IOfflineRepository<>), typeof(Clients.Infrastructure.OfflineRepository<>));
 
+// Sync Engine
+builder.Services.AddHttpClient<Clients.Infrastructure.Sync.ISyncHttpClient, Clients.Infrastructure.Sync.SyncHttpClient>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7001/"); 
+}).AddHttpMessageHandler<BlazorWeb.Services.AuthHandler>();
+// Nota: Em Blazor WASM, HostedServices podem não rodar em background da mesma forma que MAUI.
+// Requer .NET 8+ com suporte nativo ou inicialização manual em background.
+builder.Services.AddHostedService<Clients.Infrastructure.Sync.SyncBackgroundWorker>();
+
 var host = builder.Build();
 
 // Inicializa o serviço de conectividade para registrar os listeners JS

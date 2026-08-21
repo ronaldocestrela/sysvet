@@ -27,7 +27,7 @@ public class RegisterTutorCommandHandler : IRequestHandler<RegisterTutorCommand,
         var phoneResult = Phone.Create(request.Phone);
         if (phoneResult.IsFailure) return Result.Failure<Guid>(phoneResult.Error);
 
-        var tutorResult = Tutor.Create(request.Name, emailResult.Value, cpfResult.Value, phoneResult.Value);
+        var tutorResult = Tutor.Create(request.Name, emailResult.Value, cpfResult.Value, phoneResult.Value, request.Id);
         if (tutorResult.IsFailure) return Result.Failure<Guid>(tutorResult.Error);
 
         _tutorRepository.Add(tutorResult.Value);

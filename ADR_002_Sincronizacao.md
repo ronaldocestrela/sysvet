@@ -31,3 +31,21 @@ O **Outbox Pattern** será implementado no `Clients.Infrastructure` interceptand
 * Adicionaremos uma entidade genérica `OutboxMessage` no `OfflineDbContext`.
 * Criaremos um Worker ou HostedService no app cliente para enviar as requisições pendentes de maneira assíncrona.
 * O Backend (API) precisará expor *Endpoints* de sincronização (ex: `POST /api/sync/push`) preparados para tratar a idempotência dessas chamadas.
+
+### 5. Pontos de Atenção e Adendos Arquiteturais
+
+#### 5.1. Estratégia de Resolução de Conflitos
+* **Regra Padrão:** Adotaremos **Last-Write-Wins (LWW)** baseada no timestamp de modificação em UTC (`UpdatedAt`).
+* **Versionamento Otimista:** Para agregados críticos ou concorridos, utilizaremos versionamento otimista (`RowVersion` / `ETag`). Caso o servidor detecte que o registro foi alterado concorrentemente por outro usuário após a última sincronização do cliente, o Backend retornará um status de conflito (`409 Conflict`) solicitando re-sincronização ou decisão explicita.
+* **Merge Granular por Campo:** Em entidades de ficha clínica ou formulários extensos, o servidor poderá aplicar merge campo a campo quando os campos alterados offline não colidirem diretamente.
+
+#### 5.2. Sincronização Reversa (Pull / Download)
+* **Fluxo de Download (Server -> Client):** O envio do cliente para o servidor (*Push*) é complementado pela consulta de novidades (*Pull*).
+* **Endpoints de Consultas por Delta:** O Backend exporá um endpoint paginado por timestamp/cursor (ex: `GET /api/v1/sync/pull?since={lastSyncedAtUtc}&pageSize=100`).
+* **Consolidação Local:** O cliente armazenará a última data de sincronização bem-sucedida e aplicará via *upsert* local os registros alterados no servidor por outros usuários ou unidades.
+
+#### 5.3. Ordem de Processamento e Falhas em Cadeia
+* **Garantia de Ordem Sequential (FIFO):** As mensagens no Outbox local devem ser processadas rigorosamente em ordem de criação por agregados/dependências.
+* **Estratégia *Stop-on-First-Error*:** Se a mensagem A (ex: `RegisterTutorCommand`) falhar na transmissão HTTP ou na validação do servidor, o Worker interromperá o envio do lote local imediato. A mensagem B (ex: `CreatePetCommand`, que depende do Tutor A) **não será enviada** até que a falha da mensagem A seja resolvida ou retentada com sucesso, evitando erros de chave estrangeira e inconsistências no banco central.
+* **Retentativa e Dead-Letter Queue:** Erros transitórios de rede sofrerão *backoff* exponencial. Erros definitivos (ex: `400 Bad Request` por validação de regra de negócio) serão movidos para uma fila de exceção (*Dead-Letter*) para intervenção do usuário.
+

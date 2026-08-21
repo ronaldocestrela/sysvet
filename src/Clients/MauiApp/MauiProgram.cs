@@ -43,6 +43,13 @@ public static class MauiProgram
 		});
 		builder.Services.AddScoped(typeof(Clients.Infrastructure.IOfflineRepository<>), typeof(Clients.Infrastructure.OfflineRepository<>));
 
+		// Sync Engine
+		builder.Services.AddHttpClient<Clients.Infrastructure.Sync.ISyncHttpClient, Clients.Infrastructure.Sync.SyncHttpClient>(client =>
+		{
+			client.BaseAddress = new Uri("http://10.0.2.2:7001/"); 
+		}).AddHttpMessageHandler<MauiApp.Services.AuthHandler>();
+		builder.Services.AddHostedService<Clients.Infrastructure.Sync.SyncBackgroundWorker>();
+
 		return builder.Build();
 	}
 }

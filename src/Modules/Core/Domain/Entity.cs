@@ -11,6 +11,16 @@ public abstract class Entity : IEquatable<Entity>
     /// </summary>
     public Guid Id { get; protected set; }
 
+    /// <summary>
+    /// Data e hora da última modificação (UTC) usada para Last-Write-Wins.
+    /// </summary>
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// Token de concorrência para versionamento otimista (evitar lost updates).
+    /// </summary>
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
     protected Entity(Guid id)
     {
         Id = id == Guid.Empty ? Guid.NewGuid() : id;

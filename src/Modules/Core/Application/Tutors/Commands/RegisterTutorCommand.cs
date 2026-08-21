@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Core.Application.Tutors.Commands;
 
-public record RegisterTutorCommand(string Name, string Email, string Cpf, string Phone) : IRequest<Result<Guid>>;
+public record RegisterTutorCommand(Guid Id, string Name, string Email, string Cpf, string Phone) : IRequest<Result<Guid>>;

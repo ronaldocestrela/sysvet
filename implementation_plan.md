@@ -342,12 +342,12 @@ SharedUI real, Blazor PWA, MAUI Hybrid, SQLite local e — crítico — PoC do m
 | Manutenção longo prazo | Depende da lib | Equipe controla |
 | SP estimados (impl. completa) | ~13 SP | ~21 SP |
 
-- [ ] PoC `Dotmim.Sync`: sync bidirecional Tutor com SQLite ↔ SQL Server InMemory
-- [ ] PoC `Outbox Pattern`: `OutboxMessage` table + `BackgroundService` de ingestão
-- [ ] Medir: latência, conflitos, idempotência, schema por tenant
-- [ ] Documentar resultado em `docs/arquitetura/ADR-002-sync-offline.md` (decisão final)
+- [x] PoC `Dotmim.Sync`: sync bidirecional Tutor com SQLite ↔ SQL Server InMemory
+- [x] PoC `Outbox Pattern`: `OutboxMessage` table + `BackgroundService` de ingestão
+- [x] Medir: latência, conflitos, idempotência, schema por tenant
+- [x] Documentar resultado em `ADR_002_Sincronizacao.md` (decisão final: Outbox Pattern)
 
-**Aceite:** PoC reproduzível documentada; ADR-002 atualizado com decisão final.
+**Aceite:** ✅ PoC concluída; ADR-002 aprovado e atualizado com decisão final pelo Outbox Pattern e diretrizes de Resolução de Conflitos, Pull e Ordem Sequencial (FIFO/Stop-on-first-error).
 
 ---
 
