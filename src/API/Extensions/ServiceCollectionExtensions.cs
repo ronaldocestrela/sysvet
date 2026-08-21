@@ -104,4 +104,24 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+    public static IServiceCollection AddVeterinaryModule(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext<Veterinary.Infrastructure.Persistence.VeterinaryDbContext>(options =>
+        {
+            options.UseSqlite("Data Source=sysvet.db"); // Utilizando o mesmo BD do Core para manter simples na PoC
+        });
+
+        services.AddScoped<Veterinary.Domain.Repositories.IAppointmentRepository, Veterinary.Infrastructure.Persistence.Repositories.AppointmentRepository>();
+        services.AddScoped<Veterinary.Domain.Repositories.IScheduleSlotRepository, Veterinary.Infrastructure.Persistence.Repositories.ScheduleSlotRepository>();
+        services.AddScoped<Veterinary.Domain.Repositories.IUnitOfWork>(provider => provider.GetRequiredService<Veterinary.Infrastructure.Persistence.VeterinaryDbContext>());
+
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(Veterinary.Application.Appointments.Commands.ScheduleAppointmentCommand).Assembly);
+        });
+
+        FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(Veterinary.Application.Appointments.Commands.ScheduleAppointmentCommand).Assembly);
+
+        return services;
+    }
 }

@@ -66,7 +66,8 @@ public static class SyncEndpointExtensions
         {
             // Consulta de CDC (Change Data Capture) simplificada usando `UpdatedAt`.
             // Para maior robustez (ex: registros deletados), poderíamos usar Soft Delete ou CDC nativo do SQL Server.
-            var tutors = await dbContext.Tutors
+            var allTutors = await dbContext.Tutors.ToListAsync();
+            var tutors = allTutors
                 .Where(t => t.UpdatedAt > since)
                 .Select(t => new 
                 {
@@ -76,12 +77,12 @@ public static class SyncEndpointExtensions
                     Cpf = t.Cpf.Number,
                     Phone = t.Phone.Number,
                     UpdatedAt = t.UpdatedAt,
-                    // Convertemos o array de bytes em string Base64 para trafegar no JSON
-                    RowVersion = Convert.ToBase64String(t.RowVersion)
+                    RowVersion = Convert.ToBase64String(t.RowVersion ?? Array.Empty<byte>())
                 })
-                .ToListAsync();
+                .ToList();
 
-            var pets = await dbContext.Pets
+            var allPets = await dbContext.Pets.ToListAsync();
+            var pets = allPets
                 .Where(p => p.UpdatedAt > since)
                 .Select(p => new 
                 {
@@ -92,9 +93,9 @@ public static class SyncEndpointExtensions
                     Sex = p.Sex.ToString(),
                     TutorId = p.TutorId,
                     UpdatedAt = p.UpdatedAt,
-                    RowVersion = Convert.ToBase64String(p.RowVersion)
+                    RowVersion = Convert.ToBase64String(p.RowVersion ?? Array.Empty<byte>())
                 })
-                .ToListAsync();
+                .ToList();
             
             return Results.Ok(new {
                 Tutors = tutors,

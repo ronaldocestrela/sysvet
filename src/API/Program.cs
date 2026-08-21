@@ -9,6 +9,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddProblemDetails();
 builder.Services.AddApiDocumentation();
 builder.Services.AddCoreModule(builder.Configuration);
+builder.Services.AddVeterinaryModule(builder.Configuration);
 
 var app = builder.Build();
 

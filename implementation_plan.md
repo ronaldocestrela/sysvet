@@ -353,14 +353,14 @@ SharedUI real, Blazor PWA, MAUI Hybrid, SQLite local e — crítico — PoC do m
 
 #### Fase 3.D.3 — Motor de Sincronização Completo (16 SP) → após ADR-002 decidido
 
-- Implementar a estratégia vencedora da PoC
-- Suporte a `TenantId` no sync (compatível com ADR-003)
-- Estratégia de conflito: LWW (Last Write Wins) — documentada no ADR
-- Retry exponencial; dead-letter para falhas permanentes
-- `BackgroundService` na API para ingestão idempotente
-- Testes: idempotência (reenvio não duplica) e conflito simulado
+- [x] Implementar a estratégia vencedora da PoC
+- [x] Suporte a `TenantId` no sync (compatível com ADR-003)
+- [x] Estratégia de conflito: LWW (Last Write Wins) — documentada no ADR
+- [x] Retry exponencial; dead-letter para falhas permanentes
+- [x] `BackgroundService` na API para ingestão idempotente
+- [x] Testes: idempotência (reenvio não duplica) e conflito simulado
 
-**Aceite:** Sync bidirecional Tutor/Pet; fila drena após reconexão; ADR-002 com decisão implementada.
+**Aceite:** ✅ Sync bidirecional Tutor/Pet; fila drena após reconexão; ADR-002 com decisão implementada.
 
 ---
 
