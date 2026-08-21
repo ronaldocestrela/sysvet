@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.EntityFrameworkCore;
 using BlazorWeb;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -18,7 +19,15 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 
 builder.Services.AddSingleton<SharedUI.Services.IAuthState, BlazorWeb.Services.WebAuthState>();
 builder.Services.AddSingleton<SharedUI.Services.INavigationService, BlazorWeb.Services.WebNavigationService>();
-builder.Services.AddSingleton<SharedUI.Services.IConnectivityService, BlazorWeb.Services.WebConnectivityService>();
+builder.Services.AddScoped<SharedUI.Services.IConnectivityService, BlazorWeb.Services.WebConnectivityService>();
+
+// SQLite Offline DB
+builder.Services.AddDbContext<Clients.Infrastructure.OfflineDbContext>(options =>
+{
+    // Em WASM local storage (Origin Private File System)
+    options.UseSqlite("Data Source=sysvet.db");
+});
+builder.Services.AddScoped(typeof(Clients.Infrastructure.IOfflineRepository<>), typeof(Clients.Infrastructure.OfflineRepository<>));
 
 var host = builder.Build();
 

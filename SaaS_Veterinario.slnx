@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/src/Clients/">
     <Project Path="src/Clients/BlazorWeb/BlazorWeb.csproj" />
+    <Project Path="src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj" />
     <Project Path="src/Clients/SharedUI/SharedUI.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
@@ -70,6 +71,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/API.IntegrationTests/API.IntegrationTests.csproj" />
     <Project Path="tests/Clients.Tests/Clients.Tests.csproj" />
+    <Project Path="tests/PoC.SyncTests/PoC.SyncTests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/">
     <Project Path="tests/Modules/Core.Tests/Core.Tests.csproj" />
