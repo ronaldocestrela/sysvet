@@ -1,0 +1,34 @@
+@using SharedUI.Services
+@implements IDisposable
+@inject IConnectivityService ConnectivityService
+
+@if (!_isOnline)
+{
+    <div class="connectivity-banner">
+        Você está offline. Os dados serão salvos localmente e sincronizados quando a conexão retornar.
+    </div>
+}
+
+@code {
+    private bool _isOnline = true;
+
+    protected override void OnInitialized()
+    {
+        _isOnline = ConnectivityService.IsOnline;
+        ConnectivityService.ConnectivityChanged += OnConnectivityChanged;
+    }
+
+    private void OnConnectivityChanged(object? sender, bool isOnline)
+    {
+        InvokeAsync(() => 
+        {
+            _isOnline = isOnline;
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        ConnectivityService.ConnectivityChanged -= OnConnectivityChanged;
+    }
+}

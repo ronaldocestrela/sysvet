@@ -8,21 +8,25 @@ public class MauiAuthState : IAuthState
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(_token);
 
-    public Task<string?> GetTokenAsync()
+    public async Task<string?> GetTokenAsync()
     {
-        // For MAUI we would use SecureStorage.GetAsync("jwt_token")
-        return Task.FromResult(_token);
+        if (string.IsNullOrEmpty(_token))
+        {
+            _token = await SecureStorage.Default.GetAsync("jwt_token");
+        }
+        return _token;
     }
 
-    public Task LoginAsync(string token)
+    public async Task LoginAsync(string token)
     {
         _token = token;
-        return Task.CompletedTask;
+        await SecureStorage.Default.SetAsync("jwt_token", token);
     }
 
     public Task LogoutAsync()
     {
         _token = null;
+        SecureStorage.Default.Remove("jwt_token");
         return Task.CompletedTask;
     }
 }

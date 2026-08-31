@@ -1,0 +1,9 @@
+.connectivity-banner {
+    background-color: var(--color-warning);
+    color: #fff; /* or dark text if warning is light */
+    text-align: center;
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    box-shadow: var(--shadow-sm);
+}

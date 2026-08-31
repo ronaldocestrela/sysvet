@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/API/API.csproj" />
+    <Project Path="src/PoC.Sync/PoC.Sync.csproj" />
   </Folder>
   <Folder Name="/src/Clients/">
     <Project Path="src/Clients/BlazorWeb/BlazorWeb.csproj" />

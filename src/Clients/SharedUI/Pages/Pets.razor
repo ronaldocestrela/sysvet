@@ -1,9 +1,10 @@
 @page "/pets"
 @using SharedUI.Components
+@inject Clients.Infrastructure.Http.ApiClient ApiClient
 
 <div class="header-section">
     <h1>Pets</h1>
-    <button class="btn btn-primary">Novo Pet</button>
+    <button class="btn btn-primary" @onclick="OpenAddModal">Novo Pet</button>
 </div>
 
 <div class="card">
@@ -21,14 +22,38 @@
             <td>@pet.Breed</td>
             <td>@pet.Sex</td>
             <td>
-                <button class="btn btn-sm btn-info">Editar</button>
+                <button class="btn btn-sm btn-info" @onclick="() => EditPet(pet)">Editar</button>
             </td>
         </RowTemplate>
     </DataGrid>
 </div>
 
+<Modal @bind-IsVisible="_showModal" Title="@(_editingPet == null ? "Novo Pet" : "Editar Pet")">
+    <ChildContent>
+        <FormField Label="Nome">
+            <input type="text" @bind="_currentPet.Name" />
+        </FormField>
+        <FormField Label="Espécie">
+            <input type="text" @bind="_currentPet.Species" />
+        </FormField>
+        <FormField Label="Raça">
+            <input type="text" @bind="_currentPet.Breed" />
+        </FormField>
+        <FormField Label="Sexo">
+            <input type="text" @bind="_currentPet.Sex" />
+        </FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="CloseModal">Cancelar</button>
+        <button class="btn btn-primary" @onclick="SavePet">Salvar</button>
+    </FooterTemplate>
+</Modal>
+
 @code {
     private List<PetDto>? _pets;
+    private bool _showModal;
+    private PetDto? _editingPet;
+    private PetDto _currentPet = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,6 +77,39 @@
         }
     }
 
+    private void OpenAddModal()
+    {
+        _editingPet = null;
+        _currentPet = new PetDto();
+        _showModal = true;
+    }
+
+    private void EditPet(PetDto pet)
+    {
+        _editingPet = pet;
+        _currentPet = new PetDto
+        {
+            Id = pet.Id,
+            Name = pet.Name,
+            Species = pet.Species,
+            Breed = pet.Breed,
+            Sex = pet.Sex
+        };
+        _showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showModal = false;
+    }
+
+    private async Task SavePet()
+    {
+        // TODO: Enviar request para API
+        _showModal = false;
+        await LoadPetsAsync();
+    }
+
     public class PetDto
     {
         public Guid Id { get; set; }
@@ -61,12 +119,3 @@
         public string Sex { get; set; } = string.Empty;
     }
 }
-
-<style>
-    .header-section {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--spacing-md);
-    }
-</style>

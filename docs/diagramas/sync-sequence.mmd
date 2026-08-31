@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant U as User (UI)
+    participant M as MAUI App
+    participant DB as SQLite (Local)
+    participant B as Sync BackgroundWorker
+    participant API as Cloud API
+    participant CDB as SQL Server (Cloud)
+
+    U->>M: Create/Edit Pet
+    M->>DB: Save Pet (Local)
+    M->>DB: Add OutboxMessage (Register/Update)
+    DB-->>M: Saved Locally
+    M-->>U: Success (No Network Required)
+
+    loop Every X seconds or Connectivity Restored
+        B->>DB: Read Pending OutboxMessages
+        alt Is Online
+            B->>API: HTTP POST /api/v1/sync { Payload }
+            API->>CDB: Process Command (Update Cloud DB)
+            CDB-->>API: Success
+            API-->>B: 200 OK
+            B->>DB: Mark OutboxMessage as Synced / Remove
+        else Is Offline
+            B-->>B: Wait for next cycle (Retain locally)
+        end
+    end
