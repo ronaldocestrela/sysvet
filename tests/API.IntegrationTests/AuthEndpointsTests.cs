@@ -9,6 +9,7 @@ using Xunit;
 
 namespace API.IntegrationTests;
 
+[Collection("IntegrationTests")]
 public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -23,6 +24,7 @@ public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         using var scope = _factory.Services.CreateScope();
         
         var context = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
+        await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
@@ -58,6 +60,51 @@ public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         content!.AccessToken.Should().NotBeNullOrEmpty();
         content.RefreshToken.Should().NotBeNullOrEmpty();
     }
+
+    [Fact]
+    public async Task Login_WithInvalidPassword_ReturnsUnauthorized()
+    {
+        // Arrange
+        await SeedUserAsync();
+        var client = _factory.CreateClient();
+        var request = new { Email = "admin@sysvet.com", Password = "WrongPassword123!" };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Refresh_WithValidTokens_ReturnsNewTokens()
+    {
+        // Arrange
+        await SeedUserAsync();
+        var client = _factory.CreateClient();
+        
+        // 1. Login first
+        var loginRequest = new { Email = "admin@sysvet.com", Password = "Password123!" };
+        var loginResponse = await client.PostAsJsonAsync("/api/v1/auth/login", loginRequest);
+        var loginContent = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        
+        // 2. Refresh
+        var refreshRequest = new { AccessToken = loginContent!.AccessToken, RefreshToken = loginContent.RefreshToken };
+        
+        // Act
+        var refreshResponse = await client.PostAsJsonAsync("/api/v1/auth/refresh", refreshRequest);
+        
+        // Assert
+        refreshResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var refreshContent = await refreshResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        refreshContent.Should().NotBeNull();
+        refreshContent!.AccessToken.Should().NotBeNullOrEmpty();
+        refreshContent.RefreshToken.Should().NotBeNullOrEmpty();
+        
+        refreshContent.AccessToken.Should().NotBe(loginContent.AccessToken);
+        refreshContent.RefreshToken.Should().NotBe(loginContent.RefreshToken);
+    }
+
 
     [Fact]
     public async Task GetMe_WithoutToken_ReturnsUnauthorized()

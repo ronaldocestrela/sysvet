@@ -1,4 +1,7 @@
-# Plano de Implementação — SysVet / VetNexus
+# [HISTÓRICO] Plano de Implementação — SysVet / VetNexus
+> [!WARNING]
+> Este documento é histórico e mantido apenas para referência. O controle atual é feito em `PLANO_DE_IMPLEMENTACAO.md`.
+
 
 > **Atualizado em:** 15/08/2026
 > **Base:** [`roadmap.md`](file:///home/kley/sysvet/docs/roadmap.md) + estado real do repositório

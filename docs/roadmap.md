@@ -139,7 +139,7 @@ flowchart TD
 - [ ] Incluir `MauiApp` na solução (quando workload MAUI disponível)
 - [ ] Remover placeholders `Class1.cs` conforme módulos forem implementados
 - [ ] Resolver advisory de segurança em `Microsoft.OpenApi` (NU1903)
-- [ ] Alinhar duplicatas `roadmap.md`, `agents.md`, `structure.md` (raiz vs `docs/`)
+- [x] Alinhar duplicatas `roadmap.md`, `agents.md`, `structure.md` (raiz vs `docs/`)
 
 **Aceite:** Build local e no CI sem erros; todos os projetos referenciados na solução.
 

@@ -2,10 +2,11 @@ using Core.Domain;
 using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Veterinary.Domain.Entities;
+using IVetUnitOfWork = Veterinary.Domain.Repositories.IUnitOfWork;
 
 namespace Veterinary.Infrastructure.Persistence;
 
-public class VeterinaryDbContext : DbContext, IUnitOfWork
+public class VeterinaryDbContext : DbContext, IUnitOfWork, IVetUnitOfWork
 {
     public ITenantContext TenantContext { get; set; } = null!;
 

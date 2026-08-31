@@ -31,11 +31,21 @@ app.UseStatusCodePages();
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<API.Middlewares.CorrelationIdMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<TenantClaimMiddleware>();
 app.UseAuthorization();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false // Liveness check does not test dependencies
+});
+
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => true // Readiness check tests all dependencies (DB, etc)
+});
+
 app.MapCoreEndpoints();
 app.MapAuthEndpoints();
 

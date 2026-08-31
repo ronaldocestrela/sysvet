@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<Core.Infrastructure.Persistence.CoreDbContext>(options =>
         {
             options.UseSqlite("Data Source=sysvet.db");
+            options.ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCacheKeyFactory, Core.Infrastructure.Persistence.TenantAwareModelCacheKeyFactory>();
         });
 
         // Identity
@@ -48,13 +49,15 @@ public static class ServiceCollectionExtensions
             jwtSettings = new JwtSettings { Secret = "super_secret_key_12345_for_testing_purposes_only!", Issuer = "sysvet", Audience = "sysvet", ExpiryMinutes = 60 };
         }
 
-        services.Configure<JwtSettings>(options => 
-        {
-            options.Secret = jwtSettings.Secret;
-            options.Issuer = jwtSettings.Issuer;
-            options.Audience = jwtSettings.Audience;
-            options.ExpiryMinutes = jwtSettings.ExpiryMinutes;
-        });
+        services.AddOptions<JwtSettings>()
+            .Bind(jwtSettingsSection)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<Core.Infrastructure.Tenancy.TenancySettings>()
+            .Bind(configuration.GetSection(Core.Infrastructure.Tenancy.TenancySettings.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         services.AddAuthentication(options =>
         {
@@ -89,6 +92,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<Core.Domain.IUnitOfWork>(provider => provider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>());
         
         services.AddScoped<Core.Domain.Auditing.IAuditLogger, Core.Infrastructure.Auditing.AuditLogger>();
+        services.AddScoped<Core.Application.Common.Interfaces.IIdempotencyService, Core.Infrastructure.Services.IdempotencyService>();
 
         // Register default TenantContext for migrations/startup
         services.AddScoped<Core.Domain.ITenantContext, API.Services.DefaultTenantContext>();
@@ -98,6 +102,9 @@ public static class ServiceCollectionExtensions
             cfg.RegisterServicesFromAssembly(typeof(Core.Application.Pets.Commands.CreatePetCommand).Assembly);
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.ValidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.IdempotencyBehavior<,>));
+
+            cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.TransactionBehavior<,>));
         });
 
         FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(Core.Application.Pets.Commands.CreatePetCommand).Assembly);

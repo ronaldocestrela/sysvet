@@ -27,10 +27,7 @@ public class RepositoryTests
             .UseSqlite(connection)
             .Options;
 
-        var context = new CoreDbContext(options)
-        {
-            TenantContext = new TestTenantContext()
-        };
+        var context = new CoreDbContext(options, new TestTenantContext());
         
         context.Database.EnsureCreated();
 

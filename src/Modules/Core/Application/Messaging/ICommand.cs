@@ -3,10 +3,12 @@ using MediatR;
 
 namespace Core.Application.Messaging;
 
-public interface ICommand<TResponse> : IRequest<Result<TResponse>>
+public interface ICommandBase { }
+
+public interface ICommand<TResponse> : IRequest<Result<TResponse>>, ICommandBase
 {
 }
 
-public interface ICommand : IRequest<Result>
+public interface ICommand : IRequest<Result>, ICommandBase
 {
 }

@@ -27,6 +27,12 @@ public class TenantClaimMiddleware
                     tenantContext.TenantId = tenantId;
                     tenantContext.SchemaName = $"tenant_{tenantId.ToString("N").ToLowerInvariant()}";
                 }
+
+                var userIdClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+                {
+                    tenantContext.UserId = userId;
+                }
             }
         }
 

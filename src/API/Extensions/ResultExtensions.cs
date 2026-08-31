@@ -13,6 +13,20 @@ public static class ResultExtensions
             throw new InvalidOperationException("Não é possível criar ProblemDetails de um resultado de sucesso.");
         }
 
+        if (result is IValidationResult validationResult)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Ocorreram um ou mais erros de validação.",
+                type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                detail: "Verifique a propriedade 'errors' para mais detalhes.",
+                extensions: new Dictionary<string, object?>
+                {
+                    { "errors", validationResult.ValidationErrors }
+                }
+            );
+        }
+
         return Results.Problem(
             statusCode: GetStatusCode(result.Error.Code),
             title: "Ocorreu um erro ao processar a requisição.",

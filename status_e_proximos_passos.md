@@ -1,4 +1,7 @@
-# Status do Projeto, Lacunas e Próximos Passos (SysVet)
+# [HISTÓRICO] Status do Projeto, Lacunas e Próximos Passos (SysVet)
+> [!WARNING]
+> Este documento é histórico e mantido apenas para referência. O controle atual é feito em `PLANO_DE_IMPLEMENTACAO.md`.
+
 
 > **Data de Atualização:** 15/08/2026  
 > **Documento de Referência:** [`agents.md`](file:///home/kley/sysvet/agents.md) e [`roadmap.md`](file:///home/kley/sysvet/roadmap.md)

@@ -2,6 +2,7 @@ using Core.Domain;
 using Core.Application.Messaging;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Repositories;
+using IUnitOfWork = Veterinary.Domain.Repositories.IUnitOfWork;
 
 using MediatR;
 

@@ -6,7 +6,7 @@ Sistema de gestão unificado para clínicas veterinárias e petshops, cobrindo o
 
 | Área | Link |
 |---|---|
-| 📐 Arquitetura e Stack | [`agents.md`](./agents.md) |
+| 📐 Arquitetura e Stack | [`docs/agents.md`](./docs/agents.md) |
 | 🗺️ Estrutura de Pastas | [`docs/structure.md`](./docs/structure.md) |
 | 🚀 Roadmap | [`docs/roadmap.md`](./docs/roadmap.md) |
 | 📊 Status do Projeto | [`status_e_proximos_passos.md`](./status_e_proximos_passos.md) |

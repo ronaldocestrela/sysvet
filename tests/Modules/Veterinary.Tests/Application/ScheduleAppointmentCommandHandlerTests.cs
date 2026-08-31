@@ -4,6 +4,7 @@ using NSubstitute;
 using Veterinary.Application.Appointments.Commands;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Repositories;
+using IUnitOfWork = Veterinary.Domain.Repositories.IUnitOfWork;
 
 namespace Veterinary.Tests.Application;
 

@@ -5,6 +5,7 @@ using Xunit;
 
 namespace API.IntegrationTests;
 
+[Collection("IntegrationTests")]
 public class HealthCheckTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -21,7 +22,7 @@ public class HealthCheckTests : IClassFixture<WebApplicationFactory<Program>>
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/health");
+        var response = await client.GetAsync("/health/live");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

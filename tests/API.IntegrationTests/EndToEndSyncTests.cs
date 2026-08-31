@@ -17,6 +17,7 @@ using Xunit;
 
 namespace API.IntegrationTests;
 
+[Collection("IntegrationTests")]
 public class EndToEndSyncTests
 {
     private readonly WebApplicationFactory<Program> _factory;
