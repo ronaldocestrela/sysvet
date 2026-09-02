@@ -32,7 +32,7 @@ public class GetDailyScheduleQueryHandler : IRequestHandler<GetDailyScheduleQuer
             Date = a.Date,
             DurationInMinutes = a.DurationInMinutes,
             Status = a.Status.ToString(),
-            Notes = a.Notes
+            Reason = a.Reason
         }).OrderBy(a => a.Date).ToList();
 
         return Result.Success(dtos);

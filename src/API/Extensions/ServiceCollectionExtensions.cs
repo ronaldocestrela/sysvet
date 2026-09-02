@@ -120,6 +120,10 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<Veterinary.Domain.Repositories.IAppointmentRepository, Veterinary.Infrastructure.Persistence.Repositories.AppointmentRepository>();
         services.AddScoped<Veterinary.Domain.Repositories.IScheduleSlotRepository, Veterinary.Infrastructure.Persistence.Repositories.ScheduleSlotRepository>();
+        services.AddScoped<Veterinary.Domain.Repositories.IMedicalRecordRepository, Veterinary.Infrastructure.Persistence.Repositories.MedicalRecordRepository>();
+        services.AddScoped<Veterinary.Domain.Repositories.IVaccineDoseRepository, Veterinary.Infrastructure.Persistence.Repositories.VaccineDoseRepository>();
+        services.AddScoped<Veterinary.Domain.Repositories.IHospitalizationRepository, Veterinary.Infrastructure.Persistence.Repositories.HospitalizationRepository>();
+        services.AddScoped<Veterinary.Domain.Repositories.IPrescriptionExecutionRepository, Veterinary.Infrastructure.Persistence.Repositories.PrescriptionExecutionRepository>();
         services.AddScoped<Veterinary.Domain.Repositories.IUnitOfWork>(provider => provider.GetRequiredService<Veterinary.Infrastructure.Persistence.VeterinaryDbContext>());
 
         services.AddMediatR(cfg =>

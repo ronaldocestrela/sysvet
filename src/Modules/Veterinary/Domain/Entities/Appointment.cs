@@ -1,21 +1,21 @@
+using System;
 using Core.Domain;
+using Veterinary.Domain.Enums;
+using Veterinary.Domain.Errors;
 
 namespace Veterinary.Domain.Entities;
 
-public class Appointment : Entity
+public sealed class Appointment : AggregateRoot
 {
     public Guid TutorId { get; private set; }
     public Guid PetId { get; private set; }
     public Guid VeterinarianId { get; private set; }
-    
     public DateTimeOffset Date { get; private set; }
     public int DurationInMinutes { get; private set; }
+    public string Reason { get; private set; } = string.Empty;
     public AppointmentStatus Status { get; private set; }
-    public string? Notes { get; private set; }
 
-    private Appointment() { } // EF Core
-
-    public Appointment(Guid id, Guid tutorId, Guid petId, Guid veterinarianId, DateTimeOffset date, int durationInMinutes, string? notes)
+    private Appointment(Guid id, Guid tutorId, Guid petId, Guid veterinarianId, DateTimeOffset date, int durationInMinutes, string reason, AppointmentStatus status)
     {
         Id = id;
         TutorId = tutorId;
@@ -23,17 +23,76 @@ public class Appointment : Entity
         VeterinarianId = veterinarianId;
         Date = date;
         DurationInMinutes = durationInMinutes;
-        Status = AppointmentStatus.Agendado;
-        Notes = notes;
+        Reason = reason;
+        Status = status;
     }
 
-    public void UpdateStatus(AppointmentStatus newStatus)
+    private Appointment() { } // EF Core
+
+    public static Result<Appointment> Create(
+        Guid id, 
+        Guid tutorId, 
+        Guid petId, 
+        Guid veterinarianId, 
+        DateTimeOffset date, 
+        int durationInMinutes, 
+        string reason)
     {
-        Status = newStatus;
+        if (date < DateTimeOffset.UtcNow)
+        {
+            return Result.Failure<Appointment>(VeterinaryErrors.Appointment.InvalidDate);
+        }
+
+        var appointment = new Appointment(
+            id,
+            tutorId,
+            petId,
+            veterinarianId,
+            date,
+            durationInMinutes,
+            reason,
+            AppointmentStatus.Scheduled);
+
+        return Result.Success(appointment);
     }
-    
-    public void UpdateNotes(string? notes)
+
+    public Result Confirm()
     {
-        Notes = notes;
+        if (Status != AppointmentStatus.Scheduled)
+        {
+            return Result.Failure(VeterinaryErrors.Appointment.InvalidStatusTransition);
+        }
+
+        Status = AppointmentStatus.Confirmed;
+        return Result.Success();
+    }
+
+    public Result Cancel()
+    {
+        if (Status == AppointmentStatus.Completed || Status == AppointmentStatus.Cancelled)
+        {
+            return Result.Failure(VeterinaryErrors.Appointment.InvalidStatusTransition);
+        }
+
+        Status = AppointmentStatus.Cancelled;
+        return Result.Success();
+    }
+
+    public Result Reschedule(DateTimeOffset newDate)
+    {
+        if (newDate < DateTimeOffset.UtcNow)
+        {
+            return Result.Failure(VeterinaryErrors.Appointment.InvalidDate);
+        }
+
+        if (Status == AppointmentStatus.Completed || Status == AppointmentStatus.Cancelled)
+        {
+            return Result.Failure(VeterinaryErrors.Appointment.InvalidStatusTransition);
+        }
+
+        Date = newDate;
+        Status = AppointmentStatus.Scheduled;
+
+        return Result.Success();
     }
 }

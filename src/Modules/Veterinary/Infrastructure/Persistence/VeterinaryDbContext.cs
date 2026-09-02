@@ -16,8 +16,11 @@ public class VeterinaryDbContext : DbContext, IUnitOfWork, IVetUnitOfWork
 
     public string SchemaName => TenantContext?.SchemaName ?? "dbo";
 
-    public DbSet<Appointment> Appointments { get; set; } = null!;
-    public DbSet<ScheduleSlot> ScheduleSlots { get; set; } = null!;
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<ScheduleSlot> ScheduleSlots => Set<ScheduleSlot>();
+    public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
+    public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
+    public DbSet<Hospitalization> Hospitalizations => Set<Hospitalization>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

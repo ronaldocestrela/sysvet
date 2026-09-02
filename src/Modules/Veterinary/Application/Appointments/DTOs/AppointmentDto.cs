@@ -9,5 +9,5 @@ public class AppointmentDto
     public DateTimeOffset Date { get; set; }
     public int DurationInMinutes { get; set; }
     public string Status { get; set; } = string.Empty;
-    public string? Notes { get; set; }
+    public string Reason { get; set; } = string.Empty;
 }

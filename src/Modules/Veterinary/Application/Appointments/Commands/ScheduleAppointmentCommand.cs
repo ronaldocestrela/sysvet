@@ -8,4 +8,4 @@ public record ScheduleAppointmentCommand(
     Guid VeterinarianId,
     DateTimeOffset Date,
     int DurationInMinutes,
-    string? Notes) : ICommand<Guid>;
+    string Reason) : ICommand<Guid>;

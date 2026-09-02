@@ -17,7 +17,7 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
         builder.Property(a => a.Date).IsRequired();
         builder.Property(a => a.DurationInMinutes).IsRequired();
         builder.Property(a => a.Status).HasConversion<string>().IsRequired().HasMaxLength(20);
-        builder.Property(a => a.Notes).HasMaxLength(500);
+        builder.Property(a => a.Reason).HasMaxLength(500);
 
         builder.Property(a => a.RowVersion)
             .IsConcurrencyToken();

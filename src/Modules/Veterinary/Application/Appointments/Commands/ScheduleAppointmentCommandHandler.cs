@@ -49,14 +49,21 @@ public class ScheduleAppointmentCommandHandler : IRequestHandler<ScheduleAppoint
         _scheduleSlotRepository.Update(slot);
 
         // 3. Criar agendamento
-        var appointment = new Appointment(
+        var appointmentResult = Appointment.Create(
             Guid.NewGuid(),
             request.TutorId,
             request.PetId,
             request.VeterinarianId,
             request.Date,
             request.DurationInMinutes,
-            request.Notes);
+            request.Reason);
+
+        if (appointmentResult.IsFailure)
+        {
+            return Result.Failure<Guid>(appointmentResult.Error);
+        }
+
+        var appointment = appointmentResult.Value;
 
         await _appointmentRepository.AddAsync(appointment, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -12,6 +12,7 @@ namespace Core.Tests.Infrastructure.Persistence;
 public class TestTenantContext : ITenantContext
 {
     public Guid TenantId { get; set; } = Guid.NewGuid();
+    public Guid UserId { get; set; } = Guid.NewGuid();
     public string SchemaName { get; set; } = "tenant_1";
     public string ConnectionString { get; set; } = string.Empty;
 }

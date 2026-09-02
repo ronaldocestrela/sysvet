@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Veterinary\Application\Veterinary.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Veterinary\Domain\Veterinary.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Core\Domain\Core.Domain.csproj" />
   </ItemGroup>
 
 </Project>
