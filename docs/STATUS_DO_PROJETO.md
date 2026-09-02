@@ -21,23 +21,28 @@ Iniciado o desenvolvimento dos módulos de negócio isolados.
 - **Infraestrutura:** Criado o `VeterinaryDbContext` específico do módulo, com sua própria migration (`InitialVeterinary`) separada do Core. Repositórios injetados no DI de forma isolada.
 - **Endpoints:** Expostos em `/api/v1/appointments` usando Minimal APIs (MapGroup), protegidos por `.RequireAuthorization()`.
 - **Testes E2E:** Setup corrigido no `WebApplicationFactory` para invocar os migrations de módulos satélites garantindo a integridade dos testes de integração. Build rodando **100% verde** (19 testes passando).
+- **Sub-entrega B (Prontuário/Vacinas):** `MedicalRecord` e `VaccineDose` implementados com imutabilidade e proteção de integridade clínica. Integrações com `Hospitalization` e testes (GREEN).
+- **Sub-entrega C (UI Blazor):** Protótipos visuais e páginas de listagem e agendamento de consultas consumindo `Mock API`.
+ 
+### Sprint 5 - Parte 02: Módulo Inventory (Estoque e Produtos)
+Iniciado o módulo de estoque.
+- **Sub-entrega A (Domínio e Infraestrutura):** Implementadas entidades `Product`, `StockMovement` e a projeção agregada `ProductBalance` com testes garantindo bloqueio de saldo negativo (GREEN). Repositórios criados e banco gerado na migration `InitialInventory`.
+- **Sub-entrega B (Aplicação):** Casos de Uso (Handlers MediatR) `RegisterProductCommand` e `RegisterStockMovementCommand` concluídos, testados (GREEN) e integrados com a unidade de trabalho isolada `IInventoryUnitOfWork`.
 
 ---
 
 ## 🚀 Onde Estamos e Próximos Passos
 
-Estamos na **Sprint 5 - Parte 01 (Módulo Veterinary)**.
+Estamos na **Sprint 5 - Parte 02 (Módulo Inventory)**.
 
-A **Sub-entrega A (Agenda)** está finalizada. A partir de agora, o próximo passo imediato é:
+As Sub-entregas A e B estão finalizadas. O alicerce do banco de dados, domínio e aplicação estão prontos.
 
-### 👉 **Próxima Ação: Sprint 5 - Parte 01 (Sub-entrega B: Prontuário e Carteira de Vacinação)**
+### 👉 **Próxima Ação: Sprint 5 - Parte 02 (Sub-entrega C: Endpoints e UI)**
 
 **O que faremos:**
-1. **Domínio (TDD Estrito):** Criação das Entidades `MedicalRecord` (Prontuário de Atendimento) e `VaccineCard` (Carteira de Vacinação). As regras de domínio preverão imutabilidade de certas anotações clínicas após finalizadas (para não ferir LGPD e compliance de CRMV) e registro de lote/data de aplicação de vacinas.
-2. **Application:** Comandos para `CreateMedicalRecord`, `UpdateMedicalRecordNotes`, `AddVaccineDose`.
-3. **Infraestrutura:** Atualização do `VeterinaryDbContext`, mapeamento EF Core, e nova Migration `AddMedicalRecords`. O Id da consulta original (`AppointmentId`) servirá de vínculo para o Prontuário.
-4. **Endpoints:** `/api/v1/appointments/{id}/records` e `/api/v1/pets/{id}/vaccines`.
-5. **Integração:** Adicionar as chamadas E2E para garantir o funcionamento com Autenticação e Multi-tenancy.
+1. **API Endpoints:** Criar `InventoryEndpoints.cs` utilizando Minimal APIs para expor rotas como `POST /api/v1/products` e `POST /api/v1/stock/movements`.
+2. **Integração E2E:** Criar `ProductEndpointsTests.cs` (usando `WebApplicationFactory` e autenticação JWT mockada) para validar os endpoints ponta a ponta.
+3. **UI/Frontend:** Construir as páginas Blazor WASM correspondentes para exibir os produtos, saldo em estoque, e um modal para lançamento de entrada/saída, consumindo uma Mock API (conforme convenção do projeto para testes visuais antecipados).
 
 ---
 

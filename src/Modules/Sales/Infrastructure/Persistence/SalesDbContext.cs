@@ -1,21 +1,24 @@
-using Microsoft.EntityFrameworkCore;
 using Core.Domain;
-using Inventory.Domain.Entities;
 using Core.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Sales.Domain.Entities;
+using Sales.Domain.Repositories;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-using Inventory.Domain.Repositories;
+namespace Sales.Infrastructure.Persistence;
 
-namespace Inventory.Infrastructure.Persistence;
-
-public class InventoryDbContext : DbContext, IInventoryUnitOfWork
+public class SalesDbContext : DbContext, ISalesUnitOfWork
 {
     public ITenantContext TenantContext { get; }
 
-    public DbSet<Product> Products => Set<Product>();
-    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
-    public DbSet<ProductBalance> ProductBalances => Set<ProductBalance>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
 
-    public InventoryDbContext(DbContextOptions<InventoryDbContext> options, ITenantContext tenantContext) : base(options)
+    public SalesDbContext(DbContextOptions<SalesDbContext> options, ITenantContext tenantContext) : base(options)
     {
         TenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
     }
@@ -23,11 +26,10 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(TenantContext.SchemaName);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(InventoryDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SalesDbContext).Assembly);
         
-        modelBuilder.Entity<Product>().HasQueryFilter(p => EF.Property<Guid>(p, "TenantId") == TenantContext.TenantId);
-        modelBuilder.Entity<StockMovement>().HasQueryFilter(s => EF.Property<Guid>(s, "TenantId") == TenantContext.TenantId);
-        modelBuilder.Entity<ProductBalance>().HasQueryFilter(b => EF.Property<Guid>(b, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<Order>().HasQueryFilter(o => EF.Property<Guid>(o, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<CashRegister>().HasQueryFilter(c => EF.Property<Guid>(c, "TenantId") == TenantContext.TenantId);
         
         base.OnModelCreating(modelBuilder);
     }
@@ -51,7 +53,8 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
 
         foreach (var entry in entries)
         {
-            if (entry.Metadata.FindProperty("TenantId") != null)
+            var tenantIdProp = entry.Metadata.FindProperty("TenantId");
+            if (tenantIdProp != null)
             {
                 entry.Property("TenantId").CurrentValue = TenantContext.TenantId;
             }

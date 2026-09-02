@@ -1,0 +1,89 @@
+@page "/sales/cash-register"
+@using SharedUI.Services
+@inject ISalesApiService SalesService
+
+<div class="header-container">
+    <h2>Gerenciamento de Caixa</h2>
+    <p>Abertura e fechamento do caixa para a sessão de vendas atual.</p>
+</div>
+
+@if (_openRegister != null)
+{
+    <div class="card status-open">
+        <h3>Sessão Ativa</h3>
+        <p><strong>Caixa ID:</strong> @_openRegister.Id</p>
+        <p><strong>Saldo Inicial:</strong> R$ @_openRegister.OpeningBalance.ToString("N2")</p>
+        <p><strong>Saldo Atual (Vendas + Suprimentos):</strong> R$ @_openRegister.CurrentBalance.ToString("N2")</p>
+
+        <hr />
+        
+        <h4>Fechamento de Caixa</h4>
+        <div class="form-group">
+            <label>Valor real em caixa (para conferência):</label>
+            <input type="number" step="0.01" class="form-control" @bind="_actualClosingBalance" />
+        </div>
+        <button class="btn btn-danger" @onclick="CloseRegister" disabled="@_isLoading">
+            @(_isLoading ? "Fechando..." : "Fechar Caixa")
+        </button>
+        
+        @if (_actualClosingBalance > 0 && _actualClosingBalance != _openRegister.CurrentBalance)
+        {
+            <div class="alert warning mt-2">
+                <strong>Atenção:</strong> Há uma diferença de R$ @((_actualClosingBalance - _openRegister.CurrentBalance).ToString("N2")) no caixa!
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card status-closed">
+        <h3>Nenhum Caixa Aberto</h3>
+        <p>Você precisa abrir um caixa para iniciar as vendas (PDV).</p>
+
+        <div class="form-group">
+            <label>Saldo Inicial (Troco):</label>
+            <input type="number" step="0.01" class="form-control" @bind="_openingBalance" />
+        </div>
+        <button class="btn btn-primary" @onclick="OpenRegister" disabled="@_isLoading">
+            @(_isLoading ? "Abrindo..." : "Abrir Caixa")
+        </button>
+    </div>
+}
+
+@code {
+    private CashRegisterDto? _openRegister;
+    private decimal _openingBalance = 100m;
+    private decimal _actualClosingBalance = 0m;
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _openRegister = await SalesService.GetOpenCashRegisterAsync();
+        if (_openRegister != null)
+        {
+            _actualClosingBalance = _openRegister.CurrentBalance;
+        }
+    }
+
+    private async Task OpenRegister()
+    {
+        _isLoading = true;
+        var id = await SalesService.OpenCashRegisterAsync(_openingBalance);
+        _openRegister = await SalesService.GetOpenCashRegisterAsync();
+        if (_openRegister != null)
+        {
+            _actualClosingBalance = _openRegister.CurrentBalance;
+        }
+        _isLoading = false;
+    }
+
+    private async Task CloseRegister()
+    {
+        if (_openRegister == null) return;
+        
+        _isLoading = true;
+        await SalesService.CloseCashRegisterAsync(_openRegister.Id, _actualClosingBalance);
+        _openRegister = await SalesService.GetOpenCashRegisterAsync();
+        _isLoading = false;
+    }
+}

@@ -23,6 +23,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.UnitOfMeasure).IsRequired().HasMaxLength(20);
         builder.Property(p => p.ReorderLevel).HasPrecision(18, 2);
 
-        builder.Property(e => e.RowVersion).IsRowVersion();
+        builder.Property(e => e.RowVersion).IsConcurrencyToken();
     }
 }

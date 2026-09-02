@@ -1,0 +1,114 @@
+@page "/products"
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IInventoryApiService InventoryApi
+
+<div class="header-section">
+    <h1>Catálogo de Produtos</h1>
+    <button class="btn btn-primary" @onclick="OpenAddModal">Novo Produto</button>
+</div>
+
+<div class="card p-3">
+    @if (_isLoading)
+    {
+        <LoadingState Message="Carregando produtos..." />
+    }
+    else if (_products == null || !_products.Any())
+    {
+        <p class="empty-state">Nenhum produto cadastrado.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Código de Barras</th>
+                    <th>Estoque Atual</th>
+                    <th>Nível Reabastecimento</th>
+                    <th>Unidade</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var prod in _products)
+                {
+                    <tr class="@(prod.CurrentStock <= prod.ReorderLevel ? "low-stock" : "")">
+                        <td>
+                            <strong>@prod.Name</strong><br/>
+                            <small class="text-muted">@prod.Description</small>
+                        </td>
+                        <td>@prod.Barcode</td>
+                        <td>
+                            <span class="stock-badge @(prod.CurrentStock <= prod.ReorderLevel ? "danger" : "success")">
+                                @prod.CurrentStock
+                            </span>
+                        </td>
+                        <td>@prod.ReorderLevel</td>
+                        <td>@prod.UnitOfMeasure</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline">Editar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<Modal @bind-IsVisible="_showModal" Title="Novo Produto">
+    <ChildContent>
+        <FormField Label="Nome">
+            <input type="text" @bind="_newProduct.Name" />
+        </FormField>
+        <FormField Label="Descrição">
+            <input type="text" @bind="_newProduct.Description" />
+        </FormField>
+        <FormField Label="Código de Barras">
+            <input type="text" @bind="_newProduct.Barcode" />
+        </FormField>
+        <FormField Label="Unidade (ex: Un, Kg, Cx)">
+            <input type="text" @bind="_newProduct.UnitOfMeasure" />
+        </FormField>
+        <FormField Label="Nível Reabastecimento">
+            <input type="number" step="0.01" @bind="_newProduct.ReorderLevel" />
+        </FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
+        <button class="btn btn-primary" @onclick="SaveProduct">Salvar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private List<ProductDto>? _products;
+    private bool _isLoading;
+    private bool _showModal;
+    
+    private ProductDto _newProduct = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProductsAsync();
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        _isLoading = true;
+        _products = await InventoryApi.GetProductsAsync();
+        _isLoading = false;
+    }
+
+    private void OpenAddModal()
+    {
+        _newProduct = new ProductDto();
+        _showModal = true;
+    }
+
+    private async Task SaveProduct()
+    {
+        await InventoryApi.RegisterProductAsync(_newProduct.Name, _newProduct.Description, _newProduct.Barcode, _newProduct.UnitOfMeasure, _newProduct.ReorderLevel);
+        _showModal = false;
+        await LoadProductsAsync();
+    }
+}

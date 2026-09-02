@@ -21,6 +21,6 @@ public class ProductBalanceConfiguration : IEntityTypeConfiguration<ProductBalan
                .HasForeignKey<ProductBalance>(b => b.ProductId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(e => e.RowVersion).IsRowVersion();
+        builder.Property(e => e.RowVersion).IsConcurrencyToken();
     }
 }

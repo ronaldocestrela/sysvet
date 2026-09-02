@@ -1,0 +1,30 @@
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.low-stock {
+    background-color: #fff5f5;
+}
+
+.stock-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.stock-badge.success {
+    background-color: #e6fffa;
+    color: #276749;
+}
+
+.stock-badge.danger {
+    background-color: #fed7d7;
+    color: #9b2c2c;
+}

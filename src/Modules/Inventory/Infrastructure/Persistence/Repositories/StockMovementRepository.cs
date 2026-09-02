@@ -18,9 +18,6 @@ public class StockMovementRepository : IStockMovementRepository
 
     public void Add(StockMovement entity) => _dbContext.StockMovements.Add(entity);
 
-    public async Task AddAsync(StockMovement entity, CancellationToken cancellationToken = default)
-        => await _dbContext.StockMovements.AddAsync(entity, cancellationToken);
-
     public async Task<System.Collections.Generic.IEnumerable<StockMovement>> GetAllAsync(CancellationToken cancellationToken = default)
         => await _dbContext.StockMovements.ToListAsync(cancellationToken);
 

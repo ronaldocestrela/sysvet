@@ -1,0 +1,127 @@
+@page "/sales/pos"
+@using SharedUI.Services
+@inject ISalesApiService SalesService
+@inject IInventoryApiService InventoryService
+
+<div class="pos-container">
+    <div class="header-container">
+        <h2>Frente de Caixa (PDV)</h2>
+        <p>Registre suas vendas de forma rápida.</p>
+    </div>
+
+    @if (_openRegister == null)
+    {
+        <div class="alert warning">
+            <strong>Nenhum caixa aberto!</strong> Vá em <a href="/sales/cash-register">Gerenciamento de Caixa</a> e abra o caixa para iniciar as vendas.
+        </div>
+    }
+    else
+    {
+        <div class="pos-grid">
+            <div class="pos-products">
+                <h3>Produtos Disponíveis</h3>
+                <div class="product-list">
+                    @foreach (var product in _products)
+                    {
+                        <div class="product-card" @onclick="() => AddToCart(product)">
+                            <h4>@product.Name</h4>
+                            <p class="price">R$ 15,00</p>
+                            <span class="badge">@product.UnitOfMeasure</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="pos-cart">
+                <h3>Carrinho</h3>
+                
+                @if (!_cart.Any())
+                {
+                    <p class="empty-cart">Selecione produtos para adicionar ao carrinho.</p>
+                }
+                else
+                {
+                    <ul class="cart-items">
+                        @foreach (var item in _cart)
+                        {
+                            <li>
+                                <div class="item-info">
+                                    <strong>@item.ProductName</strong>
+                                    <span>R$ @item.UnitPrice.ToString("N2") x @item.Quantity</span>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn-icon" @onclick="() => RemoveFromCart(item)">🗑️</button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="cart-total">
+                        <strong>Total:</strong>
+                        <span>R$ @Total.ToString("N2")</span>
+                    </div>
+
+                    <button class="btn btn-success btn-lg" @onclick="FinishSale" disabled="@_isLoading">
+                        @(_isLoading ? "Processando..." : "Finalizar Venda")
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private CashRegisterDto? _openRegister;
+    private List<ProductDto> _products = new();
+    private List<OrderItemDto> _cart = new();
+    private bool _isLoading;
+
+    private decimal Total => _cart.Sum(i => i.Quantity * i.UnitPrice);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _openRegister = await SalesService.GetOpenCashRegisterAsync();
+        
+        // Simular listagem rápida de produtos para o PDV
+        _products = (await InventoryService.GetProductsAsync()).ToList();
+    }
+
+    private void AddToCart(ProductDto product)
+    {
+        var existing = _cart.FirstOrDefault(i => i.ProductId == product.Id);
+        if (existing != null)
+        {
+            existing.Quantity++;
+        }
+        else
+        {
+            _cart.Add(new OrderItemDto
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                Quantity = 1m,
+                UnitPrice = 15.00m
+            });
+        }
+    }
+
+    private void RemoveFromCart(OrderItemDto item)
+    {
+        _cart.Remove(item);
+    }
+
+    private async Task FinishSale()
+    {
+        if (_openRegister == null || !_cart.Any()) return;
+
+        _isLoading = true;
+        var orderId = await SalesService.CreateOrderAsync(_openRegister.Id, _cart);
+        await SalesService.PayOrderAsync(orderId);
+        
+        _cart.Clear();
+        _isLoading = false;
+        
+        // Simular atualização de saldo local
+        _openRegister = await SalesService.GetOpenCashRegisterAsync();
+    }
+}

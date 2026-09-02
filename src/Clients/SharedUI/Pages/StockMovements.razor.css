@@ -1,0 +1,27 @@
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.type-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.85em;
+}
+
+.type-badge.in {
+    background-color: #e6fffa;
+    color: #276749;
+}
+
+.type-badge.out {
+    background-color: #fff5f5;
+    color: #c53030;
+}

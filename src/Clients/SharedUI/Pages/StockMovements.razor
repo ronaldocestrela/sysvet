@@ -1,0 +1,124 @@
+@page "/stock-movements"
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IInventoryApiService InventoryApi
+
+<div class="header-section">
+    <h1>Movimentações de Estoque</h1>
+    <button class="btn btn-primary" @onclick="OpenAddModal">Registrar Movimentação</button>
+</div>
+
+<div class="card p-3">
+    @if (_isLoading)
+    {
+        <LoadingState Message="Carregando movimentações..." />
+    }
+    else if (_movements == null || !_movements.Any())
+    {
+        <p class="empty-state">Nenhuma movimentação registrada.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Motivo</th>
+                    <th>Lote</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var mov in _movements.OrderByDescending(m => m.Date))
+                {
+                    <tr>
+                        <td>@mov.Date.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <span class="type-badge @(mov.Type == "In" ? "in" : "out")">
+                                @(mov.Type == "In" ? "Entrada" : "Saída")
+                            </span>
+                        </td>
+                        <td>@mov.ProductName</td>
+                        <td>@mov.Quantity</td>
+                        <td>@mov.Reason</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(mov.BatchNumber))
+                            {
+                                <span>@mov.BatchNumber</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<Modal @bind-IsVisible="_showModal" Title="Registrar Movimentação">
+    <ChildContent>
+        <FormField Label="Produto (ID)">
+            <input type="text" @bind="_newMovement.ProductId" placeholder="Guid do Produto" />
+        </FormField>
+        <FormField Label="Tipo">
+            <select @bind="_newMovement.Type">
+                <option value="In">Entrada</option>
+                <option value="Out">Saída</option>
+            </select>
+        </FormField>
+        <FormField Label="Quantidade">
+            <input type="number" step="0.01" @bind="_newMovement.Quantity" />
+        </FormField>
+        <FormField Label="Lote (Opcional)">
+            <input type="text" @bind="_newMovement.BatchNumber" />
+        </FormField>
+        <FormField Label="Validade (Opcional)">
+            <input type="date" @bind="_newMovement.ExpirationDate" />
+        </FormField>
+        <FormField Label="Motivo">
+            <input type="text" @bind="_newMovement.Reason" />
+        </FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
+        <button class="btn btn-primary" @onclick="SaveMovement">Registrar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private List<StockMovementDto>? _movements;
+    private bool _isLoading;
+    private bool _showModal;
+    
+    private StockMovementDto _newMovement = new() { Type = "In" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMovementsAsync();
+    }
+
+    private async Task LoadMovementsAsync()
+    {
+        _isLoading = true;
+        _movements = await InventoryApi.GetRecentMovementsAsync();
+        _isLoading = false;
+    }
+
+    private void OpenAddModal()
+    {
+        _newMovement = new StockMovementDto { Type = "In" };
+        _showModal = true;
+    }
+
+    private async Task SaveMovement()
+    {
+        await InventoryApi.RegisterStockMovementAsync(_newMovement.ProductId, _newMovement.Type, _newMovement.Quantity, _newMovement.BatchNumber, _newMovement.ExpirationDate, _newMovement.Reason);
+        _showModal = false;
+        await LoadMovementsAsync();
+    }
+}

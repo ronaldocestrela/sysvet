@@ -24,6 +24,10 @@ builder.Services.AddScoped<SharedUI.Services.IConnectivityService, BlazorWeb.Ser
 // Módulo Veterinary
 builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
 
+// Módulo Inventory
+builder.Services.AddScoped<SharedUI.Services.IInventoryApiService, SharedUI.Services.MockInventoryApiService>();
+builder.Services.AddScoped<SharedUI.Services.ISalesApiService, SharedUI.Services.MockSalesApiService>();
+
 // SQLite Offline DB
 builder.Services.AddDbContext<Clients.Infrastructure.OfflineDbContext>(options =>
 {

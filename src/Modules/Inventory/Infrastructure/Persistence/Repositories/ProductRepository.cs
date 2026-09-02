@@ -18,9 +18,6 @@ public class ProductRepository : IProductRepository
 
     public void Add(Product entity) => _dbContext.Products.Add(entity);
 
-    public async Task AddAsync(Product entity, CancellationToken cancellationToken = default)
-        => await _dbContext.Products.AddAsync(entity, cancellationToken);
-
     public async Task<System.Collections.Generic.IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken = default)
         => await _dbContext.Products.ToListAsync(cancellationToken);
 

@@ -1,6 +1,7 @@
 using API.Extensions;
 using Core.Infrastructure.Identity;
 using Scalar.AspNetCore;
+using API.Endpoints.Sales;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services.AddProblemDetails();
 builder.Services.AddApiDocumentation();
 builder.Services.AddCoreModule(builder.Configuration);
 builder.Services.AddVeterinaryModule(builder.Configuration);
+builder.Services.AddInventoryModule(builder.Configuration);
+builder.Services.AddSalesModule(builder.Configuration);
 
 var app = builder.Build();
 
@@ -48,6 +51,9 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
 
 app.MapCoreEndpoints();
 app.MapAuthEndpoints();
+app.MapVeterinaryEndpoints();
+API.Endpoints.Inventory.InventoryEndpoints.MapInventoryEndpoints(app);
+app.MapSalesEndpoints();
 
 // Hello world route for testing PoC
 app.MapGet("/", () => "SysVet API is running!");

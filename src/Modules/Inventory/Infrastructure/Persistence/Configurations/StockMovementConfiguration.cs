@@ -23,6 +23,6 @@ public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement
                .HasForeignKey(s => s.ProductId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Property(e => e.RowVersion).IsRowVersion();
+        builder.Property(e => e.RowVersion).IsConcurrencyToken();
     }
 }
