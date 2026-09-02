@@ -1,0 +1,102 @@
+@page "/hospitalizations"
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IVeterinaryApiService VeterinaryApi
+
+<div class="header-section">
+    <h1>Painel de Internação</h1>
+</div>
+
+<div class="hospitalizations-grid">
+    @if (_isLoading)
+    {
+        <LoadingState Message="Carregando internações..." />
+    }
+    else if (_hospitalizations == null || !_hospitalizations.Any())
+    {
+        <div class="empty-state">Nenhum animal internado no momento.</div>
+    }
+    else
+    {
+        @foreach (var hosp in _hospitalizations)
+        {
+            <div class="hosp-card">
+                <div class="hosp-header">
+                    <h3>@hosp.PetName</h3>
+                    <span class="badge badge-warning">Internado</span>
+                </div>
+                <div class="hosp-body">
+                    <p><strong>Motivo:</strong> @hosp.Reason</p>
+                    <p><strong>Desde:</strong> @hosp.AdmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+                <div class="hosp-actions">
+                    <button class="btn btn-sm btn-primary" @onclick="() => OpenPrescriptionModal(hosp.Id)">Prescrição</button>
+                    <button class="btn btn-sm btn-outline" @onclick="() => Discharge(hosp.Id)">Dar Alta</button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<Modal @bind-IsVisible="_showModal" Title="Executar Prescrição">
+    <ChildContent>
+        <FormField Label="Medicação">
+            <input type="text" @bind="_medication" />
+        </FormField>
+        <FormField Label="Dose">
+            <input type="text" @bind="_dose" />
+        </FormField>
+        <FormField Label="Observações">
+            <input type="text" @bind="_notes" />
+        </FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
+        <button class="btn btn-primary" @onclick="ExecutePrescription">Confirmar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private List<HospitalizationDto>? _hospitalizations;
+    private bool _isLoading;
+    
+    private bool _showModal;
+    private Guid _selectedHospId;
+    private string _medication = "";
+    private string _dose = "";
+    private string _notes = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        _hospitalizations = await VeterinaryApi.GetActiveHospitalizationsAsync();
+        _isLoading = false;
+    }
+
+    private void OpenPrescriptionModal(Guid hospId)
+    {
+        _selectedHospId = hospId;
+        _medication = "";
+        _dose = "";
+        _notes = "";
+        _showModal = true;
+    }
+
+    private async Task ExecutePrescription()
+    {
+        await VeterinaryApi.ExecutePrescriptionAsync(_selectedHospId, _medication, _dose, _notes, Guid.NewGuid());
+        _showModal = false;
+        // Optionally show a toast here
+    }
+
+    private async Task Discharge(Guid hospId)
+    {
+        await VeterinaryApi.DischargePetAsync(hospId);
+        await LoadDataAsync();
+    }
+}

@@ -1,0 +1,88 @@
+.calendar-container {
+    padding: 20px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: var(--color-surface);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.calendar-header h3 {
+    margin: 0;
+    color: var(--color-primary);
+}
+
+.appointments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.appointment-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-surface);
+    padding: 15px;
+    border-radius: var(--radius-md);
+    border-left: 5px solid var(--color-secondary);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.appointment-card.scheduled {
+    border-left-color: #3b82f6;
+}
+
+.appointment-card.completed {
+    border-left-color: #10b981;
+}
+
+.appointment-card.canceled {
+    border-left-color: #ef4444;
+}
+
+.time {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--color-text);
+    width: 80px;
+}
+
+.details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.details h4 {
+    margin: 0 0 5px 0;
+    color: var(--color-primary);
+}
+
+.details span {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: 40px;
+    font-style: italic;
+}

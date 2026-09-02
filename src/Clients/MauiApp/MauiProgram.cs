@@ -33,7 +33,10 @@ public static class MauiProgram
 
 		builder.Services.AddSingleton<SharedUI.Services.IAuthState, MauiApp.Services.MauiAuthState>();
 		builder.Services.AddSingleton<SharedUI.Services.INavigationService, MauiApp.Services.MauiNavigationService>();
-		builder.Services.AddSingleton<SharedUI.Services.IConnectivityService, MauiApp.Services.MauiConnectivityService>();
+		builder.Services.AddScoped<SharedUI.Services.IConnectivityService, MauiApp.Services.MauiConnectivityService>();
+
+		// Módulo Veterinary
+		builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
 
 		// SQLite Offline DB
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "sysvet.db");

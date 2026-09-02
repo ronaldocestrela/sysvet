@@ -21,6 +21,9 @@ builder.Services.AddSingleton<SharedUI.Services.IAuthState, BlazorWeb.Services.W
 builder.Services.AddSingleton<SharedUI.Services.INavigationService, BlazorWeb.Services.WebNavigationService>();
 builder.Services.AddScoped<SharedUI.Services.IConnectivityService, BlazorWeb.Services.WebConnectivityService>();
 
+// Módulo Veterinary
+builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
+
 // SQLite Offline DB
 builder.Services.AddDbContext<Clients.Infrastructure.OfflineDbContext>(options =>
 {

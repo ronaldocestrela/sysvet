@@ -1,0 +1,113 @@
+@page "/appointments"
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IVeterinaryApiService VeterinaryApi
+
+<div class="header-section">
+    <h1>Agenda de Consultas</h1>
+    <button class="btn btn-primary" @onclick="OpenAddModal">Agendar Novo</button>
+</div>
+
+<div class="calendar-container card">
+    <div class="calendar-header">
+        <button class="btn btn-sm" @onclick="PreviousDay">&lt; Anterior</button>
+        <h3>@_currentDate.ToString("dd/MM/yyyy")</h3>
+        <button class="btn btn-sm" @onclick="NextDay">Próximo &gt;</button>
+    </div>
+
+    @if (_isLoading)
+    {
+        <LoadingState Message="Carregando agenda..." />
+    }
+    else if (_appointments == null || !_appointments.Any())
+    {
+        <p class="empty-state">Não há consultas agendadas para este dia.</p>
+    }
+    else
+    {
+        <div class="appointments-list">
+            @foreach (var apt in _appointments.OrderBy(a => a.SlotTime))
+            {
+                <div class="appointment-card @apt.Status.ToLower()">
+                    <div class="time">@apt.SlotTime.ToString("HH:mm")</div>
+                    <div class="details">
+                        <h4>@apt.PetName</h4>
+                        <span class="vet">@apt.VetName</span>
+                        <span class="reason">@apt.Reason</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-sm btn-outline">Reagendar</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<Modal @bind-IsVisible="_showModal" Title="Novo Agendamento">
+    <ChildContent>
+        <FormField Label="Pet (ID)">
+            <input type="text" @bind="_newAppointment.PetId" placeholder="Guid do Pet" />
+        </FormField>
+        <FormField Label="Veterinário (ID)">
+            <input type="text" @bind="_newAppointment.VeterinarianId" placeholder="Guid do Veterinário" />
+        </FormField>
+        <FormField Label="Data e Hora">
+            <input type="datetime-local" @bind="_newAppointment.SlotTime" />
+        </FormField>
+        <FormField Label="Motivo">
+            <input type="text" @bind="_newAppointment.Reason" />
+        </FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
+        <button class="btn btn-primary" @onclick="SaveAppointment">Agendar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private DateTimeOffset _currentDate = DateTimeOffset.UtcNow.Date;
+    private List<AppointmentDto>? _appointments;
+    private bool _isLoading;
+    private bool _showModal;
+    
+    // Model for new form
+    private AppointmentDto _newAppointment = new() { SlotTime = DateTimeOffset.UtcNow.AddDays(1) };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAppointmentsAsync();
+    }
+
+    private async Task LoadAppointmentsAsync()
+    {
+        _isLoading = true;
+        _appointments = await VeterinaryApi.GetDailyAppointmentsAsync(_currentDate);
+        _isLoading = false;
+    }
+
+    private async Task PreviousDay()
+    {
+        _currentDate = _currentDate.AddDays(-1);
+        await LoadAppointmentsAsync();
+    }
+
+    private async Task NextDay()
+    {
+        _currentDate = _currentDate.AddDays(1);
+        await LoadAppointmentsAsync();
+    }
+
+    private void OpenAddModal()
+    {
+        _newAppointment = new AppointmentDto { SlotTime = _currentDate.AddHours(9) };
+        _showModal = true;
+    }
+
+    private async Task SaveAppointment()
+    {
+        await VeterinaryApi.ScheduleAppointmentAsync(_newAppointment.PetId, _newAppointment.VeterinarianId, _newAppointment.SlotTime, _newAppointment.Reason);
+        _showModal = false;
+        await LoadAppointmentsAsync();
+    }
+}

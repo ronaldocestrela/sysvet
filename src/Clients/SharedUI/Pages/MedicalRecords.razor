@@ -1,0 +1,88 @@
+@page "/pets/{petId:guid}/medical-records"
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IVeterinaryApiService VeterinaryApi
+@inject SharedUI.Services.INavigationService Navigation
+
+<div class="header-section">
+    <h1>Prontuário Médico</h1>
+    <div class="header-actions">
+        <button class="btn btn-outline" @onclick="GoBack">Voltar</button>
+        <button class="btn btn-primary" @onclick="() => _showModal = true">Nova Anotação</button>
+    </div>
+</div>
+
+<div class="records-timeline">
+    @if (_isLoading)
+    {
+        <LoadingState Message="Carregando histórico do paciente..." />
+    }
+    else if (_records == null || !_records.Any())
+    {
+        <div class="empty-state">Nenhum registro encontrado para este Pet.</div>
+    }
+    else
+    {
+        @foreach (var record in _records.OrderByDescending(r => r.Date))
+        {
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content card">
+                    <div class="record-header">
+                        <h4>@record.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</h4>
+                        <span class="badge @record.Status.ToLower()">@record.Status</span>
+                    </div>
+                    <div class="record-body">
+                        <p>@record.Notes</p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<Modal @bind-IsVisible="_showModal" Title="Novo Registro">
+    <ChildContent>
+        <FormField Label="Anotações Clínicas">
+            <textarea @bind="_newNotes" rows="4" style="width:100%; border:1px solid #ccc; border-radius:4px; padding:8px;"></textarea>
+        </FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
+        <button class="btn btn-primary" @onclick="SaveRecord">Salvar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    [Parameter]
+    public Guid PetId { get; set; }
+
+    private List<MedicalRecordDto>? _records;
+    private bool _isLoading;
+    private bool _showModal;
+    private string _newNotes = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRecordsAsync();
+    }
+
+    private async Task LoadRecordsAsync()
+    {
+        _isLoading = true;
+        _records = await VeterinaryApi.GetPetMedicalRecordsAsync(PetId);
+        _isLoading = false;
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/pets");
+    }
+
+    private async Task SaveRecord()
+    {
+        // Typically calls API to Add Record
+        _showModal = false;
+        await LoadRecordsAsync();
+    }
+}
