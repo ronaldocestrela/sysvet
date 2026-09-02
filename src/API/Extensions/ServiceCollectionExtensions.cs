@@ -126,6 +126,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<Veterinary.Domain.Repositories.IPrescriptionExecutionRepository, Veterinary.Infrastructure.Persistence.Repositories.PrescriptionExecutionRepository>();
         services.AddScoped<Veterinary.Domain.Repositories.IUnitOfWork>(provider => provider.GetRequiredService<Veterinary.Infrastructure.Persistence.VeterinaryDbContext>());
 
+        // Inventory Module Database
+        services.AddDbContext<Inventory.Infrastructure.Persistence.InventoryDbContext>(options =>
+            options.UseSqlServer(
+                configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly(typeof(Inventory.Infrastructure.Persistence.InventoryDbContext).Assembly.FullName)
+            ));
+            
+        services.AddScoped<Inventory.Infrastructure.Persistence.IInventoryUnitOfWork>(provider => provider.GetRequiredService<Inventory.Infrastructure.Persistence.InventoryDbContext>());
+        services.AddScoped<Inventory.Domain.Repositories.IProductRepository, Inventory.Infrastructure.Persistence.Repositories.ProductRepository>();
+        services.AddScoped<Inventory.Domain.Repositories.IStockMovementRepository, Inventory.Infrastructure.Persistence.Repositories.StockMovementRepository>();
+
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(Veterinary.Application.Appointments.Commands.ScheduleAppointmentCommand).Assembly);
