@@ -19,6 +19,11 @@ Estas sprints pavimentaram a estrutura base (SaaS modular, CQRS, Offline-First).
 - **Rastreamento:** `CorrelationIdMiddleware` + console JSON com `IncludeScopes` em `appsettings.json`.
 - **Testes:** `DatabaseHealthCheckTests`, `HealthCheckTests`, `CorrelationIdMiddlewareTests`, `CorrelationIdHttpTests` em `API.IntegrationTests` / `Core.Tests`.
 
+### Fase 1 — ADRs e documentação arquitetural (1.6)
+- **ADRs:** ADR-001 a ADR-005 em formato MADR (opções, decisão, confirmação em `src/`); índice em [`docs/arquitetura/README.md`](arquitetura/README.md).
+- **Diagramas:** C4 contexto/containers/componentes da API + sequência de sync em [`docs/diagramas/`](diagramas/).
+- **Consolidação:** `ADR_002_Sincronizacao.md` na raiz reduzido a ponte para o ADR canônico.
+
 ### Fase 1 — Configuração por ambiente (1.4)
 - **Options:** `JwtSettings`, `TenancySettings`, `DatabaseOptions` (Core); `VeterinaryOptions`, `InventoryOptions`, `SalesOptions` com `ValidateOnStart()`.
 - **Connection strings:** `ConnectionStrings:DefaultConnection` + overrides opcionais; helper `ConfigureModuleDatabase` (Sqlite/SqlServer).

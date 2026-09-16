@@ -128,7 +128,7 @@ flowchart TD
 | **1.3 DI modular na API** | 5 | Concluído |
 | **1.4 Configuração por ambiente** | 3 | Concluído |
 | **1.5 Observabilidade e health checks** | 3 | Concluído |
-| **1.6 ADRs e documentação arquitetural** | 3 | Pendente |
+| **1.6 ADRs e documentação arquitetural** | 3 | Concluído |
 | **Total Fase 1** | **22 SP** | |
 
 ### 1.1 Solução e referências (3 SP) — Concluído
@@ -179,12 +179,13 @@ flowchart TD
 
 **Aceite:** Health check retorna status agregado; logs incluem trace id.
 
-### 1.6 ADRs e documentação arquitetural (3 SP) — Pendente
+### 1.6 ADRs e documentação arquitetural (3 SP) — Concluído
 
-- [ ] ADR-001: Monólito modular vs microserviços
-- [ ] ADR-002: Estratégia de sync offline (Dotmim.Sync vs Outbox/Event Sourcing)
-- [ ] ADR-003: Multi-tenancy (schema por tenant vs discriminator)
-- [ ] Popular `docs/arquitetura/` e `docs/diagramas/` (diagrama C4 nível 1–2)
+- [x] ADR-001: Monólito modular vs microserviços — [`docs/arquitetura/ADR-001-monolito-modular.md`](arquitetura/ADR-001-monolito-modular.md)
+- [x] ADR-002: Estratégia de sync offline (Dotmim.Sync vs Outbox/Event Sourcing) — [`docs/arquitetura/ADR-002-estrategia-de-sync.md`](arquitetura/ADR-002-estrategia-de-sync.md)
+- [x] ADR-003: Multi-tenancy (schema por tenant vs discriminator) — [`docs/arquitetura/ADR-003-multi-tenancy.md`](arquitetura/ADR-003-multi-tenancy.md)
+- [x] Índice MADR e ADR-004/005 alinhados — [`docs/arquitetura/README.md`](arquitetura/README.md)
+- [x] C4 contexto, containers e componentes da API + sync — [`docs/diagramas/c4-context.mmd`](diagramas/c4-context.mmd), [`c4-containers.mmd`](diagramas/c4-containers.mmd), [`c4-api-components.mmd`](diagramas/c4-api-components.mmd)
 
 **Aceite:** ADRs versionados; diagramas refletem estrutura real de `src/`.
 

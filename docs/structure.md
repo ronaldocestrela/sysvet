@@ -10,11 +10,22 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 ├── scripts/assert-coverage.sh          # Gate de cobertura mínima usado no CI.
 ├── .dockerignore                       # Contexto enxuto para build de container da API.
 ├── docs/                               # Arquitetura detalhada, diagramas de domínio e registros de decisão (ADRs).
-│   ├── arquitetura/                    
-│   ├── diagramas/                      
-│   ├── agents.md                       
-│   ├── structure.md                    
-│   └── roadmap.md                      
+│   ├── arquitetura/
+│   │   ├── README.md                   # Índice de ADRs e template MADR.
+│   │   ├── configuracao.md             # Options, health, correlation id (Fase 1.4–1.5).
+│   │   ├── ADR-001-monolito-modular.md
+│   │   ├── ADR-002-estrategia-de-sync.md
+│   │   ├── ADR-003-multi-tenancy.md
+│   │   ├── ADR-004-padrao-cqrs.md
+│   │   └── ADR-005-result-http.md
+│   ├── diagramas/
+│   │   ├── c4-context.mmd              # C4 nível 1 — contexto.
+│   │   ├── c4-containers.mmd           # C4 nível 2 — containers vs src/.
+│   │   ├── c4-api-components.mmd       # C4 nível 3 — módulos na API.
+│   │   └── sync-sequence.mmd           # Outbox: cliente → API → banco nuvem.
+│   ├── agents.md
+│   ├── structure.md
+│   └── roadmap.md
 │
 ├── src/                                # Raiz do código-fonte.
 │   ├── API/                            # Projeto ASP.NET Core Web API (Ponto de entrada, injeção de dependência e configuração do Scalar).

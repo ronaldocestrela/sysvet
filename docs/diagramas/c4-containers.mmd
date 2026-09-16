@@ -1,0 +1,33 @@
+%% C4 Level 2 — Containers (aligned with src/)
+flowchart TB
+    subgraph clients [Client devices]
+        BlazorWeb["BlazorWeb<br/>Blazor WASM PWA<br/>src/Clients/BlazorWeb"]
+        MauiApp["MauiApp<br/>Blazor Hybrid<br/>src/Clients/MauiApp"]
+    end
+
+    subgraph libs [Shared libraries - not separate runtime]
+        SharedUI["SharedUI<br/>Razor components<br/>src/Clients/SharedUI"]
+        ClientInfra["Clients.Infrastructure<br/>SQLite Outbox Sync worker<br/>src/Clients/Clients.Infrastructure"]
+    end
+
+    Api["API<br/>ASP.NET Core Web API .NET 10<br/>OpenAPI Scalar dev<br/>src/API"]
+
+    SqliteLocal[("SQLite local<br/>offline CRM outbox")]
+    SqlServer[("SQL Server<br/>Staging Production")]
+    SqliteDev[("SQLite<br/>API Development CI")]
+
+    Staff["Equipe da clinica"]
+
+    Staff --> BlazorWeb
+    Staff --> MauiApp
+    BlazorWeb --> SharedUI
+    MauiApp --> SharedUI
+    BlazorWeb --> ClientInfra
+    MauiApp --> ClientInfra
+
+    BlazorWeb -->|"HTTPS JSON REST"| Api
+    MauiApp -->|"HTTPS JSON REST"| Api
+    ClientInfra --> SqliteLocal
+
+    Api -->|"Database Provider SqlServer"| SqlServer
+    Api -->|"Database Provider Sqlite"| SqliteDev

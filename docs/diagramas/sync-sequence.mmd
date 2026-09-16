@@ -1,26 +1,26 @@
 sequenceDiagram
     participant U as User (UI)
-    participant M as MAUI App
+    participant C as Client (BlazorWeb / MauiApp)
     participant DB as SQLite (Local)
-    participant B as Sync BackgroundWorker
-    participant API as Cloud API
-    participant CDB as SQL Server (Cloud)
+    participant B as SyncBackgroundWorker
+    participant API as SysVet API
+    participant CDB as Cloud DB (SQL Server / SQLite dev)
 
-    U->>M: Create/Edit Pet
-    M->>DB: Save Pet (Local)
-    M->>DB: Add OutboxMessage (Register/Update)
-    DB-->>M: Saved Locally
-    M-->>U: Success (No Network Required)
+    U->>C: Create/Edit Pet
+    C->>DB: Save Pet (Local)
+    C->>DB: Add OutboxMessage (same transaction)
+    DB-->>C: Saved Locally
+    C-->>U: Success (No Network Required)
 
-    loop Every X seconds or Connectivity Restored
-        B->>DB: Read Pending OutboxMessages
+    loop Every ~30s or connectivity restored
+        B->>DB: Read pending OutboxMessages (FIFO, batch up to 50)
         alt Is Online
-            B->>API: HTTP POST /api/v1/sync { Payload }
-            API->>CDB: Process Command (Update Cloud DB)
+            B->>API: HTTP POST sync push (payload)
+            API->>CDB: Process command (idempotent)
             CDB-->>API: Success
             API-->>B: 200 OK
-            B->>DB: Mark OutboxMessage as Synced / Remove
+            B->>DB: Mark OutboxMessage ProcessedAt
         else Is Offline
-            B-->>B: Wait for next cycle (Retain locally)
+            B-->>B: Wait next cycle (retain locally)
         end
     end

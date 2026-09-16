@@ -1,0 +1,22 @@
+%% C4 Level 1 — System Context (VetNexus / SysVet)
+%% Render: Mermaid flowchart; edit source only (no binary-only images).
+
+flowchart TB
+    subgraph people [People]
+        Staff["Equipe da clinica<br/>(vet, recepcao, caixa)"]
+        Tutor["Tutor / responsavel<br/>(portal futuro)"]
+    end
+
+    SysVet["VetNexus SysVet<br/>Gestao clinica, petshop,<br/>PDV, estoque e fiscal"]
+
+    subgraph external_future [External systems - future]
+        Sefaz["SEFAZ / fiscal"]
+        Payments["Pagamentos"]
+        Comms["WhatsApp SMS Email"]
+    end
+
+    Staff -->|"Opera via web ou app"| SysVet
+    Tutor -.->|"Portal tutor Fase 8"| SysVet
+    SysVet -.->|"NF-e NFC-e NFS-e"| Sefaz
+    SysVet -.->|"Billing TEF"| Payments
+    SysVet -.->|"Automations"| Comms

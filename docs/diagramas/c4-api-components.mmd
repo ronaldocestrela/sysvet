@@ -1,0 +1,69 @@
+%% C4 Level 3 — Components inside the API container (src/API + composed modules)
+
+flowchart TB
+    subgraph api_host [API host src/API]
+        Program["Program.cs<br/>composition root"]
+        Corr["CorrelationIdMiddleware"]
+        TenantMw["TenantClaimMiddleware"]
+        Health["HealthCheckExtensions<br/>/health /live /ready"]
+        OpenApi["OpenAPI Scalar dev"]
+        ResultFilter["ResultEndpointFilter"]
+        ResultExt["ResultExtensions"]
+        MapEndpoints["MapCore MapAuth MapVeterinary<br/>MapInventory MapSales MapPetshop MapFiscal"]
+    end
+
+    subgraph core_mod [Core module]
+        CoreApp["Application<br/>MediatR handlers Tutor Pet"]
+        CoreDom["Domain Result ITenantContext"]
+        CoreInf["Infrastructure<br/>CoreDbContext Identity JWT<br/>AddCoreModule"]
+    end
+
+    subgraph vet_mod [Veterinary module]
+        VetApp["Application appointments records"]
+        VetInf["Infrastructure VeterinaryDbContext"]
+    end
+
+    subgraph inv_mod [Inventory module]
+        InvApp["Application products stock"]
+        InvInf["Infrastructure InventoryDbContext"]
+        InvHandler["OrderPaidEventHandler"]
+    end
+
+    subgraph sales_mod [Sales module]
+        SalesApp["Application orders cash"]
+        SalesInf["Infrastructure SalesDbContext"]
+        OrderPaid["OrderPaidEvent"]
+    end
+
+    subgraph stub_mod [Stub modules]
+        PetshopStub["Petshop DI stub"]
+        FiscalStub["Fiscal DI stub"]
+    end
+
+    Program --> Corr --> TenantMw
+    Program --> MapEndpoints
+    MapEndpoints --> ResultFilter
+    MapEndpoints --> ResultExt
+    Program --> Health
+    Program --> OpenApi
+
+    MapEndpoints -->|"Send ICommand IQuery"| CoreApp
+    MapEndpoints --> VetApp
+    MapEndpoints --> InvApp
+    MapEndpoints --> SalesApp
+
+    CoreApp --> CoreDom
+    CoreInf --> CoreApp
+    VetInf --> VetApp
+    InvInf --> InvApp
+    SalesInf --> SalesApp
+
+    OrderPaid --> InvHandler
+    SalesApp -.-> OrderPaid
+
+    Program -->|"AddApplicationModules"| CoreInf
+    Program --> VetInf
+    Program --> InvInf
+    Program --> SalesInf
+    Program --> PetshopStub
+    Program --> FiscalStub

@@ -15,6 +15,7 @@ Para bloquear merge quando o CI falhar: GitHub → **Settings → Branches** →
 | Área | Link |
 |---|---|
 | 📐 Arquitetura e Stack | [`docs/agents.md`](./docs/agents.md) |
+| 📋 ADRs (decisões) | [`docs/arquitetura/`](./docs/arquitetura/README.md) |
 | 🗺️ Estrutura de Pastas | [`docs/structure.md`](./docs/structure.md) |
 | 🚀 Roadmap | [`docs/roadmap.md`](./docs/roadmap.md) |
 | 📊 Status do Projeto | [`status_e_proximos_passos.md`](./status_e_proximos_passos.md) |
@@ -40,7 +41,7 @@ sysvet/
 │       ├── Inventory/  ← Estoque de produtos
 │       └── Fiscal/     ← NF-e, NFS-e, SEFAZ
 ├── tests/              ← Espelho de src/ com testes unitários e de integração
-└── docs/               ← Documentação viva, ADRs, diagramas
+└── docs/               ← Documentação viva, ADRs (arquitetura/), diagramas C4 (.mmd)
 ```
 
 ## Stack Tecnológica

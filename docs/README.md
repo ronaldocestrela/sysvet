@@ -13,18 +13,33 @@ Pasta de **Documentação Viva** do projeto SysVet. Contém a documentação de 
 | [`roadmap.md`](./roadmap.md) | Roadmap detalhado de funcionalidades por módulo, com fases de desenvolvimento, prioridades e épicos planejados. |
 | [`backoffice.md`](./backoffice.md) | Especificação das funcionalidades do painel administrativo (backoffice) do SaaS — gestão de clientes, planos, faturamento e suporte. |
 | [`functions.md`](./functions.md) | Catálogo de funções e features do sistema por módulo, servindo como referência de escopo para desenvolvimento. |
-| [`arquitetura/`](./arquitetura/) | Documentos detalhados de arquitetura: ADRs (Architecture Decision Records), diagramas de sequência, descrição das camadas. |
-| [`diagramas/`](./diagramas/) | Diagramas visuais do sistema: ERDs (entidade-relacionamento), diagramas de contexto C4, fluxos de dados. |
+| [`arquitetura/`](./arquitetura/) | ADRs (MADR), [`README.md`](./arquitetura/README.md) com índice, [`configuracao.md`](./arquitetura/configuracao.md). |
+| [`diagramas/`](./diagramas/) | Diagramas-fonte Mermaid (C4 e sequência); renderizar a partir dos `.mmd`, sem PNG sem fonte. |
 
 ## Subpastas
 
 ### `arquitetura/`
-Destinada a **Architecture Decision Records (ADRs)** — documentos curtos que registram decisões arquiteturais importantes com contexto, alternativas consideradas e justificativa da escolha.
+**Architecture Decision Records (ADRs)** — contexto, opções, decisão, consequências e confirmação no código.
 
-Exemplo de arquivo esperado: `ADR-001-modular-monolith-over-microservices.md`
+| Arquivo | Tema |
+|---------|------|
+| [`README.md`](./arquitetura/README.md) | Índice e template MADR |
+| [`ADR-001-monolito-modular.md`](./arquitetura/ADR-001-monolito-modular.md) | Monólito modular vs microsserviços |
+| [`ADR-002-estrategia-de-sync.md`](./arquitetura/ADR-002-estrategia-de-sync.md) | Sync offline (Outbox vs Dotmim.Sync) |
+| [`ADR-003-multi-tenancy.md`](./arquitetura/ADR-003-multi-tenancy.md) | Schema por tenant |
+| [`ADR-004-padrao-cqrs.md`](./arquitetura/ADR-004-padrao-cqrs.md) | CQRS e MediatR |
+| [`ADR-005-result-http.md`](./arquitetura/ADR-005-result-http.md) | `Result<T>` → HTTP |
+| [`configuracao.md`](./arquitetura/configuracao.md) | Options, health, correlation id |
 
 ### `diagramas/`
-Destinada a **diagramas técnicos** em formatos como `.puml` (PlantUML), `.drawio` ou `.mmd` (Mermaid). Os diagramas devem ser gerados/renderizados a partir dos arquivos-fonte aqui armazenados, nunca de imagens binárias sem fonte editável.
+Diagramas técnicos em `.mmd` (Mermaid), alinhados a `src/`:
+
+| Arquivo | Nível |
+|---------|--------|
+| [`c4-context.mmd`](./diagramas/c4-context.mmd) | C4 — contexto do sistema |
+| [`c4-containers.mmd`](./diagramas/c4-containers.mmd) | C4 — containers (API, clientes, bancos) |
+| [`c4-api-components.mmd`](./diagramas/c4-api-components.mmd) | C4 — componentes dentro da API |
+| [`sync-sequence.mmd`](./diagramas/sync-sequence.mmd) | Sequência Outbox offline → nuvem |
 
 ## Como Contribuir com a Documentação
 
