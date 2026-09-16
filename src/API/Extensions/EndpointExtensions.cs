@@ -20,7 +20,6 @@ public static class EndpointExtensions
         builder.MapTutorEndpoints();
         builder.MapPetEndpoints();
         builder.MapSyncEndpoints();
-        builder.MapVeterinaryEndpoints();
 
         return builder;
     }

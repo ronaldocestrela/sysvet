@@ -1,6 +1,6 @@
 # Status do Projeto SysVet
 
-**Data de Atualização:** 02/09/2026
+**Data de Atualização:** 16/09/2026
 
 Este documento contém o resumo de tudo o que foi construído até agora e serve de bússola para os desenvolvedores e IA saberem exatamente onde estamos no cronograma de desenvolvimento, evitando análises exaustivas a cada nova interação.
 
@@ -8,6 +8,11 @@ Este documento contém o resumo de tudo o que foi construído até agora e serve
 
 ### Sprint 0 a 4: Fundação Core e Infraestrutura
 Estas sprints pavimentaram a estrutura base (SaaS modular, CQRS, Offline-First).
+
+### Fase 1 — DI modular na API (1.3)
+- **Composição:** `AddApplicationModules()` na API; `Add*Module()` em `DependencyInjection.cs` de Core, Veterinary, Inventory, Sales (+ stubs Petshop/Fiscal).
+- **HTTP:** `ResultExtensions` + `ResultEndpointFilter`; endpoints por módulo (`MapCoreEndpoints`, `MapVeterinaryEndpoints`, …).
+- **Testes:** `ModuleRegistrationTests`, `ResultExtensionsTests`, `ResultEndpointFilterTests` em `API.IntegrationTests`.
 - **Core Domain & Application:** Base Entity, AggregateRoot, Result Pattern, CQRS com MediatR (Logging, Validation e Transaction Behaviors). Entidades de base `Tutor` e `Pet`.
 - **Tenancy e Banco de Dados:** Múltiplos schemas (Isolation por Tenant) dinâmicos usando EF Core Interceptors e `IModelCacheKeyFactory`.
 - **Identity & Auth:** ASP.NET Core Identity isolado no `CoreDbContext`. Criação de rotas `/api/v1/auth/login`, geração de JWT. Configuração de `TenantClaimMiddleware`.

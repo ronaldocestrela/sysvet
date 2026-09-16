@@ -1,22 +1,17 @@
 using API.Extensions;
+using API.Middlewares;
 using Core.Infrastructure.Identity;
 using Scalar.AspNetCore;
-using API.Endpoints.Sales;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddHealthChecks();
 builder.Services.AddProblemDetails();
 builder.Services.AddApiDocumentation();
-builder.Services.AddCoreModule(builder.Configuration);
-builder.Services.AddVeterinaryModule(builder.Configuration);
-builder.Services.AddInventoryModule(builder.Configuration);
-builder.Services.AddSalesModule(builder.Configuration);
+builder.Services.AddApplicationModules(builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -28,33 +23,37 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Tratamento de exceções padrão do .NET para mapear ProblemDetails
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 app.UseHttpsRedirection();
 
-app.UseMiddleware<API.Middlewares.CorrelationIdMiddleware>();
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<TenantClaimMiddleware>();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
-    Predicate = _ => false // Liveness check does not test dependencies
+    Predicate = _ => false
 });
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
-    Predicate = _ => true // Readiness check tests all dependencies (DB, etc)
+    Predicate = _ => true
 });
 
-app.MapCoreEndpoints();
-app.MapAuthEndpoints();
-API.Endpoints.Inventory.InventoryEndpoints.MapInventoryEndpoints(app);
-app.MapSalesEndpoints();
+var routes = app.MapGroup(string.Empty)
+    .AddEndpointFilter<ResultEndpointFilter>();
 
-// Hello world route for testing PoC
+routes.MapCoreEndpoints();
+routes.MapAuthEndpoints();
+routes.MapVeterinaryEndpoints();
+routes.MapInventoryEndpoints();
+routes.MapSalesEndpoints();
+routes.MapPetshopEndpoints();
+routes.MapFiscalEndpoints();
+
 app.MapGet("/", () => "SysVet API is running!");
 
 app.Run();

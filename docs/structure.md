@@ -32,7 +32,7 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │       ├── Core/                       # Módulo base para gestão de acessos e sincronização.
 │       │   ├── Domain/                 # Entidades, Value Objects e interfaces de repositório.
 │       │   ├── Application/            # Handlers CQRS, DTOs e validações.
-│       │   └── Infrastructure/         # EF Core DbContext, Mapeamentos, Repositórios e Serviços externos.
+│       │   └── Infrastructure/         # EF Core DbContext, Mapeamentos, Repositórios, DependencyInjection.cs (Add*Module).
 │       │
 │       ├── Veterinary/                 # Prontuários, internações e vacinas.
 │       │   ├── Domain/

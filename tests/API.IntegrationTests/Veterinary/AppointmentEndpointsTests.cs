@@ -59,6 +59,31 @@ public class AppointmentEndpointsTests : IClassFixture<WebApplicationFactory<Pro
     }
 
     [Fact]
+    public async Task ScheduleAppointment_ViaMediatR_ReturnsFailureWhenNoSlot()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var coreContext = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
+        await coreContext.Database.EnsureDeletedAsync();
+        await coreContext.Database.EnsureCreatedAsync();
+        var vetContext = scope.ServiceProvider.GetRequiredService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>();
+        await vetContext.Database.MigrateAsync();
+
+        var mediator = scope.ServiceProvider.GetRequiredService<MediatR.IMediator>();
+        var command = new ScheduleAppointmentCommand(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow.AddDays(1),
+            30,
+            "Routine checkup");
+
+        var result = await mediator.Send(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Appointment.SlotUnavailable");
+    }
+
+    [Fact]
     public async Task ScheduleAppointment_WithValidRequest_ReturnsOk()
     {
         // Arrange
@@ -77,7 +102,7 @@ public class AppointmentEndpointsTests : IClassFixture<WebApplicationFactory<Pro
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "Response: " + content);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, because: "Response: " + content);
     }
 }
 

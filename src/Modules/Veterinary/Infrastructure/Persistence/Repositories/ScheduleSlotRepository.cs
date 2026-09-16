@@ -28,8 +28,13 @@ public class ScheduleSlotRepository : IScheduleSlotRepository
 
     public async Task<IEnumerable<ScheduleSlot>> GetAvailableSlotsAsync(Guid veterinarianId, DateTimeOffset date, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.ScheduleSlots
-            .Where(s => s.VeterinarianId == veterinarianId && s.Date.Date == date.Date && s.IsAvailable)
+        var dayStart = date.Date;
+        var dayEnd = dayStart.AddDays(1);
+
+        var slots = await _dbContext.ScheduleSlots
+            .Where(s => s.VeterinarianId == veterinarianId && s.IsAvailable)
             .ToListAsync(cancellationToken);
+
+        return slots.Where(s => s.Date >= dayStart && s.Date < dayEnd);
     }
 }

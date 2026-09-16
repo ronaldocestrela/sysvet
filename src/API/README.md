@@ -5,7 +5,7 @@ Projeto **ponto de entrada** da aplicação server-side. É o único projeto que
 ## Responsabilidades
 
 - Inicializar o host da aplicação (`Program.cs`)
-- Registrar os serviços de todos os módulos via extensões em `Extensions/`
+- Registrar os serviços de todos os módulos via `AddApplicationModules()` (fachada em `Extensions/`, implementação em cada `Modules/*/Infrastructure/DependencyInjection.cs`)
 - Configurar o pipeline HTTP (middlewares, HTTPS, autenticação, etc.)
 - Expor a documentação OpenAPI via **Scalar** (interface alternativa ao Swagger UI)
 - Mapear os endpoints das controllers/minimal APIs
@@ -24,7 +24,7 @@ Projeto **ponto de entrada** da aplicação server-side. É o único projeto que
 ## Convenções
 
 - **Sem lógica de negócio aqui.** Toda regra de domínio fica nos módulos.
-- Novos módulos devem ser registrados adicionando um método de extensão em `Extensions/` e chamando-o em `Program.cs`.
+- Novos módulos: `AddXxxModule` na Infrastructure do módulo, entrada em `AddApplicationModules()`, `MapXxxEndpoints` e grupo com `ResultEndpointFilter` em `Program.cs`.
 - A documentação Scalar está disponível em `/scalar/v1` quando rodando em `Development`.
 
 ## Dependências Externas

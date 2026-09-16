@@ -4,7 +4,7 @@ Camada responsável pela **implementação técnica** das abstrações definidas
 
 ## Status Atual
 
-> **Implementado.** `CoreDbContext`, mapeamentos EF Core, repositórios, Identity, JWT e extensões de DI do módulo Core.
+> **Implementado.** `CoreDbContext`, mapeamentos EF Core, repositórios, Identity, JWT e [`DependencyInjection.AddCoreModule`](./DependencyInjection.cs).
 
 ## O que virá aqui
 

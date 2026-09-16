@@ -125,7 +125,7 @@ flowchart TD
 |--------|-----|--------|
 | **1.1 Solução e referências** | 3 | Concluído |
 | **1.2 CI/CD** | 5 | Concluído |
-| **1.3 DI modular na API** | 5 | Pendente |
+| **1.3 DI modular na API** | 5 | Concluído |
 | **1.4 Configuração por ambiente** | 3 | Pendente |
 | **1.5 Observabilidade e health checks** | 3 | Pendente |
 | **1.6 ADRs e documentação arquitetural** | 3 | Pendente |
@@ -153,12 +153,12 @@ flowchart TD
 
 **Aceite:** Pipeline verde em push/PR; badge de status no README.
 
-### 1.3 DI modular na API (5 SP) — Pendente
+### 1.3 DI modular na API (5 SP) — Concluído
 
-- [ ] `AddCoreModule()`, `AddVeterinaryModule()`, etc. em `src/API/Extensions/`
-- [ ] Registro de handlers CQRS, repositórios e DbContexts por módulo
-- [ ] Convenção de endpoints por módulo (`MapCoreEndpoints`, etc.)
-- [ ] Middleware global de tratamento de `Result<T>` → HTTP status
+- [x] `AddCoreModule()`, `AddVeterinaryModule()`, etc. em `src/Modules/*/Infrastructure/DependencyInjection.cs`; composição via `AddApplicationModules()` em [`src/API/Extensions/ServiceCollectionExtensions.cs`](../src/API/Extensions/ServiceCollectionExtensions.cs)
+- [x] Registro de handlers CQRS, repositórios e DbContexts por módulo (Core, Veterinary, Inventory, Sales; stubs Petshop/Fiscal)
+- [x] Convenção de endpoints por módulo (`MapCoreEndpoints`, `MapVeterinaryEndpoints`, etc.) com grupo raiz + `ResultEndpointFilter`
+- [x] Tratamento de `Result<T>` → HTTP via [`ResultExtensions.ToHttpResult`](../src/API/Extensions/ResultExtensions.cs) e filtro [`ResultEndpointFilter`](../src/API/Middlewares/ResultEndpointFilter.cs)
 
 **Aceite:** API compila referenciando todos os módulos; DI resolve serviços sem registro manual espalhado.
 
