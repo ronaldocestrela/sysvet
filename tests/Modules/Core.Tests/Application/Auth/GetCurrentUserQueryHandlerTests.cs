@@ -1,6 +1,8 @@
 using Core.Application.Auth.Queries;
 using Core.Application.Common.Interfaces;
+using Core.Application.Users.Dtos;
 using Core.Domain;
+using Core.Domain.Authorization;
 using FluentAssertions;
 using NSubstitute;
 using Xunit;
@@ -15,7 +17,9 @@ public class GetCurrentUserQueryHandlerTests
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.IsAuthenticated.Returns(false);
         var tenantContext = Substitute.For<ITenantContext>();
-        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext);
+        var identity = Substitute.For<IIdentityService>();
+        var permissionChecker = Substitute.For<IPermissionChecker>();
+        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker);
 
         var result = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
 
@@ -24,9 +28,10 @@ public class GetCurrentUserQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenAuthenticated_ShouldReturnProfile()
+    public async Task Handle_WhenAuthenticated_ShouldReturnProfileWithMenus()
     {
         var tenantId = Guid.NewGuid();
+        var profileId = Guid.NewGuid();
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.IsAuthenticated.Returns(true);
         currentUser.UserId.Returns("user-abc");
@@ -34,14 +39,27 @@ public class GetCurrentUserQueryHandlerTests
         currentUser.TenantId.Returns(tenantId);
         currentUser.Roles.Returns(new[] { "Veterinarian" });
         var tenantContext = Substitute.For<ITenantContext>();
-        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext);
+        var identity = Substitute.For<IIdentityService>();
+        identity.GetByIdAsync("user-abc", tenantId, Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new StaffUserDto(
+                "user-abc",
+                "vet@sysvet.com",
+                "Dr Vet",
+                tenantId,
+                profileId,
+                "Veterinarian",
+                false,
+                ["Veterinarian"])));
+        var permissionChecker = Substitute.For<IPermissionChecker>();
+        permissionChecker.GetGrantedPermissionsAsync(Arg.Any<CancellationToken>())
+            .Returns(Permissions.VeterinarianDefaults());
+        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker);
 
         var result = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Id.Should().Be("user-abc");
-        result.Value.Email.Should().Be("vet@sysvet.com");
-        result.Value.TenantId.Should().Be(tenantId);
-        result.Value.Roles.Should().Contain("Veterinarian");
+        result.Value.ProfileId.Should().Be(profileId);
+        result.Value.Menus.Should().Contain("tutors");
     }
 }

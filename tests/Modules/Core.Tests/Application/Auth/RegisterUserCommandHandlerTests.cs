@@ -1,6 +1,7 @@
 using Core.Application.Auth.Commands;
 using Core.Application.Common.Interfaces;
 using Core.Domain;
+using Core.Domain.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Hosting;
 using NSubstitute;
@@ -11,14 +12,22 @@ namespace Core.Tests.Application.Auth;
 public class RegisterUserCommandHandlerTests
 {
     private readonly IIdentityService _identityService;
+    private readonly IAccessProfileRepository _accessProfileRepository;
+    private readonly IAccessProfileSeeder _accessProfileSeeder;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly RegisterUserCommandHandler _handler;
 
     public RegisterUserCommandHandlerTests()
     {
         _identityService = Substitute.For<IIdentityService>();
+        _accessProfileRepository = Substitute.For<IAccessProfileRepository>();
+        _accessProfileSeeder = Substitute.For<IAccessProfileSeeder>();
         _hostEnvironment = Substitute.For<IHostEnvironment>();
-        _handler = new RegisterUserCommandHandler(_identityService, _hostEnvironment);
+        _handler = new RegisterUserCommandHandler(
+            _identityService,
+            _accessProfileRepository,
+            _accessProfileSeeder,
+            _hostEnvironment);
     }
 
     [Fact]
@@ -38,8 +47,10 @@ public class RegisterUserCommandHandlerTests
     public async Task Handle_WithDuplicateEmail_ShouldReturnFailure()
     {
         _hostEnvironment.EnvironmentName.Returns(Environments.Development);
+        _accessProfileRepository.GetSystemProfileByBaseRoleAsync("Receptionist", Arg.Any<CancellationToken>())
+            .Returns(AccessProfile.CreateSystem("Receptionist", "Receptionist", []).Value);
         _identityService
-            .CreateUserAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .CreateUserAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Failure<string>(ErrorCodes.Auth.DuplicateEmail)));
 
         var result = await _handler.Handle(
@@ -55,8 +66,11 @@ public class RegisterUserCommandHandlerTests
     {
         _hostEnvironment.EnvironmentName.Returns(Environments.Development);
         var userId = Guid.NewGuid().ToString();
+        var profile = AccessProfile.CreateSystem("Cashier", "Cashier", []).Value;
+        _accessProfileRepository.GetSystemProfileByBaseRoleAsync("Cashier", Arg.Any<CancellationToken>())
+            .Returns(profile);
         _identityService
-            .CreateUserAsync(Arg.Any<string>(), Arg.Any<string>(), "Cashier", Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .CreateUserAsync(Arg.Any<string>(), Arg.Any<string>(), "Cashier", Arg.Any<Guid>(), profile.Id, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success(userId)));
 
         var result = await _handler.Handle(

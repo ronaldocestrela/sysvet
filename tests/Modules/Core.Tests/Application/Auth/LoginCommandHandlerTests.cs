@@ -39,7 +39,7 @@ public class LoginCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidCredentials_ShouldReturnTokens()
     {
-        var user = new AuthenticatedUserDto("user-1", "a@b.com", Guid.NewGuid(), ["Admin"]);
+        var user = new AuthenticatedUserDto("user-1", "a@b.com", Guid.NewGuid(), Guid.NewGuid(), ["Admin"]);
         _identityService.ValidateCredentialsAsync("a@b.com", "Password123!", Arg.Any<CancellationToken>())
             .Returns(Result.Success(user));
         _accessTokenIssuer.IssueAccessToken(user).Returns("access-jwt");

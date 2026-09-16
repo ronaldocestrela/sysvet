@@ -14,6 +14,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-006](./ADR-006-domain-events.md) | Eventos de domínio vs integração | Accepted |
 | [ADR-007](./ADR-007-jwt-rbac.md) | JWT Bearer, refresh hash e RBAC | Accepted |
 | [ADR-008](./ADR-008-soft-delete-crm.md) | Soft delete CRM (Tutor/Pet) | Accepted |
+| [ADR-009](./ADR-009-access-profiles.md) | Perfis de acesso e matriz de permissões | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id.
 

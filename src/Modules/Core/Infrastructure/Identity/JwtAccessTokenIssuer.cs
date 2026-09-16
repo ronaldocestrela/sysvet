@@ -32,7 +32,8 @@ public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer
             new(ClaimTypes.NameIdentifier, user.UserId),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new("TenantId", user.TenantId.ToString())
+            new("TenantId", user.TenantId.ToString()),
+            new("AccessProfileId", user.AccessProfileId.ToString())
         };
 
         claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role)));

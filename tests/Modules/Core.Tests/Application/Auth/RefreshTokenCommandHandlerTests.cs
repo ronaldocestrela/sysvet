@@ -37,7 +37,7 @@ public class RefreshTokenCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidRefreshToken_ShouldReturnNewTokens()
     {
-        var user = new AuthenticatedUserDto("user-1", "a@b.com", Guid.NewGuid(), ["Admin"]);
+        var user = new AuthenticatedUserDto("user-1", "a@b.com", Guid.NewGuid(), Guid.NewGuid(), ["Admin"]);
         _refreshTokenStore.RotateAsync("old-refresh", Arg.Any<CancellationToken>())
             .Returns(Result.Success(user));
         _accessTokenIssuer.IssueAccessToken(user).Returns("new-access");

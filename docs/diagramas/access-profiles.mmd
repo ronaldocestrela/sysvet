@@ -1,0 +1,13 @@
+flowchart LR
+  Admin[Admin JWT] --> UsersApi["/api/v1/users"]
+  Admin --> ProfilesApi["/api/v1/access-profiles"]
+  Staff[Staff JWT] --> MeApi["GET /auth/me"]
+  Staff --> PrefsApi["/api/v1/me/preferences"]
+  ProfilesApi --> AccessProfile
+  UsersApi --> AppUser
+  AppUser --> IdentityRole[Identity Role]
+  AppUser --> AccessProfile
+  MeApi --> MenuCatalog
+  AccessProfile --> PermissionsCatalog[Permissions catalog]
+  AuthZ[AuthorizationBehavior] --> Policy[ASP.NET Policy]
+  AuthZ --> PermCheck[IPermissionChecker]

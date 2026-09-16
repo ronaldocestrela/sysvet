@@ -90,8 +90,11 @@ Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Pers
 
 - **Login:** `POST /api/v1/auth/login` — body `{ "email", "password" }` → `{ accessToken, refreshToken, expiresInSeconds }`.
 - **Refresh:** `POST /api/v1/auth/refresh` — body `{ "refreshToken" }` (rotação; token antigo invalidado).
-- **Perfil:** `GET /api/v1/auth/me` — header `Authorization: Bearer {accessToken}`.
+- **Perfil:** `GET /api/v1/auth/me` — retorna roles, `profileId`, `permissions`, `menus` (contrato SharedUI Fase 3.1).
 - **Register (somente Development):** `POST /api/v1/auth/register` — body `{ "email", "password", "role", "tenantId?" }`; role ∈ `ApplicationRoles`.
+- **Staff users (Admin):** `GET/POST /api/v1/users`, `PUT /api/v1/users/{userId}`, disable/enable, reset password.
+- **Access profiles (Admin):** `GET/POST/PUT/DELETE /api/v1/access-profiles`, catálogo `GET /api/v1/permissions`.
+- **Preferências UI:** `GET/PUT /api/v1/me/preferences` — JSON de atalhos, filtros salvos e colunas.
 - **Lockout:** 5 tentativas falhas → bloqueio 15 minutos (`IdentityService` + `SignInManager`).
 - Refresh tokens são armazenados **apenas como hash** (`UserRefreshTokens`); ver [ADR-007](./ADR-007-jwt-rbac.md).
 

@@ -39,6 +39,11 @@ public static class ErrorCodes
         /// User registration is only allowed in the Development environment.
         /// </summary>
         public static readonly Error RegistrationNotAllowed = new("Auth.RegistrationNotAllowed", "Registration is not available in this environment.");
+
+        /// <summary>
+        /// The account has been disabled by an administrator.
+        /// </summary>
+        public static readonly Error Disabled = new("Auth.Disabled", "This account has been disabled.");
     }
 
     /// <summary>
@@ -122,6 +127,42 @@ public static class ErrorCodes
     public static class Phone
     {
         public static readonly Error InvalidFormat = new("Phone.InvalidFormat", "Telefone inválido.");
+    }
+
+    /// <summary>
+    /// Access profile aggregate errors.
+    /// </summary>
+    public static class AccessProfile
+    {
+        public static readonly Error NotFound = new("AccessProfile.NotFound", "The access profile was not found.");
+        public static readonly Error InvalidName = new("AccessProfile.InvalidName", "Profile name is required.");
+        public static readonly Error InvalidBaseRole = new("AccessProfile.InvalidBaseRole", "Base role is required.");
+        public static readonly Error InvalidPermission = new("AccessProfile.InvalidPermission", "The permission code is not in the catalog.");
+        public static readonly Error DuplicateName = new("AccessProfile.DuplicateName", "A profile with this name already exists.");
+        public static readonly Error CannotDeleteSystem = new("AccessProfile.CannotDeleteSystem", "System profiles cannot be deleted.");
+        public static readonly Error CannotRenameSystem = new("AccessProfile.CannotRenameSystem", "System profiles cannot be renamed.");
+        public static readonly Error InUse = new("AccessProfile.InUse", "The profile is assigned to users and cannot be deleted.");
+    }
+
+    /// <summary>
+    /// Staff user account errors (Identity-backed, not a domain aggregate).
+    /// </summary>
+    public static class UserAccount
+    {
+        public static readonly Error NotFound = new("UserAccount.NotFound", "The user was not found.");
+        public static readonly Error LastAdmin = new("UserAccount.LastAdmin", "Cannot disable or demote the last administrator in the tenant.");
+        public static readonly Error ProfileNotFound = new("UserAccount.ProfileNotFound", "The access profile was not found.");
+        public static readonly Error ProfileWrongTenant = new("UserAccount.ProfileWrongTenant", "The access profile does not belong to this tenant.");
+    }
+
+    /// <summary>
+    /// User UI preference errors.
+    /// </summary>
+    public static class UserPreference
+    {
+        public static readonly Error InvalidUserId = new("UserPreference.InvalidUserId", "User id is required.");
+        public static readonly Error PayloadTooLarge = new("UserPreference.PayloadTooLarge", "Preference payload exceeds the maximum allowed size.");
+        public static readonly Error NotFound = new("UserPreference.NotFound", "Preferences were not found.");
     }
 
     /// <summary>

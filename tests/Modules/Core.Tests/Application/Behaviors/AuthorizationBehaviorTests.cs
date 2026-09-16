@@ -24,7 +24,8 @@ public class AuthorizationBehaviorTests
     public async Task Handle_WithoutAttribute_ShouldInvokeNext()
     {
         var currentUser = Substitute.For<ICurrentUser>();
-        var behavior = new AuthorizationBehavior<OpenQuery, Result<string>>(currentUser);
+        var permissionChecker = Substitute.For<IPermissionChecker>();
+        var behavior = new AuthorizationBehavior<OpenQuery, Result<string>>(currentUser, permissionChecker);
         var next = Substitute.For<RequestHandlerDelegate<Result<string>>>();
         next.Invoke().Returns(Task.FromResult(Result.Success("ok")));
 
@@ -39,7 +40,8 @@ public class AuthorizationBehaviorTests
     {
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.IsAuthenticated.Returns(false);
-        var behavior = new AuthorizationBehavior<ProtectedQuery, Result<string>>(currentUser);
+        var permissionChecker = Substitute.For<IPermissionChecker>();
+        var behavior = new AuthorizationBehavior<ProtectedQuery, Result<string>>(currentUser, permissionChecker);
         var next = Substitute.For<RequestHandlerDelegate<Result<string>>>();
 
         var result = await behavior.Handle(new ProtectedQuery(), next, CancellationToken.None);
@@ -55,7 +57,8 @@ public class AuthorizationBehaviorTests
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.IsAuthenticated.Returns(true);
         currentUser.IsInPolicyAsync("ClinicStaff", Arg.Any<CancellationToken>()).Returns(false);
-        var behavior = new AuthorizationBehavior<ProtectedQuery, Result<string>>(currentUser);
+        var permissionChecker = Substitute.For<IPermissionChecker>();
+        var behavior = new AuthorizationBehavior<ProtectedQuery, Result<string>>(currentUser, permissionChecker);
         var next = Substitute.For<RequestHandlerDelegate<Result<string>>>();
 
         var result = await behavior.Handle(new ProtectedQuery(), next, CancellationToken.None);
@@ -70,7 +73,8 @@ public class AuthorizationBehaviorTests
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.IsAuthenticated.Returns(true);
         currentUser.IsInPolicyAsync("ClinicStaff", Arg.Any<CancellationToken>()).Returns(true);
-        var behavior = new AuthorizationBehavior<ProtectedQuery, Result<string>>(currentUser);
+        var permissionChecker = Substitute.For<IPermissionChecker>();
+        var behavior = new AuthorizationBehavior<ProtectedQuery, Result<string>>(currentUser, permissionChecker);
         var next = Substitute.For<RequestHandlerDelegate<Result<string>>>();
         next.Invoke().Returns(Task.FromResult(Result.Success("ok")));
 

@@ -7,8 +7,8 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 ## Módulo Base & CRM (Gestão de Clientes e Pets)
 * Cadastro completo de clientes (tutores) e animais.
 * Centralização do histórico de atendimentos e serviços prestados.
-* Perfis de acesso personalizados para usuários e controle de permissões.
-* Configuração de teclas de atalho, filtros e organização de listagens.
+* Perfis de acesso personalizados para usuários e controle de permissões (matriz fixa no catálogo `Permissions.*`, perfis por tenant via API `/api/v1/access-profiles`).
+* Configuração de teclas de atalho, filtros e organização de listagens (persistência em `/api/v1/me/preferences`).
 
 ---
 

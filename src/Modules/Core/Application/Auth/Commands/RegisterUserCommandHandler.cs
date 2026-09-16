@@ -13,11 +13,19 @@ namespace Core.Application.Auth.Commands;
 public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Result<Guid>>
 {
     private readonly IIdentityService _identityService;
+    private readonly IAccessProfileRepository _accessProfileRepository;
+    private readonly IAccessProfileSeeder _accessProfileSeeder;
     private readonly IHostEnvironment _hostEnvironment;
 
-    public RegisterUserCommandHandler(IIdentityService identityService, IHostEnvironment hostEnvironment)
+    public RegisterUserCommandHandler(
+        IIdentityService identityService,
+        IAccessProfileRepository accessProfileRepository,
+        IAccessProfileSeeder accessProfileSeeder,
+        IHostEnvironment hostEnvironment)
     {
         _identityService = identityService;
+        _accessProfileRepository = accessProfileRepository;
+        _accessProfileSeeder = accessProfileSeeder;
         _hostEnvironment = hostEnvironment;
     }
 
@@ -35,12 +43,21 @@ public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCom
         }
 
         var tenantId = request.TenantId ?? Guid.NewGuid();
+        await _accessProfileSeeder.EnsureTenantProfilesAsync(tenantId, cancellationToken);
+
+        var profile = await _accessProfileRepository.GetSystemProfileByBaseRoleAsync(request.Role, cancellationToken);
+        if (profile is null)
+        {
+            return Result.Failure<Guid>(ErrorCodes.UserAccount.ProfileNotFound);
+        }
+
         var createResult = await _identityService.CreateUserAsync(
             request.Email,
             request.Password,
             request.Role,
             tenantId,
-            cancellationToken);
+            profile.Id,
+            cancellationToken: cancellationToken);
 
         if (createResult.IsFailure)
         {

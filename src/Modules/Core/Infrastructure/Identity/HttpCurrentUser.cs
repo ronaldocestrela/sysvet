@@ -33,6 +33,15 @@ public class HttpCurrentUser(IHttpContextAccessor httpContextAccessor, IAuthoriz
         }
     }
 
+    public Guid AccessProfileId
+    {
+        get
+        {
+            var claim = Principal?.FindFirst("AccessProfileId")?.Value;
+            return claim is not null && Guid.TryParse(claim, out var profileId) ? profileId : Guid.Empty;
+        }
+    }
+
     public IReadOnlyList<string> Roles =>
         Principal?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList() ?? [];
 

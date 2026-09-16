@@ -25,7 +25,7 @@ public class JwtAccessTokenIssuerTests
     {
         var issuer = new JwtAccessTokenIssuer(Microsoft.Extensions.Options.Options.Create(_settings));
         var tenantId = Guid.NewGuid();
-        var user = new AuthenticatedUserDto("user-1", "vet@sysvet.com", tenantId, ["Veterinarian"]);
+        var user = new AuthenticatedUserDto("user-1", "vet@sysvet.com", tenantId, Guid.NewGuid(), ["Veterinarian"]);
 
         var token = issuer.IssueAccessToken(user);
         var handler = new JwtSecurityTokenHandler();

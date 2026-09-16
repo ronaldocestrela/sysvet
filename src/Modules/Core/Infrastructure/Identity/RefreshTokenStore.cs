@@ -76,7 +76,12 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var dto = new AuthenticatedUserDto(user.Id, user.Email ?? string.Empty, user.TenantId, roles.ToList());
+        var dto = new AuthenticatedUserDto(
+            user.Id,
+            user.Email ?? string.Empty,
+            user.TenantId,
+            user.AccessProfileId,
+            roles.ToList());
         return Result.Success(dto);
     }
 

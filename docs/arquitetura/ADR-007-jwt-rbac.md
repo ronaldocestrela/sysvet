@@ -45,5 +45,5 @@ Multi-tenancy (ADR-003) exige `TenantId` no JWT e `TenantClaimMiddleware` após 
 
 ## Relacionados
 
-- [ADR-003](./ADR-003-multi-tenancy.md), [ADR-004](./ADR-004-padrao-cqrs.md), [ADR-005](./ADR-005-result-http.md)
+- [ADR-003](./ADR-003-multi-tenancy.md), [ADR-004](./ADR-004-padrao-cqrs.md), [ADR-005](./ADR-005-result-http.md), [ADR-009](./ADR-009-access-profiles.md) (perfis customizáveis e matriz de permissões)
 - [configuracao.md](./configuracao.md)

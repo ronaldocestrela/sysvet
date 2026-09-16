@@ -13,10 +13,12 @@ public class AuthorizationBehavior<TRequest, TResponse> : IPipelineBehavior<TReq
     where TResponse : Result
 {
     private readonly ICurrentUser _currentUser;
+    private readonly IPermissionChecker _permissionChecker;
 
-    public AuthorizationBehavior(ICurrentUser currentUser)
+    public AuthorizationBehavior(ICurrentUser currentUser, IPermissionChecker permissionChecker)
     {
         _currentUser = currentUser;
+        _permissionChecker = permissionChecker;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -33,6 +35,12 @@ public class AuthorizationBehavior<TRequest, TResponse> : IPipelineBehavior<TReq
         }
 
         if (!await _currentUser.IsInPolicyAsync(attribute.Policy, cancellationToken))
+        {
+            return CreateFailure<TResponse>(ErrorCodes.Authorization.Forbidden);
+        }
+
+        if (!string.IsNullOrEmpty(attribute.Permission)
+            && !await _permissionChecker.HasPermissionAsync(attribute.Permission, cancellationToken))
         {
             return CreateFailure<TResponse>(ErrorCodes.Authorization.Forbidden);
         }

@@ -26,6 +26,11 @@ public interface ICurrentUser
     Guid TenantId { get; }
 
     /// <summary>
+    /// Access profile identifier from the custom <c>AccessProfileId</c> claim.
+    /// </summary>
+    Guid AccessProfileId { get; }
+
+    /// <summary>
     /// Role claims attached to the access token.
     /// </summary>
     IReadOnlyList<string> Roles { get; }

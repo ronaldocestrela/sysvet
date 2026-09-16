@@ -19,6 +19,9 @@ public static class EndpointExtensions
         // Mapeia endpoints dos recursos Core
         builder.MapTutorEndpoints();
         builder.MapPetEndpoints();
+        builder.MapUserEndpoints();
+        builder.MapAccessProfileEndpoints();
+        builder.MapPreferenceEndpoints();
         builder.MapSyncEndpoints();
 
         return builder;

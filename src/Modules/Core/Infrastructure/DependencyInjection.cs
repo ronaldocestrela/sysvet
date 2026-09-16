@@ -90,6 +90,10 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
         services.AddScoped<ITutorRepository, TutorRepository>();
         services.AddScoped<IPetRepository, PetRepository>();
+        services.AddScoped<IAccessProfileRepository, AccessProfileRepository>();
+        services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
+        services.AddScoped<IAccessProfileSeeder, AccessProfileSeeder>();
+        services.AddScoped<IPermissionChecker, PermissionChecker>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<CoreDbContext>());
         services.AddScoped<IDomainEventSource>(provider => provider.GetRequiredService<CoreDbContext>());
         services.AddScoped<IAuditLogger, AuditLogger>();

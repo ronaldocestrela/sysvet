@@ -282,15 +282,32 @@ flowchart TD
 
 **Aceite:** CRUD completo tutor/pet; listagem com paginação e busca por nome.
 
-### 2.5 Usuários, perfis e permissões (5 SP)
+### 2.5 Usuários, perfis e permissões (5 SP) — Concluído
 
-- [ ] CRUD usuários vinculados ao tenant (quando multi-tenant existir)
-- [ ] Perfis customizáveis (matriz permissão × recurso)
-- [ ] Preferências de UI: atalhos, filtros salvos, colunas de listagem
+**Domain**
+- [x] `AccessProfile`, `PermissionCode`, catálogo `Permissions`, `MenuCatalog`, `UserPreference`
+- [x] Regras: perfil sistema imutável (nome/base role), matriz só com códigos do catálogo, clone custom
 
-**Referência:** `functions.md` — perfis de acesso, teclas de atalho.
+**Application**
+- [x] CQRS: `Users/*`, `AccessProfiles/*`, `Preferences/*`; `IPermissionChecker`, `IAccessProfileSeeder`
+- [x] Híbrido ADR-009: policy Identity + permission opcional em `[AuthorizeRequest]` (CRM write/delete)
+- [x] `GET /auth/me` expandido: `ProfileId`, `Permissions`, `Menus`
 
-**Aceite:** Admin altera permissões; usuário vê apenas menus permitidos.
+**Infrastructure**
+- [x] `AppUser`: `AccessProfileId`, `DisplayName`, `IsDisabled`; seed 4 perfis sistema por tenant
+- [x] JWT claim `AccessProfileId`; migrations `AddAccessProfilesAndUserPreferences` + sync
+- [x] `IdentityService` estendido (CRUD staff, disabled, reset password, role sync)
+
+**API**
+- [x] `/api/v1/users`, `/api/v1/access-profiles`, `/api/v1/permissions`, `/api/v1/me/preferences` (policy `Admin` onde aplicável)
+
+**Tests**
+- [x] Domain/Application TDD; `UserAccessProfileEndpointsTests` (menus Cashier, delete Receptionist, admin 403)
+- [x] `UpsertMyPreferencesCommandHandlerTests` (round-trip)
+
+**Referência:** `functions.md` — perfis de acesso, teclas de atalho; [ADR-009](arquitetura/ADR-009-access-profiles.md).
+
+**Aceite:** Admin altera permissões; usuário vê apenas menus permitidos (`/me` → `Menus`).
 
 ### 2.6 Auditoria e contratos de API (5 SP)
 

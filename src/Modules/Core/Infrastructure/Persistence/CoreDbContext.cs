@@ -27,6 +27,8 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; } = null!;
     public DbSet<UserRefreshToken> UserRefreshTokens { get; set; } = null!;
+    public DbSet<AccessProfile> AccessProfiles { get; set; } = null!;
+    public DbSet<UserPreference> UserPreferences { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +42,7 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
         ConfigureTenantShadowProperty<Tutor>(modelBuilder);
         ConfigureTenantShadowProperty<Pet>(modelBuilder);
         ConfigureTenantShadowProperty<IdempotencyRecord>(modelBuilder);
+        ConfigureTenantShadowProperty<AccessProfile>(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CoreDbContext).Assembly);
 
