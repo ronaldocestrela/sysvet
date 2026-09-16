@@ -3,6 +3,7 @@ using Core.Domain;
 using Core.Domain.Auditing;
 using Core.Infrastructure.Auditing;
 using Core.Infrastructure.Configuration;
+using Core.Infrastructure.HealthChecks;
 using Core.Infrastructure.Identity;
 using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
 namespace Core.Infrastructure;
@@ -38,6 +40,9 @@ public static class DependencyInjection
             options.ConfigureModuleDatabase(config, databaseOptions);
             options.ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCacheKeyFactory, TenantAwareModelCacheKeyFactory>();
         });
+
+        services.AddHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("core-db", failureStatus: HealthStatus.Unhealthy, tags: ["ready", "db"]);
 
         services.AddIdentity<AppUser, IdentityRole>()
             .AddEntityFrameworkStores<CoreDbContext>()

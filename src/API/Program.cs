@@ -5,10 +5,10 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHealthChecks();
 builder.Services.AddProblemDetails();
 builder.Services.AddApiDocumentation();
 builder.Services.AddApplicationModules(builder.Configuration);
+builder.Services.AddApiHealthChecks();
 
 var app = builder.Build();
 
@@ -33,15 +33,7 @@ app.UseAuthentication();
 app.UseMiddleware<TenantClaimMiddleware>();
 app.UseAuthorization();
 
-app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = _ => false
-});
-
-app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = _ => true
-});
+app.MapApiHealthChecks();
 
 var routes = app.MapGroup(string.Empty)
     .AddEndpointFilter<ResultEndpointFilter>();

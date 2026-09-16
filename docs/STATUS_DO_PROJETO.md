@@ -14,6 +14,11 @@ Estas sprints pavimentaram a estrutura base (SaaS modular, CQRS, Offline-First).
 - **HTTP:** `ResultExtensions` + `ResultEndpointFilter`; endpoints por módulo (`MapCoreEndpoints`, `MapVeterinaryEndpoints`, …).
 - **Testes:** `ModuleRegistrationTests`, `ResultExtensionsTests`, `ResultEndpointFilterTests` em `API.IntegrationTests`.
 
+### Fase 1 — Observabilidade e health checks (1.5)
+- **Health:** `DatabaseHealthCheck` (`core-db`) no Core; check de processo `api`; rotas `/health` (JSON), `/health/live`, `/health/ready` via `HealthCheckExtensions`.
+- **Rastreamento:** `CorrelationIdMiddleware` + console JSON com `IncludeScopes` em `appsettings.json`.
+- **Testes:** `DatabaseHealthCheckTests`, `HealthCheckTests`, `CorrelationIdMiddlewareTests`, `CorrelationIdHttpTests` em `API.IntegrationTests` / `Core.Tests`.
+
 ### Fase 1 — Configuração por ambiente (1.4)
 - **Options:** `JwtSettings`, `TenancySettings`, `DatabaseOptions` (Core); `VeterinaryOptions`, `InventoryOptions`, `SalesOptions` com `ValidateOnStart()`.
 - **Connection strings:** `ConnectionStrings:DefaultConnection` + overrides opcionais; helper `ConfigureModuleDatabase` (Sqlite/SqlServer).

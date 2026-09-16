@@ -30,7 +30,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | Área | Status | Evidência |
 |------|--------|-----------|
 | Solução modular | **Parcial** | `SaaS_Veterinario.slnx` com 33 projetos (incl. `MauiApp` listado; build MAUI desligado no slnx); pastas espelhadas em `tests/` |
-| API | **Parcial** | `src/API/Program.cs` — endpoint `GET /`, OpenAPI + Scalar (dev) |
+| API | **Parcial** | `Program.cs` — OpenAPI + Scalar (dev), health `/health*`, correlation id |
 | Padrão `Result<T>` | **Concluído** | `src/Modules/Core/Domain/Result.cs` + 4 testes em `Core.Tests` |
 | Módulos de negócio | **Parcial** | Projetos vazios (`Core`, `Veterinary`, `Petshop`, `Sales`, `Inventory`, `Fiscal`) |
 | EF Core / SQL Server | **Pendente** | Sem pacotes, DbContext ou migrations |
@@ -127,7 +127,7 @@ flowchart TD
 | **1.2 CI/CD** | 5 | Concluído |
 | **1.3 DI modular na API** | 5 | Concluído |
 | **1.4 Configuração por ambiente** | 3 | Concluído |
-| **1.5 Observabilidade e health checks** | 3 | Pendente |
+| **1.5 Observabilidade e health checks** | 3 | Concluído |
 | **1.6 ADRs e documentação arquitetural** | 3 | Pendente |
 | **Total Fase 1** | **22 SP** | |
 
@@ -171,11 +171,11 @@ flowchart TD
 
 **Aceite:** API sobe em Development com config mínima documentada.
 
-### 1.5 Observabilidade e health checks (3 SP) — Pendente
+### 1.5 Observabilidade e health checks (3 SP) — Concluído
 
-- [ ] `AddHealthChecks()` — API, SQL Server (quando existir)
-- [ ] Logging estruturado (correlation id por request)
-- [ ] Endpoint `/health` para orquestradores
+- [x] `AddHealthChecks()` — processo (`api`) + banco Core (`core-db` via `CanConnectAsync`, Sqlite/SqlServer conforme `Database:Provider`)
+- [x] Logging estruturado JSON no console com `IncludeScopes` + `CorrelationIdMiddleware` (`X-Correlation-Id`)
+- [x] Endpoints `/health` (JSON agregado), `/health/live`, `/health/ready` (anônimos)
 
 **Aceite:** Health check retorna status agregado; logs incluem trace id.
 

@@ -75,15 +75,48 @@ Com `appsettings.Development.json` versionado, não é obrigatório configurar U
 
 ## 2. Rastreamento (Trace e Correlation ID)
 
-Foi introduzido o `CorrelationIdMiddleware` para criar um rastro unificado (Trace) das requisições.
+O [`CorrelationIdMiddleware`](../../src/API/Middlewares/CorrelationIdMiddleware.cs) cria um rastro unificado por requisição HTTP.
 
-- Quando uma requisição entra, buscamos o header `X-Correlation-Id`.
-- Caso não exista, um ID único de `Activity.Current` ou `TraceIdentifier` é injetado.
-- Este ID é retornado no header de resposta e anexado ao log da aplicação através do `ILogger.BeginScope`. Isso nos permite filtrar nos agregadores de log (como Datadog ou Kibana) todos os logs associados a uma única requisição.
+- Entrada: lê o header `X-Correlation-Id`; se ausente, usa `Activity.Current?.Id` ou `HttpContext.TraceIdentifier`.
+- O valor é fixado em `HttpContext.TraceIdentifier`, devolvido no header de resposta e incluído no escopo de log (`CorrelationId`) via `ILogger.BeginScope`.
+- **Logging estruturado:** em [`appsettings.json`](../../src/API/appsettings.json), o console usa formatter **JSON** com `IncludeScopes: true`, para que agregadores (Datadog, Kibana, etc.) indexem o correlation id sem Serilog.
 
 ## 3. Health Checks
 
-Os Health Checks foram separados em duas categorias seguindo os padrões do Kubernetes:
+Registro e mapeamento: [`AddCoreModule`](../../src/Modules/Core/Infrastructure/DependencyInjection.cs) (`core-db`) + [`AddApiHealthChecks` / `MapApiHealthChecks`](../../src/API/Extensions/HealthCheckExtensions.cs) (`api`). Rotas são **anônimas** (sem JWT).
 
-- **/health/live (Liveness Probe)**: Retorna apenas se a aplicação web subiu e está respondendo tráfego (ignorando os bancos de dados). Ajuda o orquestrador a saber se a API "morreu" (necessitando de restart).
-- **/health/ready (Readiness Probe)**: Avalia a saúde de todas as dependências injetadas (Banco de dados, Serviços Externos, Message Brokers, etc.). Ajuda o Load Balancer a decidir se a API está pronta para *receber* requisições de clientes sem gerar 500.
+| Rota | Tags | Comportamento |
+|------|------|----------------|
+| `GET /health/live` | `live` | Liveness: apenas o processo (`api`). **Não** consulta banco. Resposta texto `Healthy` / `Unhealthy`. |
+| `GET /health/ready` | `ready` | Readiness: processo + `core-db` (`CanConnectAsync` no `CoreDbContext`). HTTP 503 se alguma dependência falhar. |
+| `GET /health` | (todos) | Status **agregado em JSON** (`application/json`) para orquestradores e dashboards. |
+
+Exemplo de corpo em `GET /health` (200):
+
+```json
+{
+  "status": "Healthy",
+  "duration": "00:00:00.0123456",
+  "checks": [
+    { "name": "api", "status": "Healthy", "duration": "...", "description": "API process is running." },
+    { "name": "core-db", "status": "Healthy", "duration": "...", "description": "Core database connection succeeded." }
+  ]
+}
+```
+
+O check `core-db` respeita `Database:Provider` (`Sqlite` em Development, `SqlServer` em Staging/Production); não expõe connection string nos logs.
+
+Exemplo de probes Kubernetes:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 8080
+  initialDelaySeconds: 10
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8080
+  initialDelaySeconds: 5
+```

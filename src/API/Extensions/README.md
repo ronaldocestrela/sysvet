@@ -7,6 +7,7 @@ Métodos de extensão que mantêm o [`Program.cs`](../Program.cs) enxuto: docume
 | Arquivo | Responsabilidade |
 |---|---|
 | [`ServiceCollectionExtensions.cs`](./ServiceCollectionExtensions.cs) | `AddApiDocumentation()`, `AddApplicationModules()` — delega para `Add*Module()` em cada `src/Modules/*/Infrastructure/DependencyInjection.cs` |
+| [`HealthCheckExtensions.cs`](./HealthCheckExtensions.cs) | `AddApiHealthChecks()`, `MapApiHealthChecks()` — `/health/live`, `/health/ready`, `/health` (JSON agregado) |
 
 Ordem de registro: **Core** (Identity, JWT, behaviors MediatR) → Veterinary → Inventory → Sales → Petshop (stub) → Fiscal (stub).
 

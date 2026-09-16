@@ -1,6 +1,26 @@
 @API_HostAddress = http://localhost:5222
 
-GET {{API_HostAddress}}/weatherforecast/
+GET {{API_HostAddress}}/
+Accept: text/plain
+
+###
+
+GET {{API_HostAddress}}/health
 Accept: application/json
+
+###
+
+GET {{API_HostAddress}}/health/live
+Accept: text/plain
+
+###
+
+GET {{API_HostAddress}}/health/ready
+Accept: text/plain
+
+###
+
+GET {{API_HostAddress}}/
+X-Correlation-Id: local-dev-trace-001
 
 ###

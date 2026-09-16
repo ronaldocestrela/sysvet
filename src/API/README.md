@@ -14,13 +14,14 @@ Projeto **ponto de entrada** da aplicação server-side. É o único projeto que
 
 | Arquivo / Pasta | O que é / Para que serve |
 |---|---|
-| [`Program.cs`](./Program.cs) | Ponto de entrada da aplicação. Cria o `WebApplicationBuilder`, registra serviços e configura o pipeline HTTP. Hoje expõe a documentação Scalar em desenvolvimento e uma rota `GET /` de healthcheck básico. |
+| [`Program.cs`](./Program.cs) | Ponto de entrada: DI modular, Scalar (dev), middlewares, health checks (`/health`, `/health/live`, `/health/ready`) e rotas de negócio. |
+| [`Middlewares/CorrelationIdMiddleware.cs`](./Middlewares/CorrelationIdMiddleware.cs) | Propaga `X-Correlation-Id` e escopo de log por requisição. |
 | [`appsettings.json`](./appsettings.json) | Defaults não secretos: `Database`, `TenancySettings`, `JwtSettings` (sem `Secret` no base). |
 | [`appsettings.Development.json`](./appsettings.Development.json) | SQLite local (`ConnectionStrings:DefaultConnection`), JWT de desenvolvimento e logging. |
 | [`appsettings.Staging.json`](./appsettings.Staging.json) / [`appsettings.Production.json`](./appsettings.Production.json) | Provider SQL Server; segredos e connection string **somente** via ambiente ou User Secrets. |
 | [`API.http`](./API.http) | Arquivo de requisições HTTP para teste manual dos endpoints via REST Client do VS Code. |
 | [`Properties/launchSettings.json`](./Properties/launchSettings.json) | Configurações de inicialização local: perfis de execução, URLs, variáveis de ambiente. |
-| [`Extensions/`](./Extensions/README.md) | Classes de extensão de `IServiceCollection` e `IApplicationBuilder` para modularizar o registro de serviços. |
+| [`Extensions/`](./Extensions/README.md) | Composição DI, documentação OpenAPI, health checks e mapeamento HTTP por módulo. |
 
 ## Convenções
 
