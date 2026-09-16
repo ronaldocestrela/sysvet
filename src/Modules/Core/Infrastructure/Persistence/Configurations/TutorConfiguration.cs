@@ -19,6 +19,14 @@ public class TutorConfiguration : IEntityTypeConfiguration<Tutor>
             .IsRequired()
             .HasMaxLength(150);
 
+        builder.HasIndex(t => t.Name);
+
+        builder.Property(t => t.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(t => t.DeletedAt);
+
         builder.OwnsOne(t => t.Email, e =>
         {
             e.Property(x => x.Address)
@@ -48,6 +56,6 @@ public class TutorConfiguration : IEntityTypeConfiguration<Tutor>
         builder.HasMany(t => t.Pets)
             .WithOne()
             .HasForeignKey(p => p.TutorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

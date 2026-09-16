@@ -9,7 +9,7 @@ public class OutboxMessage
     public Guid Id { get; set; } = Guid.NewGuid();
     
     /// <summary>
-    /// O tipo CLR do comando (ex: "RegisterTutorCommand") para desserialização no servidor.
+    /// O tipo CLR do comando (ex: "CreateTutorCommand") para desserialização no servidor.
     /// </summary>
     public string Type { get; set; } = string.Empty;
     

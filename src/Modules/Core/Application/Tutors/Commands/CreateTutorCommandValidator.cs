@@ -2,9 +2,15 @@ using FluentValidation;
 
 namespace Core.Application.Tutors.Commands;
 
-public class RegisterTutorCommandValidator : AbstractValidator<RegisterTutorCommand>
+/// <summary>
+/// FluentValidation rules for <see cref="CreateTutorCommand"/>.
+/// </summary>
+public class CreateTutorCommandValidator : AbstractValidator<CreateTutorCommand>
 {
-    public RegisterTutorCommandValidator()
+    /// <summary>
+    /// Initializes validation rules for tutor creation.
+    /// </summary>
+    public CreateTutorCommandValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("O nome é obrigatório.")
@@ -15,8 +21,7 @@ public class RegisterTutorCommandValidator : AbstractValidator<RegisterTutorComm
             .EmailAddress().WithMessage("O e-mail fornecido não é válido.");
 
         RuleFor(x => x.Cpf)
-            .NotEmpty().WithMessage("O CPF é obrigatório.")
-            .Length(11).WithMessage("O CPF deve conter 11 dígitos.");
+            .NotEmpty().WithMessage("O CPF é obrigatório.");
 
         RuleFor(x => x.Phone)
             .NotEmpty().WithMessage("O telefone é obrigatório.");

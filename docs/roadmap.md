@@ -206,7 +206,7 @@ flowchart TD
 | **2.1 Abstrações de domínio e CQRS** | 8 | Concluído |
 | **2.2 EF Core, repositórios e migrations** | 8 | Concluído |
 | **2.3 Identity, JWT e RBAC** | 13 | Concluído |
-| **2.4 CRM — Tutores e Pets** | 8 | Pendente |
+| **2.4 CRM — Tutores e Pets** | 8 | Concluído |
 | **2.5 Usuários, perfis e permissões** | 5 | Pendente |
 | **2.6 Auditoria e contratos de API** | 5 | Pendente |
 | **Total Fase 2** | **47 SP** | |
@@ -258,19 +258,27 @@ flowchart TD
 
 **Aceite:** Token JWT válido acessa recurso protegido; role incorreta retorna 403.
 
-### 2.4 CRM — Tutores e Pets (8 SP)
+### 2.4 CRM — Tutores e Pets (8 SP) — Concluído
 
-**Domain:** `Tutor`, `Pet`, `Species`, `Breed`, vínculos e regras de validação.
+**Domain**
+- [x] `Tutor`, `Pet`, `PetSpecies`/`PetSex`, VOs `Cpf`/`Phone`/`Email`, `ISoftDeletable`
+- [x] Regras: espécie válida, tutor ativo para `AddPet`, soft delete idempotente
 
-**Application:** Commands `CreateTutor`, `UpdateTutor`, `CreatePet`, `UpdatePet`; Queries paginadas com filtros.
+**Application**
+- [x] `CreateTutor`, `UpdateTutor`, `DeleteTutor`, `CreatePet`, `UpdatePet`, `DeletePet`
+- [x] Queries paginadas `PagedResult` + filtros (nome, CPF, tutorId); unicidade CPF/e-mail
 
-**Infrastructure:** Mapeamentos EF, índices, soft delete.
+**Infrastructure**
+- [x] EF: índices, `Restrict` FK, query filter tenant + `!IsDeleted`, migration `AddCrmSoftDeleteAndIndexes`
+- [x] `SearchAsync` nos repositórios (SQL, sem `GetAll` em memória)
 
-**API:** REST `/api/tutors`, `/api/pets` com OpenAPI documentado.
+**API**
+- [x] REST `/api/v1/tutors`, `/api/v1/pets` — CRUD, OpenAPI (`WithSummary`/`Produces`), policy `ClinicStaff`
 
-**Tests:** TDD em Domain (CPF/telefone, espécie obrigatória, tutor ativo).
+**Tests**
+- [x] Domain/Application TDD; E2E `TutorEndpointsTests` / `PetEndpointsTests` (409 CPF, delete→404, busca por nome)
 
-**Referência:** `functions.md` — Módulo Base & CRM.
+**Referência:** `functions.md` — Módulo Base & CRM; ADR-008 soft delete.
 
 **Aceite:** CRUD completo tutor/pet; listagem com paginação e busca por nome.
 

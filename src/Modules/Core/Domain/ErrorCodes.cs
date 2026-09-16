@@ -80,6 +80,9 @@ public static class ErrorCodes
         public static readonly Error NullPhone = new("Tutor.NullPhone", "O telefone é obrigatório.");
         public static readonly Error NullPet = new("Tutor.NullPet", "Não é possível adicionar um pet nulo.");
         public static readonly Error InvalidCpf = new("Tutor.InvalidCpf", "O CPF fornecido é inválido ou já está em uso.");
+        public static readonly Error DuplicateCpf = new("Tutor.DuplicateCpf", "Já existe um tutor cadastrado com este CPF.");
+        public static readonly Error DuplicateEmail = new("Tutor.DuplicateEmail", "Já existe um tutor cadastrado com este e-mail.");
+        public static readonly Error AlreadyDeleted = new("Tutor.AlreadyDeleted", "O tutor foi excluído e não pode ser alterado.");
     }
 
     /// <summary>
@@ -91,6 +94,10 @@ public static class ErrorCodes
         public static readonly Error InvalidName = new("Pet.InvalidName", "O nome do pet não pode ser vazio.");
         public static readonly Error InvalidTutor = new("Pet.InvalidTutor", "O pet deve ser associado a um tutor válido.");
         public static readonly Error TutorNotFound = new("Pet.TutorNotFound", "O tutor associado ao pet não foi encontrado.");
+        public static readonly Error InvalidSpecies = new("Pet.InvalidSpecies", "A espécie do pet é obrigatória e deve ser válida.");
+        public static readonly Error InvalidSex = new("Pet.InvalidSex", "O sexo do pet deve ser válido.");
+        public static readonly Error TutorInactive = new("Pet.TutorInactive", "Não é possível vincular pets a um tutor inativo.");
+        public static readonly Error AlreadyDeleted = new("Pet.AlreadyDeleted", "O pet foi excluído e não pode ser alterado.");
     }
 
     /// <summary>

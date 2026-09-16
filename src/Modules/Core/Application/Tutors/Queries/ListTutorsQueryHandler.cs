@@ -1,39 +1,37 @@
+using Core.Application.Common;
 using Core.Domain;
 using MediatR;
 
 namespace Core.Application.Tutors.Queries;
 
-public class ListTutorsQueryHandler : IRequestHandler<ListTutorsQuery, Result<IEnumerable<TutorDto>>>
+/// <summary>
+/// Returns a paginated list of tutors with optional name and CPF filters.
+/// </summary>
+public class ListTutorsQueryHandler : IRequestHandler<ListTutorsQuery, Result<PagedResult<TutorDto>>>
 {
     private readonly ITutorRepository _tutorRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ListTutorsQueryHandler"/> class.
+    /// </summary>
     public ListTutorsQueryHandler(ITutorRepository tutorRepository)
     {
         _tutorRepository = tutorRepository;
     }
 
-    public async Task<Result<IEnumerable<TutorDto>>> Handle(ListTutorsQuery request, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task<Result<PagedResult<TutorDto>>> Handle(ListTutorsQuery request, CancellationToken cancellationToken)
     {
-        var allTutors = await _tutorRepository.GetAllAsync(cancellationToken);
+        var page = await _tutorRepository.SearchAsync(
+            request.Page,
+            request.PageSize,
+            request.NameFilter,
+            request.CpfFilter,
+            cancellationToken);
 
-        var filtered = allTutors.AsEnumerable();
+        var items = page.Items.Select(TutorMappings.ToDto).ToList();
+        var paged = new PagedResult<TutorDto>(items, request.Page, request.PageSize, page.TotalCount);
 
-        if (!string.IsNullOrWhiteSpace(request.NameFilter))
-        {
-            filtered = filtered.Where(t => t.Name.Contains(request.NameFilter, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.CpfFilter))
-        {
-            filtered = filtered.Where(t => t.Cpf.Number.Contains(request.CpfFilter));
-        }
-
-        var paged = filtered
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .Select(TutorMappings.ToDto)
-            .ToList();
-
-        return Result.Success<IEnumerable<TutorDto>>(paged);
+        return Result.Success(paged);
     }
 }

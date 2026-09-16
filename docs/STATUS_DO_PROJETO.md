@@ -33,6 +33,7 @@ Estas sprints pavimentaram a estrutura base (SaaS modular, CQRS, Offline-First).
 - **Tenancy e Banco de Dados:** Schemas SQL por tenant (`ITenantContext.SchemaName`, ADR-003) com `TenantAwareModelCacheKeyFactory` e query filters; migrations Core baseline `dbo`.
 - **Fase 2.2 — EF Core Core:** Migration `InitialCore`, `CoreDbContextFactory`, repositórios, seed de roles no boot (`IdentityDataSeeder`).
 - **Fase 2.3 — Identity, JWT e RBAC:** CQRS (`Login`, `Refresh`, `Register` dev, `GetCurrentUser`), refresh hash (`UserRefreshTokens`), policies RBAC, OpenAPI Bearer, testes E2E (`AuthEndpointsTests`, `AuthorizationTests`). ADR-007.
+- **Fase 2.4 — CRM Tutores/Pets:** `CreateTutor`/`DeleteTutor`, pets com espécie obrigatória e tutor ativo, `PagedResult`, endpoints `/api/v1/tutors|pets`, migration soft delete, ADR-008, diagrama [`crm-tutor-pet.mmd`](diagramas/crm-tutor-pet.mmd).
 - **Identity & Auth:** ASP.NET Core Identity no `CoreDbContext` (`AppUser.TenantId`), JWT via `JwtAccessTokenIssuer`, `TenantClaimMiddleware`.
 - **Offline-first (Sync):** Padrão Transactional Outbox configurado com Testes de Integração End-to-End validando sincronia com banco local (SQLite).
 - **Testes e CI/CD:** Suíte robusta usando `xUnit`, `FluentAssertions` e `WebApplicationFactory` com DB em memória/SQLite para testes E2E. Pipeline do GitHub Actions em funcionamento.
@@ -56,7 +57,7 @@ Iniciado o módulo de estoque.
 
 ## 🚀 Onde Estamos e Próximos Passos
 
-**Fase 2.3 (Identity/JWT/RBAC)** concluída. Próximo marco do roadmap: **2.4 CRM Tutores/Pets** (refino) e **2.5 perfis customizáveis**.
+**Fase 2.4 (CRM Tutores/Pets)** concluída: soft delete, CRUD REST, paginação/busca, `CreateTutorCommand`, ADR-008. Próximo marco: **2.5 perfis customizáveis** e **2.6 auditoria/contratos API**.
 
 Estamos na **Sprint 5 - Parte 02 (Módulo Inventory)**.
 

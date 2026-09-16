@@ -62,7 +62,7 @@ public class AuditLogTests : IClassFixture<WebApplicationFactory<Program>>
     {
         // Arrange
         var client = await CreateAuthenticatedClientAsync("Admin");
-        var command = new Core.Application.Tutors.Commands.RegisterTutorCommand(Guid.NewGuid(), "John Doe", "john@example.com", "63683891416", "11999999999");
+        var command = new Core.Application.Tutors.Commands.CreateTutorCommand(Guid.NewGuid(), "John Doe", "john@example.com", "63683891416", "11999999999");
 
         // Act
         var response = await client.PostAsJsonAsync("/api/v1/tutors", command);

@@ -6,7 +6,7 @@ namespace Core.Domain.Entities;
 /// <summary>
 /// Aggregate Root que representa o Tutor do pet.
 /// </summary>
-public class Tutor : AggregateRoot
+public class Tutor : AggregateRoot, ISoftDeletable
 {
     private readonly List<Pet> _pets = new();
 
@@ -14,6 +14,17 @@ public class Tutor : AggregateRoot
     public Email Email { get; private set; }
     public Cpf Cpf { get; private set; }
     public Phone Phone { get; private set; }
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; private set; }
+
+    /// <inheritdoc />
+    public DateTimeOffset? DeletedAt { get; private set; }
+
+    /// <summary>
+    /// Tutores ativos podem receber novos pets e ser referenciados em atendimentos.
+    /// </summary>
+    public bool IsActive => !IsDeleted;
 
     /// <summary>
     /// Lista imutável de pets vinculados ao tutor.
@@ -63,8 +74,16 @@ public class Tutor : AggregateRoot
         return Result.Success(tutor);
     }
 
+    /// <summary>
+    /// Atualiza dados mutáveis do tutor (CPF permanece imutável após o cadastro).
+    /// </summary>
     public Result Update(string name, Email email, Phone phone)
     {
+        if (IsDeleted)
+        {
+            return Result.Failure(ErrorCodes.Tutor.AlreadyDeleted);
+        }
+
         if (string.IsNullOrWhiteSpace(name) || name.Trim().Length < 2)
         {
             return Result.Failure(ErrorCodes.Tutor.InvalidName);
@@ -88,13 +107,32 @@ public class Tutor : AggregateRoot
     }
 
     /// <summary>
-    /// Adiciona um pet à lista do tutor.
+    /// Marca o tutor como excluído logicamente; operação idempotente.
+    /// </summary>
+    public Result SoftDelete()
+    {
+        if (!IsDeleted)
+        {
+            IsDeleted = true;
+            DeletedAt = DateTimeOffset.UtcNow;
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Adiciona um pet à lista do tutor enquanto o tutor estiver ativo.
     /// </summary>
     public Result AddPet(Pet pet)
     {
         if (pet is null)
         {
             return Result.Failure(ErrorCodes.Tutor.NullPet);
+        }
+
+        if (!IsActive)
+        {
+            return Result.Failure(ErrorCodes.Pet.TutorInactive);
         }
 
         _pets.Add(pet);

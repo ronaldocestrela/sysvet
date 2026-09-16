@@ -55,7 +55,7 @@ namespace Clients.Tests
                 Assert.Single(outboxMessages);
                 
                 var message = outboxMessages.First();
-                Assert.Equal("RegisterTutorCommand", message.Type);
+                Assert.Equal("CreateTutorCommand", message.Type);
                 Assert.Contains("Tutor Offline", message.Payload);
                 Assert.Contains("offline@teste.com", message.Payload);
                 Assert.Null(message.ProcessedAt); // Ainda não processado

@@ -91,7 +91,7 @@ public class EndToEndSyncTests
         // Assert offline behavior worked
         var outboxMessages = await offlineDb.OutboxMessages.ToListAsync();
         outboxMessages.Should().HaveCount(1);
-        outboxMessages.First().Type.Should().Be("RegisterTutorCommand");
+        outboxMessages.First().Type.Should().Be("CreateTutorCommand");
 
         // 3. Act - User reconnects to Internet (SyncBackgroundWorker triggers)
         // We simulate the SyncBackgroundWorker logic by reading Outbox and calling the API

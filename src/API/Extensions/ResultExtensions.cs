@@ -81,6 +81,7 @@ public static class ResultExtensions
             var code when code.Contains("Forbidden") => StatusCodes.Status403Forbidden,
             var code when code.Contains("LockedOut") => StatusCodes.Status403Forbidden,
             var code when code.Contains("DuplicateEmail") => StatusCodes.Status409Conflict,
+            var code when code.Contains("DuplicateCpf") => StatusCodes.Status409Conflict,
             var code when code.Contains("RegistrationNotAllowed") => StatusCodes.Status403Forbidden,
             _ => StatusCodes.Status400BadRequest
         };

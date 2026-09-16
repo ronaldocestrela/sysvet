@@ -82,7 +82,7 @@ public class OfflineDbContext : DbContext
                     };
                     outboxMessages.Add(new OutboxMessage
                     {
-                        Type = "RegisterTutorCommand",
+                        Type = "CreateTutorCommand",
                         Payload = JsonSerializer.Serialize(cmd)
                     });
                 }

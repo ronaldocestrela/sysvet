@@ -7,4 +7,4 @@ using Core.Domain.Entities;
 namespace Core.Application.Pets.Commands;
 
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff)]
-public record CreatePetCommand(string Name, PetSpecies Species, string Breed, PetSex Sex, Guid TutorId, Guid IdempotencyKey = default) : IIdempotentCommand<Guid>;
+public record CreatePetCommand(string Name, PetSpecies Species, string Breed, PetSex Sex, Guid TutorId, Guid Id = default, Guid IdempotencyKey = default) : IIdempotentCommand<Guid>;

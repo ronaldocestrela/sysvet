@@ -49,4 +49,41 @@ public class PetTests
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Pet.InvalidTutor");
     }
+
+    [Fact]
+    public void Create_ShouldReturnFailure_WhenSpeciesIsUndefined()
+    {
+        var tutorId = Guid.NewGuid();
+
+        var result = Pet.Create("Thor", (PetSpecies)0, "Bulldog", PetSex.Male, tutorId);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Pet.InvalidSpecies");
+    }
+
+    [Fact]
+    public void SoftDelete_ShouldMarkAsDeleted()
+    {
+        var tutorId = Guid.NewGuid();
+        var pet = Pet.Create("Thor", PetSpecies.Dog, "Bulldog", PetSex.Male, tutorId).Value;
+
+        var result = pet.SoftDelete();
+
+        result.IsSuccess.Should().BeTrue();
+        pet.IsDeleted.Should().BeTrue();
+        pet.DeletedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Update_ShouldReturnFailure_WhenPetIsDeleted()
+    {
+        var tutorId = Guid.NewGuid();
+        var pet = Pet.Create("Thor", PetSpecies.Dog, "Bulldog", PetSex.Male, tutorId).Value;
+        pet.SoftDelete();
+
+        var result = pet.Update("New Name", PetSpecies.Cat, "Persa", PetSex.Female);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Pet.AlreadyDeleted");
+    }
 }

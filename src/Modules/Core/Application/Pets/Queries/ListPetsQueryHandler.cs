@@ -1,34 +1,37 @@
+using Core.Application.Common;
 using Core.Domain;
 using MediatR;
 
 namespace Core.Application.Pets.Queries;
 
-public class ListPetsQueryHandler : IRequestHandler<ListPetsQuery, Result<IEnumerable<PetDto>>>
+/// <summary>
+/// Returns a paginated list of pets with optional tutor and name filters.
+/// </summary>
+public class ListPetsQueryHandler : IRequestHandler<ListPetsQuery, Result<PagedResult<PetDto>>>
 {
     private readonly IPetRepository _petRepository;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ListPetsQueryHandler"/> class.
+    /// </summary>
     public ListPetsQueryHandler(IPetRepository petRepository)
     {
         _petRepository = petRepository;
     }
 
-    public async Task<Result<IEnumerable<PetDto>>> Handle(ListPetsQuery request, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task<Result<PagedResult<PetDto>>> Handle(ListPetsQuery request, CancellationToken cancellationToken)
     {
-        var allPets = await _petRepository.GetAllAsync(cancellationToken);
+        var page = await _petRepository.SearchAsync(
+            request.Page,
+            request.PageSize,
+            request.TutorId,
+            request.NameFilter,
+            cancellationToken);
 
-        var filtered = allPets.AsEnumerable();
+        var items = page.Items.Select(PetMappings.ToDto).ToList();
+        var paged = new PagedResult<PetDto>(items, request.Page, request.PageSize, page.TotalCount);
 
-        if (request.TutorId.HasValue && request.TutorId.Value != Guid.Empty)
-        {
-            filtered = filtered.Where(p => p.TutorId == request.TutorId.Value);
-        }
-
-        var paged = filtered
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .Select(PetMappings.ToDto)
-            .ToList();
-
-        return Result.Success<IEnumerable<PetDto>>(paged);
+        return Result.Success(paged);
     }
 }

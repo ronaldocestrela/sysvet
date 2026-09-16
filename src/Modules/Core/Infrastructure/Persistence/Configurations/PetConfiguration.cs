@@ -19,6 +19,15 @@ public class PetConfiguration : IEntityTypeConfiguration<Pet>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.HasIndex(p => p.Name);
+        builder.HasIndex(p => p.TutorId);
+
+        builder.Property(p => p.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.DeletedAt);
+
         builder.Property(p => p.Species)
             .IsRequired()
             .HasConversion<string>()
@@ -35,6 +44,6 @@ public class PetConfiguration : IEntityTypeConfiguration<Pet>
         builder.HasOne<Tutor>()
             .WithMany(t => t.Pets)
             .HasForeignKey(p => p.TutorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

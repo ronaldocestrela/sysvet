@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using Core.Application.Common;
 using Core.Application.Pets.Commands;
+using Core.Application.Pets.Queries;
 using Core.Application.Tutors.Commands;
 using Core.Domain.Entities;
 using Core.Infrastructure.Identity;
@@ -25,7 +27,7 @@ public class PetEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
     private async Task<HttpClient> CreateAuthenticatedClientAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        
+
         var context = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -48,7 +50,7 @@ public class PetEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var request = new { Email = "petadmin@sysvet.com", Password = "Password123!" };
         var response = await client.PostAsJsonAsync("/api/v1/auth/login", request);
         var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        
+
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginResponse!.AccessToken);
         return client;
     }
@@ -56,25 +58,32 @@ public class PetEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task CreatePet_WithValidData_ReturnsCreated()
     {
-        // Arrange
         var client = await CreateAuthenticatedClientAsync();
-        
-        // 1. First create a Tutor
-        var tutorCommand = new RegisterTutorCommand(Guid.NewGuid(), "Pet Owner", "owner2@pets.com", "11122233396", "11999999999");
+
+        var tutorCommand = new CreateTutorCommand(Guid.NewGuid(), "Pet Owner", "owner2@pets.com", "11122233396", "11999999999");
         var tutorResponse = await client.PostAsJsonAsync("/api/v1/tutors", tutorCommand);
-        if (!tutorResponse.IsSuccessStatusCode)
-        {
-            var content = await tutorResponse.Content.ReadAsStringAsync();
-            throw new Exception($"Tutor creation failed: {tutorResponse.StatusCode} - {content}");
-        }
+        tutorResponse.EnsureSuccessStatusCode();
 
         var tutorId = tutorCommand.Id;
         var command = new CreatePetCommand("Rex", PetSpecies.Dog, "Poodle", PetSex.Male, tutorId);
 
-        // Act
         var response = await client.PostAsJsonAsync("/api/v1/pets", command);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+
+    [Fact]
+    public async Task ListPets_WithNameFilter_ReturnsMatches()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var tutorId = Guid.NewGuid();
+        await client.PostAsJsonAsync("/api/v1/tutors", new CreateTutorCommand(tutorId, "Owner", "owner@pets.com", "11122233396", "11999999999"));
+        await client.PostAsJsonAsync("/api/v1/pets", new CreatePetCommand("Rex Search", PetSpecies.Dog, "Poodle", PetSex.Male, tutorId));
+
+        var response = await client.GetAsync("/api/v1/pets?nameFilter=Rex");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var page = await response.Content.ReadFromJsonAsync<PagedResult<PetDto>>();
+        page!.Items.Should().ContainSingle(p => p.Name.Contains("Rex"));
     }
 }

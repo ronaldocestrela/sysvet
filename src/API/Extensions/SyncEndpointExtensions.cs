@@ -32,9 +32,9 @@ public static class SyncEndpointExtensions
                 try
                 {
                     object? command = null;
-                    if (message.Type == nameof(RegisterTutorCommand))
+                    if (message.Type is nameof(CreateTutorCommand) or "RegisterTutorCommand")
                     {
-                        command = JsonSerializer.Deserialize<RegisterTutorCommand>(message.Payload);
+                        command = JsonSerializer.Deserialize<CreateTutorCommand>(message.Payload);
                     }
                     else if (message.Type == nameof(UpdateTutorCommand))
                     {

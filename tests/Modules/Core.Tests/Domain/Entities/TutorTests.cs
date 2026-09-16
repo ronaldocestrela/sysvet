@@ -65,4 +65,64 @@ public class TutorTests
         addResult.IsSuccess.Should().BeTrue();
         tutor.Pets.Should().ContainSingle(p => p.Name == "Rex");
     }
+
+    [Fact]
+    public void AddPet_ShouldReturnFailure_WhenTutorIsInactive()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+        tutor.SoftDelete();
+
+        var pet = Pet.Create("Rex", PetSpecies.Dog, "Golden Retriever", PetSex.Male, tutor.Id).Value;
+
+        var addResult = tutor.AddPet(pet);
+
+        addResult.IsFailure.Should().BeTrue();
+        addResult.Error.Code.Should().Be("Pet.TutorInactive");
+    }
+
+    [Fact]
+    public void SoftDelete_ShouldBeIdempotent()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+
+        tutor.SoftDelete().IsSuccess.Should().BeTrue();
+        var second = tutor.SoftDelete();
+
+        second.IsSuccess.Should().BeTrue();
+        tutor.IsDeleted.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Update_ShouldReturnFailure_WhenTutorIsDeleted()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+        tutor.SoftDelete();
+
+        var result = tutor.Update("New Name",
+            Email.Create("new@example.com").Value,
+            Phone.Create("11888887777").Value);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Tutor.AlreadyDeleted");
+    }
+
+    [Fact]
+    public void IsActive_ShouldBeTrue_WhenNotDeleted()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+
+        tutor.IsActive.Should().BeTrue();
+    }
 }

@@ -52,7 +52,7 @@ public class MauiIntegrationTests : IDisposable
         Assert.NotNull(savedData);
         Assert.Equal("João Silva", savedData.Name);
         Assert.NotNull(outboxMessage);
-        Assert.Equal("RegisterTutorCommand", outboxMessage.Type);
+        Assert.Equal("CreateTutorCommand", outboxMessage.Type);
     }
 
     public void Dispose()

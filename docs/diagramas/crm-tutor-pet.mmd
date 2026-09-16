@@ -1,0 +1,21 @@
+erDiagram
+    Tutor ||--o{ Pet : owns
+    Tutor {
+        guid Id PK
+        string Name
+        string Email
+        string Cpf
+        string Phone
+        bool IsDeleted
+        datetime DeletedAt
+    }
+    Pet {
+        guid Id PK
+        guid TutorId FK
+        string Name
+        enum Species
+        string Breed
+        enum Sex
+        bool IsDeleted
+        datetime DeletedAt
+    }

@@ -38,6 +38,23 @@ public class CreatePetCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WithInactiveTutor_ShouldReturnFailure()
+    {
+        var tutorId = Guid.NewGuid();
+        var tutor = Tutor.Create("John Doe", Email.Create("john@example.com").Value, Cpf.Create("12345678909").Value, Phone.Create("11999999999").Value, tutorId).Value;
+        tutor.SoftDelete();
+
+        _tutorRepository.GetByIdAsync(tutorId, Arg.Any<CancellationToken>()).Returns(tutor);
+
+        var command = new CreatePetCommand("Rex", PetSpecies.Dog, "Poodle", PetSex.Male, tutorId);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("Pet.TutorInactive");
+    }
+
+    [Fact]
     public async Task Handle_WithNonExistingTutor_ShouldReturnFailure()
     {
         var tutorId = Guid.NewGuid();

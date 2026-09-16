@@ -20,3 +20,4 @@ public class UpdateTutorCommandValidator : AbstractValidator<UpdateTutorCommand>
             .NotEmpty().WithMessage("O telefone é obrigatório.");
     }
 }
+

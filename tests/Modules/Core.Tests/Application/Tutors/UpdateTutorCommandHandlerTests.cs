@@ -30,7 +30,7 @@ public class UpdateTutorCommandHandlerTests
         var tutorResult = Tutor.Create("John Doe", Email.Create("john@example.com").Value, Cpf.Create("12345678909").Value, Phone.Create("11999999999").Value, id);
         _tutorRepository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(tutorResult.Value);
 
-        var command = new UpdateTutorCommand(id, "John Smith", "smith@example.com", "12345678909", "11888888888");
+        var command = new UpdateTutorCommand(id, "John Smith", "smith@example.com", "11888888888");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -44,7 +44,7 @@ public class UpdateTutorCommandHandlerTests
         var id = Guid.NewGuid();
         _tutorRepository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Tutor?)null);
 
-        var command = new UpdateTutorCommand(id, "John Smith", "smith@example.com", "12345678909", "11888888888");
+        var command = new UpdateTutorCommand(id, "John Smith", "smith@example.com", "11888888888");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
