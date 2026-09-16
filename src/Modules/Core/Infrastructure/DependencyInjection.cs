@@ -2,6 +2,7 @@ using Core.Application.Pets.Commands;
 using Core.Domain;
 using Core.Domain.Auditing;
 using Core.Infrastructure.Auditing;
+using Core.Infrastructure.Configuration;
 using Core.Infrastructure.Identity;
 using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
@@ -12,8 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.Extensions.Options;
 
 namespace Core.Infrastructure;
 
@@ -27,9 +27,15 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddCoreModule(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<CoreDbContext>(options =>
+        services.AddValidatedOptions<DatabaseOptions>(configuration, DatabaseOptions.SectionName);
+        services.AddValidatedOptions<JwtSettings>(configuration, JwtSettings.SectionName);
+        services.AddValidatedOptions<TenancySettings>(configuration, TenancySettings.SectionName);
+
+        services.AddDbContext<CoreDbContext>((serviceProvider, options) =>
         {
-            options.UseSqlite("Data Source=sysvet.db");
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+            var databaseOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            options.ConfigureModuleDatabase(config, databaseOptions);
             options.ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCacheKeyFactory, TenantAwareModelCacheKeyFactory>();
         });
 
@@ -37,48 +43,14 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<CoreDbContext>()
             .AddDefaultTokenProviders();
 
-        var jwtSettingsSection = configuration.GetSection(JwtSettings.SectionName);
-        var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
-
-        if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Secret))
-        {
-            jwtSettings = new JwtSettings
-            {
-                Secret = "super_secret_key_12345_for_testing_purposes_only!",
-                Issuer = "sysvet",
-                Audience = "sysvet",
-                ExpiryMinutes = 60
-            };
-        }
-
-        services.AddOptions<JwtSettings>()
-            .Bind(jwtSettingsSection)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddOptions<TenancySettings>()
-            .Bind(configuration.GetSection(TenancySettings.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+        services.AddSingleton<IConfigureOptions<JwtBearerOptions>, JwtBearerOptionsConfiguration>();
 
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSettings.Issuer,
-                ValidAudience = jwtSettings.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
-            };
-        });
+        .AddJwtBearer();
 
         services.AddAuthorization(options =>
         {

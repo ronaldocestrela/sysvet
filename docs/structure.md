@@ -20,6 +20,9 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   ├── API/                            # Projeto ASP.NET Core Web API (Ponto de entrada, injeção de dependência e configuração do Scalar).
 │   │   ├── Program.cs                  
 │   │   ├── appsettings.json
+│   │   ├── appsettings.Development.json
+│   │   ├── appsettings.Staging.json
+│   │   ├── appsettings.Production.json
 │   │   ├── Dockerfile                  # Imagem multi-stage (SDK → aspnet) validada no CI.
 │   │   └── Extensions/                 
 │   │
@@ -32,7 +35,7 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │       ├── Core/                       # Módulo base para gestão de acessos e sincronização.
 │       │   ├── Domain/                 # Entidades, Value Objects e interfaces de repositório.
 │       │   ├── Application/            # Handlers CQRS, DTOs e validações.
-│       │   └── Infrastructure/         # EF Core DbContext, Mapeamentos, Repositórios, DependencyInjection.cs (Add*Module).
+│       │   └── Infrastructure/         # EF Core DbContext, Mapeamentos, Repositórios, DependencyInjection.cs (Add*Module), Configuration/ (Options).
 │       │
 │       ├── Veterinary/                 # Prontuários, internações e vacinas.
 │       │   ├── Domain/

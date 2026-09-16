@@ -13,6 +13,12 @@ Estas sprints pavimentaram a estrutura base (SaaS modular, CQRS, Offline-First).
 - **Composição:** `AddApplicationModules()` na API; `Add*Module()` em `DependencyInjection.cs` de Core, Veterinary, Inventory, Sales (+ stubs Petshop/Fiscal).
 - **HTTP:** `ResultExtensions` + `ResultEndpointFilter`; endpoints por módulo (`MapCoreEndpoints`, `MapVeterinaryEndpoints`, …).
 - **Testes:** `ModuleRegistrationTests`, `ResultExtensionsTests`, `ResultEndpointFilterTests` em `API.IntegrationTests`.
+
+### Fase 1 — Configuração por ambiente (1.4)
+- **Options:** `JwtSettings`, `TenancySettings`, `DatabaseOptions` (Core); `VeterinaryOptions`, `InventoryOptions`, `SalesOptions` com `ValidateOnStart()`.
+- **Connection strings:** `ConnectionStrings:DefaultConnection` + overrides opcionais; helper `ConfigureModuleDatabase` (Sqlite/SqlServer).
+- **Secrets:** `UserSecretsId` na API; Staging/Production sem segredos no Git; documentação em [`docs/arquitetura/configuracao.md`](arquitetura/configuracao.md).
+- **Testes:** `DatabaseOptionsValidationTests`, `ConfigurationTests` (fail-fast Production, connection string efetiva).
 - **Core Domain & Application:** Base Entity, AggregateRoot, Result Pattern, CQRS com MediatR (Logging, Validation e Transaction Behaviors). Entidades de base `Tutor` e `Pet`.
 - **Tenancy e Banco de Dados:** Múltiplos schemas (Isolation por Tenant) dinâmicos usando EF Core Interceptors e `IModelCacheKeyFactory`.
 - **Identity & Auth:** ASP.NET Core Identity isolado no `CoreDbContext`. Criação de rotas `/api/v1/auth/login`, geração de JWT. Configuração de `TenantClaimMiddleware`.

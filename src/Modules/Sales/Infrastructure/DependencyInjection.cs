@@ -1,8 +1,11 @@
+using Core.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Sales.Application.Orders.Commands;
 using Sales.Domain.Repositories;
+using Sales.Infrastructure.Configuration;
 using Sales.Infrastructure.Persistence;
 using Sales.Infrastructure.Persistence.Repositories;
 
@@ -18,10 +21,15 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddSalesModule(this IServiceCollection services, IConfiguration configuration)
     {
-        _ = configuration;
+        services.AddValidatedOptions<SalesOptions>(configuration, SalesOptions.SectionName);
 
-        services.AddDbContext<SalesDbContext>(options =>
-            options.UseSqlite("Data Source=sysvet.db"));
+        services.AddDbContext<SalesDbContext>((serviceProvider, options) =>
+        {
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+            var databaseOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            var moduleOptions = serviceProvider.GetRequiredService<IOptions<SalesOptions>>().Value;
+            options.ConfigureModuleDatabase(config, databaseOptions, moduleOptions.ConnectionString);
+        });
 
         services.AddScoped<ISalesUnitOfWork>(provider => provider.GetRequiredService<SalesDbContext>());
         services.AddScoped<IOrderRepository, OrderRepository>();

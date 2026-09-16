@@ -126,7 +126,7 @@ flowchart TD
 | **1.1 Solução e referências** | 3 | Concluído |
 | **1.2 CI/CD** | 5 | Concluído |
 | **1.3 DI modular na API** | 5 | Concluído |
-| **1.4 Configuração por ambiente** | 3 | Pendente |
+| **1.4 Configuração por ambiente** | 3 | Concluído |
 | **1.5 Observabilidade e health checks** | 3 | Pendente |
 | **1.6 ADRs e documentação arquitetural** | 3 | Pendente |
 | **Total Fase 1** | **22 SP** | |
@@ -162,12 +162,12 @@ flowchart TD
 
 **Aceite:** API compila referenciando todos os módulos; DI resolve serviços sem registro manual espalhado.
 
-### 1.4 Configuração por ambiente (3 SP) — Pendente
+### 1.4 Configuração por ambiente (3 SP) — Concluído
 
-- [ ] `appsettings.{Development,Staging,Production}.json`
-- [ ] User Secrets / variáveis de ambiente para connection strings
-- [ ] Options pattern tipado por módulo
-- [ ] Documentar variáveis obrigatórias em `docs/arquitetura/`
+- [x] `appsettings.{Development,Staging,Production}.json`
+- [x] User Secrets / variáveis de ambiente para connection strings
+- [x] Options pattern tipado por módulo
+- [x] Documentar variáveis obrigatórias em `docs/arquitetura/`
 
 **Aceite:** API sobe em Development com config mínima documentada.
 

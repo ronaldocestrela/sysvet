@@ -14,11 +14,22 @@ public class ModuleRegistrationTests
     private static ServiceProvider BuildProvider()
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:",
+                ["Database:Provider"] = "Sqlite",
+                ["Database:ConnectionStringName"] = "DefaultConnection",
+                ["TenancySettings:DefaultSchema"] = "dbo",
+                ["JwtSettings:Secret"] = "module-registration-secret-16",
+                ["JwtSettings:Issuer"] = "sysvet-api",
+                ["JwtSettings:Audience"] = "sysvet-clients",
+                ["JwtSettings:ExpiryMinutes"] = "60"
+            })
             .Build();
 
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddApplicationModules(configuration);
         return services.BuildServiceProvider();
     }
@@ -26,15 +37,18 @@ public class ModuleRegistrationTests
     [Fact]
     public void AddApplicationModules_ResolvesCoreDbContext()
     {
-        using var provider = BuildProvider();
-        var db = provider.GetService<Core.Infrastructure.Persistence.CoreDbContext>();
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var db = scope.ServiceProvider.GetService<Core.Infrastructure.Persistence.CoreDbContext>();
         db.Should().NotBeNull();
     }
 
     [Fact]
     public void AddApplicationModules_ResolvesVeterinaryDbContextAndHandlers()
     {
-        using var provider = BuildProvider();
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var provider = scope.ServiceProvider;
         provider.GetService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>().Should().NotBeNull();
         provider.GetService<IRequestHandler<ScheduleAppointmentCommand, Result<Guid>>>().Should().NotBeNull();
     }
@@ -42,7 +56,9 @@ public class ModuleRegistrationTests
     [Fact]
     public void AddApplicationModules_ResolvesInventoryAndSalesServices()
     {
-        using var provider = BuildProvider();
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var provider = scope.ServiceProvider;
         provider.GetService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>().Should().NotBeNull();
         provider.GetService<global::Sales.Infrastructure.Persistence.SalesDbContext>().Should().NotBeNull();
         provider.GetService<global::Inventory.Domain.Repositories.IProductRepository>().Should().NotBeNull();
@@ -59,8 +75,9 @@ public class ModuleRegistrationTests
     [Fact]
     public void AddApplicationModules_RegistersValidationBehaviorForVeterinaryPipeline()
     {
-        using var provider = BuildProvider();
-        var behaviors = provider.GetServices<IPipelineBehavior<ScheduleAppointmentCommand, Result<Guid>>>();
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var behaviors = scope.ServiceProvider.GetServices<IPipelineBehavior<ScheduleAppointmentCommand, Result<Guid>>>();
         behaviors.Select(b => b.GetType()).Should().Contain(typeof(ValidationBehavior<ScheduleAppointmentCommand, Result<Guid>>));
     }
 }

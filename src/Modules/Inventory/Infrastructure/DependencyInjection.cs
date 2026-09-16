@@ -1,10 +1,13 @@
+using Core.Infrastructure.Configuration;
 using Inventory.Application.Products.Commands;
 using Inventory.Domain.Repositories;
+using Inventory.Infrastructure.Configuration;
 using Inventory.Infrastructure.Persistence;
 using Inventory.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Inventory.Infrastructure;
 
@@ -18,10 +21,15 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddInventoryModule(this IServiceCollection services, IConfiguration configuration)
     {
-        _ = configuration;
+        services.AddValidatedOptions<InventoryOptions>(configuration, InventoryOptions.SectionName);
 
-        services.AddDbContext<InventoryDbContext>(options =>
-            options.UseSqlite("Data Source=sysvet.db"));
+        services.AddDbContext<InventoryDbContext>((serviceProvider, options) =>
+        {
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+            var databaseOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            var moduleOptions = serviceProvider.GetRequiredService<IOptions<InventoryOptions>>().Value;
+            options.ConfigureModuleDatabase(config, databaseOptions, moduleOptions.ConnectionString);
+        });
 
         services.AddScoped<IInventoryUnitOfWork>(provider => provider.GetRequiredService<InventoryDbContext>());
         services.AddScoped<IProductRepository, ProductRepository>();

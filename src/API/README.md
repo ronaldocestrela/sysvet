@@ -15,8 +15,9 @@ Projeto **ponto de entrada** da aplicação server-side. É o único projeto que
 | Arquivo / Pasta | O que é / Para que serve |
 |---|---|
 | [`Program.cs`](./Program.cs) | Ponto de entrada da aplicação. Cria o `WebApplicationBuilder`, registra serviços e configura o pipeline HTTP. Hoje expõe a documentação Scalar em desenvolvimento e uma rota `GET /` de healthcheck básico. |
-| [`appsettings.json`](./appsettings.json) | Configurações de produção (connection strings, log levels, etc.). |
-| [`appsettings.Development.json`](./appsettings.Development.json) | Sobrescreve `appsettings.json` em ambiente de desenvolvimento (ex: banco local, log verboso). |
+| [`appsettings.json`](./appsettings.json) | Defaults não secretos: `Database`, `TenancySettings`, `JwtSettings` (sem `Secret` no base). |
+| [`appsettings.Development.json`](./appsettings.Development.json) | SQLite local (`ConnectionStrings:DefaultConnection`), JWT de desenvolvimento e logging. |
+| [`appsettings.Staging.json`](./appsettings.Staging.json) / [`appsettings.Production.json`](./appsettings.Production.json) | Provider SQL Server; segredos e connection string **somente** via ambiente ou User Secrets. |
 | [`API.http`](./API.http) | Arquivo de requisições HTTP para teste manual dos endpoints via REST Client do VS Code. |
 | [`Properties/launchSettings.json`](./Properties/launchSettings.json) | Configurações de inicialização local: perfis de execução, URLs, variáveis de ambiente. |
 | [`Extensions/`](./Extensions/README.md) | Classes de extensão de `IServiceCollection` e `IApplicationBuilder` para modularizar o registro de serviços. |
@@ -26,6 +27,19 @@ Projeto **ponto de entrada** da aplicação server-side. É o único projeto que
 - **Sem lógica de negócio aqui.** Toda regra de domínio fica nos módulos.
 - Novos módulos: `AddXxxModule` na Infrastructure do módulo, entrada em `AddApplicationModules()`, `MapXxxEndpoints` e grupo com `ResultEndpointFilter` em `Program.cs`.
 - A documentação Scalar está disponível em `/scalar/v1` quando rodando em `Development`.
+
+## Configuração mínima (Development)
+
+```bash
+export ASPNETCORE_ENVIRONMENT=Development
+dotnet run --project src/API
+```
+
+Variáveis obrigatórias por ambiente: [`docs/arquitetura/configuracao.md`](../../docs/arquitetura/configuracao.md). User Secrets (`UserSecretsId` no `.csproj`):
+
+```bash
+dotnet user-secrets set "JwtSettings:Secret" "<min-16-chars>" --project src/API
+```
 
 ## Dependências Externas
 
