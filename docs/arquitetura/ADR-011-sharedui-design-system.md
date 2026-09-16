@@ -18,8 +18,8 @@ Adotar **SharedUI** como Razor Class Library única: CSS tokens em `wwwroot/css/
 
 ## Consequências
 - Positivas: um layout para WASM e MAUI; testes bUnit centralizados; hosts enxutos.
-- Negativas: Bootstrap ainda é dependência utilitária (não design system puro); NavMenu não filtra por `MenuCatalog` até integração com `/auth/me`.
-- Futuro: menu dinâmico (3.2), tema escuro, paginação em `DataGrid`.
+- Negativas: Bootstrap ainda é dependência utilitária (não design system puro).
+- Futuro: tema escuro, paginação em `DataGrid`. Menu dinâmico via `/auth/me` entregue na 3.2 (ADR-012).
 
 ## Confirmação no código
 - `src/Clients/SharedUI/` — RCL, tokens, componentes, `SharedUIServiceCollectionExtensions.AddSharedUI()`.

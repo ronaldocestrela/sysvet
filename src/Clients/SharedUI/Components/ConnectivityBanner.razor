@@ -2,33 +2,26 @@
 @implements IDisposable
 @inject IConnectivityService ConnectivityService
 
-@if (!_isOnline)
+@if (ConnectivityService.Status == ConnectivityStatus.Offline)
 {
     <div class="connectivity-banner">
-        Você está offline. Os dados serão salvos localmente e sincronizados quando a conexão retornar.
+        Você está offline. Telas já visitadas podem abrir pelo cache do PWA; dados da API ficam indisponíveis até a conexão voltar.
     </div>
 }
 
 @code {
-    private bool _isOnline = true;
-
     protected override void OnInitialized()
     {
-        _isOnline = ConnectivityService.IsOnline;
-        ConnectivityService.ConnectivityChanged += OnConnectivityChanged;
+        ConnectivityService.StatusChanged += OnStatusChanged;
     }
 
-    private void OnConnectivityChanged(object? sender, bool isOnline)
+    private void OnStatusChanged(object? sender, ConnectivityStatus status)
     {
-        InvokeAsync(() => 
-        {
-            _isOnline = isOnline;
-            StateHasChanged();
-        });
+        InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        ConnectivityService.ConnectivityChanged -= OnConnectivityChanged;
+        ConnectivityService.StatusChanged -= OnStatusChanged;
     }
 }

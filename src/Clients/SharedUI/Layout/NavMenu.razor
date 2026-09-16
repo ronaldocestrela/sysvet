@@ -1,4 +1,7 @@
 @using SharedUI.Navigation
+@using SharedUI.Services
+@implements IDisposable
+@inject IAuthState AuthState
 
 <div class="sidebar">
     <div class="sidebar-header">
@@ -6,7 +9,7 @@
     </div>
 
     <nav class="nav flex-column">
-        @foreach (var item in AppNavItems.All)
+        @foreach (var item in _navItems)
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="@item.Href" Match="@(item.Href == AppRoutes.Home ? NavLinkMatch.All : NavLinkMatch.Prefix)">
@@ -16,3 +19,29 @@
         }
     </nav>
 </div>
+
+@code {
+    private IReadOnlyList<AppNavItem> _navItems = AppNavItems.All;
+
+    protected override void OnInitialized()
+    {
+        RefreshNavItems();
+        AuthState.SessionChanged += OnSessionChanged;
+    }
+
+    private void OnSessionChanged(object? sender, EventArgs e)
+    {
+        RefreshNavItems();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshNavItems()
+    {
+        _navItems = MenuNavigation.BuildNavItems(AuthState.Menus);
+    }
+
+    public void Dispose()
+    {
+        AuthState.SessionChanged -= OnSessionChanged;
+    }
+}

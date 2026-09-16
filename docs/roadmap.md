@@ -36,7 +36,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | EF Core / SQL Server | **Concluído (Core 2.2)** | `CoreDbContext`, EF 10 Sqlite/SqlServer, `InitialCore` migration, repositórios + UoW, seed de roles |
 | Identity / JWT | **Concluído (Core 2.3)** | Identity + JWT CQRS, refresh hash, policies, `/api/v1/auth/*`, testes E2E |
 | CQRS / Handlers | **Concluído** | MediatR, `ICommand`/`IQuery`, behaviors (logging, auth, validation, idempotência, transação), handlers Core/Veterinary/Sales/Inventory |
-| Blazor WASM | **Parcial** | PWA scaffold; hosts SharedUI layout; CRM/login via RCL (JWT real em 3.2) |
+| Blazor WASM | **Concluído (3.2)** | PWA publish + manifest/ícones; JWT/refresh; CRM tutor/pet via API; CORS; ADR-012 |
 | SharedUI | **Concluído (3.1)** | Layout, tokens, DataGrid/FormField/Modal/Toast/LoadingState, `IAuthState`/`INavigationService`/`IToastService`, testes bUnit |
 | MAUI | **Parcial** | `src/Clients/MauiApp/` — Blazor Hybrid scaffold; na solução com build desligado em Linux/CI |
 | SQLite / Sync offline | **Pendente** | — |
@@ -334,7 +334,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **3.1 SharedUI — design system base** | 8 | Concluído |
-| **3.2 Blazor WASM PWA** | 8 | Pendente |
+| **3.2 Blazor WASM PWA** | 8 | Concluído |
 | **3.3 MAUI Blazor Hybrid** | 13 | Pendente |
 | **3.4 SQLite local nos clients** | 8 | Pendente |
 | **3.5 Motor de sincronização** | 21 | Pendente |
@@ -350,14 +350,14 @@ flowchart TD
 
 **Aceite:** BlazorWeb e MAUI renderizam o mesmo layout a partir de SharedUI. Testes: `tests/Clients.Tests/SharedUI/` (34 testes). ADR-011.
 
-### 3.2 Blazor WASM PWA (8 SP)
+### 3.2 Blazor WASM PWA (8 SP) — Concluído
 
-- [ ] Manifest + service worker + cache de assets
-- [ ] HttpClient autenticado (JWT) apontando para API
-- [ ] Telas: login, listagem/cadastro tutor e pet
-- [ ] Indicador de conectividade (online/offline/syncing)
+- [x] Manifest + service worker + cache de assets (publish)
+- [x] HttpClient autenticado (JWT + refresh) apontando para API
+- [x] Telas: login, listagem/cadastro tutor e pet (SharedUI + API)
+- [x] Indicador de conectividade (online/offline; syncing reservado 3.5)
 
-**Aceite:** App instalável como PWA; funciona offline para telas já cacheadas.
+**Aceite:** App instalável como PWA; funciona offline para telas já cacheadas (assets/shell). ADR-012; testes `Clients.Tests/BlazorWeb`, `CorsTests`.
 
 ### 3.3 MAUI Blazor Hybrid (13 SP)
 

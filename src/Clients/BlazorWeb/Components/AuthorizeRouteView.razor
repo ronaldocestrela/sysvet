@@ -1,0 +1,71 @@
+@using SharedUI.Layout
+@using SharedUI.Navigation
+@using SharedUI.Services
+@implements IDisposable
+@inject IAuthState AuthState
+@inject INavigationService Navigation
+
+@if (_ready)
+{
+    @if (_isAuthorized || IsPublicRoute())
+    {
+        <RouteView RouteData="@RouteData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@RouteData" Selector="h1" />
+    }
+}
+else
+{
+    <p>Carregando...</p>
+}
+
+@code {
+    [Parameter] public RouteData RouteData { get; set; } = default!;
+
+    private bool _ready;
+    private bool _isAuthorized;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthState.InitializeAsync();
+        _isAuthorized = AuthState.IsAuthenticated;
+        _ready = true;
+
+        if (!_isAuthorized && !IsPublicRoute())
+        {
+            Navigation.NavigateTo(AppRoutes.Login);
+            return;
+        }
+
+        if (_isAuthorized && IsLoginRoute())
+        {
+            Navigation.NavigateTo(AppRoutes.Home);
+        }
+
+        AuthState.SessionChanged += OnSessionChanged;
+    }
+
+    private void OnSessionChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            _isAuthorized = AuthState.IsAuthenticated;
+            if (!_isAuthorized && !IsPublicRoute())
+            {
+                Navigation.NavigateTo(AppRoutes.Login);
+            }
+
+            StateHasChanged();
+        });
+    }
+
+    private bool IsPublicRoute() =>
+        RouteData.PageType == typeof(SharedUI.Pages.Login) ||
+        RouteData.PageType == typeof(SharedUI.Pages.NotFound);
+
+    private bool IsLoginRoute() => RouteData.PageType == typeof(SharedUI.Pages.Login);
+
+    public void Dispose()
+    {
+        AuthState.SessionChanged -= OnSessionChanged;
+    }
+}

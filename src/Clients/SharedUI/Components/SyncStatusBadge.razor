@@ -2,29 +2,39 @@
 @inject IConnectivityService ConnectivityService
 @implements IDisposable
 
-<div class="sync-badge @(_isOnline ? "online" : "offline")">
+<div class="sync-badge @CssClass">
     <span class="indicator"></span>
-    <span class="label">@(_isOnline ? "Online" : "Offline")</span>
+    <span class="label">@Label</span>
 </div>
 
 @code {
-    private bool _isOnline = true;
+    private string CssClass => ConnectivityService.Status switch
+    {
+        ConnectivityStatus.Online => "online",
+        ConnectivityStatus.Syncing => "syncing",
+        _ => "offline"
+    };
+
+    private string Label => ConnectivityService.Status switch
+    {
+        ConnectivityStatus.Online => "Online",
+        ConnectivityStatus.Syncing => "Sincronizando...",
+        _ => "Offline"
+    };
 
     protected override void OnInitialized()
     {
-        _isOnline = ConnectivityService.IsOnline;
-        ConnectivityService.ConnectivityChanged += OnConnectivityChanged;
+        ConnectivityService.StatusChanged += OnStatusChanged;
     }
 
-    private void OnConnectivityChanged(object? sender, bool isOnline)
+    private void OnStatusChanged(object? sender, ConnectivityStatus status)
     {
-        _isOnline = isOnline;
         InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        ConnectivityService.ConnectivityChanged -= OnConnectivityChanged;
+        ConnectivityService.StatusChanged -= OnStatusChanged;
     }
 }
 
@@ -49,6 +59,10 @@
     .online .indicator {
         background-color: var(--color-success);
         box-shadow: 0 0 4px var(--color-success);
+    }
+
+    .syncing .indicator {
+        background-color: var(--color-warning, #f0ad4e);
     }
 
     .offline .indicator {

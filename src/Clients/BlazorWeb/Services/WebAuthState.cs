@@ -2,26 +2,68 @@ using SharedUI.Services;
 
 namespace BlazorWeb.Services;
 
+/// <summary>
+/// WASM authentication state backed by <see cref="ITokenStorage"/>.
+/// </summary>
 public class WebAuthState : IAuthState
 {
+    private readonly ITokenStorage _tokenStorage;
     private string? _token;
+    private string? _refreshToken;
+    private IReadOnlyList<string> _menus = [];
 
+    /// <summary>Creates state with the host token storage implementation.</summary>
+    public WebAuthState(ITokenStorage tokenStorage)
+    {
+        _tokenStorage = tokenStorage;
+    }
+
+    /// <inheritdoc />
     public bool IsAuthenticated => !string.IsNullOrEmpty(_token);
 
-    public Task<string?> GetTokenAsync()
+    /// <inheritdoc />
+    public IReadOnlyList<string> Menus => _menus;
+
+    /// <inheritdoc />
+    public event EventHandler? SessionChanged;
+
+    /// <inheritdoc />
+    public async Task InitializeAsync()
     {
-        return Task.FromResult(_token);
+        _token = await _tokenStorage.GetAccessTokenAsync();
+        _refreshToken = await _tokenStorage.GetRefreshTokenAsync();
     }
 
-    public Task LoginAsync(string token)
+    /// <inheritdoc />
+    public Task<string?> GetTokenAsync() => Task.FromResult(_token);
+
+    /// <inheritdoc />
+    public Task<string?> GetRefreshTokenAsync() => Task.FromResult(_refreshToken);
+
+    /// <inheritdoc />
+    public async Task LoginAsync(string accessToken, string refreshToken)
     {
-        _token = token;
+        _token = accessToken;
+        _refreshToken = refreshToken;
+        await _tokenStorage.SetTokensAsync(accessToken, refreshToken);
+        SessionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <inheritdoc />
+    public Task SetMenusAsync(IReadOnlyList<string> menus)
+    {
+        _menus = menus;
+        SessionChanged?.Invoke(this, EventArgs.Empty);
         return Task.CompletedTask;
     }
 
-    public Task LogoutAsync()
+    /// <inheritdoc />
+    public async Task LogoutAsync()
     {
         _token = null;
-        return Task.CompletedTask;
+        _refreshToken = null;
+        _menus = [];
+        await _tokenStorage.ClearAsync();
+        SessionChanged?.Invoke(this, EventArgs.Empty);
     }
 }

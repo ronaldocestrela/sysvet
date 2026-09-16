@@ -10,7 +10,8 @@ Clients.Tests/
 │   ├── Components/     # DataGrid, FormField, Modal, Toast, LoadingState
 │   ├── Layout/         # MainLayout, NavMenu, AuthLayout
 │   └── Services/       # ToastService
-├── BlazorWeb/          # WebAuthState
+├── BlazorWeb/          # WebAuthState, PWA manifest
+├── SharedUI/Navigation/  # MenuNavigation
 ├── Http/               # ApiClient
 └── Offline*.cs         # SQLite / sync
 ```

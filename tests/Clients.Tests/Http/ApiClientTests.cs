@@ -61,6 +61,70 @@ public class ApiClientTests
         result.Error.Message.Should().Be("Validation Error: Invalid request.");
     }
 
+    [Fact]
+    public async Task GetAsync_Deserializes_PagedResult()
+    {
+        var payload = new PagedResultDto<TutorDto>
+        {
+            Items = [new TutorDto { Id = Guid.NewGuid(), Name = "Ana" }],
+            Page = 1,
+            PageSize = 10,
+            TotalCount = 1
+        };
+        _mockHttp.When("/api/v1/tutors")
+            .Respond("application/json", JsonSerializer.Serialize(payload));
+
+        var result = await _apiClient.GetAsync<PagedResultDto<TutorDto>>("/api/v1/tutors");
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Items.Should().HaveCount(1);
+        result.Value.Items[0].Name.Should().Be("Ana");
+    }
+
+    [Fact]
+    public async Task PostAsync_Sends_Idempotency_Key_And_Returns_Created_Body()
+    {
+        var id = Guid.NewGuid();
+        _mockHttp.Expect(HttpMethod.Post, "/api/v1/tutors")
+            .WithHeaders("Idempotency-Key", id.ToString())
+            .Respond(HttpStatusCode.Created, "application/json", JsonSerializer.Serialize(id));
+
+        var result = await _apiClient.PostAsync<CreateTutorRequest, Guid>(
+            "/api/v1/tutors",
+            new CreateTutorRequest { Id = id, Name = "Test" },
+            id);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(id);
+        _mockHttp.VerifyNoOutstandingExpectation();
+    }
+
+    [Fact]
+    public async Task PutAsync_Returns_Success_On_NoContent()
+    {
+        var tutorId = Guid.NewGuid();
+        _mockHttp.When(HttpMethod.Put, $"/api/v1/tutors/{tutorId}")
+            .Respond(HttpStatusCode.NoContent);
+
+        var result = await _apiClient.PutAsync(
+            $"/api/v1/tutors/{tutorId}",
+            new UpdateTutorRequest { Id = tutorId, Name = "Updated" });
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Returns_Success_On_NoContent()
+    {
+        var tutorId = Guid.NewGuid();
+        _mockHttp.When(HttpMethod.Delete, $"/api/v1/tutors/{tutorId}")
+            .Respond(HttpStatusCode.NoContent);
+
+        var result = await _apiClient.DeleteAsync($"/api/v1/tutors/{tutorId}");
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
     private class TestDto
     {
         public int Id { get; set; }

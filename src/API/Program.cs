@@ -15,6 +15,7 @@ builder.Services.AddProblemDetails(options =>
 builder.Services.AddApiDocumentation();
 builder.Services.AddApplicationModules(builder.Configuration);
 builder.Services.AddApiHealthChecks();
+builder.Services.AddBlazorWebCors(builder.Configuration);
 
 var app = builder.Build();
 
@@ -33,6 +34,7 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 app.UseHttpsRedirection();
+app.UseBlazorWebCors();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseAuthentication();

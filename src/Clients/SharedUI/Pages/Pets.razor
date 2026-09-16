@@ -1,6 +1,9 @@
 @page "/pets"
 @using SharedUI.Components
-@inject Clients.Infrastructure.Http.ApiClient ApiClient
+@using SharedUI.Services
+@using Clients.Infrastructure.Http
+@inject ApiClient ApiClient
+@inject IToastService Toast
 
 <div class="header-section">
     <h1>Pets</h1>
@@ -8,39 +11,63 @@
 </div>
 
 <div class="card">
-    <DataGrid Items="_pets">
-        <HeaderTemplate>
-            <th>Nome</th>
-            <th>Espécie</th>
-            <th>Raça</th>
-            <th>Sexo</th>
-            <th>Ações</th>
-        </HeaderTemplate>
-        <RowTemplate Context="pet">
-            <td>@pet.Name</td>
-            <td>@pet.Species</td>
-            <td>@pet.Breed</td>
-            <td>@pet.Sex</td>
-            <td>
-                <button class="btn btn-sm btn-info" @onclick="() => EditPet(pet)">Editar</button>
-            </td>
-        </RowTemplate>
-    </DataGrid>
+    <LoadingState IsLoading="_isLoading" Message="Carregando pets...">
+        <DataGrid Items="_pets">
+            <HeaderTemplate>
+                <th>Nome</th>
+                <th>Espécie</th>
+                <th>Raça</th>
+                <th>Sexo</th>
+                <th>Ações</th>
+            </HeaderTemplate>
+            <RowTemplate Context="pet">
+                <td>@pet.Name</td>
+                <td>@pet.Species</td>
+                <td>@pet.Breed</td>
+                <td>@pet.Sex</td>
+                <td>
+                    <button class="btn btn-sm btn-info" @onclick="() => EditPet(pet)">Editar</button>
+                </td>
+            </RowTemplate>
+        </DataGrid>
+    </LoadingState>
 </div>
 
 <Modal @bind-IsVisible="_showModal" Title="@(_editingPet == null ? "Novo Pet" : "Editar Pet")">
     <ChildContent>
+        @if (_editingPet is null)
+        {
+            <FormField Label="Tutor">
+                <select class="form-control" @bind="_selectedTutorId">
+                    <option value="@Guid.Empty">Selecione...</option>
+                    @foreach (var tutor in _tutorOptions)
+                    {
+                        <option value="@tutor.Id">@tutor.Name</option>
+                    }
+                </select>
+            </FormField>
+        }
         <FormField Label="Nome">
-            <input type="text" @bind="_currentPet.Name" />
+            <input type="text" @bind="_currentPet.Name" class="form-control" />
         </FormField>
         <FormField Label="Espécie">
-            <input type="text" @bind="_currentPet.Species" />
+            <select class="form-control" @bind="_currentPet.Species">
+                @foreach (var species in Enum.GetValues<PetSpeciesDto>())
+                {
+                    <option value="@species">@species</option>
+                }
+            </select>
         </FormField>
         <FormField Label="Raça">
-            <input type="text" @bind="_currentPet.Breed" />
+            <input type="text" @bind="_currentPet.Breed" class="form-control" />
         </FormField>
         <FormField Label="Sexo">
-            <input type="text" @bind="_currentPet.Sex" />
+            <select class="form-control" @bind="_currentPet.Sex">
+                @foreach (var sex in Enum.GetValues<PetSexDto>())
+                {
+                    <option value="@sex">@sex</option>
+                }
+            </select>
         </FormField>
     </ChildContent>
     <FooterTemplate>
@@ -51,9 +78,12 @@
 
 @code {
     private List<PetDto>? _pets;
+    private List<TutorDto> _tutorOptions = [];
     private bool _showModal;
+    private bool _isLoading;
     private PetDto? _editingPet;
-    private PetDto _currentPet = new();
+    private PetDto _currentPet = new() { Species = PetSpeciesDto.Dog, Sex = PetSexDto.Unknown };
+    private Guid _selectedTutorId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,25 +92,38 @@
 
     private async Task LoadPetsAsync()
     {
+        _isLoading = true;
         try
         {
-            await Task.Delay(500);
-            _pets = new List<PetDto>
+            var result = await ApiClient.GetAsync<PagedResultDto<PetDto>>("/api/v1/pets?pageSize=100");
+            if (result.IsSuccess)
             {
-                new PetDto { Id = Guid.NewGuid(), Name = "Rex", Species = "Dog", Breed = "Golden", Sex = "Male" },
-                new PetDto { Id = Guid.NewGuid(), Name = "Miau", Species = "Cat", Breed = "Persa", Sex = "Female" }
-            };
+                _pets = result.Value.Items.ToList();
+            }
+            else
+            {
+                _pets = [];
+                Toast.Show(result.Error.Message, ToastType.Error);
+            }
         }
-        catch (Exception)
+        finally
         {
-            _pets = new List<PetDto>();
+            _isLoading = false;
         }
     }
 
-    private void OpenAddModal()
+    private async Task LoadTutorsForSelectAsync()
+    {
+        var result = await ApiClient.GetAsync<PagedResultDto<TutorDto>>("/api/v1/tutors?pageSize=100");
+        _tutorOptions = result.IsSuccess ? result.Value.Items.ToList() : [];
+    }
+
+    private async Task OpenAddModal()
     {
         _editingPet = null;
-        _currentPet = new PetDto();
+        _currentPet = new PetDto { Species = PetSpeciesDto.Dog, Sex = PetSexDto.Unknown };
+        _selectedTutorId = Guid.Empty;
+        await LoadTutorsForSelectAsync();
         _showModal = true;
     }
 
@@ -93,7 +136,8 @@
             Name = pet.Name,
             Species = pet.Species,
             Breed = pet.Breed,
-            Sex = pet.Sex
+            Sex = pet.Sex,
+            TutorId = pet.TutorId
         };
         _showModal = true;
     }
@@ -105,17 +149,57 @@
 
     private async Task SavePet()
     {
-        // TODO: Enviar request para API
-        _showModal = false;
-        await LoadPetsAsync();
-    }
+        if (_editingPet is null)
+        {
+            if (_selectedTutorId == Guid.Empty)
+            {
+                Toast.Show("Selecione um tutor.", ToastType.Error);
+                return;
+            }
 
-    public class PetDto
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Species { get; set; } = string.Empty;
-        public string Breed { get; set; } = string.Empty;
-        public string Sex { get; set; } = string.Empty;
+            var id = Guid.NewGuid();
+            var result = await ApiClient.PostAsync<CreatePetRequest, Guid>(
+                "/api/v1/pets",
+                new CreatePetRequest
+                {
+                    Id = id,
+                    Name = _currentPet.Name,
+                    Species = _currentPet.Species,
+                    Breed = _currentPet.Breed,
+                    Sex = _currentPet.Sex,
+                    TutorId = _selectedTutorId
+                },
+                id);
+
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+        }
+        else
+        {
+            var result = await ApiClient.PutAsync(
+                $"/api/v1/pets/{_currentPet.Id}",
+                new UpdatePetRequest
+                {
+                    Id = _currentPet.Id,
+                    Name = _currentPet.Name,
+                    Species = _currentPet.Species,
+                    Breed = _currentPet.Breed,
+                    Sex = _currentPet.Sex
+                },
+                Guid.NewGuid());
+
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+        }
+
+        _showModal = false;
+        Toast.Show("Pet salvo com sucesso.", ToastType.Success);
+        await LoadPetsAsync();
     }
 }

@@ -101,7 +101,9 @@ public static class DependencyInjection
         services.AddScoped<Core.Application.Common.Interfaces.IIdempotencyService, IdempotencyService>();
         services.AddScoped<ITenantContext, DefaultTenantContext>();
         services.AddScoped<IIdentityDataSeeder, IdentityDataSeeder>();
+        services.AddScoped<IDevelopmentAdminUserSeeder, DevelopmentAdminUserSeeder>();
         services.AddHostedService<IdentityDataSeedHostedService>();
+        services.AddHostedService<DevelopmentAdminUserSeedHostedService>();
 
         services.AddMediatR(cfg =>
         {

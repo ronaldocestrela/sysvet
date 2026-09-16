@@ -98,17 +98,25 @@ Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Pers
 - **Lockout:** 5 tentativas falhas → bloqueio 15 minutos (`IdentityService` + `SignInManager`).
 - Refresh tokens são armazenados **apenas como hash** (`UserRefreshTokens`); ver [ADR-007](./ADR-007-jwt-rbac.md).
 
-Exemplo local:
+Exemplo local (API `https` profile — porta **7180**):
 
 ```bash
-curl -s -X POST http://localhost:5000/api/v1/auth/login \
+curl -sk -X POST https://localhost:7180/api/v1/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"admin@sysvet.com","password":"Password123!"}'
 ```
 
+### Blazor WASM (Fase 3.2)
+
+- **API base URL:** `src/Clients/BlazorWeb/wwwroot/appsettings.Development.json` → `"ApiBaseUrl": "https://localhost:7180/"`.
+- **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252` e `http://localhost:5259` (origens do BlazorWeb dev).
+- **PWA:** validar instalação/offline após `dotnet publish src/Clients/BlazorWeb/BlazorWeb.csproj` (service worker ativo no output `wwwroot/`). Ver [ADR-012](./ADR-012-blazor-pwa-jwt.md).
+
 ### Seed de roles (Identity)
 
 No boot da API, [`IdentityDataSeedHostedService`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeedHostedService.cs) executa [`IdentityDataSeeder`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeeder.cs), que cria de forma idempotente as roles `Admin`, `Veterinarian`, `Receptionist` e `Cashier` (`ApplicationRoles`). O seed **não** roda enquanto houver migrations pendentes ou o banco estiver inacessível (testes com `EnsureCreated` permanecem válidos).
+
+Em **Development**, [`DevelopmentAdminUserSeedHostedService`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/DevelopmentAdminUserSeedHostedService.cs) garante o usuário `admin@sysvet.com` / `Password123!` (tenant `11111111-1111-1111-1111-111111111111`, perfil Admin).
 
 ### Auditoria (Admin)
 

@@ -60,6 +60,12 @@ jobs:
           MIN_LINE_COVERAGE: '70'
         run: bash scripts/assert-coverage.sh coveragereport/Cobertura.xml
 
+      - name: Publish Blazor PWA
+        run: |
+          dotnet publish src/Clients/BlazorWeb/BlazorWeb.csproj --configuration Release --output artifacts/blazorweb
+          test -f artifacts/blazorweb/wwwroot/service-worker-assets.js
+          test -f artifacts/blazorweb/wwwroot/manifest.json
+
       - name: Publish API
         run: dotnet publish src/API/API.csproj --configuration Release --no-build --output artifacts/api
 

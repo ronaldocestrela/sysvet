@@ -3,10 +3,12 @@
 @using SharedUI.Components
 @using SharedUI.Layout
 @using SharedUI.Services
+@using SharedUI.Navigation
 @using System.ComponentModel.DataAnnotations
+@using Clients.Infrastructure.Http
 @inject IAuthState AuthState
 @inject INavigationService Navigation
-@inject HttpClient Http
+@inject ApiClient ApiClient
 
 <div class="login-page">
     <div class="login-card">
@@ -36,6 +38,14 @@
     private bool _isLoading;
     private string _errorMsg = string.Empty;
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState.IsAuthenticated)
+        {
+            Navigation.NavigateTo(AppRoutes.Home);
+        }
+    }
+
     private async Task HandleLogin()
     {
         _isLoading = true;
@@ -44,18 +54,25 @@
 
         try
         {
-            // Placeholder: Em produção, isso fará um POST para /api/v1/auth/login
-            await Task.Delay(1000); 
+            var loginResult = await ApiClient.PostAsync<LoginRequest, AuthTokensDto>(
+                "/api/v1/auth/login",
+                new LoginRequest { Email = _loginModel.Email, Password = _loginModel.Password });
 
-            if (_loginModel.Email == "admin@vetnexus.com" && _loginModel.Password == "admin123")
+            if (loginResult.IsFailure)
             {
-                await AuthState.LoginAsync("fake-jwt-token-for-now");
-                Navigation.NavigateTo("/");
+                _errorMsg = loginResult.Error.Message;
+                return;
             }
-            else
+
+            await AuthState.LoginAsync(loginResult.Value.AccessToken, loginResult.Value.RefreshToken);
+
+            var meResult = await ApiClient.GetAsync<CurrentUserDto>("/api/v1/auth/me");
+            if (meResult.IsSuccess)
             {
-                _errorMsg = "Credenciais inválidas. Tente admin@vetnexus.com / admin123";
+                await AuthState.SetMenusAsync(meResult.Value.Menus);
             }
+
+            Navigation.NavigateTo(AppRoutes.Home);
         }
         catch (Exception ex)
         {

@@ -1,6 +1,9 @@
 @page "/tutors"
 @using SharedUI.Components
-@inject Clients.Infrastructure.Http.ApiClient ApiClient
+@using SharedUI.Services
+@using Clients.Infrastructure.Http
+@inject ApiClient ApiClient
+@inject IToastService Toast
 
 <div class="header-section">
     <h1>Tutores</h1>
@@ -8,37 +11,39 @@
 </div>
 
 <div class="card">
-    <DataGrid Items="_tutors">
-        <HeaderTemplate>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Telefone</th>
-            <th>Ações</th>
-        </HeaderTemplate>
-        <RowTemplate Context="tutor">
-            <td>@tutor.Name</td>
-            <td>@tutor.Email</td>
-            <td>@tutor.Phone</td>
-            <td>
-                <button class="btn btn-sm btn-info" @onclick="() => EditTutor(tutor)">Editar</button>
-            </td>
-        </RowTemplate>
-    </DataGrid>
+    <LoadingState IsLoading="_isLoading" Message="Carregando tutores...">
+        <DataGrid Items="_tutors">
+            <HeaderTemplate>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+            </HeaderTemplate>
+            <RowTemplate Context="tutor">
+                <td>@tutor.Name</td>
+                <td>@tutor.Email</td>
+                <td>@tutor.Phone</td>
+                <td>
+                    <button class="btn btn-sm btn-info" @onclick="() => EditTutor(tutor)">Editar</button>
+                </td>
+            </RowTemplate>
+        </DataGrid>
+    </LoadingState>
 </div>
 
 <Modal @bind-IsVisible="_showModal" Title="@(_editingTutor == null ? "Novo Tutor" : "Editar Tutor")">
     <ChildContent>
         <FormField Label="Nome">
-            <input type="text" @bind="_currentTutor.Name" />
+            <input type="text" @bind="_currentTutor.Name" class="form-control" />
         </FormField>
         <FormField Label="E-mail">
-            <input type="email" @bind="_currentTutor.Email" />
+            <input type="email" @bind="_currentTutor.Email" class="form-control" />
         </FormField>
         <FormField Label="CPF">
-            <input type="text" @bind="_currentTutor.Cpf" />
+            <input type="text" @bind="_currentTutor.Cpf" class="form-control" disabled="@(_editingTutor != null)" />
         </FormField>
         <FormField Label="Telefone">
-            <input type="tel" @bind="_currentTutor.Phone" />
+            <input type="tel" @bind="_currentTutor.Phone" class="form-control" />
         </FormField>
     </ChildContent>
     <FooterTemplate>
@@ -50,6 +55,7 @@
 @code {
     private List<TutorDto>? _tutors;
     private bool _showModal;
+    private bool _isLoading;
     private TutorDto? _editingTutor;
     private TutorDto _currentTutor = new();
 
@@ -60,19 +66,23 @@
 
     private async Task LoadTutorsAsync()
     {
+        _isLoading = true;
         try
         {
-            // Simulate API call for now. When backend is fully connected, this will use Http
-            await Task.Delay(500);
-            _tutors = new List<TutorDto>
+            var result = await ApiClient.GetAsync<PagedResultDto<TutorDto>>("/api/v1/tutors?pageSize=100");
+            if (result.IsSuccess)
             {
-                new TutorDto { Id = Guid.NewGuid(), Name = "João Silva", Email = "joao@email.com", Cpf = "11122233344", Phone = "11999998888" },
-                new TutorDto { Id = Guid.NewGuid(), Name = "Maria Souza", Email = "maria@email.com", Cpf = "55566677788", Phone = "11888887777" }
-            };
+                _tutors = result.Value.Items.ToList();
+            }
+            else
+            {
+                _tutors = [];
+                Toast.Show(result.Error.Message, ToastType.Error);
+            }
         }
-        catch (Exception)
+        finally
         {
-            _tutors = new List<TutorDto>();
+            _isLoading = false;
         }
     }
 
@@ -104,18 +114,49 @@
 
     private async Task SaveTutor()
     {
-        // TODO: Enviar request para API (POST ou PUT)
+        if (_editingTutor is null)
+        {
+            var id = Guid.NewGuid();
+            var result = await ApiClient.PostAsync<CreateTutorRequest, Guid>(
+                "/api/v1/tutors",
+                new CreateTutorRequest
+                {
+                    Id = id,
+                    Name = _currentTutor.Name,
+                    Email = _currentTutor.Email,
+                    Cpf = _currentTutor.Cpf,
+                    Phone = _currentTutor.Phone
+                },
+                id);
+
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+        }
+        else
+        {
+            var result = await ApiClient.PutAsync(
+                $"/api/v1/tutors/{_currentTutor.Id}",
+                new UpdateTutorRequest
+                {
+                    Id = _currentTutor.Id,
+                    Name = _currentTutor.Name,
+                    Email = _currentTutor.Email,
+                    Phone = _currentTutor.Phone
+                },
+                Guid.NewGuid());
+
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+        }
+
         _showModal = false;
+        Toast.Show("Tutor salvo com sucesso.", ToastType.Success);
         await LoadTutorsAsync();
     }
-
-    public class TutorDto
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Cpf { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
-    }
 }
-

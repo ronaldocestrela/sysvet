@@ -57,17 +57,15 @@ Iniciado o módulo de estoque.
 
 ## 🚀 Onde Estamos e Próximos Passos
 
-**Fase 2.6 (Auditoria e contratos de API)** concluída (ADR-010). **Fase 3.1 (SharedUI design system)** concluída: layout/tokens/componentes, `AddSharedUI()`, testes bUnit em `tests/Clients.Tests/SharedUI/` (ADR-011).
+**Fase 2.6 (Auditoria e contratos de API)** concluída (ADR-010). **Fase 3.1 (SharedUI)** concluída (ADR-011). **Fase 3.2 (Blazor WASM PWA)** concluída: JWT + refresh, CRM tutor/pet via API, PWA manifest/ícones, CORS, NavMenu por `/auth/me`, testes em `Clients.Tests/BlazorWeb` e `CorsTests` (ADR-012).
 
-Próximo marco: **3.2 Blazor WASM PWA** (JWT real, manifest/SW, telas CRM com API).
+### 👉 **Próxima Ação: Fase 3.3 — MAUI Blazor Hybrid**
 
-### 👉 **Próxima Ação: Fase 3.2 — Blazor PWA**
+1. Projeto `MauiApp` funcional (Android + Windows mínimo).
+2. Paridade com SharedUI + adapters (`MauiAuthState`, conectividade).
+3. Ícones/splash VetNexus.
 
-1. HttpClient autenticado contra `/api/v1/auth/login` (substituir login placeholder).
-2. PWA: manifest + cache de assets; indicador online/offline integrado.
-3. NavMenu dinâmico opcional via `/auth/me` → `Menus` (ADR-009).
-
-**Nota MAUI/WSL:** paridade visual MAUI depende de workload Android/Windows; aceite estrutural 3.1 (Router + SharedUI layout + tokens) já atende o roadmap.
+**Nota MAUI/WSL:** workload Android/Windows necessário para run local; aceite estrutural SharedUI já atende hosts.
 
 ---
 

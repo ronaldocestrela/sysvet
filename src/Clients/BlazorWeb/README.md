@@ -1,19 +1,34 @@
 # `src/Clients/BlazorWeb/` — Blazor WebAssembly (PWA)
 
-Host WASM do SysVet. **UI e layout** vêm de [`SharedUI`](../SharedUI/README.md); este projeto registra DI de plataforma (HTTP, auth, conectividade, SQLite offline).
+Host WASM do SysVet. **UI e layout** vêm de [`SharedUI`](../SharedUI/README.md); este projeto registra DI de plataforma (HTTP, auth, conectividade).
 
 ## Arquivos principais
 
 | Arquivo | Propósito |
 |---|---|
-| [`Program.cs`](./Program.cs) | `AddSharedUI()`, adapters `WebAuthState` / `WebNavigationService`, HttpClient + sync |
-| [`App.razor`](./App.razor) | Router com `DefaultLayout = SharedUI.Layout.MainLayout` |
-| [`wwwroot/index.html`](./wwwroot/index.html) | CSS: Bootstrap e tokens via `_content/SharedUI/` |
-| [`wwwroot/css/app.css`](./wwwroot/css/app.css) | Apenas shell WASM (error UI, loading progress) |
-| [`Services/`](./Services/) | Implementações host de contratos SharedUI |
+| [`Program.cs`](./Program.cs) | `ApiBaseUrl`, `AddSharedUI()`, JWT (`WebAuthState`, `AuthHandler`, refresh), HttpClient `"API"` / `"Auth"` |
+| [`App.razor`](./App.razor) | Router + [`AuthorizeRouteView`](./Components/AuthorizeRouteView.razor) |
+| [`wwwroot/appsettings*.json`](./wwwroot/appsettings.json) | URL da API (`https://localhost:7180/` em dev) |
+| [`wwwroot/manifest.json`](./wwwroot/manifest.json) | PWA manifest (192/512) |
+| [`Services/`](./Services/) | Auth, tokens (`localStorage`), conectividade |
 
-Não há `Pages/` ou `Layout/` locais — rotas `@page` estão na SharedUI.
+Rotas `@page` estão na SharedUI.
+
+## Executar (dev)
+
+```bash
+# Terminal 1 — API
+dotnet run --project src/API/API.csproj --launch-profile https
+
+# Terminal 2 — Blazor
+dotnet run --project src/Clients/BlazorWeb/BlazorWeb.csproj --launch-profile https
+```
+
+Login dev (seed automático): `admin@sysvet.com` / `Password123!`
 
 ## PWA / offline
 
-Manifest e service worker em `wwwroot/` (evolução na tarefa 3.2).
+- **Dev:** `service-worker.js` é stub (sem cache).
+- **Publish:** `dotnet publish` gera SW com cache de assets; validar instalação servindo `artifacts/.../wwwroot/`.
+
+Ver [ADR-012](../../docs/arquitetura/ADR-012-blazor-pwa-jwt.md).

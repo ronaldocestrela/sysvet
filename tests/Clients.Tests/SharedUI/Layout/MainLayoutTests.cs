@@ -47,15 +47,22 @@ public class MainLayoutTests : BunitContext
     private class DummyAuthState : IAuthState
     {
         public bool IsAuthenticated => true;
+        public IReadOnlyList<string> Menus { get; } = [];
+        public event EventHandler? SessionChanged;
 
+        public Task InitializeAsync() => Task.CompletedTask;
         public Task<string?> GetTokenAsync() => Task.FromResult<string?>("dummy-token");
-        public Task LoginAsync(string token) => Task.CompletedTask;
+        public Task<string?> GetRefreshTokenAsync() => Task.FromResult<string?>("refresh");
+        public Task LoginAsync(string accessToken, string refreshToken) => Task.CompletedTask;
+        public Task SetMenusAsync(IReadOnlyList<string> menus) => Task.CompletedTask;
         public Task LogoutAsync() => Task.CompletedTask;
     }
 
     private class DummyConnectivityService : IConnectivityService
     {
+        public ConnectivityStatus Status => ConnectivityStatus.Online;
         public bool IsOnline => true;
-        public event EventHandler<bool>? ConnectivityChanged;
+        public event EventHandler<ConnectivityStatus>? StatusChanged;
+        public void SetSyncing(bool isSyncing) { }
     }
 }
