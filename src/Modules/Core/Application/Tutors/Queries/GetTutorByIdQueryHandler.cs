@@ -18,18 +18,9 @@ public class GetTutorByIdQueryHandler : IRequestHandler<GetTutorByIdQuery, Resul
 
         if (tutor == null)
         {
-            return Result.Failure<TutorDto>(new Error("Tutor.NotFound", $"O Tutor com ID '{request.Id}' não foi encontrado."));
+            return Result.Failure<TutorDto>(ErrorCodes.Tutor.NotFound);
         }
 
-        var dto = new TutorDto
-        {
-            Id = tutor.Id,
-            Name = tutor.Name,
-            Email = tutor.Email.Address,
-            Cpf = tutor.Cpf.Number,
-            Phone = tutor.Phone.Number
-        };
-
-        return Result.Success(dto);
+        return Result.Success(TutorMappings.ToDto(tutor));
     }
 }

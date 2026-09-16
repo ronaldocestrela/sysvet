@@ -5,7 +5,7 @@ namespace Core.Domain.ValueObjects;
 /// <summary>
 /// Value Object que representa um endereço de e-mail válido.
 /// </summary>
-public record Email
+public sealed record Email : ValueObject
 {
     private static readonly Regex EmailRegex = new(
         @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
@@ -30,14 +30,14 @@ public record Email
     {
         if (string.IsNullOrWhiteSpace(address))
         {
-            return Result.Failure<Email>(new Error("Email.InvalidFormat", "O e-mail não pode ser vazio."));
+            return Result.Failure<Email>(ErrorCodes.Email.InvalidFormat with { Message = "O e-mail não pode ser vazio." });
         }
 
         var trimmed = address.Trim().ToLowerInvariant();
 
         if (!EmailRegex.IsMatch(trimmed))
         {
-            return Result.Failure<Email>(new Error("Email.InvalidFormat", "O e-mail fornecido possui um formato inválido."));
+            return Result.Failure<Email>(ErrorCodes.Email.InvalidFormat with { Message = "O e-mail fornecido possui um formato inválido." });
         }
 
         return Result.Success(new Email(trimmed));

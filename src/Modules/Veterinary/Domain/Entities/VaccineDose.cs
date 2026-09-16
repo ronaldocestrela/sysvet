@@ -1,5 +1,5 @@
 using Core.Domain;
-using System;
+using Veterinary.Domain;
 
 namespace Veterinary.Domain.Entities;
 
@@ -31,12 +31,12 @@ public class VaccineDose : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<VaccineDose>(new Error("VaccineDose.InvalidName", "Vaccine name cannot be empty."));
+            return Result.Failure<VaccineDose>(ErrorCodes.VaccineDose.InvalidName);
         }
 
         if (appliedAt > DateTimeOffset.UtcNow)
         {
-            return Result.Failure<VaccineDose>(new Error("VaccineDose.FutureApplicationDate", "Application date cannot be in the future."));
+            return Result.Failure<VaccineDose>(ErrorCodes.VaccineDose.FutureApplicationDate);
         }
 
         return Result<VaccineDose>.Success(new VaccineDose(id, petId, name, batchNumber, appliedAt, nextDueDate));

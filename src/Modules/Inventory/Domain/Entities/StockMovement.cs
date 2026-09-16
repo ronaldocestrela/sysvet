@@ -1,5 +1,5 @@
-using System;
 using Core.Domain;
+using Inventory.Domain;
 
 namespace Inventory.Domain.Entities;
 
@@ -28,10 +28,10 @@ public class StockMovement : Entity
     public static Result<StockMovement> Create(Guid productId, MovementType type, decimal quantity, string? batchNumber, DateTimeOffset? expirationDate, string reason)
     {
         if (quantity <= 0)
-            return Result.Failure<StockMovement>(new Error("StockMovement.InvalidQuantity", "Quantity must be greater than zero."));
+            return Result.Failure<StockMovement>(ErrorCodes.StockMovement.InvalidQuantity);
 
         if (string.IsNullOrWhiteSpace(reason))
-            return Result.Failure<StockMovement>(new Error("StockMovement.InvalidReason", "Reason cannot be empty."));
+            return Result.Failure<StockMovement>(ErrorCodes.StockMovement.InvalidReason);
 
         return Result.Success(new StockMovement(productId, type, quantity, batchNumber, expirationDate, reason));
     }

@@ -1,6 +1,7 @@
 using Core.Application.Behaviors;
 using Core.Application.Common;
 using Core.Application.Common.Interfaces;
+using Core.Application.Messaging;
 using Core.Domain;
 using MediatR;
 using NSubstitute;
@@ -10,7 +11,7 @@ namespace Core.Tests.Application.Behaviors;
 
 public class IdempotencyBehaviorTests
 {
-    public class TestCommand : IIdempotentCommand<Result<string>>
+    public class TestCommand : IIdempotentCommand<string>
     {
         public Guid IdempotencyKey { get; }
         public string Data { get; }

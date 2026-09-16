@@ -1,11 +1,6 @@
 using Core.Domain;
 using MediatR;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Veterinary.Domain.Repositories;
-using IUnitOfWork = Veterinary.Domain.Repositories.IUnitOfWork;
 
 namespace Veterinary.Application.Hospitalizations.Commands;
 
@@ -13,16 +8,13 @@ public class ExecutePrescriptionCommandHandler : IRequestHandler<ExecutePrescrip
 {
     private readonly IHospitalizationRepository _hospitalizationRepository;
     private readonly IPrescriptionExecutionRepository _prescriptionRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
     public ExecutePrescriptionCommandHandler(
         IHospitalizationRepository hospitalizationRepository,
-        IPrescriptionExecutionRepository prescriptionRepository,
-        IUnitOfWork unitOfWork)
+        IPrescriptionExecutionRepository prescriptionRepository)
     {
         _hospitalizationRepository = hospitalizationRepository;
         _prescriptionRepository = prescriptionRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<Guid>> Handle(ExecutePrescriptionCommand request, CancellationToken cancellationToken)
@@ -31,7 +23,7 @@ public class ExecutePrescriptionCommandHandler : IRequestHandler<ExecutePrescrip
 
         if (hosp == null)
         {
-            return Result.Failure<Guid>(new Error("Hospitalization.NotFound", "The specified hospitalization was not found."));
+            return Result.Failure<Guid>(Veterinary.Domain.ErrorCodes.Hospitalization.NotFound);
         }
 
         var execResult = hosp.ExecutePrescription(request.MedicationName, request.Dose, request.Notes, request.ExecutedBy);
@@ -44,8 +36,7 @@ public class ExecutePrescriptionCommandHandler : IRequestHandler<ExecutePrescrip
         var execution = hosp.PrescriptionExecutions.Last();
 
         await _prescriptionRepository.AddAsync(execution, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(execution.Id);
+        return Result.Success(execution.Id);
     }
 }

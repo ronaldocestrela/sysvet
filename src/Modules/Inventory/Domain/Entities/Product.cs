@@ -1,5 +1,5 @@
-using System;
 using Core.Domain;
+using Inventory.Domain;
 
 namespace Inventory.Domain.Entities;
 
@@ -24,13 +24,13 @@ public class Product : AggregateRoot
     public static Result<Product> Create(string name, string description, string barcode, string unitOfMeasure, decimal reorderLevel)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<Product>(new Error("Product.InvalidName", "Product name cannot be empty."));
+            return Result.Failure<Product>(ErrorCodes.Product.InvalidName);
 
         if (string.IsNullOrWhiteSpace(barcode))
-            return Result.Failure<Product>(new Error("Product.InvalidBarcode", "Product barcode cannot be empty."));
+            return Result.Failure<Product>(ErrorCodes.Product.InvalidBarcode);
 
         if (reorderLevel < 0)
-            return Result.Failure<Product>(new Error("Product.InvalidReorderLevel", "Reorder level cannot be negative."));
+            return Result.Failure<Product>(ErrorCodes.Product.InvalidReorderLevel);
 
         return Result.Success(new Product(name, description, barcode, unitOfMeasure, reorderLevel));
     }

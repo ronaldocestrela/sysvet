@@ -1,8 +1,6 @@
 using Core.Domain;
 using MediatR;
 using Sales.Domain.Repositories;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Sales.Application.CashRegisters.Commands;
 
@@ -20,7 +18,7 @@ public class CloseCashRegisterCommandHandler : IRequestHandler<CloseCashRegister
         var cashRegister = await _cashRegisterRepository.GetByIdAsync(request.CashRegisterId, cancellationToken);
         if (cashRegister == null)
         {
-            return Result.Failure<bool>(new Error("CashRegister.NotFound", "Caixa não encontrado."));
+            return Result.Failure<bool>(Sales.Domain.ErrorCodes.CashRegister.NotFound);
         }
 
         var result = cashRegister.Close(request.ActualClosingBalance);
@@ -30,7 +28,7 @@ public class CloseCashRegisterCommandHandler : IRequestHandler<CloseCashRegister
         }
 
         _cashRegisterRepository.Update(cashRegister);
-        
+
         return Result.Success(true);
     }
 }

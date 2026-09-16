@@ -1,5 +1,5 @@
 using Core.Domain;
-using System;
+using Veterinary.Domain;
 
 namespace Veterinary.Domain.Entities;
 
@@ -46,7 +46,7 @@ public class MedicalRecord : AggregateRoot
     {
         if (Status == MedicalRecordStatus.Finalized)
         {
-            return Result.Failure<bool>(new Error("MedicalRecord.Finalized", "Cannot modify a finalized medical record."));
+            return Result.Failure<bool>(ErrorCodes.MedicalRecord.Finalized);
         }
 
         Diagnosis += string.IsNullOrEmpty(Diagnosis) ? diagnosis : "\n" + diagnosis;
@@ -57,7 +57,7 @@ public class MedicalRecord : AggregateRoot
     {
         if (Status == MedicalRecordStatus.Finalized)
         {
-            return Result.Failure<bool>(new Error("MedicalRecord.Finalized", "Cannot modify a finalized medical record."));
+            return Result.Failure<bool>(ErrorCodes.MedicalRecord.Finalized);
         }
 
         Prescription += string.IsNullOrEmpty(Prescription) ? prescription : "\n" + prescription;
@@ -68,7 +68,7 @@ public class MedicalRecord : AggregateRoot
     {
         if (Status == MedicalRecordStatus.Finalized)
         {
-            return Result.Failure<bool>(new Error("MedicalRecord.AlreadyFinalized", "The medical record is already finalized."));
+            return Result.Failure<bool>(ErrorCodes.MedicalRecord.AlreadyFinalized);
         }
 
         Status = MedicalRecordStatus.Finalized;

@@ -34,6 +34,8 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 
+    public bool HasPendingChanges() => ChangeTracker.HasChanges();
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         SetTenantIdOnSave();

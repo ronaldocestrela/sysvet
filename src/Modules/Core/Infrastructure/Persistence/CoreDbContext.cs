@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Core.Infrastructure.Persistence;
 
-public class CoreDbContext : IdentityDbContext<AppUser>, IUnitOfWork
+public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWork, IDomainEventSource
 {
     public ITenantContext TenantContext { get; set; } = null!;
 
@@ -46,6 +46,16 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IUnitOfWork
     }
 
 
+
+    /// <inheritdoc />
+    public bool HasPendingChanges() => ChangeTracker.HasChanges();
+
+    /// <inheritdoc />
+    public IReadOnlyCollection<AggregateRoot> GetAggregateRootsWithPendingEvents() =>
+        ChangeTracker.Entries<AggregateRoot>()
+            .Select(e => e.Entity)
+            .Where(a => a.DomainEvents.Count > 0)
+            .ToList();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

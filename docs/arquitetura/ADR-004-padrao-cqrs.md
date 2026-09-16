@@ -28,7 +28,11 @@ O monólito modular (ADR-001) expõe Minimal APIs que não devem conter regras d
 
 Adotar **CQRS via MediatR** em todos os módulos: `ICommand` / `IQuery` (marcadores em Core.Application), handlers por feature, **FluentValidation** no pipeline, retorno **`Result<T>`** para fluxo de negócio (sem exceções para validação esperada).
 
-Behaviors registrados no Core: `LoggingBehavior`, `ValidationBehavior`, `IdempotencyBehavior`, `TransactionBehavior`.
+Behaviors registrados no Core (ordem): `LoggingBehavior`, `AuthorizationBehavior`, `ValidationBehavior`, `IdempotencyBehavior`, `TransactionBehavior`.
+
+Commands idempotentes implementam `IIdempotentCommand` / `IIdempotentCommand<TResponse>` estendendo `ICommand` / `ICommand<TResponse>`. Autorização declarativa via `[AuthorizeRequest(policy)]` e `ICurrentUser` (implementação HTTP na Infrastructure).
+
+Commit: `TransactionBehavior` injeta `IEnumerable<IUnitOfWork>` (todos os DbContexts registrados) e dispara domain events após persistência (ver ADR-006).
 
 ## Consequências
 

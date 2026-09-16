@@ -35,7 +35,7 @@ public class CashRegister : AggregateRoot
     {
         if (Status == "Closed")
         {
-            return Result.Failure<bool>(new Error("CashRegister.AlreadyClosed", "O caixa já está fechado."));
+            return Result.Failure<bool>(ErrorCodes.CashRegister.AlreadyClosed);
         }
 
         var moneyResult = Money.Create(actualClosingBalance);

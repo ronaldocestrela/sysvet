@@ -1,7 +1,8 @@
-using Core.Domain;
-using MediatR;
-using System;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 
 namespace Veterinary.Application.Hospitalizations.Commands;
 
-public record DischargePetCommand(Guid HospitalizationId) : IRequest<Result<bool>>;
+[AuthorizeRequest(AuthorizationPolicies.Veterinarian)]
+public record DischargePetCommand(Guid HospitalizationId) : ICommand<bool>;

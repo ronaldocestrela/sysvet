@@ -1,11 +1,12 @@
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 using Core.Domain;
-using MediatR;
-using System;
-using System.Collections.Generic;
 
 namespace Sales.Application.Orders.Commands;
 
-public class CreateOrderCommand : IRequest<Result<Guid>>
+[AuthorizeRequest(AuthorizationPolicies.Cashier)]
+public class CreateOrderCommand : ICommand<Guid>
 {
     public Guid CashRegisterId { get; set; }
     public List<CreateOrderItemDto> Items { get; set; } = new();

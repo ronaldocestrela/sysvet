@@ -1,10 +1,7 @@
+using Core.Application.IntegrationEvents;
 using Core.Domain;
 using MediatR;
-using Core.Application.IntegrationEvents;
 using Sales.Domain.Repositories;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Sales.Application.Orders.Commands;
 
@@ -24,7 +21,7 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
         var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
         if (order == null)
         {
-            return Result.Failure<bool>(new Error("Order.NotFound", "Pedido não encontrado."));
+            return Result.Failure<bool>(Sales.Domain.ErrorCodes.Order.NotFound);
         }
 
         var payResult = order.Pay();
@@ -35,13 +32,8 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
 
         _orderRepository.Update(order);
 
-        // Dispara evento de integração para baixar o estoque (desacoplado)
         var items = order.Items.Select(i => new OrderPaidItem(i.ProductId, i.Quantity)).ToList();
-        var domainEvent = new OrderPaidEvent(order.Id, items);
-        
-        // Em um ambiente real com Outbox Pattern e Message Broker, isso seria salvo na mesma transação.
-        // Aqui estamos publicando em memória, mas o TransactionBehavior garantirá o commit.
-        await _publisher.Publish(domainEvent, cancellationToken);
+        await _publisher.Publish(new OrderPaidEvent(order.Id, items), cancellationToken);
 
         return Result.Success(true);
     }

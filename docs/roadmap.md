@@ -35,7 +35,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | Módulos de negócio | **Parcial** | Projetos vazios (`Core`, `Veterinary`, `Petshop`, `Sales`, `Inventory`, `Fiscal`) |
 | EF Core / SQL Server | **Pendente** | Sem pacotes, DbContext ou migrations |
 | Identity / JWT | **Pendente** | — |
-| CQRS / Handlers | **Pendente** | — |
+| CQRS / Handlers | **Concluído** | MediatR, `ICommand`/`IQuery`, behaviors (logging, auth, validation, idempotência, transação), handlers Core/Veterinary/Sales/Inventory |
 | Blazor WASM | **Parcial** | Template (Home, Counter, Weather) |
 | SharedUI | **Parcial** | RCL com componente placeholder |
 | MAUI | **Parcial** | `src/Clients/MauiApp/` — Blazor Hybrid scaffold; na solução com build desligado em Linux/CI |
@@ -203,7 +203,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **2.1 Abstrações de domínio e CQRS** | 8 | Pendente |
+| **2.1 Abstrações de domínio e CQRS** | 8 | Concluído |
 | **2.2 EF Core, repositórios e migrations** | 8 | Pendente |
 | **2.3 Identity, JWT e RBAC** | 13 | Pendente |
 | **2.4 CRM — Tutores e Pets** | 8 | Pendente |
@@ -214,19 +214,19 @@ flowchart TD
 ### 2.1 Abstrações de domínio e CQRS (8 SP)
 
 **Domain**
-- [ ] `Entity`, `AggregateRoot`, `ValueObject`, `IDomainEvent`
-- [ ] Interfaces `IRepository<T>`, `IUnitOfWork`
-- [ ] Expandir `Result<T>` / `Error` com códigos padronizados por módulo
+- [x] `Entity`, `AggregateRoot`, `ValueObject`, `IDomainEvent`
+- [x] Interfaces `IRepository<T>`, `IUnitOfWork`
+- [x] Expandir `Result<T>` / `Error` com códigos padronizados por módulo (`ErrorCodes` em Core, Veterinary, Sales, Inventory)
 
 **Application**
-- [ ] MediatR (ou equivalente) para Commands/Queries
-- [ ] Pipeline behaviors: validação, logging, autorização
-- [ ] DTOs e mappers por feature
+- [x] MediatR para Commands/Queries (`ICommand`, `IQuery`, `IIdempotentCommand`)
+- [x] Pipeline behaviors: logging, autorização, validação, idempotência, transação
+- [x] DTOs e mappers por feature (`TutorMappings`, `PetMappings`)
 
 **Tests**
-- [ ] Testes de behaviors e validadores antes dos handlers
+- [x] Testes de behaviors (authorization, validation, transaction, idempotency) e handlers
 
-**Aceite:** Handler de exemplo retorna `Result<T>`; pipeline registrado na DI.
+**Aceite:** Handlers Tutor/Pet e satélites retornam `Result<T>`; pipeline registrado em `AddCoreModule`.
 
 ### 2.2 EF Core, repositórios e migrations (8 SP)
 

@@ -37,19 +37,22 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        if (!await roleManager.RoleExistsAsync("Admin"))
-            await roleManager.CreateAsync(new IdentityRole("Admin"));
-
-        var user = await userManager.FindByEmailAsync("test@sysvet.com");
-        if (user == null)
+        foreach (var role in new[] { "Admin", "Cashier" })
         {
-            user = new AppUser { UserName = "test@sysvet.com", Email = "test@sysvet.com", TenantId = Guid.NewGuid() };
-            await userManager.CreateAsync(user, "Password123!");
-            await userManager.AddToRoleAsync(user, "Admin");
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
         }
 
+        var email = $"sales-{Guid.NewGuid():N}@sysvet.com";
+        var user = new AppUser { UserName = email, Email = email, TenantId = Guid.NewGuid() };
+        await userManager.CreateAsync(user, "Password123!");
+        await userManager.AddToRoleAsync(user, "Admin");
+        await userManager.AddToRoleAsync(user, "Cashier");
+
         var client = _factory.CreateClient();
-        var request = new { Email = "test@sysvet.com", Password = "Password123!" };
+        var request = new { Email = email, Password = "Password123!" };
         var response = await client.PostAsJsonAsync("/api/v1/auth/login", request);
         
         var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();

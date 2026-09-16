@@ -1,7 +1,5 @@
 using Core.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Veterinary.Domain;
 
 namespace Veterinary.Domain.Entities;
 
@@ -42,7 +40,7 @@ public class Hospitalization : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(reason))
         {
-            return Result.Failure<Hospitalization>(new Error("Hospitalization.InvalidReason", "Reason for admission cannot be empty."));
+            return Result.Failure<Hospitalization>(ErrorCodes.Hospitalization.InvalidReason);
         }
 
         return Result<Hospitalization>.Success(new Hospitalization(id, petId, veterinarianId, reason));
@@ -52,7 +50,7 @@ public class Hospitalization : AggregateRoot
     {
         if (Status == HospitalizationStatus.Discharged)
         {
-            return Result.Failure<bool>(new Error("Hospitalization.AlreadyDischarged", "The hospitalization is already discharged."));
+            return Result.Failure<bool>(ErrorCodes.Hospitalization.AlreadyDischarged);
         }
 
         Status = HospitalizationStatus.Discharged;
@@ -64,7 +62,7 @@ public class Hospitalization : AggregateRoot
     {
         if (Status == HospitalizationStatus.Discharged)
         {
-            return Result.Failure<bool>(new Error("Hospitalization.Discharged", "Cannot execute prescriptions for a discharged patient."));
+            return Result.Failure<bool>(ErrorCodes.Hospitalization.Discharged);
         }
 
         var execution = PrescriptionExecution.Create(Guid.NewGuid(), Id, medicationName, dose, notes, executedBy).Value;

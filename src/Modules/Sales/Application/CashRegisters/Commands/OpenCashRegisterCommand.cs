@@ -1,10 +1,11 @@
-using Core.Domain;
-using MediatR;
-using System;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 
 namespace Sales.Application.CashRegisters.Commands;
 
-public class OpenCashRegisterCommand : IRequest<Result<Guid>>
+[AuthorizeRequest(AuthorizationPolicies.Cashier)]
+public class OpenCashRegisterCommand : ICommand<Guid>
 {
     public decimal OpeningBalance { get; set; }
 }

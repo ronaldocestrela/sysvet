@@ -1,18 +1,92 @@
 namespace Core.Domain;
 
 /// <summary>
-/// Códigos de erro padronizados para o módulo Core.
+/// Standardized error codes for the Core module ({Aggregate}.{Reason}).
 /// </summary>
 public static class ErrorCodes
 {
+    /// <summary>
+    /// Cross-cutting authorization failures surfaced by the application pipeline.
+    /// </summary>
+    public static class Authorization
+    {
+        /// <summary>
+        /// The caller is not authenticated.
+        /// </summary>
+        public static readonly Error Unauthorized = new("Authorization.Unauthorized", "Authentication is required.");
+
+        /// <summary>
+        /// The caller is authenticated but lacks the required policy.
+        /// </summary>
+        public static readonly Error Forbidden = new("Authorization.Forbidden", "You do not have permission to perform this action.");
+    }
+
+    /// <summary>
+    /// FluentValidation and pipeline validation failures.
+    /// </summary>
+    public static class Validation
+    {
+        /// <summary>
+        /// One or more validation rules failed.
+        /// </summary>
+        public static readonly Error Error = new("Validation.Error", "A validation error occurred.");
+    }
+
+    /// <summary>
+    /// Tutor aggregate errors.
+    /// </summary>
     public static class Tutor
     {
         public static readonly Error NotFound = new("Tutor.NotFound", "O tutor especificado não foi encontrado.");
+        public static readonly Error InvalidName = new("Tutor.InvalidName", "O nome do tutor deve ter pelo menos 2 caracteres.");
+        public static readonly Error NullEmail = new("Tutor.NullEmail", "O e-mail é obrigatório.");
+        public static readonly Error NullCpf = new("Tutor.NullCpf", "O CPF é obrigatório.");
+        public static readonly Error NullPhone = new("Tutor.NullPhone", "O telefone é obrigatório.");
+        public static readonly Error NullPet = new("Tutor.NullPet", "Não é possível adicionar um pet nulo.");
         public static readonly Error InvalidCpf = new("Tutor.InvalidCpf", "O CPF fornecido é inválido ou já está em uso.");
     }
 
+    /// <summary>
+    /// Pet entity errors.
+    /// </summary>
     public static class Pet
     {
         public static readonly Error NotFound = new("Pet.NotFound", "O pet especificado não foi encontrado.");
+        public static readonly Error InvalidName = new("Pet.InvalidName", "O nome do pet não pode ser vazio.");
+        public static readonly Error InvalidTutor = new("Pet.InvalidTutor", "O pet deve ser associado a um tutor válido.");
+        public static readonly Error TutorNotFound = new("Pet.TutorNotFound", "O tutor associado ao pet não foi encontrado.");
+    }
+
+    /// <summary>
+    /// CPF value object errors.
+    /// </summary>
+    public static class Cpf
+    {
+        public static readonly Error InvalidFormat = new("Cpf.InvalidFormat", "CPF inválido.");
+    }
+
+    /// <summary>
+    /// Email value object errors.
+    /// </summary>
+    public static class Email
+    {
+        public static readonly Error InvalidFormat = new("Email.InvalidFormat", "E-mail inválido.");
+    }
+
+    /// <summary>
+    /// Phone value object errors.
+    /// </summary>
+    public static class Phone
+    {
+        public static readonly Error InvalidFormat = new("Phone.InvalidFormat", "Telefone inválido.");
+    }
+
+    /// <summary>
+    /// Audit log entity errors.
+    /// </summary>
+    public static class AuditLog
+    {
+        public static readonly Error InvalidEntityName = new("AuditLog.InvalidEntityName", "O nome da entidade é obrigatório.");
+        public static readonly Error InvalidAction = new("AuditLog.InvalidAction", "A ação de auditoria é obrigatória.");
     }
 }

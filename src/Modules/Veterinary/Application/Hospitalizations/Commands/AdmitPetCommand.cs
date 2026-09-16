@@ -1,7 +1,8 @@
-using Core.Domain;
-using MediatR;
-using System;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 
 namespace Veterinary.Application.Hospitalizations.Commands;
 
-public record AdmitPetCommand(Guid PetId, Guid VeterinarianId, string Reason) : IRequest<Result<Guid>>;
+[AuthorizeRequest(AuthorizationPolicies.Veterinarian)]
+public record AdmitPetCommand(Guid PetId, Guid VeterinarianId, string Reason) : ICommand<Guid>;

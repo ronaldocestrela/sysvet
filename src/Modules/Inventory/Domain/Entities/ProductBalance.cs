@@ -1,5 +1,5 @@
-using System;
 using Core.Domain;
+using Inventory.Domain;
 
 namespace Inventory.Domain.Entities;
 
@@ -30,7 +30,7 @@ public class ProductBalance : Entity
         
         // Let's refine Adjustment later, for now just Out checks
         if (type == MovementType.Out && newBalance < 0)
-            return Result.Failure(new Error("ProductBalance.InsufficientFunds", "Insufficient stock balance for this operation."));
+            return Result.Failure(ErrorCodes.ProductBalance.InsufficientFunds);
 
         if (type == MovementType.Adjustment) 
             newBalance += amount; // Assuming positive adjustment adds to stock for now.

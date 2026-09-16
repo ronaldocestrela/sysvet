@@ -1,21 +1,17 @@
 # `src/Modules/Core/` — Módulo Core
 
-Módulo **transversal e base** do sistema. Define os blocos fundamentais utilizados por todos os outros módulos: a classe base `Entity`, o `AggregateRoot`, o padrão `Result<T>`, os Value Objects de dados de contato e as entidades centrais `Tutor` e `Pet`.
-
-> **Importante:** Este módulo não representa um domínio de negócio específico, mas sim a **linguagem comum** da aplicação. Qualquer tipo que precise ser compartilhado entre módulos deve ser definido aqui.
+Módulo **transversal e base** do sistema: `Entity`/`AggregateRoot`, `ValueObject`, `Result<T>`, `ErrorCodes`, value objects de contato, entidades `Tutor`/`Pet` e pipeline CQRS compartilhado.
 
 ## Camadas
 
 | Pasta | Responsabilidade |
 |---|---|
-| [`Domain/`](./Domain/README.md) | Entidades de domínio, Value Objects, classe base Entity, padrão Result |
-| [`Application/`](./Application/README.md) | Handlers CQRS, DTOs e validações (ainda em estruturação) |
-| [`Infrastructure/`](./Infrastructure/README.md) | DbContext do módulo Core, repositórios e configurações EF Core (ainda em estruturação) |
+| [`Domain/`](./Domain/README.md) | Entidades, VOs, `IDomainEvent`, repositórios, `ErrorCodes` |
+| [`Application/`](./Application/README.md) | MediatR, behaviors, commands/queries Tutor/Pet, políticas de autorização |
+| [`Infrastructure/`](./Infrastructure/README.md) | DbContext, Identity/JWT, DI do pipeline, dispatch de domain events |
 
-## O que já existe
+## Kernel CQRS (2.1)
 
-- ✅ `Entity` e `AggregateRoot` — bases para todas as entidades
-- ✅ `Result<T>` e `Error` — padrão de retorno sem exceções
-- ✅ Value Objects: `Cpf`, `Email`, `Phone`
-- ✅ Entidades: `Tutor` (Aggregate Root), `Pet`
-- ✅ Enumerações: `PetSpecies`, `PetSex`
+- Marcadores: `ICommand`, `IQuery`, `IIdempotentCommand`
+- Pipeline: Logging → Authorization → Validation → Idempotency → Transaction
+- Commit: `IEnumerable<IUnitOfWork>` + dispatch de `IDomainEvent` após save

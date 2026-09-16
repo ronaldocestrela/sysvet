@@ -1,13 +1,14 @@
-using System;
-using Core.Domain;
-using MediatR;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 
 namespace Inventory.Application.Products.Commands;
 
+[AuthorizeRequest(AuthorizationPolicies.Authenticated)]
 public record RegisterProductCommand(
     string Name,
     string Description,
     string Barcode,
     string UnitOfMeasure,
     decimal ReorderLevel
-) : IRequest<Result<Guid>>;
+) : ICommand<Guid>;

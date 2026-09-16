@@ -29,10 +29,10 @@ public class AuditLog : Entity
     public static Result<AuditLog> Create(Guid tenantId, Guid userId, string entityName, string action, string payloadSummary, DateTimeOffset occurredAt = default)
     {
         if (string.IsNullOrWhiteSpace(entityName))
-            return Result.Failure<AuditLog>(new Error("AuditLog.InvalidEntityName", "O nome da entidade é obrigatório."));
+            return Result.Failure<AuditLog>(ErrorCodes.AuditLog.InvalidEntityName);
         
         if (string.IsNullOrWhiteSpace(action))
-            return Result.Failure<AuditLog>(new Error("AuditLog.InvalidAction", "A ação de auditoria é obrigatória."));
+            return Result.Failure<AuditLog>(ErrorCodes.AuditLog.InvalidAction);
 
         var log = new AuditLog(Guid.NewGuid(), tenantId, userId, entityName.Trim(), action.Trim(), occurredAt == default ? DateTimeOffset.UtcNow : occurredAt, payloadSummary ?? string.Empty);
         

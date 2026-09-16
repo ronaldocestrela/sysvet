@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Core.Infrastructure.Identity;
 using System.Net.Http.Headers;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace API.IntegrationTests.Veterinary;
 
@@ -67,6 +69,17 @@ public class AppointmentEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         await coreContext.Database.EnsureCreatedAsync();
         var vetContext = scope.ServiceProvider.GetRequiredService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>();
         await vetContext.Database.MigrateAsync();
+
+        var httpContextAccessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        httpContextAccessor.HttpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Role, "Veterinarian"),
+            ],
+            authenticationType: "Test"))
+        };
 
         var mediator = scope.ServiceProvider.GetRequiredService<MediatR.IMediator>();
         var command = new ScheduleAppointmentCommand(

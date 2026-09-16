@@ -1,22 +1,16 @@
 using Core.Domain;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Veterinary.Domain.Repositories;
-using IUnitOfWork = Veterinary.Domain.Repositories.IUnitOfWork;
 
 namespace Veterinary.Application.Hospitalizations.Commands;
 
 public class DischargePetCommandHandler : IRequestHandler<DischargePetCommand, Result<bool>>
 {
     private readonly IHospitalizationRepository _hospitalizationRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public DischargePetCommandHandler(IHospitalizationRepository hospitalizationRepository, IUnitOfWork unitOfWork)
+    public DischargePetCommandHandler(IHospitalizationRepository hospitalizationRepository)
     {
         _hospitalizationRepository = hospitalizationRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<bool>> Handle(DischargePetCommand request, CancellationToken cancellationToken)
@@ -25,7 +19,7 @@ public class DischargePetCommandHandler : IRequestHandler<DischargePetCommand, R
 
         if (hosp == null)
         {
-            return Result.Failure<bool>(new Error("Hospitalization.NotFound", "The specified hospitalization was not found."));
+            return Result.Failure<bool>(Veterinary.Domain.ErrorCodes.Hospitalization.NotFound);
         }
 
         var dischargeResult = hosp.Discharge();
@@ -36,8 +30,7 @@ public class DischargePetCommandHandler : IRequestHandler<DischargePetCommand, R
         }
 
         _hospitalizationRepository.Update(hosp);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<bool>.Success(true);
+        return Result.Success(true);
     }
 }

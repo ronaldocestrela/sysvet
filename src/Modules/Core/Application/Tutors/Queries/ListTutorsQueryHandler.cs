@@ -31,14 +31,7 @@ public class ListTutorsQueryHandler : IRequestHandler<ListTutorsQuery, Result<IE
         var paged = filtered
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(t => new TutorDto
-            {
-                Id = t.Id,
-                Name = t.Name,
-                Email = t.Email.Address,
-                Cpf = t.Cpf.Number,
-                Phone = t.Phone.Number
-            })
+            .Select(TutorMappings.ToDto)
             .ToList();
 
         return Result.Success<IEnumerable<TutorDto>>(paged);

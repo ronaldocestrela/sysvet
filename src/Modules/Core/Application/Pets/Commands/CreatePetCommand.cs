@@ -1,9 +1,10 @@
 using Core.Domain;
-using Core.Domain.Entities;
-using MediatR;
-
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
 using Core.Application.Common;
+using Core.Domain.Entities;
 
 namespace Core.Application.Pets.Commands;
 
-public record CreatePetCommand(string Name, PetSpecies Species, string Breed, PetSex Sex, Guid TutorId, Guid IdempotencyKey = default) : IIdempotentCommand<Result<Guid>>;
+[AuthorizeRequest(AuthorizationPolicies.ClinicStaff)]
+public record CreatePetCommand(string Name, PetSpecies Species, string Breed, PetSex Sex, Guid TutorId, Guid IdempotencyKey = default) : IIdempotentCommand<Guid>;

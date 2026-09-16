@@ -59,16 +59,24 @@ public static class DependencyInjection
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
-            options.AddPolicy("Veterinarian", policy => policy.RequireRole("Veterinarian", "Admin"));
-            options.AddPolicy("Receptionist", policy => policy.RequireRole("Receptionist", "Admin"));
-            options.AddPolicy("Cashier", policy => policy.RequireRole("Cashier", "Admin"));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Authenticated, policy => policy.RequireAuthenticatedUser());
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.ClinicStaff, policy =>
+                policy.RequireRole("Admin", "Veterinarian", "Receptionist"));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Admin, policy => policy.RequireRole("Admin"));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Veterinarian, policy => policy.RequireRole("Veterinarian", "Admin"));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Receptionist, policy => policy.RequireRole("Receptionist", "Admin"));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Cashier, policy => policy.RequireRole("Cashier", "Admin"));
         });
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<Core.Application.Common.Interfaces.ICurrentUser, HttpCurrentUser>();
+        services.AddScoped<Core.Application.Common.Interfaces.IDomainEventDispatcher, MediatRDomainEventDispatcher>();
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ITutorRepository, TutorRepository>();
         services.AddScoped<IPetRepository, PetRepository>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<CoreDbContext>());
+        services.AddScoped<IDomainEventSource>(provider => provider.GetRequiredService<CoreDbContext>());
         services.AddScoped<IAuditLogger, AuditLogger>();
         services.AddScoped<Core.Application.Common.Interfaces.IIdempotencyService, IdempotencyService>();
         services.AddScoped<ITenantContext, DefaultTenantContext>();
@@ -77,6 +85,7 @@ public static class DependencyInjection
         {
             cfg.RegisterServicesFromAssembly(typeof(CreatePetCommand).Assembly);
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.AuthorizationBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.ValidationBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.IdempotencyBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.TransactionBehavior<,>));

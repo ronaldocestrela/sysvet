@@ -18,19 +18,9 @@ public class GetPetByIdQueryHandler : IRequestHandler<GetPetByIdQuery, Result<Pe
 
         if (pet == null)
         {
-            return Result.Failure<PetDto>(new Error("Pet.NotFound", $"O Pet com ID '{request.Id}' não foi encontrado."));
+            return Result.Failure<PetDto>(ErrorCodes.Pet.NotFound);
         }
 
-        var dto = new PetDto
-        {
-            Id = pet.Id,
-            Name = pet.Name,
-            Species = pet.Species,
-            Breed = pet.Breed,
-            Sex = pet.Sex,
-            TutorId = pet.TutorId
-        };
-
-        return Result.Success(dto);
+        return Result.Success(PetMappings.ToDto(pet));
     }
 }

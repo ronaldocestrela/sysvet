@@ -26,15 +26,7 @@ public class ListPetsQueryHandler : IRequestHandler<ListPetsQuery, Result<IEnume
         var paged = filtered
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(p => new PetDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Species = p.Species,
-                Breed = p.Breed,
-                Sex = p.Sex,
-                TutorId = p.TutorId
-            })
+            .Select(PetMappings.ToDto)
             .ToList();
 
         return Result.Success<IEnumerable<PetDto>>(paged);

@@ -1,10 +1,11 @@
-using Core.Domain;
-using MediatR;
-using System;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 
 namespace Sales.Application.Orders.Commands;
 
-public class PayOrderCommand : IRequest<Result<bool>>
+[AuthorizeRequest(AuthorizationPolicies.Cashier)]
+public class PayOrderCommand : ICommand<bool>
 {
     public Guid OrderId { get; set; }
 }

@@ -1,10 +1,11 @@
-using Core.Domain;
-using Core.Domain.Entities;
-using MediatR;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 
 namespace Core.Application.Tutors.Queries;
 
-public record GetTutorByIdQuery(Guid Id) : IRequest<Result<TutorDto>>;
+[AuthorizeRequest(AuthorizationPolicies.ClinicStaff)]
+public record GetTutorByIdQuery(Guid Id) : IQuery<TutorDto>;
 
 public class TutorDto
 {

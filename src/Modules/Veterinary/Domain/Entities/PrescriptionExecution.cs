@@ -1,5 +1,5 @@
 using Core.Domain;
-using System;
+using Veterinary.Domain;
 
 namespace Veterinary.Domain.Entities;
 
@@ -34,7 +34,7 @@ public class PrescriptionExecution : Entity
     {
         if (string.IsNullOrWhiteSpace(medicationName))
         {
-            return Result.Failure<PrescriptionExecution>(new Error("PrescriptionExecution.InvalidMedicationName", "Medication name cannot be empty."));
+            return Result.Failure<PrescriptionExecution>(ErrorCodes.PrescriptionExecution.InvalidMedicationName);
         }
 
         return Result<PrescriptionExecution>.Success(new PrescriptionExecution(id, hospitalizationId, medicationName, dose, notes, executedBy));

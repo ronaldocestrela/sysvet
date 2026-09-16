@@ -1,3 +1,4 @@
+using Core.Domain;
 using Core.Infrastructure.Configuration;
 using Inventory.Application.Products.Commands;
 using Inventory.Domain.Repositories;
@@ -32,6 +33,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IInventoryUnitOfWork>(provider => provider.GetRequiredService<InventoryDbContext>());
+        services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<InventoryDbContext>());
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IStockMovementRepository, StockMovementRepository>();
 

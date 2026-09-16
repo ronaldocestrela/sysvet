@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Veterinary.Application.Appointments.Commands;
+using Core.Domain;
 using Veterinary.Domain.Repositories;
 using Veterinary.Infrastructure.Configuration;
 using Veterinary.Infrastructure.Persistence;
@@ -37,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IVaccineDoseRepository, VaccineDoseRepository>();
         services.AddScoped<IHospitalizationRepository, HospitalizationRepository>();
         services.AddScoped<IPrescriptionExecutionRepository, PrescriptionExecutionRepository>();
+        services.AddScoped<IVeterinaryUnitOfWork>(provider => provider.GetRequiredService<VeterinaryDbContext>());
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<VeterinaryDbContext>());
 
         services.AddMediatR(cfg =>

@@ -32,6 +32,8 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 
+    public bool HasPendingChanges() => ChangeTracker.HasChanges();
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         SetTenantIdOnSave();

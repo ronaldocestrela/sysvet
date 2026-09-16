@@ -5,7 +5,7 @@ namespace Core.Domain.ValueObjects;
 /// <summary>
 /// Value Object que representa um número de telefone brasileiro válido.
 /// </summary>
-public record Phone
+public sealed record Phone : ValueObject
 {
     /// <summary>
     /// Número de telefone contendo apenas dígitos numéricos (com DDD).
@@ -26,7 +26,7 @@ public record Phone
     {
         if (string.IsNullOrWhiteSpace(rawPhone))
         {
-            return Result.Failure<Phone>(new Error("Phone.InvalidFormat", "O telefone não pode ser vazio."));
+            return Result.Failure<Phone>(ErrorCodes.Phone.InvalidFormat with { Message = "O telefone não pode ser vazio." });
         }
 
         var cleaned = Regex.Replace(rawPhone, @"[^\d]", "");
@@ -40,7 +40,7 @@ public record Phone
         // Telefone fixo (10 dígitos) ou celular (11 dígitos)
         if (cleaned.Length is < 10 or > 11)
         {
-            return Result.Failure<Phone>(new Error("Phone.InvalidFormat", "O telefone deve conter 10 ou 11 dígitos com DDD."));
+            return Result.Failure<Phone>(ErrorCodes.Phone.InvalidFormat with { Message = "O telefone deve conter 10 ou 11 dígitos com DDD." });
         }
 
         return Result.Success(new Phone(cleaned));

@@ -2,11 +2,10 @@ using Core.Domain;
 using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Veterinary.Domain.Entities;
-using IVetUnitOfWork = Veterinary.Domain.Repositories.IUnitOfWork;
-
+using Veterinary.Domain.Repositories;
 namespace Veterinary.Infrastructure.Persistence;
 
-public class VeterinaryDbContext : DbContext, IUnitOfWork, IVetUnitOfWork
+public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
 {
     public ITenantContext TenantContext { get; set; } = null!;
 
@@ -33,6 +32,8 @@ public class VeterinaryDbContext : DbContext, IUnitOfWork, IVetUnitOfWork
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(VeterinaryDbContext).Assembly);
     }
+
+    public bool HasPendingChanges() => ChangeTracker.HasChanges();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

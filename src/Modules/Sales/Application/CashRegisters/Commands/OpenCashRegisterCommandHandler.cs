@@ -2,8 +2,6 @@ using Core.Domain;
 using MediatR;
 using Sales.Domain.Entities;
 using Sales.Domain.Repositories;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Sales.Application.CashRegisters.Commands;
 
@@ -23,7 +21,7 @@ public class OpenCashRegisterCommandHandler : IRequestHandler<OpenCashRegisterCo
         var existingOpenRegister = await _cashRegisterRepository.GetOpenCashRegisterByUserAsync(_tenantContext.UserId, cancellationToken);
         if (existingOpenRegister != null)
         {
-            return Result.Failure<Guid>(new Error("CashRegister.AlreadyOpen", "O usuário já possui um caixa aberto."));
+            return Result.Failure<Guid>(Sales.Domain.ErrorCodes.CashRegister.AlreadyOpen);
         }
 
         var cashRegisterResult = CashRegister.Open(_tenantContext.UserId, request.OpeningBalance);
@@ -34,7 +32,7 @@ public class OpenCashRegisterCommandHandler : IRequestHandler<OpenCashRegisterCo
 
         var cashRegister = cashRegisterResult.Value;
         _cashRegisterRepository.Add(cashRegister);
-        
+
         return Result.Success(cashRegister.Id);
     }
 }

@@ -54,6 +54,30 @@ public abstract class Entity : IEquatable<Entity>
 /// </summary>
 public abstract class AggregateRoot : Entity
 {
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <summary>
+    /// Domain events raised during the current unit of work, pending dispatch after persistence.
+    /// </summary>
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
     protected AggregateRoot(Guid id) : base(id) { }
+
     protected AggregateRoot() : base() { }
+
+    /// <summary>
+    /// Registers a domain event to be published after the aggregate is persisted.
+    /// </summary>
+    protected void Raise(IDomainEvent domainEvent)
+    {
+        _domainEvents.Add(domainEvent);
+    }
+
+    /// <summary>
+    /// Clears pending domain events after they have been dispatched.
+    /// </summary>
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
+    }
 }

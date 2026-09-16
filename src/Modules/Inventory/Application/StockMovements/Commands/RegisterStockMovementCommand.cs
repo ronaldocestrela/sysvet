@@ -1,10 +1,11 @@
-using System;
-using Core.Domain;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 using Inventory.Domain.Entities;
-using MediatR;
 
 namespace Inventory.Application.StockMovements.Commands;
 
+[AuthorizeRequest(AuthorizationPolicies.Authenticated)]
 public record RegisterStockMovementCommand(
     Guid ProductId,
     MovementType Type,
@@ -12,4 +13,4 @@ public record RegisterStockMovementCommand(
     string? BatchNumber,
     DateTimeOffset? ExpirationDate,
     string Reason
-) : IRequest<Result<Guid>>;
+) : ICommand<Guid>;

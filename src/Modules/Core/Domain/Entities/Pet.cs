@@ -32,12 +32,12 @@ public class Pet : Entity
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<Pet>(new Error("Pet.InvalidName", "O nome do pet não pode ser vazio."));
+            return Result.Failure<Pet>(ErrorCodes.Pet.InvalidName);
         }
 
         if (tutorId == Guid.Empty)
         {
-            return Result.Failure<Pet>(new Error("Pet.InvalidTutor", "O pet deve ser associado a um tutor válido."));
+            return Result.Failure<Pet>(ErrorCodes.Pet.InvalidTutor);
         }
 
         var pet = new Pet(id, name.Trim(), species, breed?.Trim() ?? string.Empty, sex, tutorId);
@@ -48,7 +48,7 @@ public class Pet : Entity
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure(new Error("Pet.InvalidName", "O nome do pet não pode ser vazio."));
+            return Result.Failure(ErrorCodes.Pet.InvalidName);
         }
 
         Name = name.Trim();

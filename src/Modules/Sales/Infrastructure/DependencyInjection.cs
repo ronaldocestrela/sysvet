@@ -1,5 +1,7 @@
+using Core.Domain;
 using Core.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -29,9 +31,11 @@ public static class DependencyInjection
             var databaseOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             var moduleOptions = serviceProvider.GetRequiredService<IOptions<SalesOptions>>().Value;
             options.ConfigureModuleDatabase(config, databaseOptions, moduleOptions.ConnectionString);
+            options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddScoped<ISalesUnitOfWork>(provider => provider.GetRequiredService<SalesDbContext>());
+        services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SalesDbContext>());
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICashRegisterRepository, CashRegisterRepository>();
 

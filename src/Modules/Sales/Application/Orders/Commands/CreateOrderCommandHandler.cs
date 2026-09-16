@@ -2,9 +2,6 @@ using Core.Domain;
 using MediatR;
 using Sales.Domain.Entities;
 using Sales.Domain.Repositories;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Sales.Application.Orders.Commands;
 
@@ -24,7 +21,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         var cashRegister = await _cashRegisterRepository.GetByIdAsync(request.CashRegisterId, cancellationToken);
         if (cashRegister == null || cashRegister.Status != "Open")
         {
-            return Result.Failure<Guid>(new Error("Order.CashRegisterNotOpen", "O caixa informado não existe ou não está aberto."));
+            return Result.Failure<Guid>(Sales.Domain.ErrorCodes.Order.CashRegisterNotOpen);
         }
 
         var orderResult = Order.Create(request.CashRegisterId);

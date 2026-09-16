@@ -1,3 +1,4 @@
+using Core.Domain.Events;
 using Core.Domain.ValueObjects;
 
 namespace Core.Domain.Entities;
@@ -39,25 +40,26 @@ public class Tutor : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(name) || name.Trim().Length < 2)
         {
-            return Result.Failure<Tutor>(new Error("Tutor.InvalidName", "O nome do tutor deve ter pelo menos 2 caracteres."));
+            return Result.Failure<Tutor>(ErrorCodes.Tutor.InvalidName);
         }
 
         if (email is null)
         {
-            return Result.Failure<Tutor>(new Error("Tutor.NullEmail", "O e-mail é obrigatório."));
+            return Result.Failure<Tutor>(ErrorCodes.Tutor.NullEmail);
         }
 
         if (cpf is null)
         {
-            return Result.Failure<Tutor>(new Error("Tutor.NullCpf", "O CPF é obrigatório."));
+            return Result.Failure<Tutor>(ErrorCodes.Tutor.NullCpf);
         }
 
         if (phone is null)
         {
-            return Result.Failure<Tutor>(new Error("Tutor.NullPhone", "O telefone é obrigatório."));
+            return Result.Failure<Tutor>(ErrorCodes.Tutor.NullPhone);
         }
 
         var tutor = new Tutor(id, name.Trim(), email, cpf, phone);
+        tutor.Raise(new TutorRegisteredDomainEvent(tutor.Id, DateTimeOffset.UtcNow));
         return Result.Success(tutor);
     }
 
@@ -65,17 +67,17 @@ public class Tutor : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(name) || name.Trim().Length < 2)
         {
-            return Result.Failure(new Error("Tutor.InvalidName", "O nome do tutor deve ter pelo menos 2 caracteres."));
+            return Result.Failure(ErrorCodes.Tutor.InvalidName);
         }
 
         if (email is null)
         {
-            return Result.Failure(new Error("Tutor.NullEmail", "O e-mail é obrigatório."));
+            return Result.Failure(ErrorCodes.Tutor.NullEmail);
         }
 
         if (phone is null)
         {
-            return Result.Failure(new Error("Tutor.NullPhone", "O telefone é obrigatório."));
+            return Result.Failure(ErrorCodes.Tutor.NullPhone);
         }
 
         Name = name.Trim();
@@ -92,7 +94,7 @@ public class Tutor : AggregateRoot
     {
         if (pet is null)
         {
-            return Result.Failure(new Error("Tutor.NullPet", "Não é possível adicionar um pet nulo."));
+            return Result.Failure(ErrorCodes.Tutor.NullPet);
         }
 
         _pets.Add(pet);

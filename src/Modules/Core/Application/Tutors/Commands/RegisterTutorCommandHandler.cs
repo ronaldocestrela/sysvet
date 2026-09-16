@@ -8,12 +8,10 @@ namespace Core.Application.Tutors.Commands;
 public class RegisterTutorCommandHandler : IRequestHandler<RegisterTutorCommand, Result<Guid>>
 {
     private readonly ITutorRepository _tutorRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public RegisterTutorCommandHandler(ITutorRepository tutorRepository, IUnitOfWork unitOfWork)
+    public RegisterTutorCommandHandler(ITutorRepository tutorRepository)
     {
         _tutorRepository = tutorRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<Guid>> Handle(RegisterTutorCommand request, CancellationToken cancellationToken)
@@ -31,7 +29,6 @@ public class RegisterTutorCommandHandler : IRequestHandler<RegisterTutorCommand,
         if (tutorResult.IsFailure) return Result.Failure<Guid>(tutorResult.Error);
 
         _tutorRepository.Add(tutorResult.Value);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(tutorResult.Value.Id);
     }

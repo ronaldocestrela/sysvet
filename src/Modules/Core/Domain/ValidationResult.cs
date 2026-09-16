@@ -6,7 +6,7 @@ namespace Core.Domain;
 public sealed class ValidationResult : Result, IValidationResult
 {
     private ValidationResult(Error[] errors)
-        : base(false, new Error("Validation.Error", "A validation error occurred."))
+        : base(false, ErrorCodes.Validation.Error)
     {
         ValidationErrors = errors;
     }
@@ -26,7 +26,7 @@ public sealed class ValidationResult : Result, IValidationResult
 public sealed class ValidationResult<TValue> : Result<TValue>, IValidationResult
 {
     private ValidationResult(Error[] errors)
-        : base(default, false, new Error("Validation.Error", "A validation error occurred."))
+        : base(default, false, ErrorCodes.Validation.Error)
     {
         ValidationErrors = errors;
     }

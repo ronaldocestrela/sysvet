@@ -1,10 +1,12 @@
-using Core.Domain;
+using Core.Application.Authorization;
+using Core.Application.Behaviors;
+using Core.Application.Messaging;
 using Core.Domain.Entities;
-using MediatR;
 
 namespace Core.Application.Pets.Queries;
 
-public record GetPetByIdQuery(Guid Id) : IRequest<Result<PetDto>>;
+[AuthorizeRequest(AuthorizationPolicies.ClinicStaff)]
+public record GetPetByIdQuery(Guid Id) : IQuery<PetDto>;
 
 public class PetDto
 {
