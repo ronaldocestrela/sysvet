@@ -63,6 +63,7 @@ dotnet new maui-blazor -n MauiApp -o src/Clients/MauiApp -f net10.0 --force || t
 if [ -f src/Clients/MauiApp/MauiApp.csproj ]; then
     dotnet add src/Clients/MauiApp/MauiApp.csproj reference src/Clients/SharedUI/SharedUI.csproj
     dotnet sln "$SLN" add src/Clients/MauiApp/MauiApp.csproj --solution-folder "src/Clients"
+    echo "Note: After bootstrap, set MauiApp Build Solution=false in $SLN for Linux/CI (see docs/roadmap.md 1.1)."
 else
     echo "Could not create MauiApp, template might not be available."
 fi

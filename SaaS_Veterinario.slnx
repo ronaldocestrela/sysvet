@@ -6,6 +6,10 @@
   <Folder Name="/src/Clients/">
     <Project Path="src/Clients/BlazorWeb/BlazorWeb.csproj" />
     <Project Path="src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj" />
+    <Project Path="src/Clients/MauiApp/MauiApp.csproj">
+      <Build Solution="Debug|*" Project="false" />
+      <Build Solution="Release|*" Project="false" />
+    </Project>
     <Project Path="src/Clients/SharedUI/SharedUI.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />

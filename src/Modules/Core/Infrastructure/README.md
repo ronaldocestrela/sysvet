@@ -4,7 +4,7 @@ Camada responsável pela **implementação técnica** das abstrações definidas
 
 ## Status Atual
 
-> ⚠️ **Em estruturação.** Contém apenas o `Class1.cs` de placeholder gerado pelo template.
+> **Implementado.** `CoreDbContext`, mapeamentos EF Core, repositórios, Identity, JWT e extensões de DI do módulo Core.
 
 ## O que virá aqui
 

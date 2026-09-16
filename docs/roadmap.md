@@ -25,11 +25,11 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 
 ## Estado atual do repositório (baseline)
 
-> Fotografia em **ago/2026**. Scaffolds **não** contam como funcionalidade concluída.
+> Fotografia em **set/2026**. Scaffolds **não** contam como funcionalidade concluída.
 
 | Área | Status | Evidência |
 |------|--------|-----------|
-| Solução modular | **Parcial** | `SaaS_Veterinario.slnx`, 19 projetos `.csproj`, pastas espelhadas em `tests/` |
+| Solução modular | **Parcial** | `SaaS_Veterinario.slnx` com 33 projetos (incl. `MauiApp` listado; build MAUI desligado no slnx); pastas espelhadas em `tests/` |
 | API | **Parcial** | `src/API/Program.cs` — endpoint `GET /`, OpenAPI + Scalar (dev) |
 | Padrão `Result<T>` | **Concluído** | `src/Modules/Core/Domain/Result.cs` + 4 testes em `Core.Tests` |
 | Módulos de negócio | **Parcial** | Projetos vazios (`Core`, `Veterinary`, `Petshop`, `Sales`, `Inventory`, `Fiscal`) |
@@ -38,7 +38,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | CQRS / Handlers | **Pendente** | — |
 | Blazor WASM | **Parcial** | Template (Home, Counter, Weather) |
 | SharedUI | **Parcial** | RCL com componente placeholder |
-| MAUI | **Pendente** | `src/Clients/MauiApp/` vazio |
+| MAUI | **Parcial** | `src/Clients/MauiApp/` — Blazor Hybrid scaffold; na solução com build desligado em Linux/CI |
 | SQLite / Sync offline | **Pendente** | — |
 | CI/CD | **Pendente** | Sem pipeline |
 | Módulos ausentes | **Pendente** | `Finance`, `Automations`, `Intelligence`, `TutorPortal`, `Platform` |
@@ -123,7 +123,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **1.1 Solução e referências** | 3 | Parcial |
+| **1.1 Solução e referências** | 3 | Concluído |
 | **1.2 CI/CD** | 5 | Pendente |
 | **1.3 DI modular na API** | 5 | Pendente |
 | **1.4 Configuração por ambiente** | 3 | Pendente |
@@ -131,14 +131,14 @@ flowchart TD
 | **1.6 ADRs e documentação arquitetural** | 3 | Pendente |
 | **Total Fase 1** | **22 SP** | |
 
-### 1.1 Solução e referências (3 SP) — Parcial
+### 1.1 Solução e referências (3 SP) — Concluído
 
 - [x] Criar `SaaS_Veterinario.slnx` com projetos `src/` e `tests/`
 - [x] Estrutura Clean Architecture por módulo (`Domain`, `Application`, `Infrastructure`)
 - [x] Script `create_structure.sh` para bootstrap de módulos
-- [ ] Incluir `MauiApp` na solução (quando workload MAUI disponível)
-- [ ] Remover placeholders `Class1.cs` conforme módulos forem implementados
-- [ ] Resolver advisory de segurança em `Microsoft.OpenApi` (NU1903)
+- [x] Incluir `MauiApp` na solução (build da solução desligado; compilar via `MauiApp.sln` ou projeto quando houver workload)
+- [x] Remover placeholders `Class1.cs` conforme módulos forem implementados
+- [x] Resolver advisory de segurança em `Microsoft.OpenApi` (NU1903) — pin `Microsoft.OpenApi` 2.7.5 + `NuGetAuditMode=all` na API
 - [x] Alinhar duplicatas `roadmap.md`, `agents.md`, `structure.md` (raiz vs `docs/`)
 
 **Aceite:** Build local e no CI sem erros; todos os projetos referenciados na solução.

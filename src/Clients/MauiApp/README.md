@@ -4,20 +4,23 @@ Aplicação **multiplataforma** para Windows, macOS, iOS e Android, construída 
 
 ## Status Atual
 
-> ⚠️ **Esta pasta ainda está vazia** (apenas `.gitkeep`). O projeto MAUI ainda não foi inicializado.
+> **Scaffold funcional (Blazor Hybrid).** O projeto referencia `SharedUI` e `Clients.Infrastructure` (HTTP, SQLite offline, sync). No ambiente Linux/WSL o TFM está limitado a **`net10.0-android`** até que workloads MAUI adicionais estejam disponíveis.
 
-## O que virá aqui
+## Solução principal
 
-Quando implementado, conterá:
+- O projeto está listado em [`SaaS_Veterinario.slnx`](../../../SaaS_Veterinario.slnx) com **build da solução desligado** (Debug/Release), para não exigir workload MAUI em CI/Linux.
+- Para compilar o cliente MAUI quando o workload estiver instalado, use [`MauiApp.sln`](./MauiApp.sln) ou `dotnet build src/Clients/MauiApp/MauiApp.csproj`.
 
-| Arquivo / Pasta | O que será / Para que servirá |
+## O que há aqui
+
+| Arquivo / Pasta | Função |
 |---|---|
-| `MauiApp.csproj` | Projeto MAUI com targets para todas as plataformas. Referenciará `SharedUI`. |
-| `MauiProgram.cs` | Ponto de entrada. Configura `MauiAppBuilder` com Blazor Hybrid (`AddMauiBlazorWebView`). |
-| `MainPage.xaml` / `.cs` | Página nativa MAUI que hospeda o `BlazorWebView` com os componentes de `SharedUI`. |
-| `Resources/` | Fontes, ícones, splash screen e imagens específicas de cada plataforma. |
-| `Platforms/` | Código nativo por plataforma (permissões Android, entrypoint iOS, etc.). |
-| `Data/` | Contexto SQLite local para modo offline, espelhando o schema do servidor. |
+| `MauiApp.csproj` | Projeto MAUI; referencia `SharedUI` e `Clients.Infrastructure`. |
+| `MauiProgram.cs` | Ponto de entrada; configura `MauiAppBuilder` com Blazor Hybrid. |
+| `MainPage.xaml` / `.cs` | Página nativa que hospeda o `BlazorWebView`. |
+| `Services/` | Conectividade, navegação, autenticação específicos do host MAUI. |
+| `Resources/` | Fontes, ícones, splash e imagens por plataforma. |
+| `Platforms/` | Entrypoints e código nativo por plataforma. |
 
 ## Diferencial da Arquitetura Hybrid
 

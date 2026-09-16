@@ -4,7 +4,7 @@ Camada responsável por **orquestrar os casos de uso** do módulo Core, utilizan
 
 ## Status Atual
 
-> ⚠️ **Em estruturação.** Contém apenas o `Class1.cs` de placeholder gerado pelo template.
+> **Implementado.** Handlers CQRS (MediatR), behaviors de pipeline, validações FluentValidation e DTOs para Tutor/Pet, retornando `Result<T>`.
 
 ## O que virá aqui
 
