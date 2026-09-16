@@ -1,0 +1,31 @@
+.data-grid-container {
+    overflow-x: auto;
+}
+
+.data-grid {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.data-grid th {
+    background-color: var(--color-bg);
+    padding: var(--spacing-md);
+    font-weight: var(--font-weight-bold);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.data-grid td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.data-grid tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-muted);
+}

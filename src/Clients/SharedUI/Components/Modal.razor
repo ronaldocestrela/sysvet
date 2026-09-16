@@ -1,10 +1,14 @@
 @if (IsVisible)
 {
     <div class="modal-backdrop" @onclick="Close">
-        <div class="modal-content" @onclick:stopPropagation>
+        <div class="modal-content"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="@_titleId"
+             @onclick:stopPropagation>
             <div class="modal-header">
-                <h3>@Title</h3>
-                <button class="close-btn" @onclick="Close">&times;</button>
+                <h3 id="@_titleId">@Title</h3>
+                <button type="button" class="close-btn" aria-label="Fechar" @onclick="Close">&times;</button>
             </div>
             <div class="modal-body">
                 @ChildContent
@@ -20,10 +24,21 @@
 }
 
 @code {
+    private readonly string _titleId = $"modal-title-{Guid.NewGuid():N}";
+
+    /// <summary>Controls visibility of the dialog.</summary>
     [Parameter] public bool IsVisible { get; set; }
+
+    /// <summary>Dialog title in the header.</summary>
     [Parameter] public string Title { get; set; } = string.Empty;
+
+    /// <summary>Two-way binding for visibility.</summary>
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    /// <summary>Main dialog body.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Optional footer actions.</summary>
     [Parameter] public RenderFragment? FooterTemplate { get; set; }
 
     private async Task Close()
@@ -32,4 +47,3 @@
         await IsVisibleChanged.InvokeAsync(IsVisible);
     }
 }
-

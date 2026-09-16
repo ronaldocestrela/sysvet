@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.EntityFrameworkCore;
+using SharedUI.DependencyInjection;
 
 namespace MauiApp;
 
@@ -30,13 +31,17 @@ public static class MauiProgram
 		.AddHttpMessageHandler<MauiApp.Services.AuthHandler>();
 
 		builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
+		builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 
+		builder.Services.AddSharedUI();
 		builder.Services.AddSingleton<SharedUI.Services.IAuthState, MauiApp.Services.MauiAuthState>();
 		builder.Services.AddSingleton<SharedUI.Services.INavigationService, MauiApp.Services.MauiNavigationService>();
 		builder.Services.AddScoped<SharedUI.Services.IConnectivityService, MauiApp.Services.MauiConnectivityService>();
 
 		// Módulo Veterinary
 		builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
+		builder.Services.AddScoped<SharedUI.Services.IInventoryApiService, SharedUI.Services.MockInventoryApiService>();
+		builder.Services.AddScoped<SharedUI.Services.ISalesApiService, SharedUI.Services.MockSalesApiService>();
 
 		// SQLite Offline DB
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "sysvet.db");

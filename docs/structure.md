@@ -40,7 +40,13 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   ├── Clients/                        # Aplicativos clientes.
 │   │   ├── BlazorWeb/                  # Aplicação WebAssembly PWA.
 │   │   ├── MauiApp/                    # Aplicação Mobile/Desktop MAUI.
-│   │   └── SharedUI/                   # Componentes Razor reutilizáveis.
+│   │   └── SharedUI/                   # RCL — design system (layout, tokens, componentes, serviços UI).
+│   │       ├── Components/             # DataGrid, FormField, Modal, Toast, LoadingState, …
+│   │       ├── Layout/                 # MainLayout, AuthLayout, NavMenu.
+│   │       ├── Navigation/             # AppRoutes, AppNavItems (sem magic strings).
+│   │       ├── Services/               # IAuthState, INavigationService, IToastService, …
+│   │       ├── DependencyInjection/    # AddSharedUI().
+│   │       └── wwwroot/css/app.css     # Tokens VetNexus (SSOT visual).
 │   │
 │   └── Modules/                        # Contém os módulos de negócio isolados.
 │       ├── Core/                       # Módulo base para gestão de acessos e sincronização.

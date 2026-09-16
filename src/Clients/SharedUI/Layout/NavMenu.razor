@@ -1,94 +1,18 @@
+@using SharedUI.Navigation
+
 <div class="sidebar">
     <div class="sidebar-header">
         <h3>VetNexus</h3>
     </div>
 
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/sales/pos">
-                <span class="bi bi-cart" aria-hidden="true"></span> PDV
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/sales/cash-register">
-                <span class="bi bi-wallet2" aria-hidden="true"></span> Caixa
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink href="tutors" class="nav-item">
-            <span class="icon">👥</span> Tutores
-        </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink href="pets" class="nav-item">
-            <span class="icon">🐾</span> Pets
-        </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink href="appointments" class="nav-item">
-            <span class="icon">📅</span> Agenda
-        </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink href="hospitalizations" class="nav-item">
-            <span class="icon">🏥</span> Internação
-        </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink href="products" class="nav-item">
-            <span class="icon">📦</span> Produtos
-        </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink href="stock-movements" class="nav-item">
-            <span class="icon">🔄</span> Estoque
-        </NavLink>
-        </div>
+        @foreach (var item in AppNavItems.All)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="@item.Href" Match="@(item.Href == AppRoutes.Home ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                    <span class="bi @item.IconCss" aria-hidden="true"></span> @item.Label
+                </NavLink>
+            </div>
+        }
     </nav>
 </div>
-
-<style>
-    .sidebar {
-        width: 250px;
-        background-color: var(--color-text-main);
-        color: white;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .sidebar-header {
-        padding: var(--spacing-lg);
-        background-color: rgba(0,0,0,0.2);
-    }
-    
-    .sidebar-header h3 {
-        margin: 0;
-        color: var(--color-surface);
-    }
-
-    .nav-item {
-        margin-bottom: var(--spacing-xs);
-    }
-
-    .nav-link {
-        color: rgba(255,255,255,0.8);
-        padding: var(--spacing-sm) var(--spacing-md);
-        border-radius: var(--radius-md);
-        display: block;
-    }
-
-    .nav-link:hover {
-        color: white;
-        background-color: rgba(255,255,255,0.1);
-    }
-    
-    .nav-link.active {
-        color: white;
-        background-color: var(--color-primary);
-    }
-</style>

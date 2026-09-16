@@ -57,18 +57,17 @@ Iniciado o módulo de estoque.
 
 ## 🚀 Onde Estamos e Próximos Passos
 
-**Fase 2.6 (Auditoria e contratos de API)** concluída: captura `IAuditable`, `GET /api/v1/audit-logs`, Problem Details + `correlationId`, OpenAPI v1 e tags por módulo, ADR-010. Próximo marco: **Fase 3 — Clientes e Offline-First**.
+**Fase 2.6 (Auditoria e contratos de API)** concluída (ADR-010). **Fase 3.1 (SharedUI design system)** concluída: layout/tokens/componentes, `AddSharedUI()`, testes bUnit em `tests/Clients.Tests/SharedUI/` (ADR-011).
 
-Estamos na **Sprint 5 - Parte 02 (Módulo Inventory)**.
+Próximo marco: **3.2 Blazor WASM PWA** (JWT real, manifest/SW, telas CRM com API).
 
-As Sub-entregas A e B estão finalizadas. O alicerce do banco de dados, domínio e aplicação estão prontos.
+### 👉 **Próxima Ação: Fase 3.2 — Blazor PWA**
 
-### 👉 **Próxima Ação: Sprint 5 - Parte 02 (Sub-entrega C: Endpoints e UI)**
+1. HttpClient autenticado contra `/api/v1/auth/login` (substituir login placeholder).
+2. PWA: manifest + cache de assets; indicador online/offline integrado.
+3. NavMenu dinâmico opcional via `/auth/me` → `Menus` (ADR-009).
 
-**O que faremos:**
-1. **API Endpoints:** Criar `InventoryEndpoints.cs` utilizando Minimal APIs para expor rotas como `POST /api/v1/products` e `POST /api/v1/stock/movements`.
-2. **Integração E2E:** Criar `ProductEndpointsTests.cs` (usando `WebApplicationFactory` e autenticação JWT mockada) para validar os endpoints ponta a ponta.
-3. **UI/Frontend:** Construir as páginas Blazor WASM correspondentes para exibir os produtos, saldo em estoque, e um modal para lançamento de entrada/saída, consumindo uma Mock API (conforme convenção do projeto para testes visuais antecipados).
+**Nota MAUI/WSL:** paridade visual MAUI depende de workload Android/Windows; aceite estrutural 3.1 (Router + SharedUI layout + tokens) já atende o roadmap.
 
 ---
 

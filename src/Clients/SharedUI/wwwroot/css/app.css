@@ -17,13 +17,22 @@
     --color-danger: #E74C3C;
     --color-info: #3498DB;
 
+    /* Sidebar */
+    --color-sidebar: #2C3E50;
+    --color-sidebar-text: #FFFFFF;
+
     /* Borders & Dividers */
     --color-border: #E0E6ED;
+
+    /* Layering */
+    --z-index-modal: 9000;
+    --z-index-toast: 9999;
 
     /* Typography */
     --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
     --font-size-base: 16px;
     --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
     --font-size-lg: 1.125rem;
     --font-weight-normal: 400;
     --font-weight-bold: 600;

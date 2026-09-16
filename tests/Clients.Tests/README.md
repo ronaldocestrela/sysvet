@@ -1,36 +1,24 @@
-# `tests/Clients.Tests/` — Testes dos Componentes de UI
+# `tests/Clients.Tests/` — Testes dos clientes
 
-Projeto de **testes de componentes Blazor** para os projetos em `src/Clients/`. Testa a lógica de renderização, eventos e estado dos componentes Razor sem precisar de um navegador real.
+Testes de componentes Blazor (bUnit), adapters de host e infraestrutura offline compartilhada.
 
-## Status
-
-> ⚠️ **Em estruturação.** Contém apenas `UnitTest1.cs` de placeholder.
-
-## O que virá aqui
+## Estrutura
 
 ```
 Clients.Tests/
 ├── SharedUI/
-│   ├── Components/
-│   │   └── Forms/
-│   │       └── TutorFormTests.cs   ← Testa renderização e validação do formulário de tutor
-│   └── Pages/
-│       └── HomePageTests.cs
-└── BlazorWeb/
-    └── Pages/
-        └── DashboardTests.cs
+│   ├── Components/     # DataGrid, FormField, Modal, Toast, LoadingState
+│   ├── Layout/         # MainLayout, NavMenu, AuthLayout
+│   └── Services/       # ToastService
+├── BlazorWeb/          # WebAuthState
+├── Http/               # ApiClient
+└── Offline*.cs         # SQLite / sync
 ```
 
-## Abordagem
+## Execução
 
-- Usa **bunit** para renderizar componentes Razor em memória e inspecionar o DOM resultante
-- Simula eventos do usuário (cliques, digitação, submissão de formulários)
-- Mockea serviços HTTP usando `MockHttpClient` ou equivalente
+```bash
+dotnet test tests/Clients.Tests/Clients.Tests.csproj
+```
 
-## Dependências (futuras)
-
-| Pacote | Propósito |
-|---|---|
-| `bunit` | Renderização e teste de componentes Razor |
-| `xUnit` | Framework de testes |
-| `Moq` / `NSubstitute` | Mock de serviços injetados nos componentes |
+Pacotes: **bUnit**, **xUnit**, **FluentAssertions**, **MockHttp**.

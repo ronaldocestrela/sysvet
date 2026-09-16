@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
 using BlazorWeb;
+using SharedUI.DependencyInjection;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -16,7 +17,9 @@ builder.Services.AddHttpClient("API", client =>
 .AddHttpMessageHandler<BlazorWeb.Services.AuthHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
+builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 
+builder.Services.AddSharedUI();
 builder.Services.AddSingleton<SharedUI.Services.IAuthState, BlazorWeb.Services.WebAuthState>();
 builder.Services.AddSingleton<SharedUI.Services.INavigationService, BlazorWeb.Services.WebNavigationService>();
 builder.Services.AddScoped<SharedUI.Services.IConnectivityService, BlazorWeb.Services.WebConnectivityService>();

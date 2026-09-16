@@ -12,7 +12,7 @@ public class MainLayoutTests : BunitContext
 {
     public MainLayoutTests()
     {
-        // Stub services that might be required by NavMenu or Layout
+        Services.AddSingleton<IToastService, ToastService>();
         Services.AddScoped<IAuthState, DummyAuthState>();
         Services.AddScoped<IConnectivityService, DummyConnectivityService>();
     }
@@ -41,12 +41,12 @@ public class MainLayoutTests : BunitContext
         
         // Assert NavMenu stub is rendered
         Assert.True(cut.HasComponent<Bunit.TestDoubles.Stub<NavMenu>>());
+        cut.Find(".toast-container");
     }
 
     private class DummyAuthState : IAuthState
     {
         public bool IsAuthenticated => true;
-        public string? UserName => "Test User";
 
         public Task<string?> GetTokenAsync() => Task.FromResult<string?>("dummy-token");
         public Task LoginAsync(string token) => Task.CompletedTask;

@@ -11,7 +11,12 @@ else
 }
 
 @code {
+    /// <summary>When true, shows the loading overlay instead of child content.</summary>
     [Parameter] public bool IsLoading { get; set; }
+
+    /// <summary>Loading message displayed under the spinner.</summary>
     [Parameter] public string Message { get; set; } = "Carregando...";
+
+    /// <summary>Content rendered when not loading.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 }

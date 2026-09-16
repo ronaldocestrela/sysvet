@@ -1,39 +1,31 @@
-# `src/Clients/SharedUI/` — Biblioteca de Componentes Razor Compartilhados
+# `src/Clients/SharedUI/` — Design system (RCL)
 
-**Razor Class Library (RCL)** que serve como a única fonte de verdade para componentes de UI do SysVet. Tanto o `BlazorWeb` quanto o `MauiApp` referenciam este projeto — garantindo paridade visual e zero duplicação de código de interface.
+Razor Class Library compartilhada por **BlazorWeb** e **MauiApp**. Única fonte de verdade para layout, tokens CSS e componentes base (ADR-011).
 
-## Arquivos Atuais
+## Estrutura
 
-| Arquivo | O que é / Para que serve |
+| Pasta | Conteúdo |
 |---|---|
-| [`SharedUI.csproj`](./SharedUI.csproj) | Projeto do tipo `Razor Class Library`. Define que esta biblioteca expõe componentes Razor e arquivos estáticos via `wwwroot/`. |
-| [`_Imports.razor`](./_Imports.razor) | Importações de namespace globais para todos os componentes da biblioteca. |
-| [`Component1.razor`](./Component1.razor) | **Componente de placeholder** gerado pelo template. Deve ser substituído pelos primeiros componentes reais do sistema. |
-| [`Component1.razor.css`](./Component1.razor.css) | CSS com escopo isolado do `Component1`. |
-| [`ExampleJsInterop.cs`](./ExampleJsInterop.cs) | **Exemplo de interop JS** gerado pelo template. Demonstra como chamar funções JavaScript a partir de C# via `IJSRuntime`. Remover antes da produção. |
-| [`wwwroot/`](./wwwroot/) | Arquivos estáticos exportados pela biblioteca (CSS global, fontes, imagens, scripts JS). |
+| [`Components/`](./Components/) | `DataGrid`, `FormField`, `Modal`, `Toast`, `LoadingState`, banners de conectividade |
+| [`Layout/`](./Layout/) | `MainLayout`, `AuthLayout`, `NavMenu` |
+| [`Navigation/`](./Navigation/) | `AppRoutes`, `AppNavItems` (rotas sem magic strings) |
+| [`Services/`](./Services/) | `IAuthState`, `INavigationService`, `IToastService`, contratos de API mock |
+| [`DependencyInjection/`](./DependencyInjection/) | `AddSharedUI()` |
+| [`wwwroot/css/app.css`](./wwwroot/css/app.css) | Tokens VetNexus (`:root`) |
+| [`wwwroot/lib/bootstrap/`](./wwwroot/lib/bootstrap/) | Bootstrap servido via `_content/SharedUI/` |
 
-## `wwwroot/`
+## Uso nos hosts
 
-| Arquivo | Propósito |
-|---|---|
-| `background.png` | Imagem de exemplo do template. Remover antes da produção. |
-| `exampleJsInterop.js` | Arquivo JS de exemplo para interop. Referenciado por `ExampleJsInterop.cs`. Remover antes da produção. |
-
-## Estrutura Futura Esperada
-
-À medida que o sistema crescer, esta pasta abrigará os componentes reais:
-
-```
-SharedUI/
-├── Components/
-│   ├── Forms/          ← inputs, dropdowns, datepickers customizados
-│   ├── Layout/         ← headers, sidebars, cards, modais
-│   └── Tables/         ← tabelas de dados, paginação
-├── Services/           ← estado de UI (ex: AuthStateProvider, ThemeService)
-├── wwwroot/
-│   └── css/            ← design tokens, variáveis CSS globais
-└── _Imports.razor
+```csharp
+builder.Services.AddSharedUI();
+builder.Services.AddSingleton<IAuthState, WebAuthState>(); // ou MauiAuthState
+builder.Services.AddSingleton<INavigationService, WebNavigationService>();
 ```
 
-> **Regra:** Nenhum componente visual deve existir exclusivamente em `BlazorWeb/` ou `MauiApp/`. Todo componente reutilizável pertence aqui.
+Router: `DefaultLayout="@typeof(SharedUI.Layout.MainLayout)"` e `AdditionalAssemblies` apontando para este assembly.
+
+## Testes
+
+`tests/Clients.Tests/SharedUI/` — bUnit para componentes e layout.
+
+> **Regra:** Nenhum componente visual reutilizável deve existir apenas em `BlazorWeb/` ou `MauiApp/`.

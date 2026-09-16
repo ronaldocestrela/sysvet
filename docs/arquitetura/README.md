@@ -16,6 +16,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-008](./ADR-008-soft-delete-crm.md) | Soft delete CRM (Tutor/Pet) | Accepted |
 | [ADR-009](./ADR-009-access-profiles.md) | Perfis de acesso e matriz de permissões | Accepted |
 | [ADR-010](./ADR-010-auditoria-openapi.md) | Auditoria append-only e OpenAPI v1 | Accepted |
+| [ADR-011](./ADR-011-sharedui-design-system.md) | SharedUI RCL — tokens, layout, componentes | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id.
 

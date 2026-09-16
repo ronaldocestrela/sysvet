@@ -36,8 +36,8 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | EF Core / SQL Server | **Concluído (Core 2.2)** | `CoreDbContext`, EF 10 Sqlite/SqlServer, `InitialCore` migration, repositórios + UoW, seed de roles |
 | Identity / JWT | **Concluído (Core 2.3)** | Identity + JWT CQRS, refresh hash, policies, `/api/v1/auth/*`, testes E2E |
 | CQRS / Handlers | **Concluído** | MediatR, `ICommand`/`IQuery`, behaviors (logging, auth, validation, idempotência, transação), handlers Core/Veterinary/Sales/Inventory |
-| Blazor WASM | **Parcial** | Template (Home, Counter, Weather) |
-| SharedUI | **Parcial** | RCL com componente placeholder |
+| Blazor WASM | **Parcial** | PWA scaffold; hosts SharedUI layout; CRM/login via RCL (JWT real em 3.2) |
+| SharedUI | **Concluído (3.1)** | Layout, tokens, DataGrid/FormField/Modal/Toast/LoadingState, `IAuthState`/`INavigationService`/`IToastService`, testes bUnit |
 | MAUI | **Parcial** | `src/Clients/MauiApp/` — Blazor Hybrid scaffold; na solução com build desligado em Linux/CI |
 | SQLite / Sync offline | **Pendente** | — |
 | CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test, cobertura Domain+Application, artefato API, Dockerfile |
@@ -333,7 +333,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **3.1 SharedUI — design system base** | 8 | Pendente |
+| **3.1 SharedUI — design system base** | 8 | Concluído |
 | **3.2 Blazor WASM PWA** | 8 | Pendente |
 | **3.3 MAUI Blazor Hybrid** | 13 | Pendente |
 | **3.4 SQLite local nos clients** | 8 | Pendente |
@@ -341,14 +341,14 @@ flowchart TD
 | **3.6 PoC E2E offline → nuvem** | 5 | Pendente |
 | **Total Fase 3** | **63 SP** | |
 
-### 3.1 SharedUI — design system base (8 SP)
+### 3.1 SharedUI — design system base (8 SP) — Concluído
 
-- [ ] Migrar `MainLayout`, `NavMenu`, tokens visuais para `src/Clients/SharedUI/`
-- [ ] Componentes: `DataGrid`, `FormField`, `Modal`, `Toast`, `LoadingState`
-- [ ] Serviços compartilhados: `IAuthState`, `INavigationService`
-- [ ] Remover páginas demo (Counter, Weather) dos clients
+- [x] Migrar `MainLayout`, `NavMenu`, tokens visuais para `src/Clients/SharedUI/` (`wwwroot/css/app.css`, Bootstrap em `_content/SharedUI/lib/`)
+- [x] Componentes: `DataGrid`, `FormField`, `Modal`, `Toast`, `LoadingState`
+- [x] Serviços compartilhados: `IAuthState`, `INavigationService`, `IToastService` + `AddSharedUI()`
+- [x] `AuthLayout` para login; `AppRoutes` / `AppNavItems`; remover demo (`Home.razor`, `weather.json`)
 
-**Aceite:** BlazorWeb e MAUI renderizam o mesmo layout a partir de SharedUI.
+**Aceite:** BlazorWeb e MAUI renderizam o mesmo layout a partir de SharedUI. Testes: `tests/Clients.Tests/SharedUI/` (34 testes). ADR-011.
 
 ### 3.2 Blazor WASM PWA (8 SP)
 

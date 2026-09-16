@@ -1,7 +1,7 @@
 <div class="form-field">
     @if (!string.IsNullOrWhiteSpace(Label))
     {
-        <label>@Label</label>
+        <label for="@ForId">@Label</label>
     }
     
     <div class="field-control">
@@ -15,8 +15,15 @@
 </div>
 
 @code {
+    /// <summary>Field label shown above the control.</summary>
     [Parameter] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Validation error message.</summary>
     [Parameter] public string Error { get; set; } = string.Empty;
+
+    /// <summary>Associates the label with an input id for accessibility.</summary>
+    [Parameter] public string ForId { get; set; } = string.Empty;
+
+    /// <summary>Input or control markup.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 }
-

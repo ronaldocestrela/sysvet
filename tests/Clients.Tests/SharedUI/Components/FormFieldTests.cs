@@ -19,6 +19,17 @@ public class FormFieldTests : BunitContext
     }
 
     [Fact]
+    public void Should_Associate_Label_With_ForId()
+    {
+        var cut = Render<FormField>(parameters => parameters
+            .Add(p => p.Label, "E-mail")
+            .Add(p => p.ForId, "email-field"));
+
+        var label = cut.Find("label");
+        Assert.Equal("email-field", label.GetAttribute("for"));
+    }
+
+    [Fact]
     public void Should_Render_ChildContent_Inside_FieldControl()
     {
         // Arrange & Act
