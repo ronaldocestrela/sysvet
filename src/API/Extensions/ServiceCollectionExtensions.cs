@@ -21,7 +21,10 @@ public static class ServiceCollectionExtensions
     /// <returns>A própria coleção de serviços configurada.</returns>
     public static IServiceCollection AddApiDocumentation(this IServiceCollection services)
     {
-        services.AddOpenApi();
+        services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<OpenApiBearerSecurityTransformer>();
+        });
         return services;
     }
 

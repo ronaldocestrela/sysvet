@@ -1,3 +1,4 @@
+using Core.Application.Authorization;
 using Core.Application.Tutors.Commands;
 using Core.Application.Tutors.Queries;
 using MediatR;
@@ -11,7 +12,7 @@ public static class TutorEndpointsExtensions
     public static void MapTutorEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("/api/v1/tutors")
-            .RequireAuthorization(new Microsoft.AspNetCore.Authorization.AuthorizeAttribute { Roles = "Admin,Veterinarian,Receptionist" })
+            .RequireAuthorization(AuthorizationPolicies.ClinicStaff)
             .WithTags("Tutors");
 
         group.MapPost("/", async (HttpContext context, RegisterTutorCommand command, IMediator mediator) =>

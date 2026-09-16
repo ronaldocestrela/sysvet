@@ -26,6 +26,7 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
     public DbSet<Pet> Pets { get; set; } = null!;
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; } = null!;
+    public DbSet<UserRefreshToken> UserRefreshTokens { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +42,24 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
         ConfigureTenantShadowProperty<IdempotencyRecord>(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CoreDbContext).Assembly);
+
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.Property(u => u.TenantId).IsRequired();
+        });
+
+        modelBuilder.Entity<UserRefreshToken>(entity =>
+        {
+            entity.ToTable("UserRefreshTokens");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.Property(e => e.UserId).HasMaxLength(450);
+            entity.Property(e => e.TokenHash).HasMaxLength(128);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
 
@@ -79,7 +98,8 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
     {
         foreach (var entry in ChangeTracker.Entries().Where(e => e.State == EntityState.Added))
         {
-            if (entry.Metadata.FindProperty("TenantId") != null)
+            var tenantProperty = entry.Metadata.FindProperty("TenantId");
+            if (tenantProperty is not null && tenantProperty.IsShadowProperty())
             {
                 entry.Property("TenantId").CurrentValue = TenantContext.TenantId;
             }

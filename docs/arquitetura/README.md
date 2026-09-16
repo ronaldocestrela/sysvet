@@ -12,6 +12,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-004](./ADR-004-padrao-cqrs.md) | CQRS e MediatR | Accepted |
 | [ADR-005](./ADR-005-result-http.md) | Mapeamento `Result<T>` para HTTP | Accepted |
 | [ADR-006](./ADR-006-domain-events.md) | Eventos de domínio vs integração | Accepted |
+| [ADR-007](./ADR-007-jwt-rbac.md) | JWT Bearer, refresh hash e RBAC | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id.
 

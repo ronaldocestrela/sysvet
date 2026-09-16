@@ -34,7 +34,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | Padrão `Result<T>` | **Concluído** | `src/Modules/Core/Domain/Result.cs` + 4 testes em `Core.Tests` |
 | Módulos de negócio | **Parcial** | Projetos vazios (`Core`, `Veterinary`, `Petshop`, `Sales`, `Inventory`, `Fiscal`) |
 | EF Core / SQL Server | **Concluído (Core 2.2)** | `CoreDbContext`, EF 10 Sqlite/SqlServer, `InitialCore` migration, repositórios + UoW, seed de roles |
-| Identity / JWT | **Pendente** | — |
+| Identity / JWT | **Concluído (Core 2.3)** | Identity + JWT CQRS, refresh hash, policies, `/api/v1/auth/*`, testes E2E |
 | CQRS / Handlers | **Concluído** | MediatR, `ICommand`/`IQuery`, behaviors (logging, auth, validation, idempotência, transação), handlers Core/Veterinary/Sales/Inventory |
 | Blazor WASM | **Parcial** | Template (Home, Counter, Weather) |
 | SharedUI | **Parcial** | RCL com componente placeholder |
@@ -205,7 +205,7 @@ flowchart TD
 |--------|-----|--------|
 | **2.1 Abstrações de domínio e CQRS** | 8 | Concluído |
 | **2.2 EF Core, repositórios e migrations** | 8 | Concluído |
-| **2.3 Identity, JWT e RBAC** | 13 | Pendente |
+| **2.3 Identity, JWT e RBAC** | 13 | Concluído |
 | **2.4 CRM — Tutores e Pets** | 8 | Pendente |
 | **2.5 Usuários, perfis e permissões** | 5 | Pendente |
 | **2.6 Auditoria e contratos de API** | 5 | Pendente |
@@ -238,19 +238,23 @@ flowchart TD
 
 **Aceite:** `dotnet ef database update --context CoreDbContext` cria schema; repositório persiste entidade de teste via `MigrateAsync` (`CoreDbContextMigrationTests`, `RepositoryTests`).
 
-### 2.3 Identity, JWT e RBAC (13 SP)
+### 2.3 Identity, JWT e RBAC (13 SP) — Concluído
 
 **Infrastructure**
-- [ ] ASP.NET Core Identity (usuários, roles, claims)
-- [ ] JWT Bearer + refresh token (opcional fase 2.3)
-- [ ] Políticas: `Admin`, `Veterinarian`, `Receptionist`, `Cashier`, etc.
+- [x] ASP.NET Core Identity (`AppUser`, roles, lockout, senha mínima)
+- [x] JWT Bearer + refresh token (hash em `UserRefreshTokens`, rotação)
+- [x] Políticas: `Admin`, `Veterinarian`, `Receptionist`, `Cashier`, `ClinicStaff`, `Authenticated`
+
+**Application**
+- [x] CQRS: `LoginCommand`, `RefreshTokenCommand`, `RegisterUserCommand` (dev), `GetCurrentUserQuery`
+- [x] `IIdentityService`, `IAccessTokenIssuer`, `IRefreshTokenStore`; códigos `ErrorCodes.Auth`
 
 **API**
-- [ ] Endpoints: register (dev), login, refresh, me
-- [ ] `[Authorize]` em endpoints protegidos
+- [x] Endpoints: `register` (dev), `login`, `refresh`, `me` — [`AuthEndpointsExtensions`](../../src/API/Extensions/AuthEndpointsExtensions.cs)
+- [x] `[Authorize]` / policies nomeadas (ex.: tutors/pets `ClinicStaff`); Bearer no OpenAPI/Scalar
 
 **Tests**
-- [ ] Testes de integração: login → token → endpoint autorizado
+- [x] Unitários handlers/auth + `JwtAccessTokenIssuer`; integração login → token → `/me` e 403 (Cashier em tutors)
 
 **Aceite:** Token JWT válido acessa recurso protegido; role incorreta retorna 403.
 

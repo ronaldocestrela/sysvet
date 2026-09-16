@@ -1,3 +1,4 @@
+using Core.Application.Authorization;
 using Core.Application.Pets.Commands;
 using Core.Application.Pets.Queries;
 using MediatR;
@@ -11,7 +12,7 @@ public static class PetEndpointsExtensions
     public static void MapPetEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("/api/v1")
-            .RequireAuthorization(new Microsoft.AspNetCore.Authorization.AuthorizeAttribute { Roles = "Admin,Veterinarian,Receptionist" });
+            .RequireAuthorization(AuthorizationPolicies.ClinicStaff);
 
         // Endpoints de Pets
         var petsGroup = group.MapGroup("/pets").WithTags("Pets");

@@ -36,6 +36,7 @@ O provider EF Core é definido em `Database:Provider` (`Sqlite` ou `SqlServer`).
 | `JwtSettings:Secret` / `JwtSettings__Secret` | Sim (dev-only no JSON) | **Obrigatório** (env) | Chave simétrica JWT (mín. 16 caracteres) |
 | `JwtSettings:Issuer` | Sim | Sim (JSON ou env) | Emissor do token |
 | `JwtSettings:Audience` | Sim | Sim (JSON ou env) | Audiência do token |
+| `JwtSettings:RefreshExpiryDays` | Sim (default 7) | Sim | Validade do refresh token (dias) |
 | `TenancySettings:DefaultSchema` | Sim (default `dbo`) | Sim | Schema fallback (ADR-003) |
 | `Database:Provider` | `Sqlite` | `SqlServer` | Provider EF Core |
 | `Database:ConnectionStringName` | `DefaultConnection` | `DefaultConnection` | Nome da entrada em `ConnectionStrings` |
@@ -84,6 +85,23 @@ dotnet ef database update \
 ```
 
 Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Persistence/CoreDbContextFactory.cs) usa SQLite e schema `dbo` (baseline ADR-003). Em Development, o banco padrão é `sysvet.db` (`ConnectionStrings:DefaultConnection`).
+
+### Autenticação JWT (Fase 2.3)
+
+- **Login:** `POST /api/v1/auth/login` — body `{ "email", "password" }` → `{ accessToken, refreshToken, expiresInSeconds }`.
+- **Refresh:** `POST /api/v1/auth/refresh` — body `{ "refreshToken" }` (rotação; token antigo invalidado).
+- **Perfil:** `GET /api/v1/auth/me` — header `Authorization: Bearer {accessToken}`.
+- **Register (somente Development):** `POST /api/v1/auth/register` — body `{ "email", "password", "role", "tenantId?" }`; role ∈ `ApplicationRoles`.
+- **Lockout:** 5 tentativas falhas → bloqueio 15 minutos (`IdentityService` + `SignInManager`).
+- Refresh tokens são armazenados **apenas como hash** (`UserRefreshTokens`); ver [ADR-007](./ADR-007-jwt-rbac.md).
+
+Exemplo local:
+
+```bash
+curl -s -X POST http://localhost:5000/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@sysvet.com","password":"Password123!"}'
+```
 
 ### Seed de roles (Identity)
 

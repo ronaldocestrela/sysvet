@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -33,6 +34,7 @@ public sealed class JwtBearerOptionsConfiguration : IConfigureNamedOptions<JwtBe
         }
 
         var settings = _jwtSettings.Value;
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -41,7 +43,10 @@ public sealed class JwtBearerOptionsConfiguration : IConfigureNamedOptions<JwtBe
             ValidateIssuerSigningKey = true,
             ValidIssuer = settings.Issuer,
             ValidAudience = settings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Secret))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Secret)),
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.NameIdentifier,
+            ClockSkew = TimeSpan.FromSeconds(30)
         };
     }
 }

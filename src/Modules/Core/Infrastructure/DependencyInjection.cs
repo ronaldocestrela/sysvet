@@ -6,6 +6,7 @@ using Core.Infrastructure.Configuration;
 using Core.Infrastructure.HealthChecks;
 using Core.Infrastructure.Identity;
 using Core.Application.Authorization;
+using Core.Application.Common.Interfaces;
 using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
 using Core.Infrastructure.Persistence.Seeding;
@@ -46,7 +47,17 @@ public static class DependencyInjection
         services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("core-db", failureStatus: HealthStatus.Unhealthy, tags: ["ready", "db"]);
 
-        services.AddIdentity<AppUser, IdentityRole>()
+        services.AddIdentity<AppUser, IdentityRole>(options =>
+            {
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.AllowedForNewUsers = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+            })
             .AddEntityFrameworkStores<CoreDbContext>()
             .AddDefaultTokenProviders();
 
@@ -74,7 +85,9 @@ public static class DependencyInjection
         services.AddScoped<Core.Application.Common.Interfaces.ICurrentUser, HttpCurrentUser>();
         services.AddScoped<Core.Application.Common.Interfaces.IDomainEventDispatcher, MediatRDomainEventDispatcher>();
 
-        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IIdentityService, IdentityService>();
+        services.AddScoped<IAccessTokenIssuer, JwtAccessTokenIssuer>();
+        services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
         services.AddScoped<ITutorRepository, TutorRepository>();
         services.AddScoped<IPetRepository, PetRepository>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<CoreDbContext>());

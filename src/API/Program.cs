@@ -39,7 +39,7 @@ var routes = app.MapGroup(string.Empty)
     .AddEndpointFilter<ResultEndpointFilter>();
 
 routes.MapCoreEndpoints();
-routes.MapAuthEndpoints();
+routes.MapAuthEndpoints(app.Environment);
 routes.MapVeterinaryEndpoints();
 routes.MapInventoryEndpoints();
 routes.MapSalesEndpoints();

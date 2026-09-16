@@ -75,8 +75,13 @@ public static class ResultExtensions
         {
             var code when code.EndsWith("NotFound") => StatusCodes.Status404NotFound,
             var code when code.Contains("Conflict") => StatusCodes.Status409Conflict,
+            var code when code.Contains("InvalidCredentials") => StatusCodes.Status401Unauthorized,
+            var code when code.Contains("InvalidRefreshToken") => StatusCodes.Status401Unauthorized,
             var code when code.Contains("Unauthorized") => StatusCodes.Status401Unauthorized,
             var code when code.Contains("Forbidden") => StatusCodes.Status403Forbidden,
+            var code when code.Contains("LockedOut") => StatusCodes.Status403Forbidden,
+            var code when code.Contains("DuplicateEmail") => StatusCodes.Status409Conflict,
+            var code when code.Contains("RegistrationNotAllowed") => StatusCodes.Status403Forbidden,
             _ => StatusCodes.Status400BadRequest
         };
 }

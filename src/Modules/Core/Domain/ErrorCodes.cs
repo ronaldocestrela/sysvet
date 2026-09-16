@@ -6,6 +6,42 @@ namespace Core.Domain;
 public static class ErrorCodes
 {
     /// <summary>
+    /// Authentication failures for login, register, and refresh flows.
+    /// </summary>
+    public static class Auth
+    {
+        /// <summary>
+        /// Email/password combination is invalid (same code whether the user exists or not).
+        /// </summary>
+        public static readonly Error InvalidCredentials = new("Auth.InvalidCredentials", "Invalid email or password.");
+
+        /// <summary>
+        /// The account is temporarily locked after repeated failed sign-in attempts.
+        /// </summary>
+        public static readonly Error LockedOut = new("Auth.LockedOut", "This account is temporarily locked. Try again later.");
+
+        /// <summary>
+        /// A user with the same email already exists.
+        /// </summary>
+        public static readonly Error DuplicateEmail = new("Auth.DuplicateEmail", "A user with this email already exists.");
+
+        /// <summary>
+        /// The requested role is not a valid application role.
+        /// </summary>
+        public static readonly Error InvalidRole = new("Auth.InvalidRole", "The specified role is not valid.");
+
+        /// <summary>
+        /// The refresh token is missing, expired, revoked, or already rotated.
+        /// </summary>
+        public static readonly Error InvalidRefreshToken = new("Auth.InvalidRefreshToken", "The refresh token is invalid or expired.");
+
+        /// <summary>
+        /// User registration is only allowed in the Development environment.
+        /// </summary>
+        public static readonly Error RegistrationNotAllowed = new("Auth.RegistrationNotAllowed", "Registration is not available in this environment.");
+    }
+
+    /// <summary>
     /// Cross-cutting authorization failures surfaced by the application pipeline.
     /// </summary>
     public static class Authorization
