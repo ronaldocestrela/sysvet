@@ -13,7 +13,7 @@ public class TestTenantContext : ITenantContext
 {
     public Guid TenantId { get; set; } = Guid.NewGuid();
     public Guid UserId { get; set; } = Guid.NewGuid();
-    public string SchemaName { get; set; } = "tenant_1";
+    public string SchemaName { get; set; } = "dbo";
     public string ConnectionString { get; set; } = string.Empty;
 }
 
@@ -89,5 +89,29 @@ public class RepositoryTests
 
         // Assert
         result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AddAsync_AfterMigrate_Should_PersistEntityViaRepository()
+    {
+        await using var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        await connection.OpenAsync();
+
+        var options = new DbContextOptionsBuilder<CoreDbContext>()
+            .UseSqlite(connection)
+            .Options;
+
+        await using var context = new CoreDbContext(options, new TestTenantContext());
+        await context.Database.MigrateAsync();
+
+        var repository = new TutorRepository(context);
+        var tutor = Tutor.Create("John Doe", Email.Create("john@example.com").Value, Cpf.Create("12345678909").Value, Phone.Create("11999999999").Value).Value;
+
+        repository.Add(tutor);
+        await context.SaveChangesAsync();
+
+        var savedTutor = await repository.GetByIdAsync(tutor.Id);
+        savedTutor.Should().NotBeNull();
+        savedTutor!.Name.Should().Be("John Doe");
     }
 }

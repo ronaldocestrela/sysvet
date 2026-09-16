@@ -30,7 +30,8 @@ Estas sprints pavimentaram a estrutura base (SaaS modular, CQRS, Offline-First).
 - **Secrets:** `UserSecretsId` na API; Staging/Production sem segredos no Git; documentação em [`docs/arquitetura/configuracao.md`](arquitetura/configuracao.md).
 - **Testes:** `DatabaseOptionsValidationTests`, `ConfigurationTests` (fail-fast Production, connection string efetiva).
 - **Core Domain & Application:** Base Entity, AggregateRoot, Result Pattern, CQRS com MediatR (Logging, Validation e Transaction Behaviors). Entidades de base `Tutor` e `Pet`.
-- **Tenancy e Banco de Dados:** Múltiplos schemas (Isolation por Tenant) dinâmicos usando EF Core Interceptors e `IModelCacheKeyFactory`.
+- **Tenancy e Banco de Dados:** Schemas SQL por tenant (`ITenantContext.SchemaName`, ADR-003) com `TenantAwareModelCacheKeyFactory` e query filters; migrations Core baseline `dbo`.
+- **Fase 2.2 — EF Core Core:** Migration `InitialCore`, `CoreDbContextFactory`, repositórios, seed de roles no boot (`IdentityDataSeeder`).
 - **Identity & Auth:** ASP.NET Core Identity isolado no `CoreDbContext`. Criação de rotas `/api/v1/auth/login`, geração de JWT. Configuração de `TenantClaimMiddleware`.
 - **Offline-first (Sync):** Padrão Transactional Outbox configurado com Testes de Integração End-to-End validando sincronia com banco local (SQLite).
 - **Testes e CI/CD:** Suíte robusta usando `xUnit`, `FluentAssertions` e `WebApplicationFactory` com DB em memória/SQLite para testes E2E. Pipeline do GitHub Actions em funcionamento.

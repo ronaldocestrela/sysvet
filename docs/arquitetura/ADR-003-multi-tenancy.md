@@ -46,6 +46,8 @@ Provisionamento em massa de schemas, onboarding Super Admin e impersonation audi
 - EF: [`TenantAwareModelCacheKeyFactory`](../../src/Modules/Core/Infrastructure/Persistence/TenantAwareModelCacheKeyFactory.cs) inclui `SchemaName` na chave de modelo.
 - DbContexts: `CoreDbContext`, `VeterinaryDbContext`, `InventoryDbContext`, `SalesDbContext` — `HasDefaultSchema` derivado de `ITenantContext` (migrations atuais geradas com schema `dbo` como baseline de design-time).
 
+**Nota (roadmap / agents.md):** “schema lógico” de um módulo (ex. tabelas exclusivas do `CoreDbContext`, ADR-001) **não** é um schema SQL chamado `core`. O isolamento físico por tenant continua sendo `dbo` (design-time) ou `tenant_{guid}` em runtime.
+
 Documentação de config: [`configuracao.md`](./configuracao.md) (`TenancySettings:DefaultSchema`).
 
 ## Relacionados

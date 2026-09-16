@@ -1,4 +1,5 @@
 using Core.Domain;
+using Microsoft.Extensions.Options;
 
 namespace Core.Infrastructure.Tenancy;
 
@@ -7,6 +8,22 @@ namespace Core.Infrastructure.Tenancy;
 /// </summary>
 public sealed class DefaultTenantContext : ITenantContext
 {
+    /// <summary>
+    /// Creates a context whose schema name follows <see cref="TenancySettings.DefaultSchema"/> (ADR-003 design-time baseline).
+    /// </summary>
+    public DefaultTenantContext(IOptions<TenancySettings> tenancySettings)
+    {
+        SchemaName = tenancySettings.Value.DefaultSchema;
+    }
+
+    /// <summary>
+    /// Parameterless constructor for design-time EF tools and tests that set properties explicitly.
+    /// </summary>
+    public DefaultTenantContext()
+    {
+        SchemaName = "dbo";
+    }
+
     /// <inheritdoc />
     public Guid TenantId { get; set; } = Guid.Empty;
 
@@ -14,7 +31,7 @@ public sealed class DefaultTenantContext : ITenantContext
     public Guid UserId { get; set; } = Guid.Empty;
 
     /// <inheritdoc />
-    public string SchemaName { get; set; } = "dbo";
+    public string SchemaName { get; set; }
 
     /// <inheritdoc />
     public string ConnectionString { get; set; } = string.Empty;

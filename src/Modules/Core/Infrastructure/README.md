@@ -1,29 +1,49 @@
 # `src/Modules/Core/Infrastructure/` — Camada de Infraestrutura do Módulo Core
 
-Camada responsável pela **implementação técnica** das abstrações definidas nas camadas de `Domain` e `Application`. Conecta o domínio ao mundo real: banco de dados, ORMs, APIs externas, sistema de arquivos.
+Camada responsável pela **implementação técnica** das abastrações definidas nas camadas de `Domain` e `Application`. Conecta o domínio ao mundo real: banco de dados, ORMs, Identity, JWT e serviços transversais.
 
 ## Status Atual
 
-> **Implementado.** `CoreDbContext`, mapeamentos EF Core, repositórios, Identity, JWT e [`DependencyInjection.AddCoreModule`](./DependencyInjection.cs).
+> **Implementado (Fase 2.2).** `CoreDbContext`, mapeamentos EF Core, repositórios genéricos, UoW, migrations (`InitialCore`), seed de roles Identity, [`DependencyInjection.AddCoreModule`](./DependencyInjection.cs).
 
-## O que virá aqui
+## Estrutura
 
 ```
 Infrastructure/
+├── Configuration/              # DatabaseOptions, ConfigureModuleDatabase, Options tipados
+├── HealthChecks/               # DatabaseHealthCheck (core-db)
+├── Identity/                   # AppUser, JWT, TenantClaimMiddleware
 ├── Persistence/
-│   ├── CoreDbContext.cs              ← DbContext do EF Core exclusivo para o módulo Core
-│   └── Configurations/
-│       ├── TutorConfiguration.cs     ← Mapeamento da entidade Tutor para tabela do banco
-│       └── PetConfiguration.cs       ← Mapeamento da entidade Pet
-├── Repositories/
-│   └── TutorRepository.cs           ← Implementação de ITutorRepository usando EF Core
-└── DependencyInjection.cs           ← Método de extensão para registrar serviços deste módulo no DI
+│   ├── CoreDbContext.cs
+│   ├── CoreDbContextFactory.cs # Design-time EF CLI (ADR-003 baseline dbo)
+│   ├── TenantAwareModelCacheKeyFactory.cs
+│   ├── Configurations/         # Tutor, Pet, AuditLog, IdempotencyRecord
+│   ├── Migrations/             # InitialCore (Identity + CRM + audit/idempotency)
+│   ├── Repositories/           # Repository<T>, TutorRepository, PetRepository
+│   └── Seeding/                # IdentityDataSeeder + hosted service
+├── Tenancy/                    # DefaultTenantContext, TenancySettings
+├── Auditing/
+├── Services/
+└── DependencyInjection.cs
 ```
 
 ## Regras desta Camada
 
-- ✅ Implementa as interfaces definidas em `Application/Interfaces/` (ex: `ITutorRepository`)
-- ✅ O `CoreDbContext` possui apenas as tabelas pertencentes ao módulo Core — nunca tabelas de outros módulos
-- ✅ Suporta dois providers: **SQL Server** (nuvem) e **SQLite** (offline MAUI/Blazor WASM), trocado via configuração
-- ❌ Nenhuma lógica de negócio aqui — apenas acesso a dados e mapeamento
-- ❌ Nunca referenciada diretamente pela camada de `Application`
+- ✅ Implementa interfaces de repositório definidas em `Domain`
+- ✅ O `CoreDbContext` contém apenas tabelas do módulo Core (mais Identity compartilhado)
+- ✅ **Schema lógico do módulo** (boundary ADR-001) ≠ **schema SQL do tenant** (ADR-003: `dbo` / `tenant_{guid}`)
+- ✅ Providers: **SQL Server** (Staging/Production) e **SQLite** (Development), via `Database:Provider`
+- ❌ Nenhuma lógica de negócio — apenas persistência, Identity e integrações técnicas
+- ❌ Nunca referenciada diretamente pela camada `Application`
+
+## Migrations (Core)
+
+```bash
+dotnet tool restore
+dotnet ef database update \
+  --project src/Modules/Core/Infrastructure/Core.Infrastructure.csproj \
+  --startup-project src/API/API.csproj \
+  --context CoreDbContext
+```
+
+Roles (`Admin`, `Veterinarian`, `Receptionist`, `Cashier`) são criadas no boot via `IdentityDataSeedHostedService` quando não há migrations pendentes.

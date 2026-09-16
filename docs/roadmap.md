@@ -33,7 +33,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | API | **Parcial** | `Program.cs` — OpenAPI + Scalar (dev), health `/health*`, correlation id |
 | Padrão `Result<T>` | **Concluído** | `src/Modules/Core/Domain/Result.cs` + 4 testes em `Core.Tests` |
 | Módulos de negócio | **Parcial** | Projetos vazios (`Core`, `Veterinary`, `Petshop`, `Sales`, `Inventory`, `Fiscal`) |
-| EF Core / SQL Server | **Pendente** | Sem pacotes, DbContext ou migrations |
+| EF Core / SQL Server | **Concluído (Core 2.2)** | `CoreDbContext`, EF 10 Sqlite/SqlServer, `InitialCore` migration, repositórios + UoW, seed de roles |
 | Identity / JWT | **Pendente** | — |
 | CQRS / Handlers | **Concluído** | MediatR, `ICommand`/`IQuery`, behaviors (logging, auth, validation, idempotência, transação), handlers Core/Veterinary/Sales/Inventory |
 | Blazor WASM | **Parcial** | Template (Home, Counter, Weather) |
@@ -204,7 +204,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **2.1 Abstrações de domínio e CQRS** | 8 | Concluído |
-| **2.2 EF Core, repositórios e migrations** | 8 | Pendente |
+| **2.2 EF Core, repositórios e migrations** | 8 | Concluído |
 | **2.3 Identity, JWT e RBAC** | 13 | Pendente |
 | **2.4 CRM — Tutores e Pets** | 8 | Pendente |
 | **2.5 Usuários, perfis e permissões** | 5 | Pendente |
@@ -228,15 +228,15 @@ flowchart TD
 
 **Aceite:** Handlers Tutor/Pet e satélites retornam `Result<T>`; pipeline registrado em `AddCoreModule`.
 
-### 2.2 EF Core, repositórios e migrations (8 SP)
+### 2.2 EF Core, repositórios e migrations (8 SP) — Concluído
 
 **Infrastructure**
-- [ ] Pacotes EF Core 10 + SQL Server
-- [ ] `CoreDbContext` com schema lógico `core`
-- [ ] Implementação genérica de repositório + Unit of Work
-- [ ] Migrations iniciais; seed de roles
+- [x] Pacotes EF Core 10 + SQL Server (e Sqlite para Development)
+- [x] `CoreDbContext` com boundary lógico do módulo Core (tabelas CRM/audit/idempotency + Identity); schema SQL por tenant conforme ADR-003 (`dbo` / `tenant_*`), não um schema SQL fixo `core`
+- [x] Implementação genérica de repositório + Unit of Work
+- [x] Migration `InitialCore`; seed idempotente de roles (`ApplicationRoles`)
 
-**Aceite:** `dotnet ef database update` cria schema; repositório persiste entidade de teste.
+**Aceite:** `dotnet ef database update --context CoreDbContext` cria schema; repositório persiste entidade de teste via `MigrateAsync` (`CoreDbContextMigrationTests`, `RepositoryTests`).
 
 ### 2.3 Identity, JWT e RBAC (13 SP)
 

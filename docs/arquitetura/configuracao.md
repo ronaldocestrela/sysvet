@@ -71,6 +71,24 @@ dotnet run --project src/API
 
 Com `appsettings.Development.json` versionado, não é obrigatório configurar User Secrets para o primeiro run.
 
+### Migrations EF Core (módulo Core)
+
+Ferramenta local (manifesto na raiz):
+
+```bash
+dotnet tool restore
+dotnet ef database update \
+  --project src/Modules/Core/Infrastructure/Core.Infrastructure.csproj \
+  --startup-project src/API/API.csproj \
+  --context CoreDbContext
+```
+
+Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Persistence/CoreDbContextFactory.cs) usa SQLite e schema `dbo` (baseline ADR-003). Em Development, o banco padrão é `sysvet.db` (`ConnectionStrings:DefaultConnection`).
+
+### Seed de roles (Identity)
+
+No boot da API, [`IdentityDataSeedHostedService`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeedHostedService.cs) executa [`IdentityDataSeeder`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeeder.cs), que cria de forma idempotente as roles `Admin`, `Veterinarian`, `Receptionist` e `Cashier` (`ApplicationRoles`). O seed **não** roda enquanto houver migrations pendentes ou o banco estiver inacessível (testes com `EnsureCreated` permanecem válidos).
+
 ---
 
 ## 2. Rastreamento (Trace e Correlation ID)

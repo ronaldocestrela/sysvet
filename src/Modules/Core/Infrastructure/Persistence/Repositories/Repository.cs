@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Infrastructure.Persistence.Repositories;
 
+/// <summary>
+/// Generic EF Core repository that stages changes until <see cref="IUnitOfWork.SaveChangesAsync"/> commits.
+/// </summary>
+/// <typeparam name="T">Aggregate or entity type.</typeparam>
 public abstract class Repository<T> : IRepository<T> where T : Entity
 {
     protected readonly CoreDbContext _dbContext;

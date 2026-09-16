@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Core.Infrastructure.Persistence;
 
+/// <summary>
+/// EF Core context for the Core module: CRM entities, audit/idempotency stores, and Identity (ADR-001 module boundary).
+/// </summary>
 public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWork, IDomainEventSource
 {
     public ITenantContext TenantContext { get; set; } = null!;
@@ -33,16 +36,11 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
             modelBuilder.HasDefaultSchema(SchemaName);
         }
 
+        ConfigureTenantShadowProperty<Tutor>(modelBuilder);
+        ConfigureTenantShadowProperty<Pet>(modelBuilder);
+        ConfigureTenantShadowProperty<IdempotencyRecord>(modelBuilder);
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CoreDbContext).Assembly);
-
-        modelBuilder.Entity<Tutor>().Property<Guid>("TenantId");
-        modelBuilder.Entity<Tutor>().HasQueryFilter(t => EF.Property<Guid>(t, "TenantId") == TenantContext.TenantId);
-
-        modelBuilder.Entity<Pet>().Property<Guid>("TenantId");
-        modelBuilder.Entity<Pet>().HasQueryFilter(p => EF.Property<Guid>(p, "TenantId") == TenantContext.TenantId);
-
-        modelBuilder.Entity<IdempotencyRecord>().Property<Guid>("TenantId");
-        modelBuilder.Entity<IdempotencyRecord>().HasQueryFilter(i => EF.Property<Guid>(i, "TenantId") == TenantContext.TenantId);
     }
 
 
@@ -69,6 +67,12 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
         SetTenantIdOnSave();
         CaptureAuditLogs();
         return base.SaveChanges();
+    }
+
+    private void ConfigureTenantShadowProperty<TEntity>(ModelBuilder modelBuilder) where TEntity : class
+    {
+        modelBuilder.Entity<TEntity>().Property<Guid>("TenantId");
+        modelBuilder.Entity<TEntity>().HasQueryFilter(e => EF.Property<Guid>(e, "TenantId") == TenantContext.TenantId);
     }
 
     private void SetTenantIdOnSave()

@@ -5,8 +5,10 @@ using Core.Infrastructure.Auditing;
 using Core.Infrastructure.Configuration;
 using Core.Infrastructure.HealthChecks;
 using Core.Infrastructure.Identity;
+using Core.Application.Authorization;
 using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
+using Core.Infrastructure.Persistence.Seeding;
 using Core.Infrastructure.Services;
 using Core.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -61,11 +63,11 @@ public static class DependencyInjection
         {
             options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Authenticated, policy => policy.RequireAuthenticatedUser());
             options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.ClinicStaff, policy =>
-                policy.RequireRole("Admin", "Veterinarian", "Receptionist"));
-            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Admin, policy => policy.RequireRole("Admin"));
-            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Veterinarian, policy => policy.RequireRole("Veterinarian", "Admin"));
-            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Receptionist, policy => policy.RequireRole("Receptionist", "Admin"));
-            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Cashier, policy => policy.RequireRole("Cashier", "Admin"));
+                policy.RequireRole(ApplicationRoles.Admin, ApplicationRoles.Veterinarian, ApplicationRoles.Receptionist));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Admin, policy => policy.RequireRole(ApplicationRoles.Admin));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Veterinarian, policy => policy.RequireRole(ApplicationRoles.Veterinarian, ApplicationRoles.Admin));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Receptionist, policy => policy.RequireRole(ApplicationRoles.Receptionist, ApplicationRoles.Admin));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Cashier, policy => policy.RequireRole(ApplicationRoles.Cashier, ApplicationRoles.Admin));
         });
 
         services.AddHttpContextAccessor();
@@ -80,6 +82,8 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogger, AuditLogger>();
         services.AddScoped<Core.Application.Common.Interfaces.IIdempotencyService, IdempotencyService>();
         services.AddScoped<ITenantContext, DefaultTenantContext>();
+        services.AddScoped<IIdentityDataSeeder, IdentityDataSeeder>();
+        services.AddHostedService<IdentityDataSeedHostedService>();
 
         services.AddMediatR(cfg =>
         {
