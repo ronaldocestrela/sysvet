@@ -50,6 +50,8 @@ bld/
 
 # Test Results
 TestResults/
+coveragereport/
+artifacts/
 *.trx
 *.coverage
 *.coveragexml

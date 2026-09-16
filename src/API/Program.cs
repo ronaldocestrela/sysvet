@@ -51,7 +51,6 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
 
 app.MapCoreEndpoints();
 app.MapAuthEndpoints();
-app.MapVeterinaryEndpoints();
 API.Endpoints.Inventory.InventoryEndpoints.MapInventoryEndpoints(app);
 app.MapSalesEndpoints();
 

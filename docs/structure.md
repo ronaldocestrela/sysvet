@@ -3,6 +3,12 @@
 Este documento detalha a estrutura de pastas e diretórios da primeira versão do SaaS Veterinário e Petshop, seguindo os princípios de Clean Architecture e Monólito Modular baseados no ecossistema .NET 10.
 
 /
+├── .github/workflows/ci.yml            # Pipeline GitHub Actions (restore, build, test, cobertura, publish API).
+├── global.json                         # Versão do SDK .NET 10 para build reprodutível.
+├── coverage.runsettings                  # Filtros de cobertura (Domain + Application) para testes e CI.
+├── SaaS_Veterinario.ci.slnf            # Solução filtrada para CI/Linux (exclui MauiApp).
+├── scripts/assert-coverage.sh          # Gate de cobertura mínima usado no CI.
+├── .dockerignore                       # Contexto enxuto para build de container da API.
 ├── docs/                               # Arquitetura detalhada, diagramas de domínio e registros de decisão (ADRs).
 │   ├── arquitetura/                    
 │   ├── diagramas/                      
@@ -14,6 +20,7 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   ├── API/                            # Projeto ASP.NET Core Web API (Ponto de entrada, injeção de dependência e configuração do Scalar).
 │   │   ├── Program.cs                  
 │   │   ├── appsettings.json
+│   │   ├── Dockerfile                  # Imagem multi-stage (SDK → aspnet) validada no CI.
 │   │   └── Extensions/                 
 │   │
 │   ├── Clients/                        # Aplicativos clientes.

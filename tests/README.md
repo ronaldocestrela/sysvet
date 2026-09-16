@@ -36,3 +36,13 @@ AddPet_WithNullPet_ShouldReturnFailureWithNullPetError()
 - ✅ Testes unitários **não acessam banco de dados** — dependências são mockadas
 - ✅ A cobertura deve focar intensamente em `Domain` e `Application`
 - ❌ Nunca use `Thread.Sleep` ou delays fixos nos testes
+
+## Cobertura (local e CI)
+
+```bash
+dotnet test SaaS_Veterinario.ci.slnf -c Release --settings coverage.runsettings --collect:"XPlat Code Coverage" --results-directory TestResults
+dotnet tool run reportgenerator -reports:'TestResults/**/coverage.cobertura.xml' -targetdir:coveragereport -reporttypes:'Cobertura;TextSummary' -classfilters:'+*Domain*;+*Application*;-*.Tests*'
+bash scripts/assert-coverage.sh coveragereport/Cobertura.xml
+```
+
+O CI exige **≥ 70%** de cobertura de linhas em assemblies `*.Domain` e `*.Application` (variável `MIN_LINE_COVERAGE`). O MAUI não entra na suíte Linux — use `SaaS_Veterinario.ci.slnf` ou `src/Clients/MauiApp/MauiApp.sln` com workload instalado.

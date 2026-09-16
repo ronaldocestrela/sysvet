@@ -9,6 +9,7 @@
     <Project Path="src/Clients/MauiApp/MauiApp.csproj">
       <Build Solution="Debug|*" Project="false" />
       <Build Solution="Release|*" Project="false" />
+      <Restore Solution="*|*" Project="false" />
     </Project>
     <Project Path="src/Clients/SharedUI/SharedUI.csproj" />
   </Folder>

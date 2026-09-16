@@ -1,0 +1,39 @@
+{
+  "solution": {
+    "path": "SaaS_Veterinario.slnx",
+    "projects": [
+      "src/API/API.csproj",
+      "src/PoC.Sync/PoC.Sync.csproj",
+      "src/Clients/BlazorWeb/BlazorWeb.csproj",
+      "src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj",
+      "src/Clients/SharedUI/SharedUI.csproj",
+      "src/Modules/Core/Application/Core.Application.csproj",
+      "src/Modules/Core/Domain/Core.Domain.csproj",
+      "src/Modules/Core/Infrastructure/Core.Infrastructure.csproj",
+      "src/Modules/Fiscal/Application/Fiscal.Application.csproj",
+      "src/Modules/Fiscal/Domain/Fiscal.Domain.csproj",
+      "src/Modules/Fiscal/Infrastructure/Fiscal.Infrastructure.csproj",
+      "src/Modules/Inventory/Application/Inventory.Application.csproj",
+      "src/Modules/Inventory/Domain/Inventory.Domain.csproj",
+      "src/Modules/Inventory/Infrastructure/Inventory.Infrastructure.csproj",
+      "src/Modules/Petshop/Application/Petshop.Application.csproj",
+      "src/Modules/Petshop/Domain/Petshop.Domain.csproj",
+      "src/Modules/Petshop/Infrastructure/Petshop.Infrastructure.csproj",
+      "src/Modules/Sales/Application/Sales.Application.csproj",
+      "src/Modules/Sales/Domain/Sales.Domain.csproj",
+      "src/Modules/Sales/Infrastructure/Sales.Infrastructure.csproj",
+      "src/Modules/Veterinary/Application/Veterinary.Application.csproj",
+      "src/Modules/Veterinary/Domain/Veterinary.Domain.csproj",
+      "src/Modules/Veterinary/Infrastructure/Veterinary.Infrastructure.csproj",
+      "tests/API.IntegrationTests/API.IntegrationTests.csproj",
+      "tests/Clients.Tests/Clients.Tests.csproj",
+      "tests/PoC.SyncTests/PoC.SyncTests.csproj",
+      "tests/Modules/Core.Tests/Core.Tests.csproj",
+      "tests/Modules/Fiscal.Tests/Fiscal.Tests.csproj",
+      "tests/Modules/Inventory.Tests/Inventory.Tests.csproj",
+      "tests/Modules/Petshop.Tests/Petshop.Tests.csproj",
+      "tests/Modules/Sales.Tests/Sales.Tests.csproj",
+      "tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj"
+    ]
+  }
+}

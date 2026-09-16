@@ -1,0 +1,12 @@
+**/.git
+**/.github
+**/bin
+**/obj
+**/TestResults
+**/coveragereport
+**/.vs
+**/.vscode
+**/.idea
+**/*.md
+**/docs
+**/.gemini

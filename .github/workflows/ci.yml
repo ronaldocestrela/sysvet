@@ -2,34 +2,78 @@ name: CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [main, develop]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        dotnet: ['10.0.x']
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup .NET 10
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/dotnet-tools.json') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
 
-    - name: Build
-      run: dotnet build --no-restore
+      - name: Restore
+        run: dotnet restore SaaS_Veterinario.ci.slnf
 
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
+      - name: Build
+        run: dotnet build SaaS_Veterinario.ci.slnf --no-restore --configuration Release
 
-    - name: ReportGenerator
-      uses: danielpalme/ReportGenerator-GitHub-Action@v5
-      with:
-        reports: '**/TestResults/*/coverage.cobertura.xml'
-        targetdir: 'coveragereport'
-        reporttypes: 'HtmlInline;Cobertura'
+      - name: Test
+        run: dotnet test SaaS_Veterinario.ci.slnf --no-build --configuration Release --settings coverage.runsettings --collect:"XPlat Code Coverage" --results-directory TestResults --logger trx -- RunConfiguration.MaxCpuCount=1
+
+      - name: Merge coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5
+        with:
+          reports: 'TestResults/**/coverage.cobertura.xml'
+          targetdir: coveragereport
+          reporttypes: 'HtmlInline;Cobertura;TextSummary'
+          classfilters: '+*Domain*;+*Application*;-*.Tests*'
+
+      - name: Coverage gate (Domain + Application)
+        env:
+          MIN_LINE_COVERAGE: '70'
+        run: bash scripts/assert-coverage.sh coveragereport/Cobertura.xml
+
+      - name: Publish API
+        run: dotnet publish src/API/API.csproj --configuration Release --no-build --output artifacts/api
+
+      - name: Upload API artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sysvet-api-release
+          path: artifacts/api
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coveragereport
+
+      - name: Validate API container build
+        run: docker build -f src/API/Dockerfile .

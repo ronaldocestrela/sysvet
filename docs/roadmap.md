@@ -40,7 +40,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | SharedUI | **Parcial** | RCL com componente placeholder |
 | MAUI | **Parcial** | `src/Clients/MauiApp/` — Blazor Hybrid scaffold; na solução com build desligado em Linux/CI |
 | SQLite / Sync offline | **Pendente** | — |
-| CI/CD | **Pendente** | Sem pipeline |
+| CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test, cobertura Domain+Application, artefato API, Dockerfile |
 | Módulos ausentes | **Pendente** | `Finance`, `Automations`, `Intelligence`, `TutorPortal`, `Platform` |
 
 **Progresso estimado:** ~10% da Fase 1 concluída (scaffold + API mínima + `Result<T>`).
@@ -124,7 +124,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **1.1 Solução e referências** | 3 | Concluído |
-| **1.2 CI/CD** | 5 | Pendente |
+| **1.2 CI/CD** | 5 | Concluído |
 | **1.3 DI modular na API** | 5 | Pendente |
 | **1.4 Configuração por ambiente** | 3 | Pendente |
 | **1.5 Observabilidade e health checks** | 3 | Pendente |
@@ -143,13 +143,13 @@ flowchart TD
 
 **Aceite:** Build local e no CI sem erros; todos os projetos referenciados na solução.
 
-### 1.2 CI/CD (5 SP) — Pendente
+### 1.2 CI/CD (5 SP) — Concluído
 
-- [ ] Workflow GitHub Actions (ou equivalente): `dotnet restore`, `build`, `test`
-- [ ] Cache de NuGet; matriz `net10.0`
-- [ ] Relatório de cobertura (mínimo Domain + Application)
-- [ ] Gate: PR bloqueado se testes falharem
-- [ ] Artefato publicável da API (opcional: container)
+- [x] Workflow GitHub Actions: `dotnet restore`, `build`, `test` em [`SaaS_Veterinario.ci.slnf`](../SaaS_Veterinario.ci.slnf)
+- [x] Cache de NuGet; matriz `net10.0` ([`global.json`](../global.json))
+- [x] Relatório de cobertura Domain + Application ([`coverage.runsettings`](../coverage.runsettings), gate **70%** via [`scripts/assert-coverage.sh`](../scripts/assert-coverage.sh))
+- [x] Gate: job falha se testes ou cobertura falharem; branch protection documentada no README
+- [x] Artefato publicável da API + validação de container ([`src/API/Dockerfile`](../src/API/Dockerfile))
 
 **Aceite:** Pipeline verde em push/PR; badge de status no README.
 

@@ -1,6 +1,14 @@
 # SysVet — SaaS para Clínicas Veterinárias e Petshops
 
+[![CI](https://github.com/ronaldocestrela/sysvet/actions/workflows/ci.yml/badge.svg)](https://github.com/ronaldocestrela/sysvet/actions/workflows/ci.yml)
+
 Sistema de gestão unificado para clínicas veterinárias e petshops, cobrindo operações clínicas, estéticas, financeiras e fiscais. Construído em **.NET 10** com Clean Architecture e Monólito Modular.
+
+## CI/CD
+
+O pipeline [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em push/PR para `main` e `develop`: restore, build e testes em **Release** (`net10.0`) via [`SaaS_Veterinario.ci.slnf`](SaaS_Veterinario.ci.slnf) (sem MAUI/Android). Inclui cache NuGet, cobertura mínima de **70%** em assemblies `*.Domain` e `*.Application`, artefato publicável da API e validação de build do container (`src/API/Dockerfile`).
+
+Para bloquear merge quando o CI falhar: GitHub → **Settings → Branches** → regra em `main`/`develop` → exigir o status check **`build-and-test`**.
 
 ## Navegação Rápida
 
