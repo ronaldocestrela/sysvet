@@ -1,4 +1,5 @@
 using Core.Application.Tutors.Commands;
+using Core.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public static class SyncEndpointExtensions
 {
     public static void MapSyncEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/v1/sync").RequireAuthorization().WithTags("Sync");
+        var group = builder.MapGroup("/api/v1/sync").RequireAuthorization().WithTags("Core", "Sync");
 
         // PUSH: Recebe mensagens Outbox do cliente
         group.MapPost("/push", async ([FromBody] List<SyncMessageDto> messages, IMediator mediator) =>
@@ -51,10 +52,8 @@ public static class SyncEndpointExtensions
                 }
                 catch (Exception)
                 {
-                    // Em caso de exceção de concorrência DbUpdateConcurrencyException, retornar 409 Conflict.
-                    // Para falhas de validação, retornar 400.
-                    // O cliente vai parar de enviar os próximos e retentar.
-                    return Results.BadRequest(new { Message = $"Failed to process message {message.Id}" });
+                    return Result.Failure(new Error("Sync.MessageProcessingFailed", $"Failed to process message {message.Id}."))
+                        .ToProblemDetails();
                 }
             }
 

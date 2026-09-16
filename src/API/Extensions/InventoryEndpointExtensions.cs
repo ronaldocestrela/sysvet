@@ -19,8 +19,8 @@ public static class InventoryEndpointExtensions
     public static IEndpointRouteBuilder MapInventoryEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/v1/inventory")
-            .WithTags("Inventory")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Inventory");
 
         group.MapPost("/products", async ([FromBody] RegisterProductCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());

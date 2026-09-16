@@ -14,7 +14,8 @@ public static class MenuCatalog
         ["appointments"] = Permissions.AppointmentsRead,
         ["inventory"] = Permissions.ProductsRead,
         ["sales"] = Permissions.SalesRead,
-        ["cash"] = Permissions.CashRegisterRead
+        ["cash"] = Permissions.CashRegisterRead,
+        ["audit"] = Permissions.AuditRead
     };
 
     /// <summary>

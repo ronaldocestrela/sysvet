@@ -92,6 +92,7 @@ public static class DependencyInjection
         services.AddScoped<IPetRepository, PetRepository>();
         services.AddScoped<IAccessProfileRepository, AccessProfileRepository>();
         services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IAccessProfileSeeder, AccessProfileSeeder>();
         services.AddScoped<IPermissionChecker, PermissionChecker>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<CoreDbContext>());

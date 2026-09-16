@@ -4,22 +4,19 @@ using MediatR;
 
 namespace Core.Application.Tutors.Commands;
 
+/// <summary>
+/// Updates mutable tutor fields; audit is captured on save via <see cref="Core.Infrastructure.Persistence.CoreDbContext"/>.
+/// </summary>
 public class UpdateTutorCommandHandler : IRequestHandler<UpdateTutorCommand, Result>
 {
     private readonly ITutorRepository _tutorRepository;
-    private readonly Core.Domain.Auditing.IAuditLogger _auditLogger;
-    private readonly Core.Domain.ITenantContext _tenantContext;
 
-    public UpdateTutorCommandHandler(
-        ITutorRepository tutorRepository,
-        Core.Domain.Auditing.IAuditLogger auditLogger,
-        Core.Domain.ITenantContext tenantContext)
+    public UpdateTutorCommandHandler(ITutorRepository tutorRepository)
     {
         _tutorRepository = tutorRepository;
-        _auditLogger = auditLogger;
-        _tenantContext = tenantContext;
     }
 
+    /// <inheritdoc />
     public async Task<Result> Handle(UpdateTutorCommand request, CancellationToken cancellationToken)
     {
         var tutor = await _tutorRepository.GetByIdAsync(request.Id, cancellationToken);
@@ -38,8 +35,6 @@ public class UpdateTutorCommandHandler : IRequestHandler<UpdateTutorCommand, Res
         if (updateResult.IsFailure) return updateResult;
 
         _tutorRepository.Update(tutor);
-
-        await _auditLogger.LogAsync(_tenantContext.TenantId, Guid.Empty, "Tutor", "Update", $"Tutor {request.Id} updated.", cancellationToken);
 
         return Result.Success();
     }

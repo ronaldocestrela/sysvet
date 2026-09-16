@@ -67,6 +67,7 @@ public class RegisterStockMovementCommandHandler : IRequestHandler<RegisterStock
         await _auditLogger.LogAsync(
             _tenantContext.TenantId,
             _tenantContext.UserId,
+            movement.Id,
             "StockMovement",
             "Register",
             $"Movement {movement.Type} of {movement.Quantity} for product {product.Name}",

@@ -38,7 +38,7 @@ A Fase 2.5 exige CRUD de usuários por tenant, perfis customizáveis (matriz per
 
 - **Positivas:** aceite 2.5 sem reescrever ADR-007; enforcement fino demonstrável em CRM write/delete.
 - **Negativas:** lookup extra por request; módulos satélites ainda só policy até sprints futuras.
-- **Futuro:** auditoria 2.6 para alterações de matriz; claim opcional `profile_id` no JWT.
+- **Futuro:** claim opcional `profile_id` no JWT. Alterações de matriz são registradas em `AuditLogs` (ADR-010).
 
 ## Confirmação no código
 

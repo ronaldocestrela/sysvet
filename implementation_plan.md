@@ -252,18 +252,17 @@ CQRS com MediatR, EF Core com suporte a schema por tenant, Identity + JWT, CRUD 
 
 ---
 
-### 2.E — Auditoria e Contratos de API (5 SP)
+### 2.E — Auditoria e Contratos de API (5 SP) — Concluído
 
-#### [NEW] `src/Modules/Core/Domain/Auditing/`
-- `AuditLog` — entidade: `TenantId`, `UserId`, `EntityName`, `Action`, `OccurredAt`, `PayloadSummary`
-- `IAuditLogger` — interface de domínio
+#### Domain / Infrastructure
+- `AuditLog` + `EntityId`, `IAuditable`, captura EF (`AuditCaptureHelper`)
+- `GET /api/v1/audit-logs`, `Permissions.AuditRead`
 
-#### [MODIFY] API
-- Versionamento `/api/v1/` em todos os endpoints
-- Resposta de erro padronizada via `ProblemDetails` gerado por `Result.Failure`
-- Filtros OpenAPI por módulo/tag
+#### API
+- Versionamento `/api/v1/` + OpenAPI `info.version` 1.0.0; tags de módulo (`Core`, `Veterinary`, …)
+- `ProblemDetails` via `Result.Failure`, `correlationId`, `Request.RouteIdMismatch`
 
-**Aceite:** Alteração em Tutor gera registro de auditoria; API retorna `ProblemDetails` padronizado.
+**Aceite:** Alteração em Tutor gera registro de auditoria consultável; API retorna `ProblemDetails` padronizado.
 
 ---
 

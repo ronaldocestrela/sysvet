@@ -20,7 +20,7 @@ public static class TutorEndpointsExtensions
     {
         var group = builder.MapGroup("/api/v1/tutors")
             .RequireAuthorization(AuthorizationPolicies.ClinicStaff)
-            .WithTags("Tutors");
+            .WithTags("Core", "Tutors");
 
         group.MapPost("/", CreateTutor)
             .WithName("CreateTutor")
@@ -73,7 +73,7 @@ public static class TutorEndpointsExtensions
 
     private static async Task<IResult> UpdateTutor(HttpContext context, Guid id, UpdateTutorCommand command, IMediator mediator)
     {
-        if (id != command.Id) return Results.BadRequest("O ID da rota difere do ID do comando.");
+        if (id != command.Id) return ApiResultHelpers.RouteIdMismatch(context);
 
         var headerValue = context.Request.Headers["Idempotency-Key"].FirstOrDefault();
         Guid.TryParse(headerValue, out var key);

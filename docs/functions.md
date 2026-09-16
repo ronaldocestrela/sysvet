@@ -8,6 +8,7 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 * Cadastro completo de clientes (tutores) e animais.
 * Centralização do histórico de atendimentos e serviços prestados.
 * Perfis de acesso personalizados para usuários e controle de permissões (matriz fixa no catálogo `Permissions.*`, perfis por tenant via API `/api/v1/access-profiles`).
+* Trilha de auditoria append-only consultável por administradores (`GET /api/v1/audit-logs`, permissão `Audit.Read`, menu `audit`).
 * Configuração de teclas de atalho, filtros e organização de listagens (persistência em `/api/v1/me/preferences`).
 
 ---

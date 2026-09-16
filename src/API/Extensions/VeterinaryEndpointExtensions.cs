@@ -17,7 +17,7 @@ public static class VeterinaryEndpointExtensions
     /// </summary>
     public static IEndpointRouteBuilder MapVeterinaryEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/v1/appointments").RequireAuthorization().WithTags("Appointments");
+        var group = builder.MapGroup("/api/v1/appointments").RequireAuthorization().WithTags("Veterinary", "Appointments");
 
         group.MapPost("/", async ([FromBody] ScheduleAppointmentCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());
@@ -31,7 +31,7 @@ public static class VeterinaryEndpointExtensions
         group.MapPost("/{id:guid}/records", async (Guid id, IMediator mediator) =>
             (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.CreateMedicalRecordCommand(id))).ToHttpResult());
 
-        var petsGroup = builder.MapGroup("/api/v1/pets").RequireAuthorization().WithTags("Pets (Veterinary)");
+        var petsGroup = builder.MapGroup("/api/v1/pets").RequireAuthorization().WithTags("Veterinary", "Pets (Veterinary)");
         petsGroup.MapPost("/{petId:guid}/vaccines", async (Guid petId, [FromBody] Veterinary.Application.Vaccines.Commands.RegisterVaccineDoseCommand command, IMediator mediator) =>
         {
             if (petId != command.PetId)
@@ -42,7 +42,7 @@ public static class VeterinaryEndpointExtensions
             return (await mediator.Send(command)).ToHttpResult();
         });
 
-        var hospGroup = builder.MapGroup("/api/v1/hospitalizations").RequireAuthorization().WithTags("Hospitalizations");
+        var hospGroup = builder.MapGroup("/api/v1/hospitalizations").RequireAuthorization().WithTags("Veterinary", "Hospitalizations");
         hospGroup.MapPost("/", async ([FromBody] Veterinary.Application.Hospitalizations.Commands.AdmitPetCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());
 

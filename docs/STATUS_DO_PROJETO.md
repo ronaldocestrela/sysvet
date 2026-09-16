@@ -57,7 +57,7 @@ Iniciado o módulo de estoque.
 
 ## 🚀 Onde Estamos e Próximos Passos
 
-**Fase 2.4 (CRM Tutores/Pets)** concluída: soft delete, CRUD REST, paginação/busca, ADR-008. **Fase 2.5 (Usuários, perfis e permissões)** concluída: matriz `Permissions.*`, perfis por tenant, `/users`, `/access-profiles`, `/me` com menus, ADR-009. Próximo marco: **2.6 auditoria/contratos API**.
+**Fase 2.6 (Auditoria e contratos de API)** concluída: captura `IAuditable`, `GET /api/v1/audit-logs`, Problem Details + `correlationId`, OpenAPI v1 e tags por módulo, ADR-010. Próximo marco: **Fase 3 — Clientes e Offline-First**.
 
 Estamos na **Sprint 5 - Parte 02 (Módulo Inventory)**.
 

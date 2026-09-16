@@ -27,6 +27,6 @@ public class RegisterProductCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         productRepository.Received(1).Add(Arg.Any<Product>());
-        await auditLogger.Received(1).LogAsync(tenantContext.TenantId, tenantContext.UserId, "Product", "Register", Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await auditLogger.Received(1).LogAsync(tenantContext.TenantId, tenantContext.UserId, Arg.Any<Guid>(), "Product", "Register", Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

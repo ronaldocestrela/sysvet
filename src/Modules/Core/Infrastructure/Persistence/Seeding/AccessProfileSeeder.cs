@@ -42,6 +42,12 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
         var existing = await _accessProfileRepository.GetSystemProfileByBaseRoleAsync(baseRole, cancellationToken);
         if (existing is not null)
         {
+            if (baseRole == ApplicationRoles.Admin && !existing.PermissionCodes.Contains(Permissions.AuditRead))
+            {
+                existing.Grant(Permissions.AuditRead);
+                _accessProfileRepository.Update(existing);
+            }
+
             return;
         }
 

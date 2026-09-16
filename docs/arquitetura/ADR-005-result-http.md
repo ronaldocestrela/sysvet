@@ -30,6 +30,7 @@ Handlers CQRS retornam `Result` / `Result<T>` (ADR-004). Minimal APIs precisam t
 ## Consequências
 
 - Respostas de erro consistentes entre módulos.
+- Corpo RFC 7807 inclui `errors[]` (`Code`, `Message`) e `correlationId` quando disponível — ver [configuracao.md](./configuracao.md#4-problem-details-resultfailure).
 - `Program.cs` permanece composition root; domínio não conhece HTTP.
 - Rotas com status especiais (201, 204) permanecem explícitas no mapeamento.
 

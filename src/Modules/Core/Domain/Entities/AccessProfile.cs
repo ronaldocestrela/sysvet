@@ -6,7 +6,7 @@ namespace Core.Domain.Entities;
 /// <summary>
 /// Tenant-scoped access profile holding a permission matrix and optional link to an Identity base role.
 /// </summary>
-public sealed class AccessProfile : AggregateRoot
+public sealed class AccessProfile : AggregateRoot, IAuditable
 {
     private readonly HashSet<string> _permissionCodes = new(StringComparer.Ordinal);
     private string _permissionCodesJson = "[]";

@@ -21,7 +21,7 @@ public static class AccessProfileEndpointsExtensions
     {
         var profiles = builder.MapGroup("/api/v1/access-profiles")
             .RequireAuthorization(AuthorizationPolicies.Admin)
-            .WithTags("AccessProfiles");
+            .WithTags("Core", "AccessProfiles");
 
         profiles.MapGet("/", ListProfiles)
             .WithSummary("List access profiles")
@@ -45,7 +45,7 @@ public static class AccessProfileEndpointsExtensions
 
         builder.MapGet("/api/v1/permissions", ListPermissions)
             .RequireAuthorization(AuthorizationPolicies.Admin)
-            .WithTags("AccessProfiles")
+            .WithTags("Core", "AccessProfiles")
             .WithSummary("List permission catalog")
             .Produces<IReadOnlyList<string>>(StatusCodes.Status200OK);
     }

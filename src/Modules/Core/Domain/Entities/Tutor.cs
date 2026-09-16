@@ -6,7 +6,7 @@ namespace Core.Domain.Entities;
 /// <summary>
 /// Aggregate Root que representa o Tutor do pet.
 /// </summary>
-public class Tutor : AggregateRoot, ISoftDeletable
+public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
 {
     private readonly List<Pet> _pets = new();
 

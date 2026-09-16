@@ -11,16 +11,12 @@ namespace Core.Tests.Application.Tutors;
 public class UpdateTutorCommandHandlerTests
 {
     private readonly ITutorRepository _tutorRepository;
-    private readonly Core.Domain.Auditing.IAuditLogger _auditLogger;
-    private readonly Core.Domain.ITenantContext _tenantContext;
     private readonly UpdateTutorCommandHandler _handler;
 
     public UpdateTutorCommandHandlerTests()
     {
         _tutorRepository = Substitute.For<ITutorRepository>();
-        _auditLogger = Substitute.For<Core.Domain.Auditing.IAuditLogger>();
-        _tenantContext = Substitute.For<Core.Domain.ITenantContext>();
-        _handler = new UpdateTutorCommandHandler(_tutorRepository, _auditLogger, _tenantContext);
+        _handler = new UpdateTutorCommandHandler(_tutorRepository);
     }
 
     [Fact]

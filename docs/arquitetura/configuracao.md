@@ -110,6 +110,11 @@ curl -s -X POST http://localhost:5000/api/v1/auth/login \
 
 No boot da API, [`IdentityDataSeedHostedService`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeedHostedService.cs) executa [`IdentityDataSeeder`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeeder.cs), que cria de forma idempotente as roles `Admin`, `Veterinarian`, `Receptionist` e `Cashier` (`ApplicationRoles`). O seed **não** roda enquanto houver migrations pendentes ou o banco estiver inacessível (testes com `EnsureCreated` permanecem válidos).
 
+### Auditoria (Admin)
+
+- **Consulta:** `GET /api/v1/audit-logs` — paginação e filtros `entityName`, `entityId`, `auditAction` (policy `Admin` + permissão `Audit.Read`).
+- **Persistência:** append-only em `AuditLogs`; captura automática no `SaveChanges` para entidades `IAuditable` (CRM e `AccessProfile`).
+
 ---
 
 ## 2. Rastreamento (Trace e Correlation ID)
@@ -159,3 +164,18 @@ readinessProbe:
     port: 8080
   initialDelaySeconds: 5
 ```
+
+---
+
+## 4. Problem Details (`Result.Failure`)
+
+Falhas de aplicação mapeadas por [`ResultExtensions`](../../src/API/Extensions/ResultExtensions.cs) retornam **RFC 7807** (`application/problem+json`):
+
+| Campo | Conteúdo |
+|-------|----------|
+| `status` | Derivado de `Error.Code` (`*NotFound` → 404, `*Conflict` → 409, `Unauthorized`/`Forbidden` → 401/403, validação → 400) |
+| `detail` | `Error.Message` |
+| `errors` | Array `{ "Code", "Message" }` (validação: lista de erros de propriedade) |
+| `correlationId` | `HttpContext.TraceIdentifier` (middleware + `AddProblemDetails`) |
+
+Mismatch de ID rota/comando usa `Request.RouteIdMismatch` via [`ApiResultHelpers`](../../src/API/Extensions/ApiResultHelpers.cs).

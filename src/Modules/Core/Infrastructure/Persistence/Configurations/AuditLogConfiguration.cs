@@ -27,6 +27,10 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(a => a.PayloadSummary)
             .IsRequired();
 
-        builder.HasIndex(a => new { a.TenantId, a.OccurredAt });
+        builder.Property(a => a.EntityId)
+            .IsRequired();
+
+        builder.HasIndex(a => new { a.TenantId, a.EntityName, a.OccurredAt });
+        builder.HasIndex(a => new { a.TenantId, a.EntityId, a.OccurredAt });
     }
 }

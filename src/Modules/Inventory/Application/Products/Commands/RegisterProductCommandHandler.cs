@@ -52,6 +52,7 @@ public class RegisterProductCommandHandler : IRequestHandler<RegisterProductComm
         await _auditLogger.LogAsync(
             _tenantContext.TenantId,
             _tenantContext.UserId,
+            product.Id,
             "Product",
             "Register",
             $"Product {product.Name} registered with barcode {product.Barcode}",

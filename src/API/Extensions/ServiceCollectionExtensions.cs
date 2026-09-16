@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddOpenApi(options =>
         {
             options.AddDocumentTransformer<OpenApiBearerSecurityTransformer>();
+            options.AddDocumentTransformer<OpenApiModuleDocumentTransformer>();
         });
         return services;
     }

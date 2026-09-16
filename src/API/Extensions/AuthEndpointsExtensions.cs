@@ -19,7 +19,7 @@ public static class AuthEndpointsExtensions
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder builder, IHostEnvironment environment)
     {
         var group = builder.MapGroup("/api/v1/auth")
-            .WithTags("Auth");
+            .WithTags("Core", "Auth");
 
         group.MapPost("/login", async ([FromBody] LoginCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());

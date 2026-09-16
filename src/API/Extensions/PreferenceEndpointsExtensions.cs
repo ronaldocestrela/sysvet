@@ -19,7 +19,7 @@ public static class PreferenceEndpointsExtensions
     {
         var group = builder.MapGroup("/api/v1/me/preferences")
             .RequireAuthorization()
-            .WithTags("Preferences");
+            .WithTags("Core", "Preferences");
 
         group.MapGet("/", GetPreferences)
             .WithSummary("Get my UI preferences")

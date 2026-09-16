@@ -46,6 +46,8 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CoreDbContext).Assembly);
 
+        modelBuilder.Entity<AuditLog>().HasQueryFilter(a => a.TenantId == TenantContext.TenantId);
+
         modelBuilder.Entity<AppUser>(entity =>
         {
             entity.Property(u => u.TenantId).IsRequired();
@@ -122,31 +124,23 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
     private void CaptureAuditLogs()
     {
         var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is not AuditLog && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Where(e => AuditCaptureHelper.ShouldAudit(e)
+                && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
             .ToList();
 
         foreach (var entry in entries)
         {
-            var entityName = entry.Entity.GetType().Name;
-            var action = entry.State.ToString();
-            
-            var payload = "";
-            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
-            {
-                var values = entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.CurrentValue);
-                payload = System.Text.Json.JsonSerializer.Serialize(values);
-            }
-            else if (entry.State == EntityState.Deleted)
-            {
-                var values = entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.OriginalValue);
-                payload = System.Text.Json.JsonSerializer.Serialize(values);
-            }
+            var entityName = AuditCaptureHelper.GetEntityName(entry);
+            var action = AuditCaptureHelper.ResolveAction(entry);
+            var payload = AuditCaptureHelper.BuildPayloadSummary(entry);
+            var entityId = AuditCaptureHelper.GetEntityId(entry);
 
             var auditLogResult = AuditLog.Create(
-                TenantContext.TenantId, 
-                TenantContext.UserId, 
-                entityName, 
-                action, 
+                TenantContext.TenantId,
+                TenantContext.UserId,
+                entityId,
+                entityName,
+                action,
                 payload);
 
             if (auditLogResult.IsSuccess)

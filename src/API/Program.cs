@@ -5,7 +5,13 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = ctx =>
+    {
+        ctx.ProblemDetails.Extensions["correlationId"] = ctx.HttpContext.TraceIdentifier;
+    };
+});
 builder.Services.AddApiDocumentation();
 builder.Services.AddApplicationModules(builder.Configuration);
 builder.Services.AddApiHealthChecks();

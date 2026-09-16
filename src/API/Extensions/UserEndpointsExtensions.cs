@@ -21,7 +21,7 @@ public static class UserEndpointsExtensions
     {
         var group = builder.MapGroup("/api/v1/users")
             .RequireAuthorization(AuthorizationPolicies.Admin)
-            .WithTags("Users");
+            .WithTags("Core", "Users");
 
         group.MapPost("/", CreateUser)
             .WithSummary("Create staff user")

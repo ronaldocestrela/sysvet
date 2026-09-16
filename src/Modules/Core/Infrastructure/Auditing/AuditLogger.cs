@@ -12,9 +12,9 @@ public class AuditLogger : IAuditLogger
         _dbContext = dbContext;
     }
 
-    public async Task LogAsync(Guid tenantId, Guid userId, string entityName, string action, string payloadSummary, CancellationToken cancellationToken = default)
+    public async Task LogAsync(Guid tenantId, Guid userId, Guid entityId, string entityName, string action, string payloadSummary, CancellationToken cancellationToken = default)
     {
-        var auditLogResult = AuditLog.Create(tenantId, userId, entityName, action, payloadSummary);
+        var auditLogResult = AuditLog.Create(tenantId, userId, entityId, entityName, action, payloadSummary);
         if (auditLogResult.IsSuccess)
         {
             _dbContext.AuditLogs.Add(auditLogResult.Value);

@@ -3,7 +3,7 @@ namespace Core.Domain.Entities;
 /// <summary>
 /// Entidade de domínio que representa um Pet.
 /// </summary>
-public class Pet : Entity, ISoftDeletable
+public class Pet : Entity, ISoftDeletable, IAuditable
 {
     public string Name { get; private set; }
     public PetSpecies Species { get; private set; }

@@ -173,4 +173,15 @@ public static class ErrorCodes
         public static readonly Error InvalidEntityName = new("AuditLog.InvalidEntityName", "O nome da entidade é obrigatório.");
         public static readonly Error InvalidAction = new("AuditLog.InvalidAction", "A ação de auditoria é obrigatória.");
     }
+
+    /// <summary>
+    /// HTTP/API request shape errors mapped to Problem Details.
+    /// </summary>
+    public static class Request
+    {
+        /// <summary>
+        /// Route identifier does not match the command or body identifier.
+        /// </summary>
+        public static readonly Error RouteIdMismatch = new("Request.RouteIdMismatch", "O ID da rota difere do ID do comando.");
+    }
 }

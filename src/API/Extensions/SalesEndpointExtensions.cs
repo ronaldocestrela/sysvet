@@ -17,7 +17,9 @@ public static class SalesEndpointExtensions
     /// </summary>
     public static IEndpointRouteBuilder MapSalesEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/sales").RequireAuthorization();
+        var group = endpoints.MapGroup("/api/v1/sales")
+            .RequireAuthorization()
+            .WithTags("Sales");
 
         group.MapPost("/cash-registers/open", async (OpenCashRegisterCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());

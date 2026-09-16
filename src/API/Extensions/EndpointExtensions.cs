@@ -22,6 +22,7 @@ public static class EndpointExtensions
         builder.MapUserEndpoints();
         builder.MapAccessProfileEndpoints();
         builder.MapPreferenceEndpoints();
+        builder.MapAuditLogEndpoints();
         builder.MapSyncEndpoints();
 
         return builder;

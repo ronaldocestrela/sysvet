@@ -21,7 +21,7 @@ public static class PetEndpointsExtensions
         var group = builder.MapGroup("/api/v1")
             .RequireAuthorization(AuthorizationPolicies.ClinicStaff);
 
-        var petsGroup = group.MapGroup("/pets").WithTags("Pets");
+        var petsGroup = group.MapGroup("/pets").WithTags("Core", "Pets");
 
         petsGroup.MapPost("/", CreatePet)
             .WithName("CreatePet")
@@ -57,7 +57,7 @@ public static class PetEndpointsExtensions
         group.MapGet("/tutors/{tutorId:guid}/pets", ListPetsByTutor)
             .WithName("ListPetsByTutor")
             .WithSummary("List pets for a tutor")
-            .WithTags("Pets")
+            .WithTags("Core", "Pets")
             .Produces<PagedResult<PetDto>>(StatusCodes.Status200OK);
     }
 
@@ -74,7 +74,7 @@ public static class PetEndpointsExtensions
 
     private static async Task<IResult> UpdatePet(HttpContext context, Guid id, UpdatePetCommand command, IMediator mediator)
     {
-        if (id != command.Id) return Results.BadRequest("O ID da rota difere do ID do comando.");
+        if (id != command.Id) return ApiResultHelpers.RouteIdMismatch(context);
 
         var headerValue = context.Request.Headers["Idempotency-Key"].FirstOrDefault();
         Guid.TryParse(headerValue, out var key);

@@ -1,6 +1,5 @@
 using Core.Domain;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace API.Extensions;
 
@@ -12,7 +11,13 @@ public static class ResultExtensions
     /// <summary>
     /// Maps a failed result to RFC 7807 Problem Details with a status derived from <see cref="Error.Code"/>.
     /// </summary>
-    public static IResult ToProblemDetails(this Result result)
+    public static IResult ToProblemDetails(this Result result) =>
+        result.ToProblemDetails(httpContext: null);
+
+    /// <summary>
+    /// Maps a failed result to RFC 7807 Problem Details including correlation id when HTTP context is available.
+    /// </summary>
+    public static IResult ToProblemDetails(this Result result, HttpContext? httpContext)
     {
         if (result.IsSuccess)
         {
@@ -21,38 +26,39 @@ public static class ResultExtensions
 
         if (result is IValidationResult validationResult)
         {
+            var validationExtensions = new Dictionary<string, object?>
+            {
+                { "errors", validationResult.ValidationErrors }
+            };
+            AppendCorrelationId(httpContext, validationExtensions);
+
             return Results.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Ocorreram um ou mais erros de validação.",
                 type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 detail: "Verifique a propriedade 'errors' para mais detalhes.",
-                extensions: new Dictionary<string, object?>
-                {
-                    { "errors", validationResult.ValidationErrors }
-                }
-            );
+                extensions: validationExtensions);
         }
+
+        var extensions = BuildFailureExtensions(result.Error);
+        AppendCorrelationId(httpContext, extensions);
 
         return Results.Problem(
             statusCode: GetStatusCode(result.Error.Code),
             title: "Ocorreu um erro ao processar a requisição.",
             type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
             detail: result.Error.Message,
-            extensions: new Dictionary<string, object?>
-            {
-                { "errors", new[] { new { Code = result.Error.Code, Message = result.Error.Message } } }
-            }
-        );
+            extensions: extensions);
     }
 
     /// <summary>
     /// Maps any result to an HTTP response: success without payload as 204, success with payload as 200, failure as Problem Details.
     /// </summary>
-    public static IResult ToHttpResult(this Result result)
+    public static IResult ToHttpResult(this Result result, HttpContext? httpContext = null)
     {
         if (result.IsFailure)
         {
-            return result.ToProblemDetails();
+            return result.ToProblemDetails(httpContext);
         }
 
         return Results.NoContent();
@@ -61,14 +67,28 @@ public static class ResultExtensions
     /// <summary>
     /// Maps a typed result to an HTTP response: success as 200 with body, failure as Problem Details.
     /// </summary>
-    public static IResult ToHttpResult<T>(this Result<T> result) =>
-        result.IsSuccess ? Results.Ok(result.Value) : result.ToProblemDetails();
+    public static IResult ToHttpResult<T>(this Result<T> result, HttpContext? httpContext = null) =>
+        result.IsSuccess ? Results.Ok(result.Value) : result.ToProblemDetails(httpContext);
 
     /// <summary>
     /// Maps a successful typed result to 201 Created at the given location; failures use Problem Details.
     /// </summary>
-    public static IResult ToCreatedAt<T>(this Result<T> result, string location) =>
-        result.IsSuccess ? Results.Created(location, result.Value) : result.ToProblemDetails();
+    public static IResult ToCreatedAt<T>(this Result<T> result, string location, HttpContext? httpContext = null) =>
+        result.IsSuccess ? Results.Created(location, result.Value) : result.ToProblemDetails(httpContext);
+
+    private static Dictionary<string, object?> BuildFailureExtensions(Error error) =>
+        new()
+        {
+            { "errors", new[] { new { Code = error.Code, Message = error.Message } } }
+        };
+
+    private static void AppendCorrelationId(HttpContext? httpContext, Dictionary<string, object?> extensions)
+    {
+        if (httpContext is not null && !string.IsNullOrWhiteSpace(httpContext.TraceIdentifier))
+        {
+            extensions["correlationId"] = httpContext.TraceIdentifier;
+        }
+    }
 
     private static int GetStatusCode(string errorCode) =>
         errorCode switch

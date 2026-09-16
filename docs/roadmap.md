@@ -207,8 +207,8 @@ flowchart TD
 | **2.2 EF Core, repositórios e migrations** | 8 | Concluído |
 | **2.3 Identity, JWT e RBAC** | 13 | Concluído |
 | **2.4 CRM — Tutores e Pets** | 8 | Concluído |
-| **2.5 Usuários, perfis e permissões** | 5 | Pendente |
-| **2.6 Auditoria e contratos de API** | 5 | Pendente |
+| **2.5 Usuários, perfis e permissões** | 5 | Concluído |
+| **2.6 Auditoria e contratos de API** | 5 | Concluído |
 | **Total Fase 2** | **47 SP** | |
 
 ### 2.1 Abstrações de domínio e CQRS (8 SP)
@@ -309,11 +309,13 @@ flowchart TD
 
 **Aceite:** Admin altera permissões; usuário vê apenas menus permitidos (`/me` → `Menus`).
 
-### 2.6 Auditoria e contratos de API (5 SP)
+### 2.6 Auditoria e contratos de API (5 SP) — Concluído
 
-- [ ] `AuditLog`: quem, quando, entidade, ação, payload resumido
-- [ ] Filtro OpenAPI por módulo; versionamento `/api/v1/`
-- [ ] Resposta padronizada de erro a partir de `Result.Failure`
+- [x] `AuditLog`: quem, quando, entidade, ação, payload resumido (+ `EntityId`)
+- [x] Filtro OpenAPI por módulo (tags `Core`/`Veterinary`/…); versionamento `/api/v1/` + `info.version` 1.0.0
+- [x] Resposta padronizada de erro a partir de `Result.Failure` (`ProblemDetails`, `errors[]`, `correlationId`)
+
+**Referência:** [ADR-010](arquitetura/ADR-010-auditoria-openapi.md); `GET /api/v1/audit-logs`.
 
 **Aceite:** Alteração em tutor gera registro de auditoria consultável.
 

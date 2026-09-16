@@ -44,6 +44,8 @@ public static class Permissions
     public const string CashRegisterRead = "CashRegister.Read";
     public const string CashRegisterWrite = "CashRegister.Write";
 
+    public const string AuditRead = "Audit.Read";
+
     /// <summary>
     /// All defined permission codes in stable order.
     /// </summary>
@@ -60,7 +62,8 @@ public static class Permissions
         ProductsRead, ProductsWrite,
         StockRead, StockWrite,
         SalesRead, SalesWrite,
-        CashRegisterRead, CashRegisterWrite
+        CashRegisterRead, CashRegisterWrite,
+        AuditRead
     ];
 
     /// <summary>
