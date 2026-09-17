@@ -59,11 +59,15 @@ Iniciado o módulo de estoque.
 
 **Fase 3.3 (MAUI Blazor Hybrid)** concluída (ADR-013): Android + Windows, JWT/CRM via SharedUI (`ClientAuthState`, `AuthorizeRouteView`), branding VetNexus, CI `maui-publish` no Windows.
 
-### 👉 **Próxima Ação: Fase 3.4 — SQLite local nos clients**
+### Fase 3.4 (SQLite local nos clients) — Concluída (ADR-014)
 
-1. EF Core SQLite espelhando CRM tutor/pet.
-2. Migrations locais independentes da nuvem.
-3. CRUD offline sem rede (aceite 3.4).
+- `OfflineDbContext` + migration `InitialOffline` (Tutors, Pets, OutboxMessages).
+- `ITutorStore`/`IPetStore` offline; SharedUI tutor/pet sem dependência de rede para CRUD.
+- WASM: IndexedDB snapshot; MAUI: `AppDataDirectory/sysvet.db`; testes `Clients.Tests` (61+).
+
+### 👉 **Próxima Ação: Fase 3.5 — Motor de sincronização**
+
+Outbox completo (pets), ingestão idempotente na API, pull, conflitos, retry/dead-letter.
 
 **Nota:** MAUI build local exige workload; Linux CI continua via `SaaS_Veterinario.ci.slnf` (sem MAUI).
 

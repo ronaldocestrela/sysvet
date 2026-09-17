@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Clients.Infrastructure;
+using Clients.Infrastructure.Persistence;
+using Clients.Infrastructure.Persistence.Repositories;
 using Core.Domain.Entities;
 using Core.Domain.ValueObjects;
 using FluentAssertions;
@@ -21,9 +23,9 @@ public class OfflineRepositoryTests : IDisposable
             .UseSqlite("DataSource=:memory:")
             .Options;
 
-        _dbContext = new OfflineDbContext(options);
+        _dbContext = new OfflineDbContext(options, new NoOpSqliteFilePersistence());
         _dbContext.Database.OpenConnection();
-        _dbContext.Database.EnsureCreated();
+        _dbContext.Database.Migrate();
 
         _repository = new OfflineRepository<Tutor>(_dbContext);
     }

@@ -1,61 +1,52 @@
-using Microsoft.EntityFrameworkCore;
-using Core.Domain.Entities;
-using Core.Domain;
+using Clients.Infrastructure.Persistence;
+using Clients.Infrastructure.Persistence.Configurations;
 using Clients.Infrastructure.Sync;
+using Core.Domain;
+using Core.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace Clients.Infrastructure;
 
+/// <summary>
+/// Client-local SQLite database for offline CRM and the transactional outbox (ADR-002).
+/// </summary>
 public class OfflineDbContext : DbContext
 {
-    public DbSet<Tutor> Tutors => Set<Tutor>();
-    public DbSet<Pet> Pets => Set<Pet>();
-    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    private readonly ISqliteFilePersistence _filePersistence;
 
-    public OfflineDbContext(DbContextOptions<OfflineDbContext> options)
+    /// <summary>
+    /// Creates a context bound to DI options and host-specific file persistence.
+    /// </summary>
+    public OfflineDbContext(DbContextOptions<OfflineDbContext> options, ISqliteFilePersistence filePersistence)
         : base(options)
     {
+        _filePersistence = filePersistence;
     }
 
+    /// <summary>Tutors stored locally for offline CRM.</summary>
+    public DbSet<Tutor> Tutors => Set<Tutor>();
+
+    /// <summary>Pets stored locally for offline CRM.</summary>
+    public DbSet<Pet> Pets => Set<Pet>();
+
+    /// <summary>Pending sync commands (client-only).</summary>
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Map ValueObjects properly
-        modelBuilder.Entity<Tutor>(builder =>
-        {
-            builder.HasKey(t => t.Id);
-            builder.OwnsOne(t => t.Cpf, cpf =>
-            {
-                cpf.Property(c => c.Number).HasColumnName("Cpf");
-            });
-            builder.OwnsOne(t => t.Email, email =>
-            {
-                email.Property(e => e.Address).HasColumnName("Email");
-            });
-            builder.OwnsOne(t => t.Phone, phone =>
-            {
-                phone.Property(p => p.Number).HasColumnName("Phone");
-            });
-            builder.Metadata.FindNavigation(nameof(Tutor.Pets))?.SetPropertyAccessMode(PropertyAccessMode.Field);
-        });
+        modelBuilder.ApplyConfiguration(new OfflineTutorConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflinePetConfiguration());
+        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
-        modelBuilder.Entity<Pet>(builder =>
-        {
-            builder.HasKey(p => p.Id);
-            builder.Property(p => p.Name).IsRequired().HasMaxLength(100);
-            builder.Property(p => p.Species).IsRequired().HasMaxLength(50);
-            builder.Property(p => p.Breed).IsRequired().HasMaxLength(50);
-            builder.Property(p => p.Sex).IsRequired().HasConversion<string>();
-            builder.HasOne<Tutor>().WithMany(t => t.Pets).HasForeignKey(p => p.TutorId);
-        });
-
-        modelBuilder.Entity<OutboxMessage>(builder =>
-        {
-            builder.HasKey(o => o.Id);
-        });
+        modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
+        modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
     }
 
+    /// <inheritdoc />
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries<Entity>()
@@ -72,13 +63,13 @@ public class OfflineDbContext : DbContext
             {
                 if (entry.State == EntityState.Added)
                 {
-                    var cmd = new 
-                    { 
-                        Id = tutor.Id, 
-                        Name = tutor.Name, 
-                        Email = tutor.Email.Address, 
-                        Cpf = tutor.Cpf.Number, 
-                        Phone = tutor.Phone.Number 
+                    var cmd = new
+                    {
+                        Id = tutor.Id,
+                        Name = tutor.Name,
+                        Email = tutor.Email.Address,
+                        Cpf = tutor.Cpf.Number,
+                        Phone = tutor.Phone.Number
                     };
                     outboxMessages.Add(new OutboxMessage
                     {
@@ -88,13 +79,12 @@ public class OfflineDbContext : DbContext
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    var cmd = new 
-                    { 
-                        Id = tutor.Id, 
-                        Name = tutor.Name, 
-                        Email = tutor.Email.Address, 
-                        Cpf = tutor.Cpf.Number, 
-                        Phone = tutor.Phone.Number 
+                    var cmd = new
+                    {
+                        Id = tutor.Id,
+                        Name = tutor.Name,
+                        Email = tutor.Email.Address,
+                        Phone = tutor.Phone.Number
                     };
                     outboxMessages.Add(new OutboxMessage
                     {
@@ -103,28 +93,20 @@ public class OfflineDbContext : DbContext
                     });
                 }
             }
-            else if (entry.Entity is Pet pet)
-            {
-                // We'll implement Pet commands later if they don't exist yet, for now just basic structure
-                if (entry.State == EntityState.Added)
-                {
-                    // var cmd = new CreatePetCommand(pet.Id, pet.TutorId, pet.Name, pet.Species, pet.Breed, pet.Sex.ToString());
-                    // outboxMessages.Add(new OutboxMessage { Type = "CreatePetCommand", Payload = JsonSerializer.Serialize(cmd) });
-                }
-                else if (entry.State == EntityState.Modified)
-                {
-                    // var cmd = new UpdatePetCommand(pet.Id, pet.Name, pet.Species, pet.Breed, pet.Sex.ToString());
-                    // outboxMessages.Add(new OutboxMessage { Type = "UpdatePetCommand", Payload = JsonSerializer.Serialize(cmd) });
-                }
-            }
         }
 
-        if (outboxMessages.Any())
+        if (outboxMessages.Count > 0)
         {
             OutboxMessages.AddRange(outboxMessages);
         }
 
-        return await base.SaveChangesAsync(cancellationToken);
+        var count = await base.SaveChangesAsync(cancellationToken);
+
+        if (count > 0)
+        {
+            await SqliteFileHelper.FlushToPersistentStorageAsync(this, _filePersistence, cancellationToken);
+        }
+
+        return count;
     }
 }
-

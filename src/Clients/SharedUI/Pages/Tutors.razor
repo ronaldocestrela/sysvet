@@ -2,7 +2,8 @@
 @using SharedUI.Components
 @using SharedUI.Services
 @using Clients.Infrastructure.Http
-@inject ApiClient ApiClient
+@using Clients.Infrastructure.Crm
+@inject ITutorStore TutorStore
 @inject IToastService Toast
 
 <div class="header-section">
@@ -69,7 +70,7 @@
         _isLoading = true;
         try
         {
-            var result = await ApiClient.GetAsync<PagedResultDto<TutorDto>>("/api/v1/tutors?pageSize=100");
+            var result = await TutorStore.ListAsync(1, 100);
             if (result.IsSuccess)
             {
                 _tutors = result.Value.Items.ToList();
@@ -117,17 +118,14 @@
         if (_editingTutor is null)
         {
             var id = Guid.NewGuid();
-            var result = await ApiClient.PostAsync<CreateTutorRequest, Guid>(
-                "/api/v1/tutors",
-                new CreateTutorRequest
-                {
-                    Id = id,
-                    Name = _currentTutor.Name,
-                    Email = _currentTutor.Email,
-                    Cpf = _currentTutor.Cpf,
-                    Phone = _currentTutor.Phone
-                },
-                id);
+            var result = await TutorStore.CreateAsync(new CreateTutorRequest
+            {
+                Id = id,
+                Name = _currentTutor.Name,
+                Email = _currentTutor.Email,
+                Cpf = _currentTutor.Cpf,
+                Phone = _currentTutor.Phone
+            });
 
             if (result.IsFailure)
             {
@@ -137,16 +135,13 @@
         }
         else
         {
-            var result = await ApiClient.PutAsync(
-                $"/api/v1/tutors/{_currentTutor.Id}",
-                new UpdateTutorRequest
-                {
-                    Id = _currentTutor.Id,
-                    Name = _currentTutor.Name,
-                    Email = _currentTutor.Email,
-                    Phone = _currentTutor.Phone
-                },
-                Guid.NewGuid());
+            var result = await TutorStore.UpdateAsync(new UpdateTutorRequest
+            {
+                Id = _currentTutor.Id,
+                Name = _currentTutor.Name,
+                Email = _currentTutor.Email,
+                Phone = _currentTutor.Phone
+            });
 
             if (result.IsFailure)
             {

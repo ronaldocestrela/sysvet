@@ -1,5 +1,6 @@
 using Core.Domain.ValueObjects;
 using Clients.Infrastructure;
+using Clients.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -21,8 +22,8 @@ public class MauiIntegrationTests : IDisposable
             .UseSqlite(_connection)
             .Options;
 
-        _context = new OfflineDbContext(options);
-        _context.Database.EnsureCreated();
+        _context = new OfflineDbContext(options, new NoOpSqliteFilePersistence());
+        _context.Database.Migrate();
     }
 
     [Fact]

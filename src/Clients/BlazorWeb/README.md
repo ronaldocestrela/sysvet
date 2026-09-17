@@ -30,5 +30,6 @@ Login dev (seed automático): `admin@sysvet.com` / `Password123!`
 
 - **Dev:** `service-worker.js` é stub (sem cache).
 - **Publish:** `dotnet publish` gera SW com cache de assets; validar instalação servindo `artifacts/.../wwwroot/`.
+- **CRM local:** `sysvet.db` + snapshot IndexedDB (`js/sqlite-db-storage.js`); `AddClientPersistence` em [`Program.cs`](./Program.cs).
 
-Ver [ADR-012](../../docs/arquitetura/ADR-012-blazor-pwa-jwt.md).
+Ver [ADR-012](../../docs/arquitetura/ADR-012-blazor-pwa-jwt.md), [ADR-014](../../docs/arquitetura/ADR-014-sqlite-local-clients.md).

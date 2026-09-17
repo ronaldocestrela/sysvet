@@ -111,6 +111,7 @@ curl -sk -X POST https://localhost:7180/api/v1/auth/login \
 - **API base URL:** `src/Clients/BlazorWeb/wwwroot/appsettings.Development.json` → `"ApiBaseUrl": "https://localhost:7180/"`.
 - **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252` e `http://localhost:5259` (origens do BlazorWeb dev).
 - **PWA:** validar instalação/offline após `dotnet publish src/Clients/BlazorWeb/BlazorWeb.csproj` (service worker ativo no output `wwwroot/`). Ver [ADR-012](./ADR-012-blazor-pwa-jwt.md).
+- **SQLite local (3.4):** arquivo `sysvet.db` em MEMFS; snapshot em **IndexedDB** (`sqlite-db-storage.js`) após cada `SaveChanges` com alterações. Boot: `RestoreOfflineDatabaseIfExistsAsync` → `MigrateOfflineDatabaseAsync`. Ver [ADR-014](./ADR-014-sqlite-local-clients.md).
 
 ### MAUI Blazor Hybrid (Fase 3.3)
 
@@ -119,6 +120,20 @@ curl -sk -X POST https://localhost:7180/api/v1/auth/login \
   - Android emulador: `http://10.0.2.2:5222/` (host loopback → HTTP da API; cleartext no manifest Android).
 - **CORS:** não se aplica ao cliente nativo; apenas configure a URL correta por plataforma.
 - **Build/publish:** job CI `maui-publish` (`windows-latest`) ou localmente com workload MAUI. Ver [ADR-013](./ADR-013-maui-blazor-hybrid.md).
+- **SQLite local (3.4):** `FileSystem.AppDataDirectory/sysvet.db`; `AddClientPersistence` + `MigrateOfflineDatabaseAsync` no startup. Ver [ADR-014](./ADR-014-sqlite-local-clients.md).
+
+### Migrations EF — banco local do client (`OfflineDbContext`)
+
+Independente das migrations do módulo Core na API:
+
+```bash
+dotnet tool restore
+dotnet ef migrations add <Name> \
+  --project src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj \
+  --context OfflineDbContext
+```
+
+Design-time: [`OfflineDbContextFactory`](../../src/Clients/Clients.Infrastructure/Persistence/OfflineDbContextFactory.cs).
 
 ### Seed de roles (Identity)
 

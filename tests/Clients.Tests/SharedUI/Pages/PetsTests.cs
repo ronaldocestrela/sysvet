@@ -1,8 +1,8 @@
-using System.Text.Json;
 using Bunit;
+using Clients.Infrastructure.Crm;
 using Clients.Infrastructure.Http;
+using Core.Domain;
 using Microsoft.Extensions.DependencyInjection;
-using RichardSzalay.MockHttp;
 using SharedUI.Pages;
 using SharedUI.Services;
 using Xunit;
@@ -11,25 +11,16 @@ namespace Clients.Tests.SharedUI.Pages;
 
 public class PetsTests : BunitContext
 {
-    private readonly MockHttpMessageHandler _mockHttp;
-
     public PetsTests()
     {
-        _mockHttp = new MockHttpMessageHandler();
-        var httpClient = _mockHttp.ToHttpClient();
-        httpClient.BaseAddress = new Uri("http://localhost");
-
-        Services.AddSingleton(new ApiClient(httpClient));
+        Services.AddSingleton<IPetStore, FakePetStore>();
+        Services.AddSingleton<ITutorStore, FakeTutorStore>();
         Services.AddSingleton<IToastService, ToastService>();
     }
 
     [Fact]
     public void Should_Render_Pets_Header_And_New_Button()
     {
-        var emptyPage = new PagedResultDto<PetDto> { Items = [], Page = 1, PageSize = 10, TotalCount = 0 };
-        _mockHttp.When("/api/v1/pets*")
-            .Respond("application/json", JsonSerializer.Serialize(emptyPage));
-
         var cut = Render<Pets>();
 
         cut.Find("h1").TextContent.MarkupMatches("Pets");
@@ -37,14 +28,8 @@ public class PetsTests : BunitContext
     }
 
     [Fact]
-    public async Task Should_Open_Modal_When_New_Button_Clicked()
+    public void Should_Open_Modal_When_New_Button_Clicked()
     {
-        var emptyPage = new PagedResultDto<PetDto> { Items = [], Page = 1, PageSize = 10, TotalCount = 0 };
-        var emptyTutors = new PagedResultDto<TutorDto> { Items = [], Page = 1, PageSize = 10, TotalCount = 0 };
-        _mockHttp.When("/api/v1/pets*")
-            .Respond("application/json", JsonSerializer.Serialize(emptyPage));
-        _mockHttp.When("/api/v1/tutors*")
-            .Respond("application/json", JsonSerializer.Serialize(emptyTutors));
         var cut = Render<Pets>();
 
         cut.Find("button.btn-primary").Click();
@@ -52,5 +37,53 @@ public class PetsTests : BunitContext
         {
             cut.Find(".modal-header h3").TextContent.MarkupMatches("Novo Pet");
         });
+    }
+
+    private sealed class FakePetStore : IPetStore
+    {
+        public Task<Result<PagedResultDto<PetDto>>> ListAsync(int page, int pageSize, Guid? tutorId = null, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success(new PagedResultDto<PetDto>
+            {
+                Items = [],
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = 0
+            }));
+
+        public Task<Result<PetDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Failure<PetDto>(ErrorCodes.Pet.NotFound));
+
+        public Task<Result<Guid>> CreateAsync(CreatePetRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success(request.Id == Guid.Empty ? Guid.NewGuid() : request.Id));
+
+        public Task<Result> UpdateAsync(UpdatePetRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+
+        public Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+    }
+
+    private sealed class FakeTutorStore : ITutorStore
+    {
+        public Task<Result<PagedResultDto<TutorDto>>> ListAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success(new PagedResultDto<TutorDto>
+            {
+                Items = [],
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = 0
+            }));
+
+        public Task<Result<TutorDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Failure<TutorDto>(ErrorCodes.Tutor.NotFound));
+
+        public Task<Result<Guid>> CreateAsync(CreateTutorRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success(Guid.NewGuid()));
+
+        public Task<Result> UpdateAsync(UpdateTutorRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+
+        public Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
     }
 }

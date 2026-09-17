@@ -40,6 +40,7 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   ├── Clients/                        # Aplicativos clientes.
 │   │   ├── BlazorWeb/                  # Aplicação WebAssembly PWA.
 │   │   ├── MauiApp/                    # Aplicação Mobile/Desktop MAUI.
+│   │   ├── Clients.Infrastructure/     # ApiClient, OfflineDbContext, CRM stores, sync outbox.
 │   │   └── SharedUI/                   # RCL — design system (layout, tokens, componentes, serviços UI).
 │   │       ├── Components/             # DataGrid, FormField, Modal, Toast, LoadingState, …
 │   │       ├── Layout/                 # MainLayout, AuthLayout, NavMenu.

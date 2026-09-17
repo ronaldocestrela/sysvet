@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Clients.Infrastructure;
+using Clients.Infrastructure.Persistence;
 using Core.Domain.Entities;
 using Core.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +25,9 @@ namespace Clients.Tests
             // Arrange - Simula o Wifi Desligado (o cliente apenas salva localmente)
             var options = CreateNewContextOptions();
             
-            using (var context = new OfflineDbContext(options))
+            using (var context = new OfflineDbContext(options, new NoOpSqliteFilePersistence()))
             {
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.MigrateAsync();
 
                 var tutorId = Guid.NewGuid();
                 var email = Email.Create("offline@teste.com").Value;
@@ -45,7 +46,7 @@ namespace Clients.Tests
             }
 
             // Assert - Verifica se o OutboxMessage foi criado (O BackgroundWorker processará depois quando a internet voltar)
-            using (var context = new OfflineDbContext(options))
+            using (var context = new OfflineDbContext(options, new NoOpSqliteFilePersistence()))
             {
                 var savedTutor = await context.Tutors.FirstOrDefaultAsync();
                 Assert.NotNull(savedTutor);
@@ -62,7 +63,7 @@ namespace Clients.Tests
             }
 
             // Limpa o banco de testes no final
-            using (var context = new OfflineDbContext(options))
+            using (var context = new OfflineDbContext(options, new NoOpSqliteFilePersistence()))
             {
                 await context.Database.EnsureDeletedAsync();
             }

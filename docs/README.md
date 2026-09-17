@@ -29,6 +29,7 @@ Pasta de **Documentação Viva** do projeto SysVet. Contém a documentação de 
 | [`ADR-003-multi-tenancy.md`](./arquitetura/ADR-003-multi-tenancy.md) | Schema por tenant |
 | [`ADR-004-padrao-cqrs.md`](./arquitetura/ADR-004-padrao-cqrs.md) | CQRS e MediatR |
 | [`ADR-005-result-http.md`](./arquitetura/ADR-005-result-http.md) | `Result<T>` → HTTP |
+| [`ADR-014-sqlite-local-clients.md`](./arquitetura/ADR-014-sqlite-local-clients.md) | SQLite CRM offline nos clients |
 | [`configuracao.md`](./arquitetura/configuracao.md) | Options, health, correlation id |
 
 ### `diagramas/`

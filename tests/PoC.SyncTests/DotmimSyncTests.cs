@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Clients.Infrastructure;
+using Clients.Infrastructure.Persistence;
 using Core.Domain.Entities;
 using Core.Domain.ValueObjects;
 using Dotmim.Sync;
@@ -34,11 +35,11 @@ public class DotmimSyncTests : IDisposable
             .UseSqlite($"Data Source={_clientDbPath}")
             .Options;
 
-        using var serverDb = new OfflineDbContext(_serverOptions);
-        serverDb.Database.EnsureCreated();
+        using var serverDb = new OfflineDbContext(_serverOptions, new NoOpSqliteFilePersistence());
+        serverDb.Database.Migrate();
 
-        using var clientDb = new OfflineDbContext(_clientOptions);
-        clientDb.Database.EnsureCreated();
+        using var clientDb = new OfflineDbContext(_clientOptions, new NoOpSqliteFilePersistence());
+        clientDb.Database.Migrate();
     }
 
     [Fact(Skip = "Requires SQL Server instance to run. Sqlite cannot be used as ServerProvider in Dotmim.Sync.")]
@@ -52,7 +53,7 @@ public class DotmimSyncTests : IDisposable
         var agent = new SyncAgent(clientProvider, serverProvider);
 
         // 2. Insert data in Client
-        using (var clientDb = new OfflineDbContext(_clientOptions))
+        using (var clientDb = new OfflineDbContext(_clientOptions, new NoOpSqliteFilePersistence()))
         {
             var tutor = Tutor.Create("Client Tutor", Email.Create("client@test.com").Value, Cpf.Create("12345678909").Value, Phone.Create("11999999999").Value).Value;
             clientDb.Tutors.Add(tutor);
@@ -65,7 +66,7 @@ public class DotmimSyncTests : IDisposable
         // 4. Assert
         result.Should().NotBeNull();
 
-        using (var serverDb = new OfflineDbContext(_serverOptions))
+        using (var serverDb = new OfflineDbContext(_serverOptions, new NoOpSqliteFilePersistence()))
         {
             var tutorsInServer = await serverDb.Tutors.ToListAsync();
             tutorsInServer.Should().HaveCount(1);

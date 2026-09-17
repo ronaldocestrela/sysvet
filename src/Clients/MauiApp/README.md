@@ -33,7 +33,7 @@ Suba a API em Development e use o seed: `admin@sysvet.com` / `Password123!` ([`c
 
 | Pasta / arquivo | Função |
 |-----------------|--------|
-| `MauiProgram.cs` | DI: SharedUI, JWT, HttpClient, SQLite path (3.4+) |
+| `MauiProgram.cs` | DI: SharedUI, JWT, HttpClient, `AddClientPersistence` (`AppDataDirectory/sysvet.db`) |
 | `Services/MauiSecureTokenStorage.cs` | JWT em `SecureStorage` |
 | `MainPage.xaml` | `BlazorWebView` + `Main.razor` |
 | `Platforms/` | Android, Windows, iOS (stub futuro) |

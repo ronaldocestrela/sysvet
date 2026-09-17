@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.EntityFrameworkCore;
 using BlazorWeb;
+using BlazorWeb.Services;
+using Clients.Infrastructure.DependencyInjection;
+using Clients.Infrastructure.Persistence;
 using SharedUI.DependencyInjection;
+using SQLitePCL;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -15,7 +18,7 @@ if (!apiBaseUrl.EndsWith('/'))
 }
 
 builder.Services.AddTransient<SharedUI.Http.AuthHandler>();
-builder.Services.AddSingleton<SharedUI.Services.ITokenStorage, BlazorWeb.Services.WebTokenStorage>();
+builder.Services.AddSingleton<SharedUI.Services.ITokenStorage, WebTokenStorage>();
 builder.Services.AddSingleton<SharedUI.Services.IAuthState, SharedUI.Services.ClientAuthState>();
 builder.Services.AddSingleton<SharedUI.Http.IAuthTokenRefresher, SharedUI.Http.AuthTokenRefresher>();
 
@@ -28,39 +31,32 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 
 builder.Services.AddSharedUI();
-builder.Services.AddSingleton<SharedUI.Services.INavigationService, BlazorWeb.Services.WebNavigationService>();
-builder.Services.AddScoped<SharedUI.Services.IConnectivityService, BlazorWeb.Services.WebConnectivityService>();
+builder.Services.AddSingleton<SharedUI.Services.INavigationService, WebNavigationService>();
+builder.Services.AddScoped<SharedUI.Services.IConnectivityService, WebConnectivityService>();
 
-// Módulo Veterinary
 builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
-
-// Módulo Inventory
 builder.Services.AddScoped<SharedUI.Services.IInventoryApiService, SharedUI.Services.MockInventoryApiService>();
 builder.Services.AddScoped<SharedUI.Services.ISalesApiService, SharedUI.Services.MockSalesApiService>();
 
-// SQLite Offline DB
-builder.Services.AddDbContext<Clients.Infrastructure.OfflineDbContext>(options =>
-{
-    // Em WASM local storage (Origin Private File System)
-    options.UseSqlite("Data Source=sysvet.db");
-});
-builder.Services.AddScoped(typeof(Clients.Infrastructure.IOfflineRepository<>), typeof(Clients.Infrastructure.OfflineRepository<>));
+Batteries_V2.Init();
 
-// Sync Engine
+builder.Services.AddSingleton<ISqliteFilePersistence, WebIndexedDbSqlitePersistence>();
+builder.Services.AddClientPersistence($"Data Source={SqliteFileHelper.DatabaseFileName}");
+
 builder.Services.AddHttpClient<Clients.Infrastructure.Sync.ISyncHttpClient, Clients.Infrastructure.Sync.SyncHttpClient>(client =>
     client.BaseAddress = new Uri(apiBaseUrl))
 .AddHttpMessageHandler<SharedUI.Http.AuthHandler>();
-// Nota: Em Blazor WASM, HostedServices podem não rodar em background da mesma forma que MAUI.
-// Requer .NET 8+ com suporte nativo ou inicialização manual em background.
 builder.Services.AddHostedService<Clients.Infrastructure.Sync.SyncBackgroundWorker>();
 
 var host = builder.Build();
 
+await host.Services.RestoreOfflineDatabaseIfExistsAsync();
+await host.Services.MigrateOfflineDatabaseAsync();
+
 var authState = host.Services.GetRequiredService<SharedUI.Services.IAuthState>();
 await authState.InitializeAsync();
 
-// Inicializa o serviço de conectividade para registrar os listeners JS
-var connectivityService = host.Services.GetRequiredService<SharedUI.Services.IConnectivityService>() as BlazorWeb.Services.WebConnectivityService;
+var connectivityService = host.Services.GetRequiredService<SharedUI.Services.IConnectivityService>() as WebConnectivityService;
 if (connectivityService != null)
 {
     await connectivityService.InitializeAsync();

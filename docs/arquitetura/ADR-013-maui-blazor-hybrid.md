@@ -30,7 +30,7 @@ A Fase 3.3 exige cliente **MAUI Blazor Hybrid** (Android + Windows mínimo) reut
 
 - Positivas: aceite 3.3; um fluxo de login/CRM idêntico ao PWA; testes Linux cobrem branding e auth SharedUI.
 - Negativas: CI MAUI mais lento; cleartext Android deve ser revisado antes de produção.
-- Futuro: 3.4 SQLite local; runtime permission câmera; assinatura de loja.
+- Futuro: 3.5 sync; runtime permission câmera; assinatura de loja. SQLite CRM local: [ADR-014](./ADR-014-sqlite-local-clients.md).
 
 ## Confirmação no código
 

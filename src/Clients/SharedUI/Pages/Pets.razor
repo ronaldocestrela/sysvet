@@ -2,7 +2,9 @@
 @using SharedUI.Components
 @using SharedUI.Services
 @using Clients.Infrastructure.Http
-@inject ApiClient ApiClient
+@using Clients.Infrastructure.Crm
+@inject IPetStore PetStore
+@inject ITutorStore TutorStore
 @inject IToastService Toast
 
 <div class="header-section">
@@ -95,7 +97,7 @@
         _isLoading = true;
         try
         {
-            var result = await ApiClient.GetAsync<PagedResultDto<PetDto>>("/api/v1/pets?pageSize=100");
+            var result = await PetStore.ListAsync(1, 100);
             if (result.IsSuccess)
             {
                 _pets = result.Value.Items.ToList();
@@ -114,7 +116,7 @@
 
     private async Task LoadTutorsForSelectAsync()
     {
-        var result = await ApiClient.GetAsync<PagedResultDto<TutorDto>>("/api/v1/tutors?pageSize=100");
+        var result = await TutorStore.ListAsync(1, 100);
         _tutorOptions = result.IsSuccess ? result.Value.Items.ToList() : [];
     }
 
@@ -158,18 +160,15 @@
             }
 
             var id = Guid.NewGuid();
-            var result = await ApiClient.PostAsync<CreatePetRequest, Guid>(
-                "/api/v1/pets",
-                new CreatePetRequest
-                {
-                    Id = id,
-                    Name = _currentPet.Name,
-                    Species = _currentPet.Species,
-                    Breed = _currentPet.Breed,
-                    Sex = _currentPet.Sex,
-                    TutorId = _selectedTutorId
-                },
-                id);
+            var result = await PetStore.CreateAsync(new CreatePetRequest
+            {
+                Id = id,
+                Name = _currentPet.Name,
+                Species = _currentPet.Species,
+                Breed = _currentPet.Breed,
+                Sex = _currentPet.Sex,
+                TutorId = _selectedTutorId
+            });
 
             if (result.IsFailure)
             {
@@ -179,17 +178,14 @@
         }
         else
         {
-            var result = await ApiClient.PutAsync(
-                $"/api/v1/pets/{_currentPet.Id}",
-                new UpdatePetRequest
-                {
-                    Id = _currentPet.Id,
-                    Name = _currentPet.Name,
-                    Species = _currentPet.Species,
-                    Breed = _currentPet.Breed,
-                    Sex = _currentPet.Sex
-                },
-                Guid.NewGuid());
+            var result = await PetStore.UpdateAsync(new UpdatePetRequest
+            {
+                Id = _currentPet.Id,
+                Name = _currentPet.Name,
+                Species = _currentPet.Species,
+                Breed = _currentPet.Breed,
+                Sex = _currentPet.Sex
+            });
 
             if (result.IsFailure)
             {

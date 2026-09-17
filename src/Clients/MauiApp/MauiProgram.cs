@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.WebView.Maui;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Clients.Infrastructure.DependencyInjection;
 using SharedUI.DependencyInjection;
 using SharedUI.Http;
 using SharedUI.Services;
@@ -44,9 +44,7 @@ public static class MauiProgram
 		builder.Services.AddScoped<ISalesApiService, MockSalesApiService>();
 
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "sysvet.db");
-		builder.Services.AddDbContext<Clients.Infrastructure.OfflineDbContext>(options =>
-			options.UseSqlite($"Data Source={dbPath}"));
-		builder.Services.AddScoped(typeof(Clients.Infrastructure.IOfflineRepository<>), typeof(Clients.Infrastructure.OfflineRepository<>));
+		builder.Services.AddClientPersistence($"Data Source={dbPath}");
 
 		builder.Services.AddHttpClient<Clients.Infrastructure.Sync.ISyncHttpClient, Clients.Infrastructure.Sync.SyncHttpClient>(client =>
 			client.BaseAddress = new Uri(apiBaseUrl))
@@ -54,6 +52,8 @@ public static class MauiProgram
 		builder.Services.AddHostedService<Clients.Infrastructure.Sync.SyncBackgroundWorker>();
 
 		var app = builder.Build();
+
+		app.Services.MigrateOfflineDatabaseAsync().GetAwaiter().GetResult();
 
 		var authState = app.Services.GetRequiredService<IAuthState>();
 		authState.InitializeAsync().GetAwaiter().GetResult();

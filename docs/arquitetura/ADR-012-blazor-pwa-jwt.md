@@ -25,13 +25,13 @@ A Fase 3.2 exige Blazor WebAssembly instalável como PWA, HttpClient autenticado
 5. **Config:** `ApiBaseUrl` em `wwwroot/appsettings*.json` do BlazorWeb.
 6. **Dev seed:** `DevelopmentAdminUserSeeder` (Development only) — `admin@sysvet.com` / `Password123!`, tenant fixo `11111111-1111-1111-1111-111111111111`.
 7. **NavMenu:** filtrado por chaves `Menus` de `GET /api/v1/auth/me` via `MenuNavigation`.
-8. **Conectividade:** `ConnectivityStatus` (Online / Offline / Syncing reservado para 3.5); banner descreve cache PWA, não persistência local (3.4).
+8. **Conectividade:** `ConnectivityStatus` (Online / Offline / Syncing reservado para 3.5); banner descreve cache PWA; **CRM local** entregue na 3.4 ([ADR-014](./ADR-014-sqlite-local-clients.md)).
 
 ## Consequências
 
 - Positivas: aceite 3.2 sem SQLite/sync; paridade MAUI entregue na 3.3 (ADR-013) via `ClientAuthState` e handlers SharedUI.
 - Negativas: refresh token em localStorage é sensível a XSS; SW offline não cobre dados CRM.
-- Futuro: 3.4 SQLite, 3.5 sync alimenta `Syncing`; BFF opcional para cookies.
+- Futuro: 3.5 sync alimenta `Syncing`; BFF opcional para cookies. SQLite CRM: ADR-014.
 
 ## Confirmação no código
 
