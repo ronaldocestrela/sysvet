@@ -1,11 +1,9 @@
-using SharedUI.Services;
-
-namespace BlazorWeb.Services;
+namespace SharedUI.Services;
 
 /// <summary>
-/// WASM authentication state backed by <see cref="ITokenStorage"/>.
+/// Host-agnostic authentication state backed by <see cref="ITokenStorage"/>.
 /// </summary>
-public class WebAuthState : IAuthState
+public sealed class ClientAuthState : IAuthState
 {
     private readonly ITokenStorage _tokenStorage;
     private string? _token;
@@ -13,7 +11,7 @@ public class WebAuthState : IAuthState
     private IReadOnlyList<string> _menus = [];
 
     /// <summary>Creates state with the host token storage implementation.</summary>
-    public WebAuthState(ITokenStorage tokenStorage)
+    public ClientAuthState(ITokenStorage tokenStorage)
     {
         _tokenStorage = tokenStorage;
     }

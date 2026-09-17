@@ -1,15 +1,15 @@
-using BlazorWeb.Services;
+using SharedUI.Services;
 using Xunit;
 
-namespace Clients.Tests.BlazorWeb;
+namespace Clients.Tests.SharedUI.Services;
 
-public class WebAuthStateTests
+public class ClientAuthStateTests
 {
     [Fact]
     public async Task IsAuthenticated_False_Until_Login()
     {
         var storage = new InMemoryTokenStorage();
-        var sut = new WebAuthState(storage);
+        var sut = new ClientAuthState(storage);
         await sut.InitializeAsync();
 
         Assert.False(sut.IsAuthenticated);
@@ -20,7 +20,7 @@ public class WebAuthStateTests
     public async Task Login_Sets_Tokens_And_Persists()
     {
         var storage = new InMemoryTokenStorage();
-        var sut = new WebAuthState(storage);
+        var sut = new ClientAuthState(storage);
 
         await sut.LoginAsync("jwt-abc", "refresh-xyz");
 
@@ -34,7 +34,7 @@ public class WebAuthStateTests
     public async Task Logout_Clears_Tokens()
     {
         var storage = new InMemoryTokenStorage();
-        var sut = new WebAuthState(storage);
+        var sut = new ClientAuthState(storage);
         await sut.LoginAsync("jwt-abc", "refresh-xyz");
         await sut.LogoutAsync();
 
@@ -49,7 +49,7 @@ public class WebAuthStateTests
         var storage = new InMemoryTokenStorage();
         await storage.SetTokensAsync("stored-access", "stored-refresh");
 
-        var sut = new WebAuthState(storage);
+        var sut = new ClientAuthState(storage);
         await sut.InitializeAsync();
 
         Assert.True(sut.IsAuthenticated);

@@ -1,8 +1,9 @@
 using System.Net.Http.Json;
 using Clients.Infrastructure.Http;
+using Microsoft.Extensions.Http;
 using SharedUI.Services;
 
-namespace BlazorWeb.Services;
+namespace SharedUI.Http;
 
 /// <summary>
 /// Uses the unauthenticated <c>Auth</c> HTTP client to refresh expired access tokens.

@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using SharedUI.Services;
 
-namespace BlazorWeb.Services;
+namespace SharedUI.Http;
 
 /// <summary>
 /// Attaches Bearer tokens and retries once after a refresh on HTTP 401.

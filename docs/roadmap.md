@@ -38,9 +38,9 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | CQRS / Handlers | **Concluído** | MediatR, `ICommand`/`IQuery`, behaviors (logging, auth, validation, idempotência, transação), handlers Core/Veterinary/Sales/Inventory |
 | Blazor WASM | **Concluído (3.2)** | PWA publish + manifest/ícones; JWT/refresh; CRM tutor/pet via API; CORS; ADR-012 |
 | SharedUI | **Concluído (3.1)** | Layout, tokens, DataGrid/FormField/Modal/Toast/LoadingState, `IAuthState`/`INavigationService`/`IToastService`, testes bUnit |
-| MAUI | **Parcial** | `src/Clients/MauiApp/` — Blazor Hybrid scaffold; na solução com build desligado em Linux/CI |
+| MAUI | **Concluído (3.3)** | Blazor Hybrid Android + Windows; JWT/CRM SharedUI; VetNexus branding; job `maui-publish` (Windows CI); ADR-013 |
 | SQLite / Sync offline | **Pendente** | — |
-| CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test, cobertura Domain+Application, artefato API, Dockerfile |
+| CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test Linux, cobertura, artefato API, Dockerfile, publish MAUI (Windows runner) |
 | Módulos ausentes | **Pendente** | `Finance`, `Automations`, `Intelligence`, `TutorPortal`, `Platform` |
 
 **Progresso estimado:** ~10% da Fase 1 concluída (scaffold + API mínima + `Result<T>`).
@@ -335,7 +335,7 @@ flowchart TD
 |--------|-----|--------|
 | **3.1 SharedUI — design system base** | 8 | Concluído |
 | **3.2 Blazor WASM PWA** | 8 | Concluído |
-| **3.3 MAUI Blazor Hybrid** | 13 | Pendente |
+| **3.3 MAUI Blazor Hybrid** | 13 | Concluído |
 | **3.4 SQLite local nos clients** | 8 | Pendente |
 | **3.5 Motor de sincronização** | 21 | Pendente |
 | **3.6 PoC E2E offline → nuvem** | 5 | Pendente |
@@ -359,14 +359,15 @@ flowchart TD
 
 **Aceite:** App instalável como PWA; funciona offline para telas já cacheadas (assets/shell). ADR-012; testes `Clients.Tests/BlazorWeb`, `CorsTests`.
 
-### 3.3 MAUI Blazor Hybrid (13 SP)
+### 3.3 MAUI Blazor Hybrid (13 SP) — Concluído
 
-- [ ] Projeto `MauiApp` funcional (Android + Windows mínimo)
-- [ ] Referência SharedUI; splash e ícones VetNexus
-- [ ] Permissões: câmera (barcode futuro), armazenamento local
-- [ ] Publicação pipeline básico (opcional)
+- [x] Projeto `MauiApp` funcional (Android + Windows mínimo; TFMs condicionais)
+- [x] SharedUI + `ClientAuthState` / `AuthorizeRouteView` / `AuthHandler`; `MauiSecureTokenStorage`
+- [x] Splash e ícones VetNexus (`#4A90E2`); `ApiBaseUrl` por plataforma
+- [x] Permissões: câmera (declarativas), internet; sandbox `AppDataDirectory` para SQLite futuro
+- [x] CI: job `maui-publish` (`windows-latest`) — publish Windows + Android
 
-**Aceite:** App MAUI abre telas CRM compartilhadas com BlazorWeb.
+**Aceite:** App MAUI abre telas CRM compartilhadas com BlazorWeb. ADR-013; testes `Clients.Tests/Maui/MauiBrandingTests`, SharedUI auth.
 
 ### 3.4 SQLite local nos clients (8 SP)
 

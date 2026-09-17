@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SharedUI.DependencyInjection;
+using SharedUI.Http;
+using SharedUI.Services;
 
 namespace MauiApp;
 
@@ -9,55 +12,65 @@ public static class MauiProgram
 	public static MauiApp CreateMauiApp()
 	{
 		var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-			});
+		builder.UseMauiApp<App>();
+		TryAddAppSettings(builder);
 
 		builder.Services.AddMauiBlazorWebView();
 #if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();
 #endif
 
-		builder.Services.AddTransient<MauiApp.Services.AuthHandler>();
+		var apiBaseUrl = MauiApiConfiguration.ResolveApiBaseUrl(builder.Configuration);
 
-		builder.Services.AddHttpClient("API", client => 
-		{
-			// Replace with actual API url, using Android emulator localhost mapping for now
-			client.BaseAddress = new Uri("http://10.0.2.2:7001/"); 
-		})
-		.AddHttpMessageHandler<MauiApp.Services.AuthHandler>();
+		builder.Services.AddTransient<AuthHandler>();
+		builder.Services.AddSingleton<ITokenStorage, MauiApp.Services.MauiSecureTokenStorage>();
+		builder.Services.AddSingleton<IAuthState, ClientAuthState>();
+		builder.Services.AddSingleton<IAuthTokenRefresher, AuthTokenRefresher>();
+
+		builder.Services.AddHttpClient("Auth", client => client.BaseAddress = new Uri(apiBaseUrl));
+
+		builder.Services.AddHttpClient("API", client => client.BaseAddress = new Uri(apiBaseUrl))
+			.AddHttpMessageHandler<AuthHandler>();
 
 		builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
 		builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 
 		builder.Services.AddSharedUI();
-		builder.Services.AddSingleton<SharedUI.Services.IAuthState, MauiApp.Services.MauiAuthState>();
-		builder.Services.AddSingleton<SharedUI.Services.INavigationService, MauiApp.Services.MauiNavigationService>();
-		builder.Services.AddScoped<SharedUI.Services.IConnectivityService, MauiApp.Services.MauiConnectivityService>();
+		builder.Services.AddSingleton<INavigationService, MauiApp.Services.MauiNavigationService>();
+		builder.Services.AddScoped<IConnectivityService, MauiApp.Services.MauiConnectivityService>();
 
-		// Módulo Veterinary
-		builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
-		builder.Services.AddScoped<SharedUI.Services.IInventoryApiService, SharedUI.Services.MockInventoryApiService>();
-		builder.Services.AddScoped<SharedUI.Services.ISalesApiService, SharedUI.Services.MockSalesApiService>();
+		builder.Services.AddScoped<IVeterinaryApiService, MockVeterinaryApiService>();
+		builder.Services.AddScoped<IInventoryApiService, MockInventoryApiService>();
+		builder.Services.AddScoped<ISalesApiService, MockSalesApiService>();
 
-		// SQLite Offline DB
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "sysvet.db");
 		builder.Services.AddDbContext<Clients.Infrastructure.OfflineDbContext>(options =>
-		{
-			options.UseSqlite($"Data Source={dbPath}");
-		});
+			options.UseSqlite($"Data Source={dbPath}"));
 		builder.Services.AddScoped(typeof(Clients.Infrastructure.IOfflineRepository<>), typeof(Clients.Infrastructure.OfflineRepository<>));
 
-		// Sync Engine
 		builder.Services.AddHttpClient<Clients.Infrastructure.Sync.ISyncHttpClient, Clients.Infrastructure.Sync.SyncHttpClient>(client =>
-		{
-			client.BaseAddress = new Uri("http://10.0.2.2:7001/"); 
-		}).AddHttpMessageHandler<MauiApp.Services.AuthHandler>();
+			client.BaseAddress = new Uri(apiBaseUrl))
+			.AddHttpMessageHandler<AuthHandler>();
 		builder.Services.AddHostedService<Clients.Infrastructure.Sync.SyncBackgroundWorker>();
 
-		return builder.Build();
+		var app = builder.Build();
+
+		var authState = app.Services.GetRequiredService<IAuthState>();
+		authState.InitializeAsync().GetAwaiter().GetResult();
+
+		return app;
+	}
+
+	private static void TryAddAppSettings(MauiAppBuilder builder)
+	{
+		try
+		{
+			using var stream = FileSystem.OpenAppPackageFileAsync("appsettings.json").GetAwaiter().GetResult();
+			builder.Configuration.AddJsonStream(stream);
+		}
+		catch (FileNotFoundException)
+		{
+			// Optional override; platform defaults apply via MauiApiConfiguration.
+		}
 	}
 }

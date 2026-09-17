@@ -9,7 +9,9 @@ Razor Class Library compartilhada por **BlazorWeb** e **MauiApp**. Única fonte 
 | [`Components/`](./Components/) | `DataGrid`, `FormField`, `Modal`, `Toast`, `LoadingState`, banners de conectividade |
 | [`Layout/`](./Layout/) | `MainLayout`, `AuthLayout`, `NavMenu` |
 | [`Navigation/`](./Navigation/) | `AppRoutes`, `AppNavItems` (rotas sem magic strings) |
-| [`Services/`](./Services/) | `IAuthState`, `INavigationService`, `IToastService`, contratos de API mock |
+| [`Services/`](./Services/) | `IAuthState`, `ClientAuthState`, `ITokenStorage`, `INavigationService`, `IToastService` |
+| [`Http/`](./Http/) | `AuthHandler`, `AuthTokenRefresher` |
+| [`Routing/`](./Routing/) | `AuthorizeRouteView` |
 | [`DependencyInjection/`](./DependencyInjection/) | `AddSharedUI()` |
 | [`wwwroot/css/app.css`](./wwwroot/css/app.css) | Tokens VetNexus (`:root`) |
 | [`wwwroot/lib/bootstrap/`](./wwwroot/lib/bootstrap/) | Bootstrap servido via `_content/SharedUI/` |
@@ -18,7 +20,9 @@ Razor Class Library compartilhada por **BlazorWeb** e **MauiApp**. Única fonte 
 
 ```csharp
 builder.Services.AddSharedUI();
-builder.Services.AddSingleton<IAuthState, WebAuthState>(); // ou MauiAuthState
+builder.Services.AddSingleton<ITokenStorage, WebTokenStorage>(); // ou MauiSecureTokenStorage
+builder.Services.AddSingleton<IAuthState, ClientAuthState>();
+builder.Services.AddTransient<SharedUI.Http.AuthHandler>();
 builder.Services.AddSingleton<INavigationService, WebNavigationService>();
 ```
 

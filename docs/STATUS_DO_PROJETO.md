@@ -57,15 +57,15 @@ Iniciado o módulo de estoque.
 
 ## 🚀 Onde Estamos e Próximos Passos
 
-**Fase 2.6 (Auditoria e contratos de API)** concluída (ADR-010). **Fase 3.1 (SharedUI)** concluída (ADR-011). **Fase 3.2 (Blazor WASM PWA)** concluída: JWT + refresh, CRM tutor/pet via API, PWA manifest/ícones, CORS, NavMenu por `/auth/me`, testes em `Clients.Tests/BlazorWeb` e `CorsTests` (ADR-012).
+**Fase 3.3 (MAUI Blazor Hybrid)** concluída (ADR-013): Android + Windows, JWT/CRM via SharedUI (`ClientAuthState`, `AuthorizeRouteView`), branding VetNexus, CI `maui-publish` no Windows.
 
-### 👉 **Próxima Ação: Fase 3.3 — MAUI Blazor Hybrid**
+### 👉 **Próxima Ação: Fase 3.4 — SQLite local nos clients**
 
-1. Projeto `MauiApp` funcional (Android + Windows mínimo).
-2. Paridade com SharedUI + adapters (`MauiAuthState`, conectividade).
-3. Ícones/splash VetNexus.
+1. EF Core SQLite espelhando CRM tutor/pet.
+2. Migrations locais independentes da nuvem.
+3. CRUD offline sem rede (aceite 3.4).
 
-**Nota MAUI/WSL:** workload Android/Windows necessário para run local; aceite estrutural SharedUI já atende hosts.
+**Nota:** MAUI build local exige workload; Linux CI continua via `SaaS_Veterinario.ci.slnf` (sem MAUI).
 
 ---
 

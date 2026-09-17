@@ -6,7 +6,7 @@ Sistema de gestão unificado para clínicas veterinárias e petshops, cobrindo o
 
 ## CI/CD
 
-O pipeline [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em push/PR para `main` e `develop`: restore, build e testes em **Release** (`net10.0`) via [`SaaS_Veterinario.ci.slnf`](SaaS_Veterinario.ci.slnf) (sem MAUI/Android). Inclui cache NuGet, cobertura mínima de **70%** em assemblies `*.Domain` e `*.Application`, artefato publicável da API e validação de build do container (`src/API/Dockerfile`).
+O pipeline [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em push/PR para `main` e `develop`: job **Linux** — restore, build e testes em **Release** (`net10.0`) via [`SaaS_Veterinario.ci.slnf`](SaaS_Veterinario.ci.slnf) (sem MAUI); cobertura **70%** Domain/Application; artefato API; Docker. Job **Windows** (`maui-publish`) — publish MAUI Android + Windows.
 
 Para bloquear merge quando o CI falhar: GitHub → **Settings → Branches** → regra em `main`/`develop` → exigir o status check **`build-and-test`**.
 

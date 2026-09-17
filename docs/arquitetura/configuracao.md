@@ -112,6 +112,14 @@ curl -sk -X POST https://localhost:7180/api/v1/auth/login \
 - **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252` e `http://localhost:5259` (origens do BlazorWeb dev).
 - **PWA:** validar instalação/offline após `dotnet publish src/Clients/BlazorWeb/BlazorWeb.csproj` (service worker ativo no output `wwwroot/`). Ver [ADR-012](./ADR-012-blazor-pwa-jwt.md).
 
+### MAUI Blazor Hybrid (Fase 3.3)
+
+- **API base URL:** `src/Clients/MauiApp/appsettings.json` (MauiAsset) ou defaults em [`MauiApiConfiguration`](../../src/Clients/MauiApp/MauiApiConfiguration.cs):
+  - Windows: `https://localhost:7180/` (perfil `https` da API).
+  - Android emulador: `http://10.0.2.2:5222/` (host loopback → HTTP da API; cleartext no manifest Android).
+- **CORS:** não se aplica ao cliente nativo; apenas configure a URL correta por plataforma.
+- **Build/publish:** job CI `maui-publish` (`windows-latest`) ou localmente com workload MAUI. Ver [ADR-013](./ADR-013-maui-blazor-hybrid.md).
+
 ### Seed de roles (Identity)
 
 No boot da API, [`IdentityDataSeedHostedService`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeedHostedService.cs) executa [`IdentityDataSeeder`](../../src/Modules/Core/Infrastructure/Persistence/Seeding/IdentityDataSeeder.cs), que cria de forma idempotente as roles `Admin`, `Veterinarian`, `Receptionist` e `Cashier` (`ApplicationRoles`). O seed **não** roda enquanto houver migrations pendentes ou o banco estiver inacessível (testes com `EnsureCreated` permanecem válidos).

@@ -6,8 +6,8 @@ Host WASM do SysVet. **UI e layout** vêm de [`SharedUI`](../SharedUI/README.md)
 
 | Arquivo | Propósito |
 |---|---|
-| [`Program.cs`](./Program.cs) | `ApiBaseUrl`, `AddSharedUI()`, JWT (`WebAuthState`, `AuthHandler`, refresh), HttpClient `"API"` / `"Auth"` |
-| [`App.razor`](./App.razor) | Router + [`AuthorizeRouteView`](./Components/AuthorizeRouteView.razor) |
+| [`Program.cs`](./Program.cs) | `ApiBaseUrl`, `AddSharedUI()`, JWT (`ClientAuthState`, SharedUI `AuthHandler`, refresh), HttpClient `"API"` / `"Auth"` |
+| [`App.razor`](./App.razor) | Router + SharedUI [`AuthorizeRouteView`](../SharedUI/Routing/AuthorizeRouteView.razor) |
 | [`wwwroot/appsettings*.json`](./wwwroot/appsettings.json) | URL da API (`https://localhost:7180/` em dev) |
 | [`wwwroot/manifest.json`](./wwwroot/manifest.json) | PWA manifest (192/512) |
 | [`Services/`](./Services/) | Auth, tokens (`localStorage`), conectividade |

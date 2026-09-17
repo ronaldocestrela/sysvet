@@ -10,7 +10,7 @@ Accepted
 Blazor WebAssembly e MAUI Blazor Hybrid devem compartilhar layout, tokens visuais e componentes base sem duplicar markup ou CSS ([`agents.md`](../agents.md) — Frontend e Reutilização). A Fase 3.1 exige paridade estrutural entre hosts antes de PWA, JWT e sync offline.
 
 ## Opções consideradas
-1. **RCL SharedUI como SSOT** — tokens, layout e componentes em `src/Clients/SharedUI/`; hosts só registram adapters (`WebAuthState`, `MauiAuthState`, etc.).
+1. **RCL SharedUI como SSOT** — tokens, layout, componentes e auth HTTP em `src/Clients/SharedUI/`; hosts só registram `ITokenStorage` e adapters (`WebTokenStorage`, `MauiSecureTokenStorage`, conectividade, navegação).
 2. **Duplicar layout em BlazorWeb e MauiApp** — rejeitado por violar reuso e roadmap.
 
 ## Decisão

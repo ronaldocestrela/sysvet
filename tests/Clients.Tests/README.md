@@ -10,7 +10,10 @@ Clients.Tests/
 │   ├── Components/     # DataGrid, FormField, Modal, Toast, LoadingState
 │   ├── Layout/         # MainLayout, NavMenu, AuthLayout
 │   └── Services/       # ToastService
-├── BlazorWeb/          # WebAuthState, PWA manifest
+├── BlazorWeb/          # PWA manifest
+├── Maui/               # MauiBrandingTests (csproj, manifest, index.html)
+├── SharedUI/Http/      # AuthHandler
+├── SharedUI/Routing/   # AuthorizeRouteView
 ├── SharedUI/Navigation/  # MenuNavigation
 ├── Http/               # ApiClient
 └── Offline*.cs         # SQLite / sync

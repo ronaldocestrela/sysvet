@@ -83,3 +83,49 @@ jobs:
 
       - name: Validate API container build
         run: docker build -f src/API/Dockerfile .
+
+  maui-publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: '17'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-maui-${{ hashFiles('src/Clients/MauiApp/MauiApp.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-maui-
+
+      - name: Publish MAUI Windows
+        run: dotnet publish src/Clients/MauiApp/MauiApp.csproj -f net10.0-windows10.0.19041.0 -c Release -o artifacts/maui-windows
+
+      - name: Publish MAUI Android
+        run: dotnet publish src/Clients/MauiApp/MauiApp.csproj -f net10.0-android -c Release -o artifacts/maui-android
+
+      - name: Upload MAUI Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sysvet-maui-windows
+          path: artifacts/maui-windows
+
+      - name: Upload MAUI Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sysvet-maui-android
+          path: artifacts/maui-android

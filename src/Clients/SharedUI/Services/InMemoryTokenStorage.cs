@@ -1,7 +1,7 @@
-namespace BlazorWeb.Services;
+namespace SharedUI.Services;
 
 /// <summary>
-/// In-memory token storage for unit tests.
+/// In-memory token storage for unit tests and design-time scenarios.
 /// </summary>
 public sealed class InMemoryTokenStorage : ITokenStorage
 {

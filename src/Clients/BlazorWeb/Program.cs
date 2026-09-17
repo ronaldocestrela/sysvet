@@ -14,15 +14,15 @@ if (!apiBaseUrl.EndsWith('/'))
     apiBaseUrl += "/";
 }
 
-builder.Services.AddTransient<BlazorWeb.Services.AuthHandler>();
-builder.Services.AddSingleton<BlazorWeb.Services.ITokenStorage, BlazorWeb.Services.WebTokenStorage>();
-builder.Services.AddSingleton<SharedUI.Services.IAuthState, BlazorWeb.Services.WebAuthState>();
-builder.Services.AddSingleton<BlazorWeb.Services.IAuthTokenRefresher, BlazorWeb.Services.AuthTokenRefresher>();
+builder.Services.AddTransient<SharedUI.Http.AuthHandler>();
+builder.Services.AddSingleton<SharedUI.Services.ITokenStorage, BlazorWeb.Services.WebTokenStorage>();
+builder.Services.AddSingleton<SharedUI.Services.IAuthState, SharedUI.Services.ClientAuthState>();
+builder.Services.AddSingleton<SharedUI.Http.IAuthTokenRefresher, SharedUI.Http.AuthTokenRefresher>();
 
 builder.Services.AddHttpClient("Auth", client => client.BaseAddress = new Uri(apiBaseUrl));
 
 builder.Services.AddHttpClient("API", client => client.BaseAddress = new Uri(apiBaseUrl))
-.AddHttpMessageHandler<BlazorWeb.Services.AuthHandler>();
+.AddHttpMessageHandler<SharedUI.Http.AuthHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
 builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
@@ -49,7 +49,7 @@ builder.Services.AddScoped(typeof(Clients.Infrastructure.IOfflineRepository<>), 
 // Sync Engine
 builder.Services.AddHttpClient<Clients.Infrastructure.Sync.ISyncHttpClient, Clients.Infrastructure.Sync.SyncHttpClient>(client =>
     client.BaseAddress = new Uri(apiBaseUrl))
-.AddHttpMessageHandler<BlazorWeb.Services.AuthHandler>();
+.AddHttpMessageHandler<SharedUI.Http.AuthHandler>();
 // Nota: Em Blazor WASM, HostedServices podem não rodar em background da mesma forma que MAUI.
 // Requer .NET 8+ com suporte nativo ou inicialização manual em background.
 builder.Services.AddHostedService<Clients.Infrastructure.Sync.SyncBackgroundWorker>();

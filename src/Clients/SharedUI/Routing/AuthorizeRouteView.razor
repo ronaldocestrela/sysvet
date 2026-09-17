@@ -59,10 +59,10 @@ else
     }
 
     private bool IsPublicRoute() =>
-        RouteData.PageType == typeof(SharedUI.Pages.Login) ||
-        RouteData.PageType == typeof(SharedUI.Pages.NotFound);
+        RouteData.PageType == typeof(Pages.Login) ||
+        RouteData.PageType == typeof(Pages.NotFound);
 
-    private bool IsLoginRoute() => RouteData.PageType == typeof(SharedUI.Pages.Login);
+    private bool IsLoginRoute() => RouteData.PageType == typeof(Pages.Login);
 
     public void Dispose()
     {

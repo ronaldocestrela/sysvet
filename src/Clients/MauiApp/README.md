@@ -1,27 +1,39 @@
 # `src/Clients/MauiApp/` — Aplicação Mobile e Desktop (.NET MAUI)
 
-Aplicação **multiplataforma** para Windows, macOS, iOS e Android, construída com **.NET MAUI** no modo **Blazor Hybrid**. Compartilha a lógica de UI com o `BlazorWeb` através da `SharedUI`.
+Aplicação **multiplataforma** (Android + Windows mínimo) no modo **Blazor Hybrid**. UI e fluxo CRM vêm de [`SharedUI`](../SharedUI/README.md); autenticação JWT compartilhada (ADR-013).
 
-## Status Atual
+## Build
 
-> **Scaffold funcional (Blazor Hybrid).** O projeto referencia `SharedUI` e `Clients.Infrastructure` (HTTP, SQLite offline, sync). No ambiente Linux/WSL o TFM está limitado a **`net10.0-android`** até que workloads MAUI adicionais estejam disponíveis.
+- **Linux/WSL:** `net10.0-android` apenas — exige workload MAUI Android.
+- **Windows:** `net10.0-android` + `net10.0-windows10.0.19041.0`.
 
-## Solução principal
+```bash
+dotnet workload install maui
+dotnet build src/Clients/MauiApp/MauiApp.csproj -f net10.0-android
+# Windows:
+dotnet build src/Clients/MauiApp/MauiApp.csproj -f net10.0-windows10.0.19041.0
+```
 
-- O projeto está listado em [`SaaS_Veterinario.slnx`](../../../SaaS_Veterinario.slnx) com **build da solução desligado** (Debug/Release), para não exigir workload MAUI em CI/Linux.
-- Para compilar o cliente MAUI quando o workload estiver instalado, use [`MauiApp.sln`](./MauiApp.sln) ou `dotnet build src/Clients/MauiApp/MauiApp.csproj`.
+O projeto está em [`SaaS_Veterinario.slnx`](../../../SaaS_Veterinario.slnx) com **build da solução desligado** no Linux. Use [`MauiApp.sln`](./MauiApp.sln) ou o `.csproj` diretamente.
 
-## O que há aqui
+CI: job `maui-publish` em `.github/workflows/ci.yml` (runner `windows-latest`).
 
-| Arquivo / Pasta | Função |
-|---|---|
-| `MauiApp.csproj` | Projeto MAUI; referencia `SharedUI` e `Clients.Infrastructure`. |
-| `MauiProgram.cs` | Ponto de entrada; configura `MauiAppBuilder` com Blazor Hybrid. |
-| `MainPage.xaml` / `.cs` | Página nativa que hospeda o `BlazorWebView`. |
-| `Services/` | Conectividade, navegação, autenticação específicos do host MAUI. |
-| `Resources/` | Fontes, ícones, splash e imagens por plataforma. |
-| `Platforms/` | Entrypoints e código nativo por plataforma. |
+## API local
 
-## Diferencial da Arquitetura Hybrid
+| Plataforma | URL padrão | Notas |
+|------------|------------|--------|
+| Windows | `https://localhost:7180/` | Perfil `https` da API |
+| Android emulador | `http://10.0.2.2:5222/` | HTTP; cleartext no manifest para Development |
 
-O MAUI não reescreve a UI — ele **reutiliza os mesmos componentes Razor** da `SharedUI` dentro de uma WebView nativa. Isso garante paridade visual entre web e desktop/mobile sem duplicação de código.
+Override opcional: `appsettings.json` (`ApiBaseUrl`) empacotado como MauiAsset.
+
+Suba a API em Development e use o seed: `admin@sysvet.com` / `Password123!` ([`configuracao.md`](../../../docs/arquitetura/configuracao.md)).
+
+## Estrutura
+
+| Pasta / arquivo | Função |
+|-----------------|--------|
+| `MauiProgram.cs` | DI: SharedUI, JWT, HttpClient, SQLite path (3.4+) |
+| `Services/MauiSecureTokenStorage.cs` | JWT em `SecureStorage` |
+| `MainPage.xaml` | `BlazorWebView` + `Main.razor` |
+| `Platforms/` | Android, Windows, iOS (stub futuro) |

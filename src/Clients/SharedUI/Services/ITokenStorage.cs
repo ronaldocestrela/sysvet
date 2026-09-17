@@ -1,7 +1,7 @@
-namespace BlazorWeb.Services;
+namespace SharedUI.Services;
 
 /// <summary>
-/// Persists JWT material in browser storage for the WASM host.
+/// Persists JWT material for client hosts (browser localStorage, MAUI SecureStorage, etc.).
 /// </summary>
 public interface ITokenStorage
 {

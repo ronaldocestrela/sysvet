@@ -29,13 +29,13 @@ A Fase 3.2 exige Blazor WebAssembly instalável como PWA, HttpClient autenticado
 
 ## Consequências
 
-- Positivas: aceite 3.2 sem SQLite/sync; paridade MAUI nos contratos `IAuthState` / `IConnectivityService`.
+- Positivas: aceite 3.2 sem SQLite/sync; paridade MAUI entregue na 3.3 (ADR-013) via `ClientAuthState` e handlers SharedUI.
 - Negativas: refresh token em localStorage é sensível a XSS; SW offline não cobre dados CRM.
 - Futuro: 3.4 SQLite, 3.5 sync alimenta `Syncing`; BFF opcional para cookies.
 
 ## Confirmação no código
 
-- `src/Clients/BlazorWeb/` — PWA, `WebAuthState`, `AuthHandler`, `AuthorizeRouteView`.
+- `src/Clients/BlazorWeb/` — PWA; auth via SharedUI (`ClientAuthState`, `AuthHandler`, `AuthorizeRouteView`).
 - `src/Clients/SharedUI/Pages/Login.razor`, `Tutors.razor`, `Pets.razor`.
 - `src/Clients/Clients.Infrastructure/Http/ApiClient.cs`, DTOs CRM/auth.
 - `src/API/Extensions/CorsExtensions.cs`.
