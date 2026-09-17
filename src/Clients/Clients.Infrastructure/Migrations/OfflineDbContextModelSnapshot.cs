@@ -23,10 +23,18 @@ namespace Clients.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("AttemptCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Error")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Payload")
@@ -46,6 +54,20 @@ namespace Clients.Infrastructure.Migrations
                     b.HasIndex("CreatedAt");
 
                     b.ToTable("OutboxMessages", (string)null);
+                });
+
+            modelBuilder.Entity("Clients.Infrastructure.Sync.SyncState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("LastPullAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SyncState", (string)null);
                 });
 
             modelBuilder.Entity("Core.Domain.Entities.Pet", b =>

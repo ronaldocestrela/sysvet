@@ -4,6 +4,7 @@ using Clients.Infrastructure.Persistence;
 using Clients.Infrastructure.Persistence.Repositories;
 using Core.Domain;
 using Microsoft.EntityFrameworkCore;
+using Clients.Infrastructure.Sync;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Clients.Infrastructure.DependencyInjection;
@@ -47,6 +48,7 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<HttpPetStore>();
         services.AddScoped<ITutorStore, OfflineTutorStore>();
         services.AddScoped<IPetStore, OfflinePetStore>();
+        services.AddScoped<OfflineSyncPullApplier>();
 
         return services;
     }

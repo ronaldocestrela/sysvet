@@ -37,7 +37,8 @@ public static class MauiProgram
 
 		builder.Services.AddSharedUI();
 		builder.Services.AddSingleton<INavigationService, MauiApp.Services.MauiNavigationService>();
-		builder.Services.AddScoped<IConnectivityService, MauiApp.Services.MauiConnectivityService>();
+		builder.Services.AddSingleton<IConnectivityService, MauiApp.Services.MauiConnectivityService>();
+		builder.Services.AddSingleton<Clients.Infrastructure.Sync.ISyncConnectivity, SyncConnectivityAdapter>();
 
 		builder.Services.AddScoped<IVeterinaryApiService, MockVeterinaryApiService>();
 		builder.Services.AddScoped<IInventoryApiService, MockInventoryApiService>();

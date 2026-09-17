@@ -4,7 +4,7 @@ using Clients.Infrastructure.Sync;
 using Core.Domain;
 using Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Clients.Infrastructure;
 
@@ -14,6 +14,11 @@ namespace Clients.Infrastructure;
 public class OfflineDbContext : DbContext
 {
     private readonly ISqliteFilePersistence _filePersistence;
+
+    /// <summary>
+    /// When true, <see cref="SaveChangesAsync"/> skips outbox enqueue (remote pull apply).
+    /// </summary>
+    public bool SuppressOutbox { get; set; }
 
     /// <summary>
     /// Creates a context bound to DI options and host-specific file persistence.
@@ -33,6 +38,9 @@ public class OfflineDbContext : DbContext
     /// <summary>Pending sync commands (client-only).</summary>
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    /// <summary>Pull cursor singleton.</summary>
+    public DbSet<SyncState> SyncState => Set<SyncState>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +49,7 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OfflineTutorConfiguration());
         modelBuilder.ApplyConfiguration(new OfflinePetConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new SyncStateConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
@@ -49,49 +58,18 @@ public class OfflineDbContext : DbContext
     /// <inheritdoc />
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var entries = ChangeTracker.Entries<Entity>()
-            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
-            .ToList();
-
         var outboxMessages = new List<OutboxMessage>();
 
-        foreach (var entry in entries)
+        if (!SuppressOutbox)
         {
-            entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
+            var entries = ChangeTracker.Entries<Entity>()
+                .Where(e => e.State is EntityState.Added or EntityState.Modified)
+                .ToList();
 
-            if (entry.Entity is Tutor tutor)
+            foreach (var entry in entries)
             {
-                if (entry.State == EntityState.Added)
-                {
-                    var cmd = new
-                    {
-                        Id = tutor.Id,
-                        Name = tutor.Name,
-                        Email = tutor.Email.Address,
-                        Cpf = tutor.Cpf.Number,
-                        Phone = tutor.Phone.Number
-                    };
-                    outboxMessages.Add(new OutboxMessage
-                    {
-                        Type = "CreateTutorCommand",
-                        Payload = JsonSerializer.Serialize(cmd)
-                    });
-                }
-                else if (entry.State == EntityState.Modified)
-                {
-                    var cmd = new
-                    {
-                        Id = tutor.Id,
-                        Name = tutor.Name,
-                        Email = tutor.Email.Address,
-                        Phone = tutor.Phone.Number
-                    };
-                    outboxMessages.Add(new OutboxMessage
-                    {
-                        Type = "UpdateTutorCommand",
-                        Payload = JsonSerializer.Serialize(cmd)
-                    });
-                }
+                entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
+                EnqueueOutbox(entry, outboxMessages);
             }
         }
 
@@ -108,5 +86,122 @@ public class OfflineDbContext : DbContext
         }
 
         return count;
+    }
+
+    private static void EnqueueOutbox(EntityEntry entry, ICollection<OutboxMessage> outboxMessages)
+    {
+        if (entry.Entity is Tutor tutor)
+        {
+            EnqueueTutorOutbox(entry, tutor, outboxMessages);
+        }
+        else if (entry.Entity is Pet pet)
+        {
+            EnqueuePetOutbox(entry, pet, outboxMessages);
+        }
+    }
+
+    private static void EnqueueTutorOutbox(EntityEntry entry, Tutor tutor, ICollection<OutboxMessage> outboxMessages)
+    {
+        var outboxId = Guid.NewGuid();
+
+        if (entry.State == EntityState.Added)
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "CreateTutorCommand",
+                Payload = OutboxPayloadFactory.CreateTutor(
+                    tutor.Id,
+                    tutor.Name,
+                    tutor.Email.Address,
+                    tutor.Cpf.Number,
+                    tutor.Phone.Number,
+                    outboxId)
+            });
+            return;
+        }
+
+        if (BecameDeleted(entry))
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "DeleteTutorCommand",
+                Payload = OutboxPayloadFactory.DeleteTutor(tutor.Id, outboxId)
+            });
+            return;
+        }
+
+        outboxMessages.Add(new OutboxMessage
+        {
+            Id = outboxId,
+            Type = "UpdateTutorCommand",
+            Payload = OutboxPayloadFactory.UpdateTutor(
+                tutor.Id,
+                tutor.Name,
+                tutor.Email.Address,
+                tutor.Phone.Number,
+                tutor.UpdatedAt,
+                outboxId)
+        });
+    }
+
+    private static void EnqueuePetOutbox(EntityEntry entry, Pet pet, ICollection<OutboxMessage> outboxMessages)
+    {
+        var outboxId = Guid.NewGuid();
+
+        if (entry.State == EntityState.Added)
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "CreatePetCommand",
+                Payload = OutboxPayloadFactory.CreatePet(
+                    pet.Id,
+                    pet.Name,
+                    pet.Species.ToString(),
+                    pet.Breed,
+                    pet.Sex.ToString(),
+                    pet.TutorId,
+                    outboxId)
+            });
+            return;
+        }
+
+        if (BecameDeleted(entry))
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "DeletePetCommand",
+                Payload = OutboxPayloadFactory.DeletePet(pet.Id, outboxId)
+            });
+            return;
+        }
+
+        outboxMessages.Add(new OutboxMessage
+        {
+            Id = outboxId,
+            Type = "UpdatePetCommand",
+            Payload = OutboxPayloadFactory.UpdatePet(
+                pet.Id,
+                pet.Name,
+                pet.Species.ToString(),
+                pet.Breed,
+                pet.Sex.ToString(),
+                pet.UpdatedAt,
+                outboxId)
+        });
+    }
+
+    private static bool BecameDeleted(EntityEntry entry)
+    {
+        if (entry.State != EntityState.Modified)
+        {
+            return false;
+        }
+
+        var deletedProperty = entry.Properties.FirstOrDefault(p => p.Metadata.Name == nameof(ISoftDeletable.IsDeleted));
+        return deletedProperty is { IsModified: true } && deletedProperty.CurrentValue is true;
     }
 }

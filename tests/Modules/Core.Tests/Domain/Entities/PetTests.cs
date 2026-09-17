@@ -86,4 +86,31 @@ public class PetTests
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Pet.AlreadyDeleted");
     }
+
+    [Fact]
+    public void Update_ShouldBumpUpdatedAt_WhenSuccessful()
+    {
+        var tutorId = Guid.NewGuid();
+        var pet = Pet.Create("Thor", PetSpecies.Dog, "Bulldog", PetSex.Male, tutorId).Value;
+        var before = pet.UpdatedAt;
+        Thread.Sleep(5);
+
+        var result = pet.Update("Thor Jr", PetSpecies.Dog, "Bulldog", PetSex.Male);
+
+        result.IsSuccess.Should().BeTrue();
+        pet.UpdatedAt.Should().BeAfter(before);
+    }
+
+    [Fact]
+    public void SoftDelete_ShouldBumpUpdatedAt_WhenFirstDelete()
+    {
+        var tutorId = Guid.NewGuid();
+        var pet = Pet.Create("Thor", PetSpecies.Dog, "Bulldog", PetSex.Male, tutorId).Value;
+        var before = pet.UpdatedAt;
+        Thread.Sleep(5);
+
+        pet.SoftDelete().IsSuccess.Should().BeTrue();
+
+        pet.UpdatedAt.Should().BeAfter(before);
+    }
 }

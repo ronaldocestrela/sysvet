@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SharedUI.Layout;
 using Xunit;
 using SharedUI.Services;
+using Clients.Tests.Fakes;
 
 namespace Clients.Tests.SharedUI.Layout;
 
@@ -13,8 +14,8 @@ public class MainLayoutTests : BunitContext
     public MainLayoutTests()
     {
         Services.AddSingleton<IToastService, ToastService>();
-        Services.AddScoped<IAuthState, DummyAuthState>();
-        Services.AddScoped<IConnectivityService, DummyConnectivityService>();
+        Services.AddScoped<IAuthState, FakeAuthState>();
+        Services.AddScoped<IConnectivityService, FakeConnectivityService>();
     }
 
     [Fact]
@@ -42,27 +43,5 @@ public class MainLayoutTests : BunitContext
         // Assert NavMenu stub is rendered
         Assert.True(cut.HasComponent<Bunit.TestDoubles.Stub<NavMenu>>());
         cut.Find(".toast-container");
-    }
-
-    private class DummyAuthState : IAuthState
-    {
-        public bool IsAuthenticated => true;
-        public IReadOnlyList<string> Menus { get; } = [];
-        public event EventHandler? SessionChanged;
-
-        public Task InitializeAsync() => Task.CompletedTask;
-        public Task<string?> GetTokenAsync() => Task.FromResult<string?>("dummy-token");
-        public Task<string?> GetRefreshTokenAsync() => Task.FromResult<string?>("refresh");
-        public Task LoginAsync(string accessToken, string refreshToken) => Task.CompletedTask;
-        public Task SetMenusAsync(IReadOnlyList<string> menus) => Task.CompletedTask;
-        public Task LogoutAsync() => Task.CompletedTask;
-    }
-
-    private class DummyConnectivityService : IConnectivityService
-    {
-        public ConnectivityStatus Status => ConnectivityStatus.Online;
-        public bool IsOnline => true;
-        public event EventHandler<ConnectivityStatus>? StatusChanged;
-        public void SetSyncing(bool isSyncing) { }
     }
 }

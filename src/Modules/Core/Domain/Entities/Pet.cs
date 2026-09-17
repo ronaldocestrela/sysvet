@@ -89,6 +89,7 @@ public class Pet : Entity, ISoftDeletable, IAuditable
         Species = species;
         Breed = breed?.Trim() ?? string.Empty;
         Sex = sex;
+        UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success();
     }
@@ -102,6 +103,7 @@ public class Pet : Entity, ISoftDeletable, IAuditable
         {
             IsDeleted = true;
             DeletedAt = DateTimeOffset.UtcNow;
+            UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         return Result.Success();

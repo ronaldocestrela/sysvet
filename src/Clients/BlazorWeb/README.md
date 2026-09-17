@@ -14,6 +14,17 @@ Host WASM do SysVet. **UI e layout** vêm de [`SharedUI`](../SharedUI/README.md)
 
 Rotas `@page` estão na SharedUI.
 
+## Pré-requisitos (Linux / WSL)
+
+Este projeto usa `<WasmBuildNative>true</WasmBuildNative>` para SQLite no browser ([ADR-014](../../docs/arquitetura/ADR-014-sqlite-local-clients.md)). No Linux/WSL:
+
+```bash
+dotnet workload install wasm-tools
+sudo apt-get install -y libatomic1
+```
+
+Sem `libatomic1`, o link nativo (`emcc`) falha ao iniciar o Node do pack Emscripten (`libatomic.so.1: cannot open shared object file`).
+
 ## Executar (dev)
 
 ```bash

@@ -25,6 +25,11 @@ public class UpdateTutorCommandHandler : IRequestHandler<UpdateTutorCommand, Res
             return Result.Failure(ErrorCodes.Tutor.NotFound);
         }
 
+        if (request.OccurredAt.HasValue && request.OccurredAt.Value < tutor.UpdatedAt)
+        {
+            return Result.Success();
+        }
+
         var emailResult = Email.Create(request.Email);
         if (emailResult.IsFailure) return emailResult;
 
@@ -33,6 +38,11 @@ public class UpdateTutorCommandHandler : IRequestHandler<UpdateTutorCommand, Res
 
         var updateResult = tutor.Update(request.Name, emailResult.Value, phoneResult.Value);
         if (updateResult.IsFailure) return updateResult;
+
+        if (request.OccurredAt.HasValue)
+        {
+            tutor.UpdatedAt = request.OccurredAt.Value;
+        }
 
         _tutorRepository.Update(tutor);
 

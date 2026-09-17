@@ -1,6 +1,6 @@
 # Status do Projeto SysVet
 
-**Data de Atualização:** 16/09/2026
+**Data de Atualização:** 17/09/2026
 
 Este documento contém o resumo de tudo o que foi construído até agora e serve de bússola para os desenvolvedores e IA saberem exatamente onde estamos no cronograma de desenvolvimento, evitando análises exaustivas a cada nova interação.
 
@@ -65,9 +65,13 @@ Iniciado o módulo de estoque.
 - `ITutorStore`/`IPetStore` offline; SharedUI tutor/pet sem dependência de rede para CRUD.
 - WASM: IndexedDB snapshot; MAUI: `AppDataDirectory/sysvet.db`; testes `Clients.Tests` (61+).
 
-### 👉 **Próxima Ação: Fase 3.5 — Motor de sincronização**
+### 👉 **Próxima Ação: Fase 3.6 — PoC E2E offline → nuvem**
 
-Outbox completo (pets), ingestão idempotente na API, pull, conflitos, retry/dead-letter.
+Documentar cenário reproduzível, métricas e limitações em `docs/arquitetura/sync-poc.md`.
+
+### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
+
+- Outbox completo tutor/pet/delete; `PushSyncBatchCommand` + `PullChangesQuery`; LWW; retry/dead-letter; `SyncBackgroundWorker` + `SetSyncing`.
 
 **Nota:** MAUI build local exige workload; Linux CI continua via `SaaS_Veterinario.ci.slnf` (sem MAUI).
 

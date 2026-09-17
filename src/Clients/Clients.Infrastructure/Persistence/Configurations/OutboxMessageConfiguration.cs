@@ -16,6 +16,7 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
         builder.HasKey(o => o.Id);
         builder.Property(o => o.Type).IsRequired().HasMaxLength(200);
         builder.Property(o => o.Payload).IsRequired();
+        builder.Property(o => o.AttemptCount).HasDefaultValue(0);
         builder.HasIndex(o => o.CreatedAt);
     }
 }

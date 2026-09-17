@@ -39,7 +39,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | Blazor WASM | **Concluído (3.2)** | PWA publish + manifest/ícones; JWT/refresh; CRM tutor/pet via API; CORS; ADR-012 |
 | SharedUI | **Concluído (3.1)** | Layout, tokens, DataGrid/FormField/Modal/Toast/LoadingState, `IAuthState`/`INavigationService`/`IToastService`, testes bUnit |
 | MAUI | **Concluído (3.3)** | Blazor Hybrid Android + Windows; JWT/CRM SharedUI; VetNexus branding; job `maui-publish` (Windows CI); ADR-013 |
-| SQLite / Sync offline | **Parcial (3.4 CRM local)** | SQLite client + IndexedDB WASM; sync motor 3.5 pendente |
+| SQLite / Sync offline | **Parcial (3.5 motor CRM)** | SQLite + outbox push/pull tutor/pet; PoC E2E 3.6 pendente |
 | CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test Linux, cobertura, artefato API, Dockerfile, publish MAUI (Windows runner) |
 | Módulos ausentes | **Pendente** | `Finance`, `Automations`, `Intelligence`, `TutorPortal`, `Platform` |
 
@@ -337,7 +337,7 @@ flowchart TD
 | **3.2 Blazor WASM PWA** | 8 | Concluído |
 | **3.3 MAUI Blazor Hybrid** | 13 | Concluído |
 | **3.4 SQLite local nos clients** | 8 | Concluído |
-| **3.5 Motor de sincronização** | 21 | Pendente |
+| **3.5 Motor de sincronização** | 21 | Concluído |
 | **3.6 PoC E2E offline → nuvem** | 5 | Pendente |
 | **Total Fase 3** | **63 SP** | |
 
@@ -378,22 +378,22 @@ flowchart TD
 
 **Aceite:** CRUD tutor/pet persiste localmente sem rede. ADR-014; testes `Clients.Tests` (CRM offline, migrations, UI stores).
 
-### 3.5 Motor de sincronização (21 SP)
+### 3.5 Motor de sincronização (21 SP) — Concluído
 
-**Decisão:** Registrar em ADR-002 (Dotmim.Sync **ou** Outbox + delta sync).
+**Decisão:** ADR-002 — Outbox + HTTP push/pull (Dotmim rejeitado).
 
 **Application / Infrastructure**
-- [ ] Tabela/fila `OutboxMessage` (ou equivalente) no client
-- [ ] `BackgroundService` na API para ingestão idempotente
-- [ ] Versionamento por registro (`RowVersion` / `SyncToken`)
-- [ ] Estratégia de conflito documentada (LWW ou merge por campo)
-- [ ] Retry exponencial; dead-letter para falhas permanentes
+- [x] Fila `OutboxMessage` no client (tutor/pet + delete; retry/dead-letter)
+- [x] Ingestão idempotente via `PushSyncBatchCommand` (MediatR no `POST /push`; worker no client)
+- [x] Versionamento por registro (`RowVersion` no pull; LWW por `UpdatedAt`/`OccurredAt` no push CRM)
+- [x] Conflito LWW documentado (ADR-002); merge por campo reservado a clínico
+- [x] Retry exponencial + dead-letter no client; pull com tombstones
 
 **Tests**
-- [ ] Testes de idempotência (reenvio não duplica)
-- [ ] Testes de conflito simulado
+- [x] Idempotência (reenvio não duplica) — `EndToEndSyncTests`, `PushSyncBatchCommandHandlerTests`
+- [x] LWW / stop-on-first-error — `UpdateTutorCommandHandlerTests`, sync Application tests
 
-**Aceite:** Sync bidirecional tutor/pet; fila drena após reconexão.
+**Aceite:** Sync bidirecional tutor/pet; fila drena após reconexão. ADR-002 atualizado.
 
 ### 3.6 PoC E2E offline → nuvem (5 SP)
 

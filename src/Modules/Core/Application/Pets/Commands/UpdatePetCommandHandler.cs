@@ -21,8 +21,18 @@ public class UpdatePetCommandHandler : IRequestHandler<UpdatePetCommand, Result>
             return Result.Failure(ErrorCodes.Pet.NotFound);
         }
 
+        if (request.OccurredAt.HasValue && request.OccurredAt.Value < pet.UpdatedAt)
+        {
+            return Result.Success();
+        }
+
         var updateResult = pet.Update(request.Name, request.Species, request.Breed, request.Sex);
         if (updateResult.IsFailure) return updateResult;
+
+        if (request.OccurredAt.HasValue)
+        {
+            pet.UpdatedAt = request.OccurredAt.Value;
+        }
 
         _petRepository.Update(pet);
 

@@ -48,4 +48,25 @@ public class UpdateTutorCommandHandlerTests
         result.Error.Code.Should().Be("Tutor.NotFound");
         _tutorRepository.DidNotReceive().Update(Arg.Any<Tutor>());
     }
+
+    [Fact]
+    public async Task Handle_WhenOccurredAtIsOlderThanServer_ShouldSkipUpdate()
+    {
+        var id = Guid.NewGuid();
+        var tutor = Tutor.Create("John Doe", Email.Create("john@example.com").Value, Cpf.Create("12345678909").Value, Phone.Create("11999999999").Value, id).Value;
+        tutor.UpdatedAt = DateTimeOffset.UtcNow;
+        _tutorRepository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(tutor);
+
+        var command = new UpdateTutorCommand(
+            id,
+            "Stale",
+            "stale@example.com",
+            "11777777777",
+            OccurredAt: tutor.UpdatedAt.AddMinutes(-10));
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        _tutorRepository.DidNotReceive().Update(Arg.Any<Tutor>());
+    }
 }

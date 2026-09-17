@@ -37,13 +37,13 @@ SharedUI (`Tutors.razor`, `Pets.razor`) injeta **`ITutorStore`/`IPetStore`**, n�
 
 WASM: **`WebIndexedDbSqlitePersistence`** + `wwwroot/js/sqlite-db-storage.js`; **`SQLitePCL.Batteries_V2.Init()`**; **`MigrateAsync`** após restore. MAUI: path `FileSystem.AppDataDirectory/sysvet.db`, **`NoOpSqliteFilePersistence`**.
 
-**Fonte da verdade na 3.4:** SQLite local. Dados existentes só na API **não** são hidratados até a 3.5 (pull). Outbox de **pet** permanece desabilitado nesta entrega.
+**Fonte da verdade na 3.4:** SQLite local. Dados existentes só na API **não** eram hidratados até a 3.5 (pull). Outbox de pet entregue na 3.5.
 
 ## Consequências
 
 - **Positivas:** aceite 3.4 (CRUD offline); mesmo DTO/`Result` que a API; 61+ testes em `Clients.Tests`.
 - **Negativas:** listas vazias até cadastro local; snapshot IndexedDB copia o arquivo inteiro (aceitável para CRM MVP).
-- **Pendências:** motor 3.5 (push/pull, outbox pet, `SetSyncing`, worker WASM).
+- **Pendências:** PoC 3.6 (`sync-poc.md`, métricas E2E).
 
 ## Confirmação no código
 

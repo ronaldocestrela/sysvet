@@ -32,29 +32,29 @@ Adotar **Transactional Outbox** em `Clients.Infrastructure`: entidade `OutboxMes
 
 Diagrama de sequência: [`docs/diagramas/sync-sequence.mmd`](../diagramas/sync-sequence.mmd).
 
-### Regras operacionais (pós-PoC)
+### Regras operacionais (Fase 3.5)
 
-- **Conflitos:** Last-Write-Wins por `UpdatedAt` (UTC); agregados críticos com `RowVersion` / resposta `409 Conflict`.
-- **Merge granular:** opcional em fichas clínicas quando campos offline não colidem.
-- **Pull:** endpoint paginado por timestamp/cursor (ex. `GET /api/v1/sync/pull?since=…`); cliente faz upsert local.
-- **Ordem:** FIFO por `CreatedAt`; **stop-on-first-error** no lote (dependências FK — ex. Tutor antes de Pet).
-- **Falhas:** backoff exponencial em erros transitórios; dead-letter / marcação de erro permanente para validação `400`.
-
-Implementação completa do motor na API (ingestão idempotente, pull, dead-letter) permanece no escopo da Fase 3.5 do [roadmap](../roadmap.md).
+- **Conflitos (CRM):** Last-Write-Wins por `UpdatedAt` (UTC) via `OccurredAt` nos commands de update; REST online continua com `RowVersion` / `409` quando aplicável.
+- **Pull:** `PullChangesQuery` + `SyncChangeFeedReader` (tombstones com `IgnoreQueryFilters`); cliente aplica via `OfflineSyncPullApplier` com `SuppressOutbox`.
+- **Push:** `PushSyncBatchCommand` (MediatR, stop-on-first-error); `OutboxMessage.Id` → `IdempotencyKey`; ingestão **síncrona** no `POST /api/v1/sync/push` (sem fila no servidor).
+- **Ordem:** FIFO por `CreatedAt`; tutor antes de pet (FK).
+- **Falhas no client:** backoff exponencial (`AttemptCount`, `NextRetryAt`); dead-letter em `OutboxMessage.Error` para falhas permanentes.
+- **UI:** `ISyncConnectivity` / `SetSyncing` durante ciclo online; worker no client (Blazor WASM / MAUI).
 
 ## Consequências
 
 - **Positivas:** alinhamento com TDD e repositório offline único; sem tabelas de tracking de terceiros no SQL Server.
-- **Negativas:** mais código de infra nos clientes e na API de sync.
-- **Pendências:** endpoints de sync definitivos e sync bidirecional tutor/pet conforme roadmap 3.5.
+- **Negativas:** worker WASM depende da aba aberta; snapshot IndexedDB copia o `.db` inteiro.
+- **Pendências:** PoC E2E documentada na Fase 3.6 (`sync-poc.md`).
 
 ## Confirmação no código
 
-- [`src/Clients/Clients.Infrastructure/OfflineDbContext.cs`](../../src/Clients/Clients.Infrastructure/OfflineDbContext.cs) — persistência local.
-- [`OutboxMessage`](../../src/Clients/Clients.Infrastructure/Sync/OutboxMessage.cs) — fila outbox.
-- [`SyncBackgroundWorker`](../../src/Clients/Clients.Infrastructure/Sync/SyncBackgroundWorker.cs) — poll ~30s, lote até 50 mensagens, ordenação FIFO, `ISyncHttpClient.PushAsync`.
-- Referências: [`BlazorWeb.csproj`](../../src/Clients/BlazorWeb/BlazorWeb.csproj), [`MauiApp.csproj`](../../src/Clients/MauiApp/MauiApp.csproj) → `Clients.Infrastructure`.
-- PoC: [`tests/PoC.SyncTests/`](../../tests/PoC.SyncTests/).
+- [`OfflineDbContext`](../../src/Clients/Clients.Infrastructure/OfflineDbContext.cs) — outbox tutor/pet + delete; `SuppressOutbox`.
+- [`OutboxMessage`](../../src/Clients/Clients.Infrastructure/Sync/OutboxMessage.cs) — retry/dead-letter.
+- [`SyncBackgroundWorker`](../../src/Clients/Clients.Infrastructure/Sync/SyncBackgroundWorker.cs) — push/pull, backoff, `ISyncConnectivity`.
+- [`PushSyncBatchCommand`](../../src/Modules/Core/Application/Sync/PushSyncBatchCommand.cs) / [`PullChangesQuery`](../../src/Modules/Core/Application/Sync/PullChangesQuery.cs) — ingestão CQRS.
+- [`SyncEndpointExtensions`](../../src/API/Extensions/SyncEndpointExtensions.cs) — `/api/v1/sync/push|pull`.
+- PoC histórica: [`tests/PoC.SyncTests/`](../../tests/PoC.SyncTests/); E2E: [`tests/API.IntegrationTests/EndToEndSyncTests.cs`](../../tests/API.IntegrationTests/EndToEndSyncTests.cs).
 
 ## Relacionados
 

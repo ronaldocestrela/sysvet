@@ -57,6 +57,7 @@ namespace Clients.Tests
                 
                 var message = outboxMessages.First();
                 Assert.Equal("CreateTutorCommand", message.Type);
+                Assert.Contains("IdempotencyKey", message.Payload);
                 Assert.Contains("Tutor Offline", message.Payload);
                 Assert.Contains("offline@teste.com", message.Payload);
                 Assert.Null(message.ProcessedAt); // Ainda não processado

@@ -6,21 +6,25 @@ sequenceDiagram
     participant API as SysVet API
     participant CDB as Cloud DB (SQL Server / SQLite dev)
 
-    U->>C: Create/Edit Pet
-    C->>DB: Save Pet (Local)
-    C->>DB: Add OutboxMessage (same transaction)
+    U->>C: Create/Edit Tutor or Pet
+    C->>DB: Save entity plus OutboxMessage same transaction
     DB-->>C: Saved Locally
     C-->>U: Success (No Network Required)
 
     loop Every ~30s or connectivity restored
-        B->>DB: Read pending OutboxMessages (FIFO, batch up to 50)
+        B->>B: SetSyncing true when online
+        B->>DB: Read pending OutboxMessages FIFO batch up to 50
         alt Is Online
-            B->>API: HTTP POST sync push (payload)
-            API->>CDB: Process command (idempotent)
-            CDB-->>API: Success
-            API-->>B: 200 OK
-            B->>DB: Mark OutboxMessage ProcessedAt
+            B->>API: HTTP POST sync push
+            API->>CDB: PushSyncBatchCommand MediatR idempotent
+            CDB-->>API: ProcessedIds or FailedMessageId
+            API-->>B: SyncPushResult
+            B->>DB: ProcessedAt or Error or NextRetryAt
+            B->>API: HTTP GET sync pull since cursor
+            API-->>B: tutors pets tombstones
+            B->>DB: Upsert SuppressOutbox advance SyncState
         else Is Offline
-            B-->>B: Wait next cycle (retain locally)
+            B-->>B: Wait next cycle retain locally
         end
+        B->>B: SetSyncing false
     end

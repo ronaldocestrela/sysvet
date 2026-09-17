@@ -30,7 +30,13 @@ public class OutboxMessage
     public DateTimeOffset? ProcessedAt { get; set; }
     
     /// <summary>
-    /// Mensagem de erro caso o processamento ou envio tenha falhado.
+    /// Mensagem de erro caso o processamento ou envio tenha falhado (dead-letter).
     /// </summary>
     public string? Error { get; set; }
+
+    /// <summary>Number of failed push attempts for backoff scheduling.</summary>
+    public int AttemptCount { get; set; }
+
+    /// <summary>Do not push before this instant (exponential backoff).</summary>
+    public DateTimeOffset? NextRetryAt { get; set; }
 }

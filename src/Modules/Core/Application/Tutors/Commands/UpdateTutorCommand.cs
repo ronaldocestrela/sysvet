@@ -6,4 +6,4 @@ using Core.Domain.Authorization;
 namespace Core.Application.Tutors.Commands;
 
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.TutorsWrite)]
-public record UpdateTutorCommand(Guid Id, string Name, string Email, string Phone, Guid IdempotencyKey = default) : IIdempotentCommand;
+public record UpdateTutorCommand(Guid Id, string Name, string Email, string Phone, DateTimeOffset? OccurredAt = null, Guid IdempotencyKey = default) : IIdempotentCommand;

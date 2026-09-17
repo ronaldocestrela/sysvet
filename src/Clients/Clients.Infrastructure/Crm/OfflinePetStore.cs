@@ -5,7 +5,7 @@ using Core.Domain.Entities;
 namespace Clients.Infrastructure.Crm;
 
 /// <summary>
-/// Offline adapter: persists pets in local SQLite (outbox for pets deferred to sync phase 3.5).
+/// Offline adapter: persists pets in local SQLite and enqueues outbox messages on save.
 /// </summary>
 public sealed class OfflinePetStore : IPetStore
 {

@@ -41,6 +41,12 @@ jobs:
       - name: Restore
         run: dotnet restore SaaS_Veterinario.ci.slnf
 
+      - name: Install WASM native prereqs
+        run: sudo apt-get update && sudo apt-get install -y libatomic1
+
+      - name: Install wasm-tools
+        run: dotnet workload install wasm-tools
+
       - name: Build
         run: dotnet build SaaS_Veterinario.ci.slnf --no-restore --configuration Release
 

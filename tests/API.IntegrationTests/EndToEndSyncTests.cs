@@ -109,21 +109,44 @@ public class EndToEndSyncTests
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenInfo!.AccessToken);
 
         // Push to API
-        var pushResponse = await httpClient.PostAsJsonAsync("/api/v1/sync/push", pendingMessages);
+        var pushResponse = await httpClient.PostAsJsonAsync("/api/v1/sync/push", pendingMessages.Select(m => new
+        {
+            m.Id,
+            m.Type,
+            m.Payload,
+            m.CreatedAt
+        }));
         
         stopwatch.Stop();
 
-        // Assert push was successful
-        // Assert push was successful
         if (!pushResponse.IsSuccessStatusCode)
         {
             var err = await pushResponse.Content.ReadAsStringAsync();
             throw new Exception($"Push failed with status {pushResponse.StatusCode} and body {err}");
         }
 
-        // After successful push, the client cleans up the outbox
-        offlineDb.OutboxMessages.RemoveRange(pendingMessages);
+        var pushResult = await pushResponse.Content.ReadFromJsonAsync<Core.Application.Sync.SyncPushResult>();
+        pushResult.Should().NotBeNull();
+        pushResult!.ProcessedIds.Should().ContainSingle().Which.Should().Be(pendingMessages[0].Id);
+
+        foreach (var id in pushResult.ProcessedIds)
+        {
+            var msg = pendingMessages.First(m => m.Id == id);
+            msg.ProcessedAt = DateTimeOffset.UtcNow;
+        }
+
         await offlineDb.SaveChangesAsync();
+        (await offlineDb.OutboxMessages.Where(m => m.ProcessedAt != null).CountAsync()).Should().Be(1);
+
+        // Replay must not duplicate on server
+        var replayResponse = await httpClient.PostAsJsonAsync("/api/v1/sync/push", pendingMessages.Select(m => new
+        {
+            m.Id,
+            m.Type,
+            m.Payload,
+            m.CreatedAt
+        }));
+        replayResponse.EnsureSuccessStatusCode();
 
         // 4. Assert - Verify Data on the Server
         // We will call the standard GET endpoint to check if the Tutor was successfully persisted and rules applied
@@ -146,5 +169,50 @@ public class EndToEndSyncTests
         // Documenting Metrics in the test output implicitly
         Console.WriteLine($"[METRICS] Sync time (Offline Save -> API Push): {stopwatch.ElapsedMilliseconds}ms");
         Console.WriteLine($"[METRICS] Outbox messages synced: {pendingMessages.Count}");
+    }
+
+    [Fact]
+    public async Task Push_TutorThenPet_ShouldRespectFifoOrder()
+    {
+        var offlineDbOptions = new DbContextOptionsBuilder<OfflineDbContext>()
+            .UseSqlite("DataSource=:memory:")
+            .Options;
+
+        using var offlineDb = new OfflineDbContext(offlineDbOptions, new Clients.Infrastructure.Persistence.NoOpSqliteFilePersistence());
+        await offlineDb.Database.OpenConnectionAsync();
+        await offlineDb.Database.MigrateAsync();
+
+        var tutorId = Guid.NewGuid();
+        var tutor = Tutor.Create(
+            "Tutor Pet Sync",
+            Email.Create("pet-sync@test.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11988887777").Value,
+            tutorId).Value;
+        offlineDb.Tutors.Add(tutor);
+        await offlineDb.SaveChangesAsync();
+
+        var pet = Pet.Create("Buddy", PetSpecies.Dog, "Mix", PetSex.Male, tutorId).Value;
+        offlineDb.Pets.Add(pet);
+        await offlineDb.SaveChangesAsync();
+
+        var messages = (await offlineDb.OutboxMessages.ToListAsync())
+            .OrderBy(m => m.CreatedAt)
+            .ToList();
+        messages.Should().HaveCount(2);
+        messages[0].Type.Should().Be("CreateTutorCommand");
+        messages[1].Type.Should().Be("CreatePetCommand");
+
+        var httpClient = _factory.CreateClient();
+        await SeedUserAsync();
+        var loginResponse = await httpClient.PostAsJsonAsync("/api/v1/auth/login", new { Email = "syncadmin@sysvet.com", Password = "Password123!" });
+        loginResponse.EnsureSuccessStatusCode();
+        var tokenInfo = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenInfo!.AccessToken);
+
+        var pushResponse = await httpClient.PostAsJsonAsync("/api/v1/sync/push", messages.Select(m => new { m.Id, m.Type, m.Payload, m.CreatedAt }));
+        pushResponse.EnsureSuccessStatusCode();
+        var pushResult = await pushResponse.Content.ReadFromJsonAsync<Core.Application.Sync.SyncPushResult>();
+        pushResult!.ProcessedIds.Should().HaveCount(2);
     }
 }

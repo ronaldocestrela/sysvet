@@ -6,6 +6,7 @@ using SharedUI.Navigation;
 using SharedUI.Routing;
 using SharedUI.Services;
 using Xunit;
+using Clients.Tests.Fakes;
 
 namespace Clients.Tests.SharedUI.Routing;
 
@@ -37,7 +38,7 @@ public class AuthorizeRouteViewTests : BunitContext
         Services.AddSingleton<IAuthState>(authState);
         Services.AddSingleton<INavigationService>(nav);
         Services.AddSingleton<IToastService, ToastService>();
-        Services.AddScoped<IConnectivityService>(_ => new DummyConnectivityService());
+        Services.AddScoped<IConnectivityService>(_ => new FakeConnectivityService());
         ComponentFactories.AddStub<global::SharedUI.Layout.NavMenu>();
         ComponentFactories.AddStub<global::SharedUI.Pages.Tutors>();
 
@@ -53,13 +54,5 @@ public class AuthorizeRouteViewTests : BunitContext
         public string? LastTarget { get; private set; }
 
         public void NavigateTo(string uri, bool forceLoad = false) => LastTarget = uri;
-    }
-
-    private sealed class DummyConnectivityService : IConnectivityService
-    {
-        public ConnectivityStatus Status => ConnectivityStatus.Online;
-        public bool IsOnline => true;
-        public event EventHandler<ConnectivityStatus>? StatusChanged;
-        public void SetSyncing(bool isSyncing) { }
     }
 }

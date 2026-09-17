@@ -32,7 +32,8 @@ builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 
 builder.Services.AddSharedUI();
 builder.Services.AddSingleton<SharedUI.Services.INavigationService, WebNavigationService>();
-builder.Services.AddScoped<SharedUI.Services.IConnectivityService, WebConnectivityService>();
+builder.Services.AddSingleton<SharedUI.Services.IConnectivityService, WebConnectivityService>();
+builder.Services.AddSingleton<Clients.Infrastructure.Sync.ISyncConnectivity, SharedUI.Services.SyncConnectivityAdapter>();
 
 builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
 builder.Services.AddScoped<SharedUI.Services.IInventoryApiService, SharedUI.Services.MockInventoryApiService>();

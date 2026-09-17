@@ -10,6 +10,13 @@ O pipeline [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em push/P
 
 Para bloquear merge quando o CI falhar: GitHub → **Settings → Branches** → regra em `main`/`develop` → exigir o status check **`build-and-test`**.
 
+### Pré-requisitos locais (Linux / WSL)
+
+Para compilar a solução completa (inclui Blazor WASM com SQLite nativo):
+
+- Workload .NET: `dotnet workload install wasm-tools`
+- Ubuntu/Debian: `sudo apt-get install -y libatomic1` (Node do Emscripten usado no link `emcc`; sem essa lib o build falha com exit 127)
+
 ## Navegação Rápida
 
 | Área | Link |

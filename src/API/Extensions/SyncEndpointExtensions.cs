@@ -1,105 +1,33 @@
-using Core.Application.Tutors.Commands;
-using Core.Domain;
+using Core.Application.Sync;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace API.Extensions;
 
-public class SyncMessageDto
-{
-    public Guid Id { get; set; }
-    public string Type { get; set; } = string.Empty;
-    public string Payload { get; set; } = string.Empty;
-    public DateTimeOffset CreatedAt { get; set; }
-}
-
+/// <summary>
+/// Minimal API routes for offline sync push/pull (ADR-002).
+/// </summary>
 public static class SyncEndpointExtensions
 {
+    /// <summary>
+    /// Maps sync endpoints under /api/v1/sync.
+    /// </summary>
     public static void MapSyncEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/v1/sync").RequireAuthorization().WithTags("Core", "Sync");
+        var group = builder.MapGroup("/api/v1/sync")
+            .RequireAuthorization(Core.Application.Authorization.AuthorizationPolicies.ClinicStaff)
+            .WithTags("Core", "Sync");
 
-        // PUSH: Recebe mensagens Outbox do cliente
-        group.MapPost("/push", async ([FromBody] List<SyncMessageDto> messages, IMediator mediator) =>
+        group.MapPost("/push", async ([FromBody] List<SyncOutboxMessageDto> messages, IMediator mediator, HttpContext httpContext) =>
         {
-            if (messages == null || !messages.Any())
-                return Results.Ok();
-
-            // Lógica Stop-On-First-Error na API para garantir consistência
-            foreach (var message in messages.OrderBy(m => m.CreatedAt))
-            {
-                try
-                {
-                    object? command = null;
-                    if (message.Type is nameof(CreateTutorCommand) or "RegisterTutorCommand")
-                    {
-                        command = JsonSerializer.Deserialize<CreateTutorCommand>(message.Payload);
-                    }
-                    else if (message.Type == nameof(UpdateTutorCommand))
-                    {
-                        command = JsonSerializer.Deserialize<UpdateTutorCommand>(message.Payload);
-                    }
-                    // Adicionar outros commands aqui...
-
-                    if (command != null)
-                    {
-                        // TODO: Tratar o retorno do Mediator (Result<T>) e mapear erros para ProblemDetails/409/400
-                        // Isso é um esboço de integração MediatR idempotente
-                        await mediator.Send(command);
-                    }
-                }
-                catch (Exception)
-                {
-                    return Result.Failure(new Error("Sync.MessageProcessingFailed", $"Failed to process message {message.Id}."))
-                        .ToProblemDetails();
-                }
-            }
-
-            return Results.Ok();
+            var result = await mediator.Send(new PushSyncBatchCommand(messages ?? []));
+            return result.ToHttpResult(httpContext);
         });
 
-        // PULL: Retorna os dados alterados desde o timestamp fornecido
-        group.MapGet("/pull", async ([FromQuery] DateTimeOffset since, Core.Infrastructure.Persistence.CoreDbContext dbContext) =>
+        group.MapGet("/pull", async ([FromQuery] DateTimeOffset since, [FromQuery] int? take, IMediator mediator, HttpContext httpContext) =>
         {
-            // Consulta de CDC (Change Data Capture) simplificada usando `UpdatedAt`.
-            // Para maior robustez (ex: registros deletados), poderíamos usar Soft Delete ou CDC nativo do SQL Server.
-            var allTutors = await dbContext.Tutors.ToListAsync();
-            var tutors = allTutors
-                .Where(t => t.UpdatedAt > since)
-                .Select(t => new 
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    Email = t.Email.Address,
-                    Cpf = t.Cpf.Number,
-                    Phone = t.Phone.Number,
-                    UpdatedAt = t.UpdatedAt,
-                    RowVersion = Convert.ToBase64String(t.RowVersion ?? Array.Empty<byte>())
-                })
-                .ToList();
-
-            var allPets = await dbContext.Pets.ToListAsync();
-            var pets = allPets
-                .Where(p => p.UpdatedAt > since)
-                .Select(p => new 
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Species = p.Species.ToString(),
-                    Breed = p.Breed,
-                    Sex = p.Sex.ToString(),
-                    TutorId = p.TutorId,
-                    UpdatedAt = p.UpdatedAt,
-                    RowVersion = Convert.ToBase64String(p.RowVersion ?? Array.Empty<byte>())
-                })
-                .ToList();
-            
-            return Results.Ok(new {
-                Tutors = tutors,
-                Pets = pets
-            });
+            var result = await mediator.Send(new PullChangesQuery(since, take ?? 100));
+            return result.ToHttpResult(httpContext);
         });
     }
 }

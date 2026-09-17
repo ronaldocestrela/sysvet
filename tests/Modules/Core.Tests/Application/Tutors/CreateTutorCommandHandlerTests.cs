@@ -54,4 +54,20 @@ public class CreateTutorCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Code.Should().Be("Tutor.DuplicateCpf");
     }
+
+    [Fact]
+    public async Task Handle_WhenSameIdAlreadyExists_ShouldReturnSuccessWithoutDuplicateError()
+    {
+        var id = Guid.NewGuid();
+        var existing = Tutor.Create("Existing", Email.Create("a@b.com").Value, Cpf.Create("12345678909").Value, Phone.Create("11999999999").Value, id).Value;
+        _tutorRepository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(existing);
+
+        var command = new CreateTutorCommand(id, "John Doe", "john@example.com", "12345678909", "11999999999");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(id);
+        _tutorRepository.DidNotReceive().Add(Arg.Any<Tutor>());
+    }
 }

@@ -102,6 +102,7 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
         Name = name.Trim();
         Email = email;
         Phone = phone;
+        UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success();
     }
@@ -115,6 +116,7 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
         {
             IsDeleted = true;
             DeletedAt = DateTimeOffset.UtcNow;
+            UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         return Result.Success();

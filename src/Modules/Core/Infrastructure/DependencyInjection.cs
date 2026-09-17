@@ -7,6 +7,7 @@ using Core.Infrastructure.HealthChecks;
 using Core.Infrastructure.Identity;
 using Core.Application.Authorization;
 using Core.Application.Common.Interfaces;
+using Core.Application.Sync;
 using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
 using Core.Infrastructure.Persistence.Seeding;
@@ -90,6 +91,7 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
         services.AddScoped<ITutorRepository, TutorRepository>();
         services.AddScoped<IPetRepository, PetRepository>();
+        services.AddScoped<ISyncChangeFeedReader, SyncChangeFeedReader>();
         services.AddScoped<IAccessProfileRepository, AccessProfileRepository>();
         services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();

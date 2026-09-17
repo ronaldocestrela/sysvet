@@ -125,4 +125,37 @@ public class TutorTests
 
         tutor.IsActive.Should().BeTrue();
     }
+
+    [Fact]
+    public void Update_ShouldBumpUpdatedAt_WhenSuccessful()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+        var before = tutor.UpdatedAt;
+        Thread.Sleep(5);
+
+        var result = tutor.Update("Maria Santos",
+            Email.Create("maria.santos@example.com").Value,
+            Phone.Create("11888887777").Value);
+
+        result.IsSuccess.Should().BeTrue();
+        tutor.UpdatedAt.Should().BeAfter(before);
+    }
+
+    [Fact]
+    public void SoftDelete_ShouldBumpUpdatedAt_WhenFirstDelete()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+        var before = tutor.UpdatedAt;
+        Thread.Sleep(5);
+
+        tutor.SoftDelete().IsSuccess.Should().BeTrue();
+
+        tutor.UpdatedAt.Should().BeAfter(before);
+    }
 }

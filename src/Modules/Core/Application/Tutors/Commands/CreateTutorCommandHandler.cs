@@ -23,6 +23,12 @@ public class CreateTutorCommandHandler : IRequestHandler<CreateTutorCommand, Res
     /// <inheritdoc />
     public async Task<Result<Guid>> Handle(CreateTutorCommand request, CancellationToken cancellationToken)
     {
+        var existingById = await _tutorRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (existingById is not null)
+        {
+            return Result.Success(existingById.Id);
+        }
+
         var emailResult = Email.Create(request.Email);
         if (emailResult.IsFailure) return Result.Failure<Guid>(emailResult.Error);
 
@@ -33,13 +39,13 @@ public class CreateTutorCommandHandler : IRequestHandler<CreateTutorCommand, Res
         if (phoneResult.IsFailure) return Result.Failure<Guid>(phoneResult.Error);
 
         var existingCpf = await _tutorRepository.GetByCpfAsync(cpfResult.Value.Number, cancellationToken);
-        if (existingCpf is not null)
+        if (existingCpf is not null && existingCpf.Id != request.Id)
         {
             return Result.Failure<Guid>(ErrorCodes.Tutor.DuplicateCpf);
         }
 
         var existingEmail = await _tutorRepository.GetByEmailAsync(emailResult.Value.Address, cancellationToken);
-        if (existingEmail is not null)
+        if (existingEmail is not null && existingEmail.Id != request.Id)
         {
             return Result.Failure<Guid>(ErrorCodes.Tutor.DuplicateEmail);
         }

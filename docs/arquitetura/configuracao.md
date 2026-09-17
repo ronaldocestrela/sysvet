@@ -108,6 +108,7 @@ curl -sk -X POST https://localhost:7180/api/v1/auth/login \
 
 ### Blazor WASM (Fase 3.2)
 
+- **Build Linux/WSL:** workload `wasm-tools` + pacote `libatomic1` (link nativo WASM/SQLite via `WasmBuildNative`; sem `libatomic.so.1` o `emcc` falha com exit 127).
 - **API base URL:** `src/Clients/BlazorWeb/wwwroot/appsettings.Development.json` → `"ApiBaseUrl": "https://localhost:7180/"`.
 - **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252` e `http://localhost:5259` (origens do BlazorWeb dev).
 - **PWA:** validar instalação/offline após `dotnet publish src/Clients/BlazorWeb/BlazorWeb.csproj` (service worker ativo no output `wwwroot/`). Ver [ADR-012](./ADR-012-blazor-pwa-jwt.md).

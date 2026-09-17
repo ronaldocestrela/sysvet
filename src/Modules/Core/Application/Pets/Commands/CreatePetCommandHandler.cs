@@ -24,6 +24,12 @@ public class CreatePetCommandHandler : IRequestHandler<CreatePetCommand, Result<
     /// <inheritdoc />
     public async Task<Result<Guid>> Handle(CreatePetCommand request, CancellationToken cancellationToken)
     {
+        var existingById = await _petRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (existingById is not null)
+        {
+            return Result.Success(existingById.Id);
+        }
+
         var tutor = await _tutorRepository.GetByIdAsync(request.TutorId, cancellationToken);
         if (tutor is null)
         {
