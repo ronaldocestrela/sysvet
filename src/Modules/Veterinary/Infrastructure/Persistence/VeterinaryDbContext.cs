@@ -22,6 +22,12 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
     public DbSet<EvolutionNote> EvolutionNotes => Set<EvolutionNote>();
     public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
     public DbSet<Hospitalization> Hospitalizations => Set<Hospitalization>();
+    public DbSet<PrescriptionTemplate> PrescriptionTemplates => Set<PrescriptionTemplate>();
+    public DbSet<PrescriptionTemplateItem> PrescriptionTemplateItems => Set<PrescriptionTemplateItem>();
+    public DbSet<IssuedPrescription> IssuedPrescriptions => Set<IssuedPrescription>();
+    public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
+    public DbSet<ClinicalExam> ClinicalExams => Set<ClinicalExam>();
+    public DbSet<ClinicalAttachment> ClinicalAttachments => Set<ClinicalAttachment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

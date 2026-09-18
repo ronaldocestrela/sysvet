@@ -6,6 +6,8 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Veterinary.Application.Appointments.Commands;
+using Veterinary.Application.Clinical.Commands;
+using Veterinary.Application.Clinical.Dtos;
 
 namespace API.IntegrationTests;
 
@@ -51,6 +53,7 @@ public class ModuleRegistrationTests
         var provider = scope.ServiceProvider;
         provider.GetService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>().Should().NotBeNull();
         provider.GetService<IRequestHandler<ScheduleAppointmentCommand, Result<Guid>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<ListClinicalExamsByAppointmentQuery, Result<IReadOnlyList<ClinicalExamDto>>>>().Should().NotBeNull();
     }
 
     [Fact]

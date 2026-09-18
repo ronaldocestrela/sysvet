@@ -1,0 +1,17 @@
+flowchart TB
+  Appointment[Appointment]
+  MedicalRecord[MedicalRecord]
+  Template[PrescriptionTemplate]
+  Issued[IssuedPrescription]
+  Exam[ClinicalExam]
+  Attachment[ClinicalAttachment]
+  Blob[IBlobStorage]
+
+  Appointment -->|"1:1"| MedicalRecord
+  Appointment --> Issued
+  Appointment --> Exam
+  Appointment -->|"required"| Attachment
+  Template -->|"item snapshot"| Issued
+  Exam -.-> Attachment
+  MedicalRecord -.-> Attachment
+  Attachment -->|"BlobKey"| Blob

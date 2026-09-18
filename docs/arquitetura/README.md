@@ -20,6 +20,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-012](./ADR-012-blazor-pwa-jwt.md) | Blazor WASM PWA, JWT cliente, CORS | Accepted |
 | [ADR-013](./ADR-013-maui-blazor-hybrid.md) | MAUI Blazor Hybrid, JWT compartilhado, CI Windows | Accepted |
 | [ADR-014](./ADR-014-sqlite-local-clients.md) | SQLite local CRM nos clients (EF, IndexedDB WASM) | Accepted |
+| [ADR-015](./ADR-015-blob-storage-clinico.md) | Blob storage clínico (anexos, sync metadados) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

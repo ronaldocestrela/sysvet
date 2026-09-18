@@ -95,6 +95,77 @@ public sealed class SyncMedicalRecordDto
     public string RowVersion { get; init; } = string.Empty;
 }
 
+/// <summary>Prescription template row returned by sync pull.</summary>
+public sealed class SyncPrescriptionTemplateDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Species { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public IReadOnlyList<SyncPrescriptionLineDto> Items { get; init; } = Array.Empty<SyncPrescriptionLineDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Medication line in sync payloads.</summary>
+public sealed class SyncPrescriptionLineDto
+{
+    public Guid Id { get; init; }
+    public string MedicationName { get; init; } = string.Empty;
+    public string Concentration { get; init; } = string.Empty;
+    public string Dose { get; init; } = string.Empty;
+    public string Route { get; init; } = string.Empty;
+    public string Frequency { get; init; } = string.Empty;
+    public string Duration { get; init; } = string.Empty;
+    public string Instructions { get; init; } = string.Empty;
+    public int SortOrder { get; init; }
+}
+
+/// <summary>Issued prescription row returned by sync pull.</summary>
+public sealed class SyncIssuedPrescriptionDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid PetId { get; init; }
+    public Guid VeterinarianId { get; init; }
+    public Guid? TemplateId { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public IReadOnlyList<SyncPrescriptionLineDto> Items { get; init; } = Array.Empty<SyncPrescriptionLineDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Clinical exam row returned by sync pull.</summary>
+public sealed class SyncClinicalExamDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid PetId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Category { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string ResultSummary { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Clinical attachment metadata returned by sync pull (no bytes).</summary>
+public sealed class SyncClinicalAttachmentDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid? MedicalRecordId { get; init; }
+    public Guid? ClinicalExamId { get; init; }
+    public string FileName { get; init; } = string.Empty;
+    public string ContentType { get; init; } = string.Empty;
+    public long SizeBytes { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public string BlobKey { get; init; } = string.Empty;
+    public bool IsDeleted { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
 public sealed class PullChangesResult
 {
     public IReadOnlyList<SyncTutorDto> Tutors { get; init; } = Array.Empty<SyncTutorDto>();
@@ -102,6 +173,10 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncAppointmentDto> Appointments { get; init; } = Array.Empty<SyncAppointmentDto>();
     public IReadOnlyList<SyncScheduleSlotDto> ScheduleSlots { get; init; } = Array.Empty<SyncScheduleSlotDto>();
     public IReadOnlyList<SyncMedicalRecordDto> MedicalRecords { get; init; } = Array.Empty<SyncMedicalRecordDto>();
+    public IReadOnlyList<SyncPrescriptionTemplateDto> PrescriptionTemplates { get; init; } = Array.Empty<SyncPrescriptionTemplateDto>();
+    public IReadOnlyList<SyncIssuedPrescriptionDto> IssuedPrescriptions { get; init; } = Array.Empty<SyncIssuedPrescriptionDto>();
+    public IReadOnlyList<SyncClinicalExamDto> ClinicalExams { get; init; } = Array.Empty<SyncClinicalExamDto>();
+    public IReadOnlyList<SyncClinicalAttachmentDto> ClinicalAttachments { get; init; } = Array.Empty<SyncClinicalAttachmentDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

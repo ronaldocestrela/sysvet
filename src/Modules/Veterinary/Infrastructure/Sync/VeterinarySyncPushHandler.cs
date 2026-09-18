@@ -5,6 +5,7 @@ using Core.Application.Sync;
 using Core.Domain;
 using MediatR;
 using Veterinary.Application.Appointments.Commands;
+using Veterinary.Application.Clinical.Commands;
 using Veterinary.Application.MedicalRecords.Commands;
 
 namespace Veterinary.Infrastructure.Sync;
@@ -72,6 +73,18 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
             nameof(FinalizeMedicalRecordCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<FinalizeMedicalRecordCommand>(message.Payload, JsonOptions),
                 message.Id),
+            nameof(RequestClinicalExamCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<RequestClinicalExamCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(CompleteClinicalExamCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<CompleteClinicalExamCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(CreateIssuedPrescriptionCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<CreateIssuedPrescriptionCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(IssuePrescriptionCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<IssuePrescriptionCommand>(message.Payload, JsonOptions),
+                message.Id),
             _ => null
         };
     }
@@ -118,6 +131,20 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
                 return await _mediator.Send(setConduct, cancellationToken);
             case FinalizeMedicalRecordCommand finalize:
                 return await _mediator.Send(finalize, cancellationToken);
+            case RequestClinicalExamCommand requestExam:
+            {
+                var examResult = await _mediator.Send(requestExam, cancellationToken);
+                return examResult.IsSuccess ? Result.Success() : Result.Failure(examResult.Error);
+            }
+            case CompleteClinicalExamCommand completeExam:
+                return await _mediator.Send(completeExam, cancellationToken);
+            case CreateIssuedPrescriptionCommand createPrescription:
+            {
+                var prescriptionResult = await _mediator.Send(createPrescription, cancellationToken);
+                return prescriptionResult.IsSuccess ? Result.Success() : Result.Failure(prescriptionResult.Error);
+            }
+            case IssuePrescriptionCommand issuePrescription:
+                return await _mediator.Send(issuePrescription, cancellationToken);
             default:
                 return Result.Failure(new Error("Sync.HandlerMismatch", "Not a veterinary sync command."));
         }
@@ -163,5 +190,17 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 
     private static FinalizeMedicalRecordCommand? WithIdempotency(FinalizeMedicalRecordCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static RequestClinicalExamCommand? WithIdempotency(RequestClinicalExamCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static CompleteClinicalExamCommand? WithIdempotency(CompleteClinicalExamCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static CreateIssuedPrescriptionCommand? WithIdempotency(CreateIssuedPrescriptionCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static IssuePrescriptionCommand? WithIdempotency(IssuePrescriptionCommand? command, Guid idempotencyKey) =>
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 }

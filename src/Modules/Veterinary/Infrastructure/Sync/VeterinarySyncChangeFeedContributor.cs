@@ -85,13 +85,60 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             }
         }
 
+        var templates = await _dbContext.PrescriptionTemplates.AsNoTracking().Include(t => t.Items).ToListAsync(cancellationToken);
+        var templateCandidates = templates.Where(t => t.UpdatedAt > since).OrderBy(t => t.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreTemplates = templateCandidates.Count > take;
+        if (hasMoreTemplates)
+        {
+            templateCandidates = templateCandidates.Take(take).ToList();
+        }
+
+        var prescriptions = await _dbContext.IssuedPrescriptions.AsNoTracking().Include(p => p.Items).ToListAsync(cancellationToken);
+        var prescriptionCandidates = prescriptions.Where(p => p.UpdatedAt > since).OrderBy(p => p.UpdatedAt).Take(take + 1).ToList();
+        var hasMorePrescriptions = prescriptionCandidates.Count > take;
+        if (hasMorePrescriptions)
+        {
+            prescriptionCandidates = prescriptionCandidates.Take(take).ToList();
+        }
+
+        var exams = await _dbContext.ClinicalExams.AsNoTracking().ToListAsync(cancellationToken);
+        var examCandidates = exams.Where(e => e.UpdatedAt > since).OrderBy(e => e.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreExams = examCandidates.Count > take;
+        if (hasMoreExams)
+        {
+            examCandidates = examCandidates.Take(take).ToList();
+        }
+
+        var attachments = await _dbContext.ClinicalAttachments.AsNoTracking().ToListAsync(cancellationToken);
+        var attachmentCandidates = attachments.Where(a => a.UpdatedAt > since).OrderBy(a => a.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreAttachments = attachmentCandidates.Count > take;
+        if (hasMoreAttachments)
+        {
+            attachmentCandidates = attachmentCandidates.Take(take).ToList();
+        }
+
+        foreach (var updatedAt in templateCandidates.Select(t => t.UpdatedAt)
+                     .Concat(prescriptionCandidates.Select(p => p.UpdatedAt))
+                     .Concat(examCandidates.Select(e => e.UpdatedAt))
+                     .Concat(attachmentCandidates.Select(a => a.UpdatedAt)))
+        {
+            if (updatedAt > maxUpdated)
+            {
+                maxUpdated = updatedAt;
+            }
+        }
+
         return new SyncContributorChanges
         {
             Appointments = appointmentCandidates.Select(MapAppointment).ToList(),
             ScheduleSlots = slotCandidates.Select(MapSlot).ToList(),
             MedicalRecords = recordCandidates.Select(MapMedicalRecord).ToList(),
+            PrescriptionTemplates = templateCandidates.Select(MapTemplate).ToList(),
+            IssuedPrescriptions = prescriptionCandidates.Select(MapIssuedPrescription).ToList(),
+            ClinicalExams = examCandidates.Select(MapExam).ToList(),
+            ClinicalAttachments = attachmentCandidates.Select(MapAttachment).ToList(),
             MaxUpdatedAt = maxUpdated,
-            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords
+            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords || hasMoreTemplates || hasMorePrescriptions || hasMoreExams || hasMoreAttachments
         };
     }
 
@@ -151,5 +198,84 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             }).ToList(),
             UpdatedAt = record.UpdatedAt,
             RowVersion = Convert.ToBase64String(record.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncPrescriptionTemplateDto MapTemplate(PrescriptionTemplate template) =>
+        new()
+        {
+            Id = template.Id,
+            Name = template.Name,
+            Species = template.Species,
+            IsActive = template.IsActive,
+            Items = template.Items.OrderBy(i => i.SortOrder).Select(i => new SyncPrescriptionLineDto
+            {
+                Id = i.Id,
+                MedicationName = i.MedicationName,
+                Concentration = i.Concentration,
+                Dose = i.Dose,
+                Route = i.Route,
+                Frequency = i.Frequency,
+                Duration = i.Duration,
+                Instructions = i.Instructions,
+                SortOrder = i.SortOrder
+            }).ToList(),
+            UpdatedAt = template.UpdatedAt,
+            RowVersion = Convert.ToBase64String(template.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncIssuedPrescriptionDto MapIssuedPrescription(IssuedPrescription prescription) =>
+        new()
+        {
+            Id = prescription.Id,
+            AppointmentId = prescription.AppointmentId,
+            PetId = prescription.PetId,
+            VeterinarianId = prescription.VeterinarianId,
+            TemplateId = prescription.TemplateId,
+            Status = prescription.Status.ToString(),
+            Items = prescription.Items.OrderBy(i => i.SortOrder).Select(i => new SyncPrescriptionLineDto
+            {
+                Id = i.Id,
+                MedicationName = i.MedicationName,
+                Concentration = i.Concentration,
+                Dose = i.Dose,
+                Route = i.Route,
+                Frequency = i.Frequency,
+                Duration = i.Duration,
+                Instructions = i.Instructions,
+                SortOrder = i.SortOrder
+            }).ToList(),
+            UpdatedAt = prescription.UpdatedAt,
+            RowVersion = Convert.ToBase64String(prescription.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncClinicalExamDto MapExam(ClinicalExam exam) =>
+        new()
+        {
+            Id = exam.Id,
+            AppointmentId = exam.AppointmentId,
+            PetId = exam.PetId,
+            Name = exam.Name,
+            Category = exam.Category.ToString(),
+            Status = exam.Status.ToString(),
+            ResultSummary = exam.ResultSummary,
+            UpdatedAt = exam.UpdatedAt,
+            RowVersion = Convert.ToBase64String(exam.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncClinicalAttachmentDto MapAttachment(ClinicalAttachment attachment) =>
+        new()
+        {
+            Id = attachment.Id,
+            AppointmentId = attachment.AppointmentId,
+            MedicalRecordId = attachment.MedicalRecordId,
+            ClinicalExamId = attachment.ClinicalExamId,
+            FileName = attachment.FileName,
+            ContentType = attachment.ContentType,
+            SizeBytes = attachment.SizeBytes,
+            Kind = attachment.Kind.ToString(),
+            BlobKey = attachment.BlobKey,
+            IsDeleted = attachment.IsDeleted,
+            UpdatedAt = attachment.UpdatedAt,
+            RowVersion = Convert.ToBase64String(attachment.RowVersion ?? Array.Empty<byte>())
         };
 }

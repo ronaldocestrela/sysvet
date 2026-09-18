@@ -22,6 +22,10 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncAppointmentDto> Appointments { get; init; } = Array.Empty<ClientSyncAppointmentDto>();
     public IReadOnlyList<ClientSyncScheduleSlotDto> ScheduleSlots { get; init; } = Array.Empty<ClientSyncScheduleSlotDto>();
     public IReadOnlyList<ClientSyncMedicalRecordDto> MedicalRecords { get; init; } = Array.Empty<ClientSyncMedicalRecordDto>();
+    public IReadOnlyList<ClientSyncPrescriptionTemplateDto> PrescriptionTemplates { get; init; } = Array.Empty<ClientSyncPrescriptionTemplateDto>();
+    public IReadOnlyList<ClientSyncIssuedPrescriptionDto> IssuedPrescriptions { get; init; } = Array.Empty<ClientSyncIssuedPrescriptionDto>();
+    public IReadOnlyList<ClientSyncClinicalExamDto> ClinicalExams { get; init; } = Array.Empty<ClientSyncClinicalExamDto>();
+    public IReadOnlyList<ClientSyncClinicalAttachmentDto> ClinicalAttachments { get; init; } = Array.Empty<ClientSyncClinicalAttachmentDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -102,6 +106,68 @@ public sealed class ClientSyncMedicalRecordDto
 }
 
 /// <summary>Schedule slot row from sync pull.</summary>
+public sealed class ClientSyncPrescriptionLineDto
+{
+    public Guid Id { get; init; }
+    public string MedicationName { get; init; } = string.Empty;
+    public string Concentration { get; init; } = string.Empty;
+    public string Dose { get; init; } = string.Empty;
+    public string Route { get; init; } = string.Empty;
+    public string Frequency { get; init; } = string.Empty;
+    public string Duration { get; init; } = string.Empty;
+    public string Instructions { get; init; } = string.Empty;
+    public int SortOrder { get; init; }
+}
+
+public sealed class ClientSyncPrescriptionTemplateDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Species { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public IReadOnlyList<ClientSyncPrescriptionLineDto> Items { get; init; } = Array.Empty<ClientSyncPrescriptionLineDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncIssuedPrescriptionDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid PetId { get; init; }
+    public Guid VeterinarianId { get; init; }
+    public Guid? TemplateId { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public IReadOnlyList<ClientSyncPrescriptionLineDto> Items { get; init; } = Array.Empty<ClientSyncPrescriptionLineDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncClinicalExamDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid PetId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Category { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string ResultSummary { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncClinicalAttachmentDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid? MedicalRecordId { get; init; }
+    public Guid? ClinicalExamId { get; init; }
+    public string FileName { get; init; } = string.Empty;
+    public string ContentType { get; init; } = string.Empty;
+    public long SizeBytes { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public string BlobKey { get; init; } = string.Empty;
+    public bool IsDeleted { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
 public sealed class ClientSyncScheduleSlotDto
 {
     public Guid Id { get; init; }

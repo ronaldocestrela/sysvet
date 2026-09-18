@@ -60,8 +60,20 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `Veterinary` | `VeterinaryOptions` | Veterinary.Infrastructure |
 | `Inventory` | `InventoryOptions` | Inventory.Infrastructure |
 | `Sales` | `SalesOptions` | Sales.Infrastructure |
+| `BlobStorage` | `BlobStorageOptions` | Core.Infrastructure |
 
 Petshop e Fiscal ainda não possuem persistência; não registram options de banco.
+
+### BlobStorage (anexos clínicos — ADR-015)
+
+| Chave | Default (Development) | Descrição |
+|-------|------------------------|-----------|
+| `BlobStorage:Provider` | `Local` | `Local`, `InMemory` (testes) ou `Azure` |
+| `BlobStorage:LocalRootPath` | `App_Data/blobs` | Pasta no host quando `Provider=Local` |
+| `BlobStorage:AzureConnectionString` | — | Obrigatório se `Provider=Azure` |
+| `BlobStorage:AzureContainer` | `clinical` | Container para blobs clínicos |
+
+Exemplo em [`appsettings.Development.json`](../../src/API/appsettings.Development.json). Validação via `ValidateOnStart` na subida da API.
 
 ### Configuração mínima para subir localmente
 

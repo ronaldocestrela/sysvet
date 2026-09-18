@@ -40,6 +40,10 @@ public static class DependencyInjection
         services.AddScoped<IVaccineDoseRepository, VaccineDoseRepository>();
         services.AddScoped<IHospitalizationRepository, HospitalizationRepository>();
         services.AddScoped<IPrescriptionExecutionRepository, PrescriptionExecutionRepository>();
+        services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+        services.AddScoped<IIssuedPrescriptionRepository, IssuedPrescriptionRepository>();
+        services.AddScoped<IClinicalExamRepository, ClinicalExamRepository>();
+        services.AddScoped<IClinicalAttachmentRepository, ClinicalAttachmentRepository>();
         services.AddScoped<IVeterinaryUnitOfWork>(provider => provider.GetRequiredService<VeterinaryDbContext>());
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<VeterinaryDbContext>());
 

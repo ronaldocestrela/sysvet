@@ -55,6 +55,24 @@ public class OfflineDbContext : DbContext
     /// <summary>Local evolution notes.</summary>
     public DbSet<EvolutionNote> EvolutionNotes => Set<EvolutionNote>();
 
+    /// <summary>Local clinical exams (Fase 4.3).</summary>
+    public DbSet<ClinicalExam> ClinicalExams => Set<ClinicalExam>();
+
+    /// <summary>Local issued prescriptions metadata.</summary>
+    public DbSet<IssuedPrescription> IssuedPrescriptions => Set<IssuedPrescription>();
+
+    /// <summary>Local prescription lines.</summary>
+    public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
+
+    /// <summary>Local attachment metadata (bytes online only).</summary>
+    public DbSet<ClinicalAttachment> ClinicalAttachments => Set<ClinicalAttachment>();
+
+    /// <summary>Local prescription templates (read-only mirror).</summary>
+    public DbSet<PrescriptionTemplate> PrescriptionTemplates => Set<PrescriptionTemplate>();
+
+    /// <summary>Local template lines.</summary>
+    public DbSet<PrescriptionTemplateItem> PrescriptionTemplateItems => Set<PrescriptionTemplateItem>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +86,12 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OfflineScheduleSlotConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineMedicalRecordConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineEvolutionNoteConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineClinicalExamConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineIssuedPrescriptionConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflinePrescriptionItemConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineClinicalAttachmentConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflinePrescriptionTemplateConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflinePrescriptionTemplateItemConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
@@ -128,6 +152,26 @@ public class OfflineDbContext : DbContext
         {
             EnqueueEvolutionNoteOutbox(entry, evolutionNote, outboxMessages);
         }
+        else if (entry.Entity is ClinicalExam clinicalExam)
+        {
+            EnqueueClinicalExamOutbox(entry, clinicalExam, outboxMessages);
+        }
+    }
+
+    private static void EnqueueClinicalExamOutbox(EntityEntry entry, ClinicalExam exam, ICollection<OutboxMessage> outboxMessages)
+    {
+        if (entry.State != EntityState.Added)
+        {
+            return;
+        }
+
+        var outboxId = Guid.NewGuid();
+        outboxMessages.Add(new OutboxMessage
+        {
+            Id = outboxId,
+            Type = "RequestClinicalExamCommand",
+            Payload = OutboxPayloadFactory.RequestClinicalExam(exam.AppointmentId, exam.Name, exam.Category.ToString(), outboxId)
+        });
     }
 
     private static void EnqueueAppointmentOutbox(EntityEntry entry, Appointment appointment, ICollection<OutboxMessage> outboxMessages)

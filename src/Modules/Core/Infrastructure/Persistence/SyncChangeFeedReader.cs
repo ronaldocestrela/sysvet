@@ -74,6 +74,10 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var appointments = new List<SyncAppointmentDto>();
         var scheduleSlots = new List<SyncScheduleSlotDto>();
         var medicalRecords = new List<SyncMedicalRecordDto>();
+        var prescriptionTemplates = new List<SyncPrescriptionTemplateDto>();
+        var issuedPrescriptions = new List<SyncIssuedPrescriptionDto>();
+        var clinicalExams = new List<SyncClinicalExamDto>();
+        var clinicalAttachments = new List<SyncClinicalAttachmentDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -82,6 +86,10 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             appointments.AddRange(modulePage.Appointments);
             scheduleSlots.AddRange(modulePage.ScheduleSlots);
             medicalRecords.AddRange(modulePage.MedicalRecords);
+            prescriptionTemplates.AddRange(modulePage.PrescriptionTemplates);
+            issuedPrescriptions.AddRange(modulePage.IssuedPrescriptions);
+            clinicalExams.AddRange(modulePage.ClinicalExams);
+            clinicalAttachments.AddRange(modulePage.ClinicalAttachments);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -97,6 +105,10 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             Appointments = appointments,
             ScheduleSlots = scheduleSlots,
             MedicalRecords = medicalRecords,
+            PrescriptionTemplates = prescriptionTemplates,
+            IssuedPrescriptions = issuedPrescriptions,
+            ClinicalExams = clinicalExams,
+            ClinicalAttachments = clinicalAttachments,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

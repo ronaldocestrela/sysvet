@@ -54,6 +54,26 @@ public sealed class OfflineSyncPullApplier
                 await UpsertMedicalRecordAsync(dto, cancellationToken);
             }
 
+            foreach (var dto in page.PrescriptionTemplates)
+            {
+                await UpsertPrescriptionTemplateAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.ClinicalExams)
+            {
+                await UpsertClinicalExamAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.IssuedPrescriptions)
+            {
+                await UpsertIssuedPrescriptionAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.ClinicalAttachments)
+            {
+                await UpsertClinicalAttachmentAsync(dto, cancellationToken);
+            }
+
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
                         ?? _dbContext.SyncState.Add(new SyncState()).Entity;
             state.LastPullAt = page.NextSince;
@@ -287,5 +307,115 @@ public sealed class OfflineSyncPullApplier
         }
 
         record.ApplySyncSnapshot(dto.Anamnesis, dto.Diagnosis, dto.Prescription, status, vitalSigns, dto.UpdatedAt, evolution);
+    }
+
+    private async Task UpsertPrescriptionTemplateAsync(ClientSyncPrescriptionTemplateDto dto, CancellationToken cancellationToken)
+    {
+        var items = dto.Items.Select(i => (i.Id, i.MedicationName, i.Concentration, i.Dose, i.Route, i.Frequency, i.Duration, i.Instructions, i.SortOrder));
+        var template = await _dbContext.PrescriptionTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == dto.Id, cancellationToken);
+        if (template is null)
+        {
+            _dbContext.PrescriptionTemplates.Add(PrescriptionTemplate.RestoreFromSync(
+                dto.Id, dto.Name, dto.Species, dto.IsActive, dto.UpdatedAt, items));
+            return;
+        }
+
+        if (dto.UpdatedAt <= template.UpdatedAt)
+        {
+            return;
+        }
+
+        template.ApplySyncSnapshot(dto.Name, dto.Species, dto.IsActive, dto.UpdatedAt, items);
+    }
+
+    private async Task UpsertClinicalExamAsync(ClientSyncClinicalExamDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<ClinicalExamCategory>(dto.Category, out var category) ||
+            !Enum.TryParse<ClinicalExamStatus>(dto.Status, out var status))
+        {
+            return;
+        }
+
+        var exam = await _dbContext.ClinicalExams.FirstOrDefaultAsync(e => e.Id == dto.Id, cancellationToken);
+        if (exam is null)
+        {
+            _dbContext.ClinicalExams.Add(ClinicalExam.RestoreFromSync(
+                dto.Id, dto.AppointmentId, dto.PetId, dto.Name, category, status, dto.ResultSummary, dto.UpdatedAt));
+            return;
+        }
+
+        if (dto.UpdatedAt <= exam.UpdatedAt)
+        {
+            return;
+        }
+
+        exam.ApplySyncSnapshot(dto.AppointmentId, dto.PetId, dto.Name, category, status, dto.ResultSummary, dto.UpdatedAt);
+    }
+
+    private async Task UpsertIssuedPrescriptionAsync(ClientSyncIssuedPrescriptionDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<IssuedPrescriptionStatus>(dto.Status, out var status))
+        {
+            return;
+        }
+
+        var items = dto.Items.Select(i => (i.Id, i.MedicationName, i.Concentration, i.Dose, i.Route, i.Frequency, i.Duration, i.Instructions, i.SortOrder));
+        var prescription = await _dbContext.IssuedPrescriptions.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == dto.Id, cancellationToken);
+        if (prescription is null)
+        {
+            _dbContext.IssuedPrescriptions.Add(IssuedPrescription.RestoreFromSync(
+                dto.Id, dto.AppointmentId, dto.PetId, dto.VeterinarianId, dto.TemplateId, status, dto.UpdatedAt, items));
+            return;
+        }
+
+        if (dto.UpdatedAt <= prescription.UpdatedAt)
+        {
+            return;
+        }
+
+        prescription.ApplySyncSnapshot(dto.AppointmentId, dto.PetId, dto.VeterinarianId, dto.TemplateId, status, dto.UpdatedAt, items);
+    }
+
+    private async Task UpsertClinicalAttachmentAsync(ClientSyncClinicalAttachmentDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<ClinicalAttachmentKind>(dto.Kind, out var kind))
+        {
+            return;
+        }
+
+        var attachment = await _dbContext.ClinicalAttachments.FirstOrDefaultAsync(a => a.Id == dto.Id, cancellationToken);
+        if (attachment is null)
+        {
+            _dbContext.ClinicalAttachments.Add(ClinicalAttachment.RestoreFromSync(
+                dto.Id,
+                dto.AppointmentId,
+                dto.MedicalRecordId,
+                dto.ClinicalExamId,
+                dto.FileName,
+                dto.ContentType,
+                dto.SizeBytes,
+                kind,
+                dto.BlobKey,
+                dto.IsDeleted,
+                dto.UpdatedAt));
+            return;
+        }
+
+        if (dto.UpdatedAt <= attachment.UpdatedAt)
+        {
+            return;
+        }
+
+        attachment.ApplySyncSnapshot(
+            dto.AppointmentId,
+            dto.MedicalRecordId,
+            dto.ClinicalExamId,
+            dto.FileName,
+            dto.ContentType,
+            dto.SizeBytes,
+            kind,
+            dto.BlobKey,
+            dto.IsDeleted,
+            dto.UpdatedAt);
     }
 }

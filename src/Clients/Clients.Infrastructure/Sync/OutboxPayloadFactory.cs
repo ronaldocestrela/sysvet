@@ -137,4 +137,7 @@ internal static class OutboxPayloadFactory
 
     public static string FinalizeMedicalRecord(Guid medicalRecordId, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, IdempotencyKey = idempotencyKey });
+
+    public static string RequestClinicalExam(Guid appointmentId, string name, string category, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, Name = name, Category = category, IdempotencyKey = idempotencyKey });
 }

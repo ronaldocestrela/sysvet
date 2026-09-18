@@ -12,6 +12,7 @@ using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
 using Core.Infrastructure.Persistence.Seeding;
 using Core.Infrastructure.Services;
+using Core.Infrastructure.Storage;
 using Core.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -36,6 +37,7 @@ public static class DependencyInjection
         services.AddValidatedOptions<DatabaseOptions>(configuration, DatabaseOptions.SectionName);
         services.AddValidatedOptions<JwtSettings>(configuration, JwtSettings.SectionName);
         services.AddValidatedOptions<TenancySettings>(configuration, TenancySettings.SectionName);
+        services.AddBlobStorage(configuration);
 
         services.AddDbContext<CoreDbContext>((serviceProvider, options) =>
         {

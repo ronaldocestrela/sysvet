@@ -53,4 +53,44 @@ public static class ErrorCodes
     {
         public static readonly Error InvalidMedicationName = new("PrescriptionExecution.InvalidMedicationName", "Medication name cannot be empty.");
     }
+
+    public static class PrescriptionTemplate
+    {
+        public static readonly Error NotFound = new("PrescriptionTemplate.NotFound", "The specified prescription template was not found.");
+        public static readonly Error InvalidName = new("PrescriptionTemplate.InvalidName", "Template name is required and must be at most 200 characters.");
+        public static readonly Error InvalidIdentifiers = new("PrescriptionTemplate.InvalidIdentifiers", "Template identifiers are invalid.");
+        public static readonly Error InvalidMedication = new("PrescriptionTemplate.InvalidMedication", "Each template item requires a medication name.");
+        public static readonly Error AlreadyInactive = new("PrescriptionTemplate.AlreadyInactive", "The template is already inactive.");
+    }
+
+    public static class IssuedPrescription
+    {
+        public static readonly Error NotFound = new("IssuedPrescription.NotFound", "The specified issued prescription was not found.");
+        public static readonly Error InvalidIdentifiers = new("IssuedPrescription.InvalidIdentifiers", "Prescription requires valid appointment, pet, and veterinarian identifiers.");
+        public static readonly Error AlreadyIssued = new("IssuedPrescription.AlreadyIssued", "Cannot modify an issued prescription.");
+        public static readonly Error EmptyItems = new("IssuedPrescription.EmptyItems", "At least one medication line is required to issue a prescription.");
+    }
+
+    public static class ClinicalExam
+    {
+        public static readonly Error NotFound = new("ClinicalExam.NotFound", "The specified clinical exam was not found.");
+        public static readonly Error InvalidIdentifiers = new("ClinicalExam.InvalidIdentifiers", "Exam requires valid appointment and pet identifiers.");
+        public static readonly Error InvalidName = new("ClinicalExam.InvalidName", "Exam name is required and must be at most 200 characters.");
+        public static readonly Error InvalidTransition = new("ClinicalExam.InvalidTransition", "The exam cannot transition to the requested status.");
+        public static readonly Error InvalidResult = new("ClinicalExam.InvalidResult", "Result summary exceeds maximum length.");
+        public static readonly Error AppointmentNotEligible = new("ClinicalExam.AppointmentNotEligible", "Exams can only be registered for in-progress or completed appointments.");
+    }
+
+    public static class ClinicalAttachment
+    {
+        public static readonly Error NotFound = new("ClinicalAttachment.NotFound", "The specified clinical attachment was not found.");
+        public static readonly Error InvalidIdentifiers = new("ClinicalAttachment.InvalidIdentifiers", "Attachment requires a valid appointment identifier.");
+        public static readonly Error InvalidBlobKey = new("ClinicalAttachment.InvalidBlobKey", "Blob storage key is required.");
+        public static readonly Error InvalidFileName = new("ClinicalAttachment.InvalidFileName", "File name is required.");
+        public static readonly Error InvalidSize = new("ClinicalAttachment.InvalidSize", "File size must be greater than zero.");
+        public static readonly Error FileTooLarge = new("ClinicalAttachment.FileTooLarge", "File exceeds the maximum allowed size for its type.");
+        public static readonly Error UnsupportedContentType = new("ClinicalAttachment.UnsupportedContentType", "Content type is not allowed for clinical attachments.");
+        public static readonly Error AlreadyDeleted = new("ClinicalAttachment.AlreadyDeleted", "The attachment is already deleted.");
+        public static readonly Error AppointmentNotEligible = new("ClinicalAttachment.AppointmentNotEligible", "Attachments can only be added for in-progress or completed appointments.");
+    }
 }

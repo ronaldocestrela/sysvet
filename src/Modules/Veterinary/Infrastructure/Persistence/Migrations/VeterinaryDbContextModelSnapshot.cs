@@ -188,6 +188,108 @@ namespace Veterinary.Infrastructure.Persistence.Migrations
                     b.ToTable("MedicalRecords", "dbo");
                 });
 
+            modelBuilder.Entity("Veterinary.Domain.Entities.ClinicalAttachment", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("TEXT");
+                    b.Property<Guid>("AppointmentId").HasColumnType("TEXT");
+                    b.Property<string>("BlobKey").IsRequired().HasMaxLength(500).HasColumnType("TEXT");
+                    b.Property<Guid?>("ClinicalExamId").HasColumnType("TEXT");
+                    b.Property<string>("ContentType").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("FileName").IsRequired().HasMaxLength(260).HasColumnType("TEXT");
+                    b.Property<bool>("IsDeleted").HasColumnType("INTEGER");
+                    b.Property<int>("Kind").HasColumnType("INTEGER");
+                    b.Property<Guid?>("MedicalRecordId").HasColumnType("TEXT");
+                    b.Property<byte[]>("RowVersion").IsRequired().HasColumnType("BLOB");
+                    b.Property<long>("SizeBytes").HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("UpdatedAt").HasColumnType("TEXT");
+                    b.HasKey("Id");
+                    b.HasIndex("AppointmentId");
+                    b.ToTable("ClinicalAttachments", "dbo");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.ClinicalExam", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("TEXT");
+                    b.Property<Guid>("AppointmentId").HasColumnType("TEXT");
+                    b.Property<int>("Category").HasColumnType("INTEGER");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<Guid>("PetId").HasColumnType("TEXT");
+                    b.Property<string>("ResultSummary").IsRequired().HasMaxLength(4000).HasColumnType("TEXT");
+                    b.Property<byte[]>("RowVersion").IsRequired().HasColumnType("BLOB");
+                    b.Property<int>("Status").HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("UpdatedAt").HasColumnType("TEXT");
+                    b.HasKey("Id");
+                    b.HasIndex("AppointmentId");
+                    b.HasIndex("PetId");
+                    b.ToTable("ClinicalExams", "dbo");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.IssuedPrescription", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("TEXT");
+                    b.Property<Guid>("AppointmentId").HasColumnType("TEXT");
+                    b.Property<Guid>("PetId").HasColumnType("TEXT");
+                    b.Property<byte[]>("RowVersion").IsRequired().HasColumnType("BLOB");
+                    b.Property<int>("Status").HasColumnType("INTEGER");
+                    b.Property<Guid?>("TemplateId").HasColumnType("TEXT");
+                    b.Property<DateTimeOffset>("UpdatedAt").HasColumnType("TEXT");
+                    b.Property<Guid>("VeterinarianId").HasColumnType("TEXT");
+                    b.HasKey("Id");
+                    b.HasIndex("AppointmentId");
+                    b.HasIndex("PetId");
+                    b.ToTable("IssuedPrescriptions", "dbo");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.PrescriptionItem", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("TEXT");
+                    b.Property<string>("Concentration").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Dose").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Duration").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Frequency").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Instructions").IsRequired().HasMaxLength(1000).HasColumnType("TEXT");
+                    b.Property<Guid>("IssuedPrescriptionId").HasColumnType("TEXT");
+                    b.Property<string>("MedicationName").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Route").IsRequired().HasMaxLength(100).HasColumnType("TEXT");
+                    b.Property<byte[]>("RowVersion").IsRequired().HasColumnType("BLOB");
+                    b.Property<int>("SortOrder").HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("UpdatedAt").HasColumnType("TEXT");
+                    b.HasKey("Id");
+                    b.HasIndex("IssuedPrescriptionId");
+                    b.ToTable("PrescriptionItems", "dbo");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.PrescriptionTemplate", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("TEXT");
+                    b.Property<bool>("IsActive").HasColumnType("INTEGER");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<byte[]>("RowVersion").IsRequired().HasColumnType("BLOB");
+                    b.Property<string>("Species").IsRequired().HasMaxLength(100).HasColumnType("TEXT");
+                    b.Property<DateTimeOffset>("UpdatedAt").HasColumnType("TEXT");
+                    b.HasKey("Id");
+                    b.ToTable("PrescriptionTemplates", "dbo");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.PrescriptionTemplateItem", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("TEXT");
+                    b.Property<string>("Concentration").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Dose").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Duration").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Frequency").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<string>("Instructions").IsRequired().HasMaxLength(1000).HasColumnType("TEXT");
+                    b.Property<string>("MedicationName").IsRequired().HasMaxLength(200).HasColumnType("TEXT");
+                    b.Property<Guid>("PrescriptionTemplateId").HasColumnType("TEXT");
+                    b.Property<string>("Route").IsRequired().HasMaxLength(100).HasColumnType("TEXT");
+                    b.Property<byte[]>("RowVersion").IsRequired().HasColumnType("BLOB");
+                    b.Property<int>("SortOrder").HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("UpdatedAt").HasColumnType("TEXT");
+                    b.HasKey("Id");
+                    b.HasIndex("PrescriptionTemplateId");
+                    b.ToTable("PrescriptionTemplateItems", "dbo");
+                });
+
             modelBuilder.Entity("Veterinary.Domain.Entities.PrescriptionExecution", b =>
                 {
                     b.Property<Guid>("Id")
@@ -372,6 +474,26 @@ namespace Veterinary.Infrastructure.Persistence.Migrations
                         .HasForeignKey("HospitalizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.IssuedPrescription", b =>
+                {
+                    b.HasMany("Veterinary.Domain.Entities.PrescriptionItem", "Items")
+                        .WithOne()
+                        .HasForeignKey("IssuedPrescriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.PrescriptionTemplate", b =>
+                {
+                    b.HasMany("Veterinary.Domain.Entities.PrescriptionTemplateItem", "Items")
+                        .WithOne()
+                        .HasForeignKey("PrescriptionTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Veterinary.Domain.Entities.Hospitalization", b =>

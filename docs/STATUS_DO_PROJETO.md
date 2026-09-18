@@ -83,7 +83,14 @@ Iniciado o módulo de estoque.
 - Sync: medical records no push/pull e SQLite local.
 - UI: `/pets/{petId}/medical-records`, link na agenda e lista de pets.
 
-### 👉 **Próxima Ação: Fase 4.3 — Exames, receitas e anexos**
+### Fase 4.3 (Exames, receitas e anexos) — Concluída
+
+- Domínio: templates, receita emitida, exames, anexos (metadados + `BlobKey`).
+- API: upload multipart, download stream autorizado; integração `IBlobStorage` (ADR-015).
+- Sync: metadados 4.3 no plugin Veterinary; bytes só online.
+- UI: exames, receitas e anexos em [`MedicalRecords.razor`](../src/Clients/SharedUI/Pages/MedicalRecords.razor).
+
+### 👉 **Próxima Ação: Fase 4.4 — Carteira de vacinação e alertas**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 4.
 

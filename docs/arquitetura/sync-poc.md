@@ -64,7 +64,7 @@ A UI **não** é automatizada nesta SP. Para inspeção visual:
 
 ## Limitações conhecidas da PoC
 
-- **Escopo sync client:** tutor/pet (CRM) + **appointments** (agenda Fase 4.1) + **medical records** (prontuário Fase 4.2) via outbox; exames/anexos e demais módulos clínicos avançados ainda fora.
+- **Escopo sync client:** tutor/pet (CRM) + **appointments** (4.1) + **medical records** (4.2) + **templates/receitas/exames/metadados de anexo** (4.3) via outbox/pull; **bytes de anexo não** entram no pull — upload/download só online.
 - **Worker WASM:** sincroniza enquanto a aba PWA permanece aberta.
 - **Persistência WASM:** snapshot IndexedDB copia o arquivo `.db` inteiro ([ADR-014](./ADR-014-sqlite-local-clients.md)).
 - **Conflitos CRM:** Last-Write-Wins por `UpdatedAt` / `OccurredAt`; merge por campo reservado ao domínio clínico.

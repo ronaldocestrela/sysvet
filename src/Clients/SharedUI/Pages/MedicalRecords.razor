@@ -2,7 +2,10 @@
 @using SharedUI.Components
 @using SharedUI.Navigation
 @using Clients.Infrastructure.Crm
+@using Microsoft.AspNetCore.Components.Forms
 @inject IMedicalRecordStore MedicalRecordStore
+@inject IClinicalStore ClinicalStore
+@inject IClinicalAttachmentService? AttachmentService
 @inject INavigationService Navigation
 @inject IToastService Toast
 
@@ -74,6 +77,71 @@
                     }
                 </ul>
             }
+
+            <hr />
+            <h4>Exames clínicos</h4>
+            <div class="d-flex gap-2 mb-2">
+                <input class="form-control" @bind="_newExamName" placeholder="Nome do exame" disabled="@(_selected.Status != "Draft")" />
+                <select class="form-control" @bind="_newExamCategory" disabled="@(_selected.Status != "Draft")">
+                    <option value="Laboratory">Laboratorial</option>
+                    <option value="Imaging">Imagem</option>
+                    <option value="Procedure">Procedimento</option>
+                    <option value="Other">Outro</option>
+                </select>
+                @if (_selected.Status == "Draft")
+                {
+                    <button class="btn btn-outline" @onclick="RequestExamAsync">Solicitar</button>
+                }
+            </div>
+            @if (_exams?.Count > 0)
+            {
+                <ul>
+                    @foreach (var exam in _exams)
+                    {
+                        <li>@exam.Name — @exam.Status @(!string.IsNullOrEmpty(exam.ResultSummary) ? $"({exam.ResultSummary})" : "")</li>
+                    }
+                </ul>
+            }
+
+            <h4 class="mt-3">Receitas emitidas</h4>
+            @if (_prescriptions?.Count > 0)
+            {
+                <ul>
+                    @foreach (var rx in _prescriptions)
+                    {
+                        <li>Receita @rx.Id.ToString()[..8] — @rx.Status (@rx.ItemCount itens)</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">Nenhuma receita formal sincronizada para este atendimento.</p>
+            }
+
+            <h4 class="mt-3">Anexos</h4>
+            @if (_selected.Status == "Draft" && AttachmentService is not null)
+            {
+                <InputFile OnChange="UploadAttachmentAsync" />
+            }
+            else if (AttachmentService is null)
+            {
+                <p class="text-muted">Upload de anexos disponível apenas com conexão à API.</p>
+            }
+            @if (_attachments?.Count > 0)
+            {
+                <ul>
+                    @foreach (var file in _attachments)
+                    {
+                        <li>
+                            @file.FileName (@file.Kind, @file.SizeBytes bytes)
+                            @if (AttachmentService is not null)
+                            {
+                                <a href="@($"/api/v1/attachments/{file.Id}/content")" target="_blank" rel="noopener">Download</a>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
         </div>
     }
 </div>
@@ -93,6 +161,11 @@
     private string _selectedDiagnosis = string.Empty;
     private string _selectedConduct = string.Empty;
     private string _newEvolution = string.Empty;
+    private string _newExamName = string.Empty;
+    private string _newExamCategory = "Laboratory";
+    private IReadOnlyList<ClinicalExamListItemDto>? _exams;
+    private IReadOnlyList<IssuedPrescriptionListItemDto>? _prescriptions;
+    private IReadOnlyList<ClinicalAttachmentListItemDto>? _attachments;
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,6 +216,56 @@
         _selectedAnamnesis = _selected.Anamnesis;
         _selectedDiagnosis = _selected.Diagnosis;
         _selectedConduct = _selected.Conduct;
+        await LoadClinicalArtifactsAsync(_selected.AppointmentId);
+    }
+
+    private async Task LoadClinicalArtifactsAsync(Guid appointmentId)
+    {
+        var exams = await ClinicalStore.GetExamsByAppointmentAsync(appointmentId);
+        _exams = exams.IsSuccess ? exams.Value : Array.Empty<ClinicalExamListItemDto>();
+        var prescriptions = await ClinicalStore.GetPrescriptionsByAppointmentAsync(appointmentId);
+        _prescriptions = prescriptions.IsSuccess ? prescriptions.Value : Array.Empty<IssuedPrescriptionListItemDto>();
+        var attachments = await ClinicalStore.GetAttachmentsByAppointmentAsync(appointmentId);
+        _attachments = attachments.IsSuccess ? attachments.Value : Array.Empty<ClinicalAttachmentListItemDto>();
+    }
+
+    private async Task RequestExamAsync()
+    {
+        if (_selected is null || string.IsNullOrWhiteSpace(_newExamName))
+        {
+            return;
+        }
+
+        var result = await ClinicalStore.RequestExamAsync(_selected.AppointmentId, _newExamName, _newExamCategory);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _newExamName = string.Empty;
+        Toast.Show("Exame solicitado.", ToastType.Success);
+        await LoadClinicalArtifactsAsync(_selected.AppointmentId);
+    }
+
+    private async Task UploadAttachmentAsync(InputFileChangeEventArgs args)
+    {
+        if (_selected is null || AttachmentService is null || args.File is null)
+        {
+            Toast.Show("Conecte-se para enviar anexos.", ToastType.Warning);
+            return;
+        }
+
+        await using var stream = args.File.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024);
+        var result = await AttachmentService.UploadAsync(_selected.AppointmentId, stream, args.File.Name, args.File.ContentType);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Anexo enviado.", ToastType.Success);
+        await LoadClinicalArtifactsAsync(_selected.AppointmentId);
     }
 
     private async Task SaveDraftAsync()

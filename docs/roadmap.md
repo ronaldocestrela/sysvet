@@ -417,7 +417,7 @@ flowchart TD
 |--------|-----|--------|
 | **4.1 Agenda clínica unificada** | 8 | Concluído |
 | **4.2 Prontuário veterinário** | 13 | Concluído |
-| **4.3 Exames, receitas e anexos** | 8 | Pendente |
+| **4.3 Exames, receitas e anexos** | 8 | Concluído |
 | **4.4 Carteira de vacinação e alertas** | 8 | Pendente |
 | **4.5 Orçamentos clínicos** | 5 | Pendente |
 | **4.6 Internação e mapa de execução** | 13 | Pendente |
@@ -469,13 +469,26 @@ flowchart TD
 
 **Aceite:** Prontuário completo consultável por pet; edição com auditoria.
 
-### 4.3 Exames, receitas e anexos (8 SP)
+### 4.3 Exames, receitas e anexos (8 SP) — Concluído
 
-- [ ] Modelos de receita padronizados
-- [ ] Upload anexos (fotos, vídeos, PDFs) — blob storage
-- [ ] Registro de exames clínicos solicitados/realizados
+**Domain**
+- [x] `PrescriptionTemplate`, `IssuedPrescription`, `ClinicalExam`, `ClinicalAttachment`, `AttachmentFileSpec`
+- [x] Receita formal separada da conduta do prontuário; imutável após `Issued`
 
-**Aceite:** Anexo associado ao atendimento; download autorizado.
+**Application / Infrastructure**
+- [x] CQRS idempotente + audit sanitizado; `IBlobStorage` (Local/InMemory/Azure)
+- [x] Upload com compensação; soft-delete de anexo
+
+**API**
+- [x] `/api/v1/prescription-templates`, `/appointments/{id}/prescriptions|exams|attachments`, `/attachments/{id}/content`
+
+**Sync**
+- [x] Push/pull de templates, receitas, exames e metadados de anexo (sem bytes)
+
+**Clients**
+- [x] `IClinicalStore`, upload online (`IClinicalAttachmentService`); seções no prontuário SharedUI
+
+**Aceite:** Anexo associado ao atendimento; download autorizado (`MedicalRecords.Read`).
 
 ### 4.4 Carteira de vacinação e alertas (8 SP)
 

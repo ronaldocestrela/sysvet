@@ -138,6 +138,96 @@ public static class VeterinaryEndpointExtensions
             return (await mediator.Send(command)).ToHttpResult();
         });
 
+        var templatesGroup = builder.MapGroup("/api/v1/prescription-templates").RequireAuthorization().WithTags("Veterinary", "PrescriptionTemplates");
+        templatesGroup.MapGet("/", async (IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.ListPrescriptionTemplatesQuery())).ToHttpResult());
+        templatesGroup.MapPost("/", async (HttpContext httpContext, [FromBody] CreatePrescriptionTemplateRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.CreatePrescriptionTemplateCommand(body.Name, body.Species, body.Items, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        templatesGroup.MapPut("/{id:guid}", async (Guid id, HttpContext httpContext, [FromBody] UpdatePrescriptionTemplateRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.UpdatePrescriptionTemplateCommand(id, body.Name, body.Species, body.Items, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        templatesGroup.MapPost("/{id:guid}/deactivate", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.DeactivatePrescriptionTemplateCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        var prescriptionsGroup = builder.MapGroup("/api/v1/prescriptions").RequireAuthorization().WithTags("Veterinary", "Prescriptions");
+        prescriptionsGroup.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.GetIssuedPrescriptionByIdQuery(id))).ToHttpResult());
+        prescriptionsGroup.MapPost("/{id:guid}/issue", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.IssuePrescriptionCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        prescriptionsGroup.MapPut("/{id:guid}/items", async (Guid id, HttpContext httpContext, [FromBody] ReplacePrescriptionItemsRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.ReplaceIssuedPrescriptionItemsCommand(id, body.Items, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        group.MapGet("/{id:guid}/prescriptions", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.ListIssuedPrescriptionsByAppointmentQuery(id))).ToHttpResult());
+        group.MapPost("/{id:guid}/prescriptions", async (Guid id, HttpContext httpContext, [FromBody] CreateIssuedPrescriptionRequest? body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.CreateIssuedPrescriptionCommand(id, body?.TemplateId, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        group.MapGet("/{id:guid}/exams", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.ListClinicalExamsByAppointmentQuery(id))).ToHttpResult());
+        group.MapPost("/{id:guid}/exams", async (Guid id, HttpContext httpContext, [FromBody] RequestClinicalExamRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.RequestClinicalExamCommand(id, body.Name, body.Category, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        var examsGroup = builder.MapGroup("/api/v1/exams").RequireAuthorization().WithTags("Veterinary", "ClinicalExams");
+        examsGroup.MapPost("/{id:guid}/complete", async (Guid id, HttpContext httpContext, [FromBody] CompleteClinicalExamRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.CompleteClinicalExamCommand(id, body.ResultSummary, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        examsGroup.MapPost("/{id:guid}/cancel", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.CancelClinicalExamCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        petsGroup.MapGet("/{petId:guid}/exams", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.ListClinicalExamsByPetQuery(petId))).ToHttpResult());
+
+        var attachmentsGroup = builder.MapGroup("/api/v1/attachments").RequireAuthorization().WithTags("Veterinary", "ClinicalAttachments");
+        attachmentsGroup.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.GetClinicalAttachmentQuery(id))).ToHttpResult());
+        attachmentsGroup.MapGet("/{id:guid}/content", async (Guid id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new Veterinary.Application.Clinical.Commands.DownloadClinicalAttachmentQuery(id));
+            if (result.IsFailure)
+            {
+                return result.ToProblemDetails();
+            }
+
+            return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
+        });
+        attachmentsGroup.MapDelete("/{id:guid}", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new Veterinary.Application.Clinical.Commands.SoftDeleteClinicalAttachmentCommand(id, EndpointIdempotency.ReadKey(httpContext)));
+            return result.IsSuccess ? Results.NoContent() : result.ToProblemDetails();
+        });
+
+        group.MapGet("/{id:guid}/attachments", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Clinical.Commands.ListClinicalAttachmentsByAppointmentQuery(id))).ToHttpResult());
+        group.MapPost("/{id:guid}/attachments", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+        {
+            if (!httpContext.Request.HasFormContentType)
+            {
+                return Results.BadRequest("Multipart form expected.");
+            }
+
+            var form = await httpContext.Request.ReadFormAsync();
+            var file = form.Files.GetFile("file");
+            if (file is null)
+            {
+                return Results.BadRequest("Missing file field.");
+            }
+
+            Guid? medicalRecordId = form.TryGetValue("medicalRecordId", out var mr) && Guid.TryParse(mr, out var mrId) ? mrId : null;
+            Guid? examId = form.TryGetValue("clinicalExamId", out var ex) && Guid.TryParse(ex, out var exId) ? exId : null;
+
+            await using var stream = file.OpenReadStream();
+            var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
+            var command = new Veterinary.Application.Clinical.Commands.UploadClinicalAttachmentCommand(
+                id,
+                medicalRecordId,
+                examId,
+                file.FileName,
+                contentType,
+                file.Length,
+                stream,
+                EndpointIdempotency.ReadKey(httpContext));
+
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
         return builder;
     }
 
@@ -168,4 +258,22 @@ public static class VeterinaryEndpointExtensions
 
     /// <summary>Evolution note append body.</summary>
     public record EvolutionNoteRequest(string Text, Guid NoteId = default, DateTimeOffset? RecordedAt = null);
+
+    /// <summary>Template create body.</summary>
+    public record CreatePrescriptionTemplateRequest(string Name, string? Species, IReadOnlyList<Veterinary.Application.Clinical.Commands.PrescriptionLineInput> Items);
+
+    /// <summary>Template update body.</summary>
+    public record UpdatePrescriptionTemplateRequest(string Name, string? Species, IReadOnlyList<Veterinary.Application.Clinical.Commands.PrescriptionLineInput> Items);
+
+    /// <summary>Draft prescription create body.</summary>
+    public record CreateIssuedPrescriptionRequest(Guid? TemplateId);
+
+    /// <summary>Replace prescription lines body.</summary>
+    public record ReplacePrescriptionItemsRequest(IReadOnlyList<Veterinary.Application.Clinical.Commands.PrescriptionLineInput> Items);
+
+    /// <summary>Exam request body.</summary>
+    public record RequestClinicalExamRequest(string Name, string Category);
+
+    /// <summary>Exam completion body.</summary>
+    public record CompleteClinicalExamRequest(string? ResultSummary);
 }
