@@ -49,6 +49,12 @@ public class OfflineDbContext : DbContext
     /// <summary>Local schedule slots mirror.</summary>
     public DbSet<ScheduleSlot> ScheduleSlots => Set<ScheduleSlot>();
 
+    /// <summary>Local medical records (Fase 4.2).</summary>
+    public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
+
+    /// <summary>Local evolution notes.</summary>
+    public DbSet<EvolutionNote> EvolutionNotes => Set<EvolutionNote>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +66,8 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SyncStateConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineAppointmentConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineScheduleSlotConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineMedicalRecordConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineEvolutionNoteConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
@@ -111,6 +119,14 @@ public class OfflineDbContext : DbContext
         else if (entry.Entity is Appointment appointment)
         {
             EnqueueAppointmentOutbox(entry, appointment, outboxMessages);
+        }
+        else if (entry.Entity is MedicalRecord medicalRecord)
+        {
+            EnqueueMedicalRecordOutbox(entry, medicalRecord, outboxMessages);
+        }
+        else if (entry.Entity is EvolutionNote evolutionNote)
+        {
+            EnqueueEvolutionNoteOutbox(entry, evolutionNote, outboxMessages);
         }
     }
 
@@ -172,6 +188,108 @@ public class OfflineDbContext : DbContext
 
         outboxMessages.Add(new OutboxMessage { Id = outboxId, Type = type, Payload = payload });
     }
+
+    private static void EnqueueMedicalRecordOutbox(EntityEntry entry, MedicalRecord record, ICollection<OutboxMessage> outboxMessages)
+    {
+        var outboxId = Guid.NewGuid();
+        if (entry.State == EntityState.Added)
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "CreateMedicalRecordCommand",
+                Payload = OutboxPayloadFactory.CreateMedicalRecord(record.AppointmentId, outboxId)
+            });
+            return;
+        }
+
+        if (entry.State != EntityState.Modified)
+        {
+            return;
+        }
+
+        if (PropertyModified(entry, nameof(MedicalRecord.Status)) &&
+            record.Status == MedicalRecordStatus.Finalized)
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "FinalizeMedicalRecordCommand",
+                Payload = OutboxPayloadFactory.FinalizeMedicalRecord(record.Id, outboxId)
+            });
+            return;
+        }
+
+        if (PropertyModified(entry, nameof(MedicalRecord.Anamnesis)))
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "UpdateAnamnesisCommand",
+                Payload = OutboxPayloadFactory.UpdateAnamnesis(record.Id, record.Anamnesis, outboxId)
+            });
+        }
+
+        if (PropertyModified(entry, nameof(MedicalRecord.Diagnosis)))
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = "SetDiagnosisCommand",
+                Payload = OutboxPayloadFactory.SetDiagnosis(record.Id, record.Diagnosis, Guid.NewGuid())
+            });
+        }
+
+        if (PropertyModified(entry, nameof(MedicalRecord.Prescription)))
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = "SetConductCommand",
+                Payload = OutboxPayloadFactory.SetConduct(record.Id, record.Prescription, Guid.NewGuid())
+            });
+        }
+
+        if (record.VitalSigns is not null &&
+            entry.Properties.Any(p => p.IsModified && p.Metadata.Name.StartsWith("Vital", StringComparison.Ordinal)))
+        {
+            var vitals = record.VitalSigns;
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = "RecordVitalSignsCommand",
+                Payload = OutboxPayloadFactory.RecordVitalSigns(
+                    record.Id,
+                    vitals.WeightKg,
+                    vitals.TemperatureC,
+                    vitals.HeartRateBpm,
+                    vitals.RespiratoryRateBpm,
+                    vitals.MucousMembranes,
+                    vitals.CapillaryRefillTime,
+                    vitals.MeasuredAt,
+                    Guid.NewGuid())
+            });
+        }
+    }
+
+    private static void EnqueueEvolutionNoteOutbox(EntityEntry entry, EvolutionNote note, ICollection<OutboxMessage> outboxMessages)
+    {
+        if (entry.State != EntityState.Added)
+        {
+            return;
+        }
+
+        var outboxId = Guid.NewGuid();
+        outboxMessages.Add(new OutboxMessage
+        {
+            Id = outboxId,
+            Type = "AddEvolutionNoteCommand",
+            Payload = OutboxPayloadFactory.AddEvolutionNote(note.MedicalRecordId, note.Text, note.Id, note.RecordedAt, outboxId)
+        });
+    }
+
+    private static bool PropertyModified(EntityEntry entry, string propertyName) =>
+        entry.Properties.FirstOrDefault(p => p.Metadata.Name == propertyName) is { IsModified: true };
 
     private static void EnqueueTutorOutbox(EntityEntry entry, Tutor tutor, ICollection<OutboxMessage> outboxMessages)
     {

@@ -19,6 +19,7 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<ScheduleSlot> ScheduleSlots => Set<ScheduleSlot>();
     public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
+    public DbSet<EvolutionNote> EvolutionNotes => Set<EvolutionNote>();
     public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
     public DbSet<Hospitalization> Hospitalizations => Set<Hospitalization>();
 

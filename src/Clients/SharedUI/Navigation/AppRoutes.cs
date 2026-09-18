@@ -17,6 +17,12 @@ public static class AppRoutes
     /// <summary>CRM pets list.</summary>
     public const string Pets = "/pets";
 
+    /// <summary>Pet clinical medical record timeline.</summary>
+    public static string PetMedicalRecords(Guid petId, Guid? appointmentId = null) =>
+        appointmentId is null
+            ? $"/pets/{petId}/medical-records"
+            : $"/pets/{petId}/medical-records?appointmentId={appointmentId}";
+
     /// <summary>Clinical appointments.</summary>
     public const string Appointments = "/appointments";
 

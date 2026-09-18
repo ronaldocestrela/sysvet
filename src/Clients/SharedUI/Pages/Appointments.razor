@@ -1,10 +1,12 @@
 @page "/appointments"
 @using SharedUI.Components
 @using SharedUI.Services
+@using SharedUI.Navigation
 @using Clients.Infrastructure.Crm
 @inject IAppointmentStore AppointmentStore
 @inject IPetStore PetStore
 @inject IToastService Toast
+@inject INavigationService Navigation
 
 <div class="header-section">
     <h1>Agenda de Consultas</h1>
@@ -27,7 +29,8 @@
         <DayCalendar Items="_appointments"
                      OnConfirm="ConfirmAppointmentAsync"
                      OnStart="StartAppointmentAsync"
-                     OnCancel="CancelAppointmentAsync" />
+                     OnCancel="CancelAppointmentAsync"
+                     OnOpenMedicalRecord="OpenMedicalRecordAsync" />
     </LoadingState>
 </div>
 
@@ -191,5 +194,11 @@
         {
             Toast.Show(result.Error.Message, ToastType.Error);
         }
+    }
+
+    private Task OpenMedicalRecordAsync(AppointmentListItemDto appointment)
+    {
+        Navigation.NavigateTo(AppRoutes.PetMedicalRecords(appointment.PetId, appointment.Id));
+        return Task.CompletedTask;
     }
 }

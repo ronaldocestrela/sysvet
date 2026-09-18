@@ -5,6 +5,7 @@ using Core.Application.Sync;
 using Core.Domain;
 using MediatR;
 using Veterinary.Application.Appointments.Commands;
+using Veterinary.Application.MedicalRecords.Commands;
 
 namespace Veterinary.Infrastructure.Sync;
 
@@ -50,6 +51,27 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
             nameof(RescheduleAppointmentCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<RescheduleAppointmentCommand>(message.Payload, JsonOptions),
                 message.Id),
+            nameof(CreateMedicalRecordCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<CreateMedicalRecordCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(UpdateAnamnesisCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<UpdateAnamnesisCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(RecordVitalSignsCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<RecordVitalSignsCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(AddEvolutionNoteCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<AddEvolutionNoteCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(SetDiagnosisCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<SetDiagnosisCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(SetConductCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<SetConductCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(FinalizeMedicalRecordCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<FinalizeMedicalRecordCommand>(message.Payload, JsonOptions),
+                message.Id),
             _ => null
         };
     }
@@ -76,6 +98,26 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
                 return await _mediator.Send(cancel, cancellationToken);
             case RescheduleAppointmentCommand reschedule:
                 return await _mediator.Send(reschedule, cancellationToken);
+            case CreateMedicalRecordCommand createRecord:
+            {
+                var createResult = await _mediator.Send(createRecord, cancellationToken);
+                return createResult.IsSuccess ? Result.Success() : Result.Failure(createResult.Error);
+            }
+            case UpdateAnamnesisCommand updateAnamnesis:
+                return await _mediator.Send(updateAnamnesis, cancellationToken);
+            case RecordVitalSignsCommand recordVitals:
+                return await _mediator.Send(recordVitals, cancellationToken);
+            case AddEvolutionNoteCommand addEvolution:
+            {
+                var evolutionResult = await _mediator.Send(addEvolution, cancellationToken);
+                return evolutionResult.IsSuccess ? Result.Success() : Result.Failure(evolutionResult.Error);
+            }
+            case SetDiagnosisCommand setDiagnosis:
+                return await _mediator.Send(setDiagnosis, cancellationToken);
+            case SetConductCommand setConduct:
+                return await _mediator.Send(setConduct, cancellationToken);
+            case FinalizeMedicalRecordCommand finalize:
+                return await _mediator.Send(finalize, cancellationToken);
             default:
                 return Result.Failure(new Error("Sync.HandlerMismatch", "Not a veterinary sync command."));
         }
@@ -100,5 +142,26 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 
     private static RescheduleAppointmentCommand? WithIdempotency(RescheduleAppointmentCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static CreateMedicalRecordCommand? WithIdempotency(CreateMedicalRecordCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static UpdateAnamnesisCommand? WithIdempotency(UpdateAnamnesisCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static RecordVitalSignsCommand? WithIdempotency(RecordVitalSignsCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static AddEvolutionNoteCommand? WithIdempotency(AddEvolutionNoteCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static SetDiagnosisCommand? WithIdempotency(SetDiagnosisCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static SetConductCommand? WithIdempotency(SetConductCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static FinalizeMedicalRecordCommand? WithIdempotency(FinalizeMedicalRecordCommand? command, Guid idempotencyKey) =>
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 }

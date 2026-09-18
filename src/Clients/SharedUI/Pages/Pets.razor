@@ -1,11 +1,13 @@
 @page "/pets"
 @using SharedUI.Components
 @using SharedUI.Services
+@using SharedUI.Navigation
 @using Clients.Infrastructure.Http
 @using Clients.Infrastructure.Crm
 @inject IPetStore PetStore
 @inject ITutorStore TutorStore
 @inject IToastService Toast
+@inject INavigationService Navigation
 
 <div class="header-section">
     <h1>Pets</h1>
@@ -29,6 +31,7 @@
                 <td>@pet.Sex</td>
                 <td>
                     <button class="btn btn-sm btn-info" @onclick="() => EditPet(pet)">Editar</button>
+                    <button class="btn btn-sm btn-outline" @onclick="() => OpenMedicalRecord(pet.Id)">Prontuário</button>
                 </td>
             </RowTemplate>
         </DataGrid>
@@ -148,6 +151,9 @@
     {
         _showModal = false;
     }
+
+    private void OpenMedicalRecord(Guid petId) =>
+        Navigation.NavigateTo(AppRoutes.PetMedicalRecords(petId));
 
     private async Task SavePet()
     {

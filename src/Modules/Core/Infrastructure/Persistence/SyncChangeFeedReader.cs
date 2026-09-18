@@ -73,6 +73,7 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
 
         var appointments = new List<SyncAppointmentDto>();
         var scheduleSlots = new List<SyncScheduleSlotDto>();
+        var medicalRecords = new List<SyncMedicalRecordDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -80,6 +81,7 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             var modulePage = await contributor.ReadChangesAsync(since, take, cancellationToken);
             appointments.AddRange(modulePage.Appointments);
             scheduleSlots.AddRange(modulePage.ScheduleSlots);
+            medicalRecords.AddRange(modulePage.MedicalRecords);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -94,6 +96,7 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             Pets = mappedPets,
             Appointments = appointments,
             ScheduleSlots = scheduleSlots,
+            MedicalRecords = medicalRecords,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

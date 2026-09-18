@@ -15,6 +15,12 @@ public class AppointmentsTests : BunitContext
         Services.AddSingleton<IAppointmentStore, FakeAppointmentStore>();
         Services.AddSingleton<IPetStore, FakePetStoreForAppointments>();
         Services.AddSingleton<IToastService, ToastService>();
+        Services.AddSingleton<INavigationService, FakeNavigationService>();
+    }
+
+    private sealed class FakeNavigationService : INavigationService
+    {
+        public void NavigateTo(string uri, bool forceLoad = false) { }
     }
 
     [Fact]

@@ -14,6 +14,7 @@ public sealed class SyncContributorChanges
 {
     public IReadOnlyList<SyncAppointmentDto> Appointments { get; init; } = Array.Empty<SyncAppointmentDto>();
     public IReadOnlyList<SyncScheduleSlotDto> ScheduleSlots { get; init; } = Array.Empty<SyncScheduleSlotDto>();
+    public IReadOnlyList<SyncMedicalRecordDto> MedicalRecords { get; init; } = Array.Empty<SyncMedicalRecordDto>();
     public DateTimeOffset MaxUpdatedAt { get; init; }
     public bool HasMore { get; init; }
 }

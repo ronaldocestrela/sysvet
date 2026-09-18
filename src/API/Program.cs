@@ -46,9 +46,9 @@ app.MapApiHealthChecks();
 var routes = app.MapGroup(string.Empty)
     .AddEndpointFilter<ResultEndpointFilter>();
 
+routes.MapVeterinaryEndpoints();
 routes.MapCoreEndpoints();
 routes.MapAuthEndpoints(app.Environment);
-routes.MapVeterinaryEndpoints();
 routes.MapInventoryEndpoints();
 routes.MapSalesEndpoints();
 routes.MapPetshopEndpoints();

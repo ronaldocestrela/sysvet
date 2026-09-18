@@ -89,4 +89,52 @@ internal static class OutboxPayloadFactory
 
     public static string MarkNoShowAppointment(Guid appointmentId, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string CreateMedicalRecord(Guid appointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string UpdateAnamnesis(Guid medicalRecordId, string anamnesis, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, Anamnesis = anamnesis, IdempotencyKey = idempotencyKey });
+
+    public static string RecordVitalSigns(
+        Guid medicalRecordId,
+        decimal weightKg,
+        decimal temperatureC,
+        int? heartRateBpm,
+        int? respiratoryRateBpm,
+        string mucousMembranes,
+        string capillaryRefillTime,
+        DateTimeOffset measuredAt,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            MedicalRecordId = medicalRecordId,
+            WeightKg = weightKg,
+            TemperatureC = temperatureC,
+            HeartRateBpm = heartRateBpm,
+            RespiratoryRateBpm = respiratoryRateBpm,
+            MucousMembranes = mucousMembranes,
+            CapillaryRefillTime = capillaryRefillTime,
+            MeasuredAt = measuredAt,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string AddEvolutionNote(Guid medicalRecordId, string text, Guid noteId, DateTimeOffset recordedAt, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            MedicalRecordId = medicalRecordId,
+            Text = text,
+            NoteId = noteId,
+            RecordedAt = recordedAt,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string SetDiagnosis(Guid medicalRecordId, string diagnosis, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, Diagnosis = diagnosis, IdempotencyKey = idempotencyKey });
+
+    public static string SetConduct(Guid medicalRecordId, string conduct, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, Conduct = conduct, IdempotencyKey = idempotencyKey });
+
+    public static string FinalizeMedicalRecord(Guid medicalRecordId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, IdempotencyKey = idempotencyKey });
 }

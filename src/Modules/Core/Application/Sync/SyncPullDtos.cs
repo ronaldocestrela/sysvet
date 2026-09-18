@@ -62,12 +62,46 @@ public sealed class SyncScheduleSlotDto
     public string RowVersion { get; init; } = string.Empty;
 }
 
+/// <summary>Evolution note embedded in medical record sync payload.</summary>
+public sealed class SyncEvolutionNoteDto
+{
+    public Guid Id { get; init; }
+    public Guid AuthorId { get; init; }
+    public string Text { get; init; } = string.Empty;
+    public DateTimeOffset RecordedAt { get; init; }
+}
+
+/// <summary>Medical record row returned by sync pull.</summary>
+public sealed class SyncMedicalRecordDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid VeterinarianId { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid PetId { get; init; }
+    public string Anamnesis { get; init; } = string.Empty;
+    public string Diagnosis { get; init; } = string.Empty;
+    public string Prescription { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public decimal? VitalWeightKg { get; init; }
+    public decimal? VitalTemperatureC { get; init; }
+    public int? VitalHeartRateBpm { get; init; }
+    public int? VitalRespiratoryRateBpm { get; init; }
+    public string? VitalMucousMembranes { get; init; }
+    public string? VitalCapillaryRefillTime { get; init; }
+    public DateTimeOffset? VitalMeasuredAt { get; init; }
+    public IReadOnlyList<SyncEvolutionNoteDto> EvolutionNotes { get; init; } = Array.Empty<SyncEvolutionNoteDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
 public sealed class PullChangesResult
 {
     public IReadOnlyList<SyncTutorDto> Tutors { get; init; } = Array.Empty<SyncTutorDto>();
     public IReadOnlyList<SyncPetDto> Pets { get; init; } = Array.Empty<SyncPetDto>();
     public IReadOnlyList<SyncAppointmentDto> Appointments { get; init; } = Array.Empty<SyncAppointmentDto>();
     public IReadOnlyList<SyncScheduleSlotDto> ScheduleSlots { get; init; } = Array.Empty<SyncScheduleSlotDto>();
+    public IReadOnlyList<SyncMedicalRecordDto> MedicalRecords { get; init; } = Array.Empty<SyncMedicalRecordDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

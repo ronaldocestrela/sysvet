@@ -416,7 +416,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **4.1 Agenda clínica unificada** | 8 | Concluído |
-| **4.2 Prontuário veterinário** | 13 | Pendente |
+| **4.2 Prontuário veterinário** | 13 | Concluído |
 | **4.3 Exames, receitas e anexos** | 8 | Pendente |
 | **4.4 Carteira de vacinação e alertas** | 8 | Pendente |
 | **4.5 Orçamentos clínicos** | 5 | Pendente |
@@ -446,11 +446,26 @@ flowchart TD
 
 **Aceite:** Veterinário/recepção visualizam agenda do dia; alteração offline sincroniza via outbox.
 
-### 4.2 Prontuário veterinário (13 SP)
+### 4.2 Prontuário veterinário (13 SP) — Concluído
 
-- [ ] Anamnese, evolução, sinais vitais, diagnóstico
-- [ ] Histórico consolidado por pet (timeline)
-- [ ] Vínculo atendimento ↔ appointment
+**Domain**
+- [x] `MedicalRecord` estendido: anamnese, vitais (`VitalSigns`), `EvolutionNote`, diagnóstico, conduta, finalize
+- [x] Vínculo 1:1 `AppointmentId` (índice único); elegibilidade `InProgress`/`Completed`
+- [x] Sync `RestoreFromSync` / `ApplySyncSnapshot` (não reabre `Finalized`)
+
+**Application**
+- [x] GetOrCreate, update anamnese/vitais/evolução/diagnóstico/conduta, finalize
+- [x] Queries: por id, por appointment, timeline por pet
+- [x] `MedicalRecords.Read` / `MedicalRecords.Write` + `IAuditLogger` sanitizado
+
+**API**
+- [x] `/api/v1/appointments/{id}/records`, `/api/v1/medical-records/*`, `/api/v1/pets/{petId}/medical-records`
+
+**Sync**
+- [x] Plugin Veterinary: push/pull de `MedicalRecord` + outbox client
+
+**Clients**
+- [x] `IMedicalRecordStore` offline, timeline SharedUI, links Pets/Agenda
 
 **Aceite:** Prontuário completo consultável por pet; edição com auditoria.
 

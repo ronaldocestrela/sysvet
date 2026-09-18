@@ -176,6 +176,10 @@ public sealed class Appointment : AggregateRoot
         return Result.Success();
     }
 
+    /// <summary>Whether a consultation record may be opened for this appointment.</summary>
+    public bool IsEligibleForMedicalRecord() =>
+        Status is AppointmentStatus.InProgress or AppointmentStatus.Completed;
+
     /// <summary>Whether this appointment occupies the agenda at the given instant.</summary>
     public bool Overlaps(DateTimeOffset start, DateTimeOffset end)
     {

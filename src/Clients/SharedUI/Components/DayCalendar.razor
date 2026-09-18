@@ -28,6 +28,10 @@
                             {
                                 <button class="btn btn-sm btn-primary" @onclick="() => OnStart.InvokeAsync(apt.Id)">Iniciar</button>
                             }
+                            @if (apt.Status is "InProgress" or "Completed")
+                            {
+                                <button class="btn btn-sm btn-info" @onclick="() => OnOpenMedicalRecord.InvokeAsync(apt)">Prontuário</button>
+                            }
                             @if (apt.Status is not "Completed" and not "Cancelled" and not "NoShow")
                             {
                                 <button class="btn btn-sm btn-danger" @onclick="() => OnCancel.InvokeAsync(apt.Id)">Cancelar</button>
@@ -46,6 +50,7 @@
     [Parameter] public EventCallback<Guid> OnConfirm { get; set; }
     [Parameter] public EventCallback<Guid> OnStart { get; set; }
     [Parameter] public EventCallback<Guid> OnCancel { get; set; }
+    [Parameter] public EventCallback<AppointmentListItemDto> OnOpenMedicalRecord { get; set; }
 
     private static string StatusCss(string status) => status.ToLowerInvariant() switch
     {

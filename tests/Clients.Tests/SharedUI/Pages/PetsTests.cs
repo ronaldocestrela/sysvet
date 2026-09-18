@@ -16,6 +16,7 @@ public class PetsTests : BunitContext
         Services.AddSingleton<IPetStore, FakePetStore>();
         Services.AddSingleton<ITutorStore, FakeTutorStore>();
         Services.AddSingleton<IToastService, ToastService>();
+        Services.AddSingleton<INavigationService, FakeNavigationService>();
     }
 
     [Fact]
@@ -61,6 +62,12 @@ public class PetsTests : BunitContext
 
         public Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
             => Task.FromResult(Result.Success());
+    }
+
+    private sealed class FakeNavigationService : INavigationService
+    {
+        public string? LastUri { get; private set; }
+        public void NavigateTo(string uri, bool forceLoad = false) => LastUri = uri;
     }
 
     private sealed class FakeTutorStore : ITutorStore

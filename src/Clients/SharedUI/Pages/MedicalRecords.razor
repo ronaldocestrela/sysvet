@@ -1,88 +1,208 @@
 @page "/pets/{petId:guid}/medical-records"
 @using SharedUI.Components
-@using SharedUI.Services
-@inject IVeterinaryApiService VeterinaryApi
-@inject SharedUI.Services.INavigationService Navigation
+@using SharedUI.Navigation
+@using Clients.Infrastructure.Crm
+@inject IMedicalRecordStore MedicalRecordStore
+@inject INavigationService Navigation
+@inject IToastService Toast
 
 <div class="header-section">
     <h1>Prontuário Médico</h1>
     <div class="header-actions">
         <button class="btn btn-outline" @onclick="GoBack">Voltar</button>
-        <button class="btn btn-primary" @onclick="() => _showModal = true">Nova Anotação</button>
+        @if (_selected is not null && _selected.Status == "Draft")
+        {
+            <button class="btn btn-primary" @onclick="FinalizeAsync">Finalizar atendimento</button>
+        }
     </div>
 </div>
 
-<div class="records-timeline">
-    @if (_isLoading)
+<div class="records-layout">
+    <div class="records-timeline card">
+        <LoadingState IsLoading="_isLoading" Message="Carregando histórico do paciente...">
+            @if (_timeline is null || _timeline.Count == 0)
+            {
+                <div class="empty-state">Nenhum registro encontrado para este pet.</div>
+            }
+            else
+            {
+                @foreach (var item in _timeline)
+                {
+                    <button type="button" class="timeline-item @(item.Id == _selectedId ? "active" : "")" @onclick="() => SelectRecordAsync(item.Id)">
+                        <div class="record-header">
+                            <h4>@item.OccurredAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</h4>
+                            <span class="badge @item.Status.ToLower()">@item.Status</span>
+                        </div>
+                        <p class="preview">@item.DiagnosisPreview</p>
+                    </button>
+                }
+            }
+        </LoadingState>
+    </div>
+
+    @if (_selected is not null)
     {
-        <LoadingState Message="Carregando histórico do paciente..." />
-    }
-    else if (_records == null || !_records.Any())
-    {
-        <div class="empty-state">Nenhum registro encontrado para este Pet.</div>
-    }
-    else
-    {
-        @foreach (var record in _records.OrderByDescending(r => r.Date))
-        {
-            <div class="timeline-item">
-                <div class="timeline-marker"></div>
-                <div class="timeline-content card">
-                    <div class="record-header">
-                        <h4>@record.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</h4>
-                        <span class="badge @record.Status.ToLower()">@record.Status</span>
-                    </div>
-                    <div class="record-body">
-                        <p>@record.Notes</p>
-                    </div>
-                </div>
-            </div>
-        }
+        <div class="record-detail card">
+            <h3>Detalhe do atendimento</h3>
+            <FormField Label="Anamnese">
+                <textarea class="form-control" rows="3" @bind="_selectedAnamnesis" disabled="@(_selected.Status != "Draft")"></textarea>
+            </FormField>
+            <FormField Label="Diagnóstico">
+                <textarea class="form-control" rows="2" @bind="_selectedDiagnosis" disabled="@(_selected.Status != "Draft")"></textarea>
+            </FormField>
+            <FormField Label="Conduta">
+                <textarea class="form-control" rows="2" @bind="_selectedConduct" disabled="@(_selected.Status != "Draft")"></textarea>
+            </FormField>
+
+            @if (_selected.Status == "Draft")
+            {
+                <button class="btn btn-primary mt-2" @onclick="SaveDraftAsync">Salvar rascunho</button>
+                <hr />
+                <FormField Label="Nova evolução">
+                    <textarea class="form-control" rows="2" @bind="_newEvolution"></textarea>
+                </FormField>
+                <button class="btn btn-outline mt-2" @onclick="AddEvolutionAsync">Adicionar evolução</button>
+            }
+
+            @if (_selected.EvolutionNotes.Count > 0)
+            {
+                <h4 class="mt-3">Evoluções</h4>
+                <ul>
+                    @foreach (var note in _selected.EvolutionNotes.OrderByDescending(n => n.RecordedAt))
+                    {
+                        <li><small>@note.RecordedAt.ToLocalTime():</small> @note.Text</li>
+                    }
+                </ul>
+            }
+        </div>
     }
 </div>
-
-<Modal @bind-IsVisible="_showModal" Title="Novo Registro">
-    <ChildContent>
-        <FormField Label="Anotações Clínicas">
-            <textarea @bind="_newNotes" rows="4" style="width:100%; border:1px solid #ccc; border-radius:4px; padding:8px;"></textarea>
-        </FormField>
-    </ChildContent>
-    <FooterTemplate>
-        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
-        <button class="btn btn-primary" @onclick="SaveRecord">Salvar</button>
-    </FooterTemplate>
-</Modal>
 
 @code {
     [Parameter]
     public Guid PetId { get; set; }
 
-    private List<MedicalRecordDto>? _records;
+    [SupplyParameterFromQuery(Name = "appointmentId")]
+    public Guid? AppointmentId { get; set; }
+
+    private IReadOnlyList<MedicalRecordTimelineItemDto>? _timeline;
+    private MedicalRecordDetailDto? _selected;
+    private Guid? _selectedId;
     private bool _isLoading;
-    private bool _showModal;
-    private string _newNotes = "";
+    private string _selectedAnamnesis = string.Empty;
+    private string _selectedDiagnosis = string.Empty;
+    private string _selectedConduct = string.Empty;
+    private string _newEvolution = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRecordsAsync();
+        if (AppointmentId is Guid appointmentId)
+        {
+            var create = await MedicalRecordStore.GetOrCreateByAppointmentAsync(appointmentId);
+            if (create.IsFailure)
+            {
+                Toast.Show(create.Error.Message, ToastType.Error);
+            }
+        }
+
+        await LoadTimelineAsync();
     }
 
-    private async Task LoadRecordsAsync()
+    private async Task LoadTimelineAsync()
     {
         _isLoading = true;
-        _records = await VeterinaryApi.GetPetMedicalRecordsAsync(PetId);
+        var result = await MedicalRecordStore.GetTimelineByPetAsync(PetId);
+        _timeline = result.IsSuccess ? result.Value : Array.Empty<MedicalRecordTimelineItemDto>();
         _isLoading = false;
+
+        if (AppointmentId is Guid appointmentId && _timeline is not null)
+        {
+            var match = _timeline.FirstOrDefault(t => t.AppointmentId == appointmentId);
+            if (match is not null)
+            {
+                await SelectRecordAsync(match.Id);
+            }
+        }
+        else if (_timeline?.Count > 0 && _selectedId is null)
+        {
+            await SelectRecordAsync(_timeline[0].Id);
+        }
     }
 
-    private void GoBack()
+    private async Task SelectRecordAsync(Guid id)
     {
-        Navigation.NavigateTo("/pets");
+        var result = await MedicalRecordStore.GetByIdAsync(id);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _selectedId = id;
+        _selected = result.Value;
+        _selectedAnamnesis = _selected.Anamnesis;
+        _selectedDiagnosis = _selected.Diagnosis;
+        _selectedConduct = _selected.Conduct;
     }
 
-    private async Task SaveRecord()
+    private async Task SaveDraftAsync()
     {
-        // Typically calls API to Add Record
-        _showModal = false;
-        await LoadRecordsAsync();
+        if (_selected is null)
+        {
+            return;
+        }
+
+        var anamnesis = await MedicalRecordStore.UpdateAnamnesisAsync(_selected.Id, _selectedAnamnesis);
+        var diagnosis = await MedicalRecordStore.SetDiagnosisAsync(_selected.Id, _selectedDiagnosis);
+        var conduct = await MedicalRecordStore.SetConductAsync(_selected.Id, _selectedConduct);
+
+        if (anamnesis.IsFailure || diagnosis.IsFailure || conduct.IsFailure)
+        {
+            Toast.Show("Falha ao salvar rascunho.", ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Rascunho salvo.", ToastType.Success);
+        await LoadTimelineAsync();
+        await SelectRecordAsync(_selected.Id);
     }
+
+    private async Task AddEvolutionAsync()
+    {
+        if (_selected is null || string.IsNullOrWhiteSpace(_newEvolution))
+        {
+            return;
+        }
+
+        var result = await MedicalRecordStore.AddEvolutionNoteAsync(_selected.Id, _newEvolution);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _newEvolution = string.Empty;
+        await SelectRecordAsync(_selected.Id);
+    }
+
+    private async Task FinalizeAsync()
+    {
+        if (_selected is null)
+        {
+            return;
+        }
+
+        var result = await MedicalRecordStore.FinalizeAsync(_selected.Id);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Prontuário finalizado.", ToastType.Success);
+        await LoadTimelineAsync();
+        await SelectRecordAsync(_selected.Id);
+    }
+
+    private void GoBack() => Navigation.NavigateTo(AppRoutes.Pets);
 }

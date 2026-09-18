@@ -76,7 +76,14 @@ Iniciado o módulo de estoque.
 - API: CRUD agenda, slots, transições; sync plugin Veterinary no push/pull.
 - Clients: `DayCalendar`, `IAppointmentStore` offline, migration `AddOfflineAppointments`.
 
-### 👉 **Próxima Ação: Fase 4.2 — Prontuário veterinário**
+### Fase 4.2 (Prontuário veterinário) — Concluída
+
+- Domínio: anamnese, vitais, evolução, diagnóstico, conduta, finalize; 1:1 com appointment.
+- API/CQRS: CRUD clínico + timeline; auditoria via `IAuditLogger`.
+- Sync: medical records no push/pull e SQLite local.
+- UI: `/pets/{petId}/medical-records`, link na agenda e lista de pets.
+
+### 👉 **Próxima Ação: Fase 4.3 — Exames, receitas e anexos**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 4.
 

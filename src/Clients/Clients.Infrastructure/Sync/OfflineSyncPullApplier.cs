@@ -4,6 +4,7 @@ using Core.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
+using Veterinary.Domain.ValueObjects;
 
 namespace Clients.Infrastructure.Sync;
 
@@ -46,6 +47,11 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.ScheduleSlots)
             {
                 await UpsertScheduleSlotAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.MedicalRecords)
+            {
+                await UpsertMedicalRecordAsync(dto, cancellationToken);
             }
 
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
@@ -224,5 +230,62 @@ public sealed class OfflineSyncPullApplier
         }
 
         slot.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertMedicalRecordAsync(ClientSyncMedicalRecordDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<MedicalRecordStatus>(dto.Status, out var status))
+        {
+            return;
+        }
+
+        VitalSigns? vitalSigns = null;
+        if (dto.VitalWeightKg is not null && dto.VitalTemperatureC is not null && dto.VitalMeasuredAt is not null)
+        {
+            var vitalsResult = VitalSigns.Create(
+                dto.VitalWeightKg.Value,
+                dto.VitalTemperatureC.Value,
+                dto.VitalHeartRateBpm,
+                dto.VitalRespiratoryRateBpm,
+                dto.VitalMucousMembranes ?? string.Empty,
+                dto.VitalCapillaryRefillTime ?? string.Empty,
+                dto.VitalMeasuredAt.Value);
+            if (vitalsResult.IsSuccess)
+            {
+                vitalSigns = vitalsResult.Value;
+            }
+        }
+
+        var evolution = dto.EvolutionNotes.Select(n => (n.Id, n.AuthorId, n.Text, n.RecordedAt));
+
+        var record = await _dbContext.MedicalRecords
+            .Include(r => r.EvolutionNotes)
+            .FirstOrDefaultAsync(r => r.Id == dto.Id, cancellationToken);
+
+        if (record is null)
+        {
+            var created = MedicalRecord.RestoreFromSync(
+                dto.Id,
+                dto.AppointmentId,
+                dto.VeterinarianId,
+                dto.TutorId,
+                dto.PetId,
+                dto.Anamnesis,
+                dto.Diagnosis,
+                dto.Prescription,
+                status,
+                dto.UpdatedAt,
+                vitalSigns,
+                evolution);
+            _dbContext.MedicalRecords.Add(created);
+            return;
+        }
+
+        if (dto.UpdatedAt <= record.UpdatedAt)
+        {
+            return;
+        }
+
+        record.ApplySyncSnapshot(dto.Anamnesis, dto.Diagnosis, dto.Prescription, status, vitalSigns, dto.UpdatedAt, evolution);
     }
 }

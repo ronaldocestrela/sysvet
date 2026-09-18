@@ -1,0 +1,23 @@
+flowchart TB
+  subgraph agenda [Agenda 4.1]
+    Appointment[Appointment]
+  end
+
+  subgraph prontuario [Prontuario 4.2]
+    MedicalRecord[MedicalRecord]
+    Anamnesis[Anamnesis]
+    VitalSigns[VitalSigns snapshot]
+    EvolutionNote[EvolutionNote entries]
+    Diagnosis[Diagnosis]
+    Conduct[Conduct plan]
+  end
+
+  Appointment -->|"1:1 GetOrCreate"| MedicalRecord
+  MedicalRecord --> Anamnesis
+  MedicalRecord --> VitalSigns
+  MedicalRecord --> EvolutionNote
+  MedicalRecord --> Diagnosis
+  MedicalRecord --> Conduct
+
+  MedicalRecord --> AuditLog[AuditLog via IAuditLogger]
+  MedicalRecord --> SyncOutbox[Client outbox / pull LWW]

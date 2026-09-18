@@ -11,7 +11,7 @@ Módulo responsável por operações **clínicas**: agenda unificada, prontuári
 | Área | Status |
 |------|--------|
 | **Agenda** (`Appointment`, `ScheduleSlot`) | Concluído (4.1) |
-| **Prontuário** (`MedicalRecord`) | Parcial (criação via appointment) |
+| **Prontuário** (`MedicalRecord`) | Concluído (4.2 — anamnese, vitais, evolução, timeline, sync) |
 | **Vacinas** (`VaccineDose`) | Parcial |
 | **Internação** (`Hospitalization`) | Parcial |
 

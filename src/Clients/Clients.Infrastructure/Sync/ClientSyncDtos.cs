@@ -21,6 +21,7 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncPetDto> Pets { get; init; } = Array.Empty<ClientSyncPetDto>();
     public IReadOnlyList<ClientSyncAppointmentDto> Appointments { get; init; } = Array.Empty<ClientSyncAppointmentDto>();
     public IReadOnlyList<ClientSyncScheduleSlotDto> ScheduleSlots { get; init; } = Array.Empty<ClientSyncScheduleSlotDto>();
+    public IReadOnlyList<ClientSyncMedicalRecordDto> MedicalRecords { get; init; } = Array.Empty<ClientSyncMedicalRecordDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -63,6 +64,39 @@ public sealed class ClientSyncAppointmentDto
     public int DurationInMinutes { get; init; }
     public string Reason { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Evolution note in medical record sync payload.</summary>
+public sealed class ClientSyncEvolutionNoteDto
+{
+    public Guid Id { get; init; }
+    public Guid AuthorId { get; init; }
+    public string Text { get; init; } = string.Empty;
+    public DateTimeOffset RecordedAt { get; init; }
+}
+
+/// <summary>Medical record row from sync pull.</summary>
+public sealed class ClientSyncMedicalRecordDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid VeterinarianId { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid PetId { get; init; }
+    public string Anamnesis { get; init; } = string.Empty;
+    public string Diagnosis { get; init; } = string.Empty;
+    public string Prescription { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public decimal? VitalWeightKg { get; init; }
+    public decimal? VitalTemperatureC { get; init; }
+    public int? VitalHeartRateBpm { get; init; }
+    public int? VitalRespiratoryRateBpm { get; init; }
+    public string? VitalMucousMembranes { get; init; }
+    public string? VitalCapillaryRefillTime { get; init; }
+    public DateTimeOffset? VitalMeasuredAt { get; init; }
+    public IReadOnlyList<ClientSyncEvolutionNoteDto> EvolutionNotes { get; init; } = Array.Empty<ClientSyncEvolutionNoteDto>();
     public DateTimeOffset UpdatedAt { get; init; }
     public string RowVersion { get; init; } = string.Empty;
 }

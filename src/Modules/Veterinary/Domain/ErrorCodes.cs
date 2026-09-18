@@ -30,8 +30,17 @@ public static class ErrorCodes
 
     public static class MedicalRecord
     {
+        public static readonly Error NotFound = new("MedicalRecord.NotFound", "The specified medical record was not found.");
         public static readonly Error Finalized = new("MedicalRecord.Finalized", "Cannot modify a finalized medical record.");
         public static readonly Error AlreadyFinalized = new("MedicalRecord.AlreadyFinalized", "The medical record is already finalized.");
+        public static readonly Error AppointmentNotEligible = new("MedicalRecord.AppointmentNotEligible", "Medical records can only be opened for in-progress or completed appointments.");
+        public static readonly Error EmptyEvolution = new("MedicalRecord.EmptyEvolution", "Evolution note text and author are required.");
+        public static readonly Error InvalidEvolution = new("MedicalRecord.InvalidEvolution", "Evolution note exceeds maximum length.");
+        public static readonly Error InvalidVitals = new("MedicalRecord.InvalidVitals", "Vital signs values are out of acceptable range.");
+        public static readonly Error InvalidIdentifiers = new("MedicalRecord.InvalidIdentifiers", "Medical record requires valid appointment, veterinarian, tutor, and pet identifiers.");
+        public static readonly Error InvalidAnamnesis = new("MedicalRecord.InvalidAnamnesis", "Anamnesis exceeds maximum length.");
+        public static readonly Error InvalidDiagnosis = new("MedicalRecord.InvalidDiagnosis", "Diagnosis exceeds maximum length.");
+        public static readonly Error InvalidConduct = new("MedicalRecord.InvalidConduct", "Conduct exceeds maximum length.");
     }
 
     public static class VaccineDose

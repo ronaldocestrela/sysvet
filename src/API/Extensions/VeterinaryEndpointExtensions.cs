@@ -55,8 +55,8 @@ public static class VeterinaryEndpointExtensions
         group.MapPost("/{id:guid}/cancel", async (Guid id, HttpContext httpContext, IMediator mediator) =>
             (await mediator.Send(new CancelAppointmentCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
-        group.MapPost("/{id:guid}/records", async (Guid id, IMediator mediator) =>
-            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.CreateMedicalRecordCommand(id))).ToHttpResult());
+        group.MapPost("/{id:guid}/records", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.CreateMedicalRecordCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
         var slotsGroup = builder.MapGroup("/api/v1/schedule-slots").RequireAuthorization().WithTags("Veterinary", "ScheduleSlots");
 
@@ -75,7 +75,39 @@ public static class VeterinaryEndpointExtensions
         slotsGroup.MapPost("/{id:guid}/unblock", async (Guid id, HttpContext httpContext, IMediator mediator) =>
             (await mediator.Send(new UnblockScheduleSlotCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
+        var recordsGroup = builder.MapGroup("/api/v1/medical-records").RequireAuthorization().WithTags("Veterinary", "MedicalRecords");
+
+        recordsGroup.MapGet("/by-pet/{petId:guid}", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Queries.GetPetClinicalTimelineQuery(petId))).ToHttpResult());
+
+        recordsGroup.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Queries.GetMedicalRecordByIdQuery(id))).ToHttpResult());
+
+        recordsGroup.MapPatch("/{id:guid}/anamnesis", async (Guid id, HttpContext httpContext, [FromBody] AnamnesisRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.UpdateAnamnesisCommand(id, body.Anamnesis, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        recordsGroup.MapPatch("/{id:guid}/vitals", async (Guid id, HttpContext httpContext, [FromBody] VitalSignsRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.RecordVitalSignsCommand(
+                id, body.WeightKg, body.TemperatureC, body.HeartRateBpm, body.RespiratoryRateBpm,
+                body.MucousMembranes, body.CapillaryRefillTime, body.MeasuredAt, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        recordsGroup.MapPatch("/{id:guid}/diagnosis", async (Guid id, HttpContext httpContext, [FromBody] DiagnosisRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.SetDiagnosisCommand(id, body.Diagnosis, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        recordsGroup.MapPatch("/{id:guid}/conduct", async (Guid id, HttpContext httpContext, [FromBody] ConductRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.SetConductCommand(id, body.Conduct, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        recordsGroup.MapPost("/{id:guid}/evolution", async (Guid id, HttpContext httpContext, [FromBody] EvolutionNoteRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.AddEvolutionNoteCommand(id, body.Text, body.NoteId, body.RecordedAt, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        recordsGroup.MapPost("/{id:guid}/finalize", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.FinalizeMedicalRecordCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
         var petsGroup = builder.MapGroup("/api/v1/pets").RequireAuthorization().WithTags("Veterinary", "Pets (Veterinary)");
+
+        petsGroup.MapGet("/{petId:guid}/medical-records", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Queries.GetPetClinicalTimelineQuery(petId))).ToHttpResult());
+
         petsGroup.MapPost("/{petId:guid}/vaccines", async (Guid petId, [FromBody] Veterinary.Application.Vaccines.Commands.RegisterVaccineDoseCommand command, IMediator mediator) =>
         {
             if (petId != command.PetId)
@@ -114,4 +146,26 @@ public static class VeterinaryEndpointExtensions
     /// </summary>
     /// <param name="NewDate">New scheduled date and time.</param>
     public record RescheduleRequest(DateTimeOffset NewDate);
+
+    /// <summary>Anamnesis update body.</summary>
+    public record AnamnesisRequest(string Anamnesis);
+
+    /// <summary>Vital signs update body.</summary>
+    public record VitalSignsRequest(
+        decimal WeightKg,
+        decimal TemperatureC,
+        int? HeartRateBpm,
+        int? RespiratoryRateBpm,
+        string MucousMembranes,
+        string CapillaryRefillTime,
+        DateTimeOffset MeasuredAt);
+
+    /// <summary>Diagnosis update body.</summary>
+    public record DiagnosisRequest(string Diagnosis);
+
+    /// <summary>Conduct update body.</summary>
+    public record ConductRequest(string Conduct);
+
+    /// <summary>Evolution note append body.</summary>
+    public record EvolutionNoteRequest(string Text, Guid NoteId = default, DateTimeOffset? RecordedAt = null);
 }
