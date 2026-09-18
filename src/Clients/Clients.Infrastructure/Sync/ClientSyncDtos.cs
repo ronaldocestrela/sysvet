@@ -26,6 +26,8 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncIssuedPrescriptionDto> IssuedPrescriptions { get; init; } = Array.Empty<ClientSyncIssuedPrescriptionDto>();
     public IReadOnlyList<ClientSyncClinicalExamDto> ClinicalExams { get; init; } = Array.Empty<ClientSyncClinicalExamDto>();
     public IReadOnlyList<ClientSyncClinicalAttachmentDto> ClinicalAttachments { get; init; } = Array.Empty<ClientSyncClinicalAttachmentDto>();
+    public IReadOnlyList<ClientSyncVaccineProtocolDto> VaccineProtocols { get; init; } = Array.Empty<ClientSyncVaccineProtocolDto>();
+    public IReadOnlyList<ClientSyncVaccineDoseDto> VaccineDoses { get; init; } = Array.Empty<ClientSyncVaccineDoseDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -52,6 +54,7 @@ public sealed class ClientSyncPetDto
     public string Breed { get; init; } = string.Empty;
     public string Sex { get; init; } = string.Empty;
     public Guid TutorId { get; init; }
+    public DateOnly? BirthDate { get; init; }
     public bool IsDeleted { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
     public string RowVersion { get; init; } = string.Empty;
@@ -178,4 +181,38 @@ public sealed class ClientSyncScheduleSlotDto
     public bool IsAvailable { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
     public string RowVersion { get; init; } = string.Empty;
+}
+
+public sealed class ClientSyncVaccineProtocolDoseDto
+{
+    public Guid Id { get; init; }
+    public int Sequence { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public int MinAgeInDays { get; init; }
+    public int? MaxAgeInDays { get; init; }
+    public int? IntervalFromPreviousInDays { get; init; }
+    public int? NextDoseIntervalInDays { get; init; }
+}
+
+public sealed class ClientSyncVaccineProtocolDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Species { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public IReadOnlyList<ClientSyncVaccineProtocolDoseDto> Doses { get; init; } = Array.Empty<ClientSyncVaccineProtocolDoseDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncVaccineDoseDto
+{
+    public Guid Id { get; init; }
+    public Guid PetId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string BatchNumber { get; init; } = string.Empty;
+    public DateTimeOffset AppliedAt { get; init; }
+    public DateTimeOffset? NextDueDate { get; init; }
+    public Guid? ProtocolId { get; init; }
+    public Guid? ProtocolDoseId { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
 }

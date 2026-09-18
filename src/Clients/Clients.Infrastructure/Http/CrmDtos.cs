@@ -92,6 +92,9 @@ public sealed class PetDto
 
     /// <summary>Owning tutor id.</summary>
     public Guid TutorId { get; set; }
+
+    /// <summary>Optional birth date for age-based protocols.</summary>
+    public DateOnly? BirthDate { get; set; }
 }
 
 /// <summary>Request body for creating a pet.</summary>
@@ -114,6 +117,9 @@ public sealed class CreatePetRequest
 
     /// <summary>Owning tutor id.</summary>
     public Guid TutorId { get; set; }
+
+    /// <summary>Optional birth date.</summary>
+    public DateOnly? BirthDate { get; set; }
 }
 
 /// <summary>Request body for updating a pet.</summary>
@@ -133,6 +139,9 @@ public sealed class UpdatePetRequest
 
     /// <summary>Sex.</summary>
     public PetSexDto Sex { get; set; }
+
+    /// <summary>Optional birth date.</summary>
+    public DateOnly? BirthDate { get; set; }
 }
 
 /// <summary>Authentication tokens from login or refresh.</summary>

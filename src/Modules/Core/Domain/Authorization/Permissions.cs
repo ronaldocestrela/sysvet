@@ -96,7 +96,8 @@ public static class Permissions
     [
         TutorsRead, TutorsWrite,
         PetsRead, PetsWrite,
-        AppointmentsRead, AppointmentsWrite
+        AppointmentsRead, AppointmentsWrite,
+        VaccinesRead
     ];
 
     /// <summary>

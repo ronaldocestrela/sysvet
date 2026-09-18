@@ -12,6 +12,7 @@ public static class MenuCatalog
         ["tutors"] = Permissions.TutorsRead,
         ["pets"] = Permissions.PetsRead,
         ["appointments"] = Permissions.AppointmentsRead,
+        ["vaccines"] = Permissions.VaccinesRead,
         ["inventory"] = Permissions.ProductsRead,
         ["sales"] = Permissions.SalesRead,
         ["cash"] = Permissions.CashRegisterRead,

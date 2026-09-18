@@ -26,7 +26,8 @@ public static class CrmDtoMappings
         Species = (PetSpeciesDto)(int)pet.Species,
         Breed = pet.Breed,
         Sex = (PetSexDto)(int)pet.Sex,
-        TutorId = pet.TutorId
+        TutorId = pet.TutorId,
+        BirthDate = pet.BirthDate
     };
 
     /// <summary>Converts API species enum to domain.</summary>

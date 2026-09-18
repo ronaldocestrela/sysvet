@@ -26,6 +26,7 @@ public sealed class SyncPetDto
     public string Breed { get; init; } = string.Empty;
     public string Sex { get; init; } = string.Empty;
     public Guid TutorId { get; init; }
+    public DateOnly? BirthDate { get; init; }
     public bool IsDeleted { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
     public string RowVersion { get; init; } = string.Empty;
@@ -166,6 +167,45 @@ public sealed class SyncClinicalAttachmentDto
     public string RowVersion { get; init; } = string.Empty;
 }
 
+/// <summary>Vaccine protocol returned by sync pull.</summary>
+public sealed class SyncVaccineProtocolDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Species { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public IReadOnlyList<SyncVaccineProtocolDoseDto> Doses { get; init; } = Array.Empty<SyncVaccineProtocolDoseDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Protocol dose line in sync pull.</summary>
+public sealed class SyncVaccineProtocolDoseDto
+{
+    public Guid Id { get; init; }
+    public int Sequence { get; init; }
+    public string Label { get; init; } = string.Empty;
+    public int MinAgeInDays { get; init; }
+    public int? MaxAgeInDays { get; init; }
+    public int? IntervalFromPreviousInDays { get; init; }
+    public int? NextDoseIntervalInDays { get; init; }
+}
+
+/// <summary>Applied vaccine dose returned by sync pull.</summary>
+public sealed class SyncVaccineDoseDto
+{
+    public Guid Id { get; init; }
+    public Guid PetId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string BatchNumber { get; init; } = string.Empty;
+    public DateTimeOffset AppliedAt { get; init; }
+    public DateTimeOffset? NextDueDate { get; init; }
+    public Guid? ProtocolId { get; init; }
+    public Guid? ProtocolDoseId { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
 public sealed class PullChangesResult
 {
     public IReadOnlyList<SyncTutorDto> Tutors { get; init; } = Array.Empty<SyncTutorDto>();
@@ -177,6 +217,8 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncIssuedPrescriptionDto> IssuedPrescriptions { get; init; } = Array.Empty<SyncIssuedPrescriptionDto>();
     public IReadOnlyList<SyncClinicalExamDto> ClinicalExams { get; init; } = Array.Empty<SyncClinicalExamDto>();
     public IReadOnlyList<SyncClinicalAttachmentDto> ClinicalAttachments { get; init; } = Array.Empty<SyncClinicalAttachmentDto>();
+    public IReadOnlyList<SyncVaccineProtocolDto> VaccineProtocols { get; init; } = Array.Empty<SyncVaccineProtocolDto>();
+    public IReadOnlyList<SyncVaccineDoseDto> VaccineDoses { get; init; } = Array.Empty<SyncVaccineDoseDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

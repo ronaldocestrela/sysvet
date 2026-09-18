@@ -26,7 +26,7 @@ public class UpdatePetCommandHandler : IRequestHandler<UpdatePetCommand, Result>
             return Result.Success();
         }
 
-        var updateResult = pet.Update(request.Name, request.Species, request.Breed, request.Sex);
+        var updateResult = pet.Update(request.Name, request.Species, request.Breed, request.Sex, request.BirthDate);
         if (updateResult.IsFailure) return updateResult;
 
         if (request.OccurredAt.HasValue)

@@ -16,4 +16,5 @@ public class PetDto
     public string Breed { get; set; } = string.Empty;
     public PetSex Sex { get; set; }
     public Guid TutorId { get; set; }
+    public DateOnly? BirthDate { get; set; }
 }

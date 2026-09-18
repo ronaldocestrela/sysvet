@@ -103,6 +103,7 @@ public static class ErrorCodes
         public static readonly Error InvalidSex = new("Pet.InvalidSex", "O sexo do pet deve ser válido.");
         public static readonly Error TutorInactive = new("Pet.TutorInactive", "Não é possível vincular pets a um tutor inativo.");
         public static readonly Error AlreadyDeleted = new("Pet.AlreadyDeleted", "O pet foi excluído e não pode ser alterado.");
+        public static readonly Error InvalidBirthDate = new("Pet.InvalidBirthDate", "A data de nascimento do pet não pode ser futura.");
     }
 
     /// <summary>

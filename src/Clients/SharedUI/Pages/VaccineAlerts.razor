@@ -1,0 +1,76 @@
+@page "/vaccine-alerts"
+@using SharedUI.Components
+@using SharedUI.Services
+@using SharedUI.Navigation
+@using Clients.Infrastructure.Crm
+@inject IVaccineStore VaccineStore
+@inject IToastService Toast
+@inject INavigationService Navigation
+
+<div class="header-section">
+    <h1>Alertas de vacinação</h1>
+    <select class="form-control filter" @bind="_statusFilter">
+        <option value="">Todos</option>
+        <option value="Overdue">Atrasadas</option>
+        <option value="Upcoming">Próximas (7 dias)</option>
+    </select>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando alertas...">
+    <div class="card">
+        <DataGrid Items="_alerts">
+            <HeaderTemplate>
+                <th>Pet</th>
+                <th>Vacina</th>
+                <th>Prevista para</th>
+                <th>Status</th>
+                <th></th>
+            </HeaderTemplate>
+            <RowTemplate Context="alert">
+                <td>@alert.PetName</td>
+                <td>@alert.VaccineName</td>
+                <td>@alert.NextDueDate.LocalDateTime.ToString("g")</td>
+                <td>@DisplayStatus(alert.Status)</td>
+                <td>
+                    <button class="btn btn-sm btn-outline" @onclick="() => OpenCard(alert.PetId)">Carteira</button>
+                </td>
+            </RowTemplate>
+        </DataGrid>
+    </div>
+</LoadingState>
+
+<style>
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); gap: var(--spacing-md); }
+    .filter { max-width: 220px; }
+</style>
+
+@code {
+    private List<VaccineAlertListItemDto> _alerts = [];
+    private bool _loading = true;
+    private string _statusFilter = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await VaccineStore.GetAlertsAsync(new VaccineAlertFilter
+        {
+            Status = string.IsNullOrWhiteSpace(_statusFilter) ? null : _statusFilter,
+            HorizonDays = 7
+        });
+
+        _alerts = result.IsSuccess ? result.Value.ToList() : [];
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private static string DisplayStatus(string status) =>
+        status.Equals("Overdue", StringComparison.OrdinalIgnoreCase) ? "Atrasada" : "Próxima";
+
+    private void OpenCard(Guid petId) => Navigation.NavigateTo(AppRoutes.PetVaccinationCard(petId));
+}

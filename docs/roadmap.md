@@ -418,7 +418,7 @@ flowchart TD
 | **4.1 Agenda clínica unificada** | 8 | Concluído |
 | **4.2 Prontuário veterinário** | 13 | Concluído |
 | **4.3 Exames, receitas e anexos** | 8 | Concluído |
-| **4.4 Carteira de vacinação e alertas** | 8 | Pendente |
+| **4.4 Carteira de vacinação e alertas** | 8 | Concluído |
 | **4.5 Orçamentos clínicos** | 5 | Pendente |
 | **4.6 Internação e mapa de execução** | 13 | Pendente |
 | **Total Fase 4** | **55 SP** | |
@@ -490,13 +490,26 @@ flowchart TD
 
 **Aceite:** Anexo associado ao atendimento; download autorizado (`MedicalRecords.Read`).
 
-### 4.4 Carteira de vacinação e alertas (8 SP)
+### 4.4 Carteira de vacinação e alertas (8 SP) — Concluído
 
-- [ ] Protocolos de vacina por espécie/idade
-- [ ] Registro de aplicação; próxima dose prevista
-- [ ] Query de vacinas atrasadas/previstas (base para Automações)
+**Domain**
+- [x] `VaccineProtocol` + `VaccineProtocolDose`; `VaccineSchedule` (próxima dose, Overdue/Upcoming)
+- [x] `VaccineDose` com `ProtocolId`/`ProtocolDoseId` e sync LWW; `Pet.BirthDate` opcional (Core)
 
-**Aceite:** Carteira digital exportável; alertas listados no backoffice da clínica.
+**Application**
+- [x] CQRS: protocolos CRUD, `RegisterVaccineDose` idempotente, carteira, alertas (`Vaccines.Read`/`Write`)
+- [x] Recepção: `Vaccines.Read` em `ReceptionistDefaults()`; auditoria sanitizada
+
+**API**
+- [x] `/api/v1/vaccine-protocols`, `/api/v1/pets/{petId}/vaccines|vaccination-card`, `/api/v1/vaccine-alerts`
+
+**Sync**
+- [x] Push/pull `VaccineProtocol` + `VaccineDose`; outbox client para registro de dose; protocolos pull-only
+
+**Clients**
+- [x] `IVaccineStore`, `VaccinationCard.razor` (impressão), `VaccineAlerts.razor`, `BirthDate` em pets, dashboard
+
+**Aceite:** Carteira digital exportável (print CSS); alertas atrasadas/previstas no backoffice SharedUI (contrato para Automações Fase 8).
 
 ### 4.5 Orçamentos clínicos (5 SP)
 

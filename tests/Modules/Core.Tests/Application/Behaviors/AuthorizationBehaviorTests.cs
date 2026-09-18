@@ -2,6 +2,7 @@ using Core.Application.Behaviors;
 using Core.Application.Common.Interfaces;
 using Core.Application.Messaging;
 using Core.Domain;
+using Core.Domain.Authorization;
 using FluentAssertions;
 using MediatR;
 using NSubstitute;
@@ -17,6 +18,11 @@ public class AuthorizationBehaviorTests
 
     [AuthorizeRequest("ClinicStaff")]
     private class ProtectedQuery : IQuery<string>
+    {
+    }
+
+    [AuthorizeRequest("ClinicStaff", Permissions.VaccinesRead)]
+    private class VaccineListQuery : IQuery<IReadOnlyList<string>>
     {
     }
 
@@ -62,6 +68,23 @@ public class AuthorizationBehaviorTests
         var next = Substitute.For<RequestHandlerDelegate<Result<string>>>();
 
         var result = await behavior.Handle(new ProtectedQuery(), next, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(ErrorCodes.Authorization.Forbidden);
+    }
+
+    [Fact]
+    public async Task Handle_WhenPermissionDenied_ShouldReturnForbiddenForReadOnlyListResult()
+    {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.IsAuthenticated.Returns(true);
+        currentUser.IsInPolicyAsync("ClinicStaff", Arg.Any<CancellationToken>()).Returns(true);
+        var permissionChecker = Substitute.For<IPermissionChecker>();
+        permissionChecker.HasPermissionAsync(Permissions.VaccinesRead, Arg.Any<CancellationToken>()).Returns(false);
+        var behavior = new AuthorizationBehavior<VaccineListQuery, Result<IReadOnlyList<string>>>(currentUser, permissionChecker);
+        var next = Substitute.For<RequestHandlerDelegate<Result<IReadOnlyList<string>>>>();
+
+        var result = await behavior.Handle(new VaccineListQuery(), next, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(ErrorCodes.Authorization.Forbidden);

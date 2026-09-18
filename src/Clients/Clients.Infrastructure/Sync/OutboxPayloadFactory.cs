@@ -30,7 +30,7 @@ internal static class OutboxPayloadFactory
     public static string DeleteTutor(Guid id, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { Id = id, IdempotencyKey = idempotencyKey });
 
-    public static string CreatePet(Guid id, string name, string species, string breed, string sex, Guid tutorId, Guid idempotencyKey) =>
+    public static string CreatePet(Guid id, string name, string species, string breed, string sex, Guid tutorId, DateOnly? birthDate, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new
         {
             Id = id,
@@ -39,10 +39,11 @@ internal static class OutboxPayloadFactory
             Breed = breed,
             Sex = sex,
             TutorId = tutorId,
+            BirthDate = birthDate,
             IdempotencyKey = idempotencyKey
         });
 
-    public static string UpdatePet(Guid id, string name, string species, string breed, string sex, DateTimeOffset occurredAt, Guid idempotencyKey) =>
+    public static string UpdatePet(Guid id, string name, string species, string breed, string sex, DateOnly? birthDate, DateTimeOffset occurredAt, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new
         {
             Id = id,
@@ -50,6 +51,7 @@ internal static class OutboxPayloadFactory
             Species = species,
             Breed = breed,
             Sex = sex,
+            BirthDate = birthDate,
             OccurredAt = occurredAt,
             IdempotencyKey = idempotencyKey
         });
@@ -140,4 +142,25 @@ internal static class OutboxPayloadFactory
 
     public static string RequestClinicalExam(Guid appointmentId, string name, string category, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, Name = name, Category = category, IdempotencyKey = idempotencyKey });
+
+    public static string RegisterVaccineDose(
+        Guid id,
+        Guid petId,
+        string name,
+        string batchNumber,
+        DateTimeOffset appliedAt,
+        DateTimeOffset? nextDueDate,
+        Guid? protocolDoseId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Id = id,
+            PetId = petId,
+            Name = name,
+            BatchNumber = batchNumber,
+            AppliedAt = appliedAt,
+            NextDueDate = nextDueDate,
+            ProtocolDoseId = protocolDoseId,
+            IdempotencyKey = idempotencyKey
+        });
 }

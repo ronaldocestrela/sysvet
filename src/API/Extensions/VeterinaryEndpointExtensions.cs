@@ -1,4 +1,5 @@
 using Core.Domain;
+using Core.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -108,8 +109,25 @@ public static class VeterinaryEndpointExtensions
         petsGroup.MapGet("/{petId:guid}/medical-records", async (Guid petId, IMediator mediator) =>
             (await mediator.Send(new Veterinary.Application.MedicalRecords.Queries.GetPetClinicalTimelineQuery(petId))).ToHttpResult());
 
-        petsGroup.MapPost("/{petId:guid}/vaccines", async (Guid petId, [FromBody] Veterinary.Application.Vaccines.Commands.RegisterVaccineDoseCommand command, IMediator mediator) =>
+        petsGroup.MapGet("/{petId:guid}/vaccines", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Vaccines.Commands.ListVaccineDosesByPetQuery(petId))).ToHttpResult());
+
+        petsGroup.MapGet("/{petId:guid}/vaccination-card", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Vaccines.Commands.GetVaccinationCardQuery(petId))).ToHttpResult());
+
+        petsGroup.MapPost("/{petId:guid}/vaccines", async (Guid petId, HttpContext httpContext, [FromBody] RegisterVaccineDoseRequest body, IMediator mediator) =>
         {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            var command = new Veterinary.Application.Vaccines.Commands.RegisterVaccineDoseCommand(
+                petId,
+                body.Name,
+                body.BatchNumber,
+                body.AppliedAt,
+                body.NextDueDate,
+                body.ProtocolDoseId,
+                body.Id ?? Guid.Empty,
+                key);
+
             if (petId != command.PetId)
             {
                 return Result.Failure<Guid>(new Error("Vaccine.MismatchedPetId", "URL petId does not match command.")).ToHttpResult();
@@ -117,6 +135,21 @@ public static class VeterinaryEndpointExtensions
 
             return (await mediator.Send(command)).ToHttpResult();
         });
+
+        var vaccineProtocolsGroup = builder.MapGroup("/api/v1/vaccine-protocols").RequireAuthorization().WithTags("Veterinary", "VaccineProtocols");
+        vaccineProtocolsGroup.MapGet("/", async (IMediator mediator, [FromQuery] PetSpecies? species, [FromQuery] bool activeOnly = true) =>
+            (await mediator.Send(new Veterinary.Application.Vaccines.Commands.ListVaccineProtocolsQuery(species, activeOnly))).ToHttpResult());
+        vaccineProtocolsGroup.MapPost("/", async (HttpContext httpContext, [FromBody] CreateVaccineProtocolRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Vaccines.Commands.CreateVaccineProtocolCommand(body.Name, body.Species, body.Doses, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        vaccineProtocolsGroup.MapPut("/{id:guid}", async (Guid id, HttpContext httpContext, [FromBody] UpdateVaccineProtocolRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Vaccines.Commands.UpdateVaccineProtocolCommand(id, body.Name, body.Species, body.Doses, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        vaccineProtocolsGroup.MapPost("/{id:guid}/deactivate", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Vaccines.Commands.DeactivateVaccineProtocolCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        builder.MapGet("/api/v1/vaccine-alerts", async (IMediator mediator, [FromQuery] Veterinary.Application.Vaccines.Dtos.VaccineAlertStatusDto? status, [FromQuery] int horizonDays = 7, [FromQuery] int page = 1, [FromQuery] int pageSize = 50) =>
+            (await mediator.Send(new Veterinary.Application.Vaccines.Commands.ListVaccineAlertsQuery(status, horizonDays, page, pageSize))).ToHttpResult())
+            .RequireAuthorization()
+            .WithTags("Veterinary", "VaccineAlerts");
 
         var hospGroup = builder.MapGroup("/api/v1/hospitalizations").RequireAuthorization().WithTags("Veterinary", "Hospitalizations");
         hospGroup.MapPost("/", async ([FromBody] Veterinary.Application.Hospitalizations.Commands.AdmitPetCommand command, IMediator mediator) =>
@@ -276,4 +309,25 @@ public static class VeterinaryEndpointExtensions
 
     /// <summary>Exam completion body.</summary>
     public record CompleteClinicalExamRequest(string? ResultSummary);
+
+    /// <summary>Vaccine dose registration body.</summary>
+    public record RegisterVaccineDoseRequest(
+        string Name,
+        string BatchNumber,
+        DateTimeOffset AppliedAt,
+        DateTimeOffset? NextDueDate,
+        Guid? ProtocolDoseId,
+        Guid? Id);
+
+    /// <summary>Vaccine protocol create body.</summary>
+    public record CreateVaccineProtocolRequest(
+        string Name,
+        PetSpecies Species,
+        IReadOnlyList<Veterinary.Application.Vaccines.Dtos.VaccineProtocolDoseInput> Doses);
+
+    /// <summary>Vaccine protocol update body.</summary>
+    public record UpdateVaccineProtocolRequest(
+        string Name,
+        PetSpecies Species,
+        IReadOnlyList<Veterinary.Application.Vaccines.Dtos.VaccineProtocolDoseInput> Doses);
 }

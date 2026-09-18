@@ -11,6 +11,9 @@ public class Pet : Entity, ISoftDeletable, IAuditable
     public PetSex Sex { get; private set; }
     public Guid TutorId { get; private set; }
 
+    /// <summary>Optional birth date used for age-based vaccine protocol matching.</summary>
+    public DateOnly? BirthDate { get; private set; }
+
     /// <inheritdoc />
     public bool IsDeleted { get; private set; }
 
@@ -21,7 +24,7 @@ public class Pet : Entity, ISoftDeletable, IAuditable
     protected Pet() : base(Guid.NewGuid()) { }
 #pragma warning restore CS8618
 
-    private Pet(Guid id, string name, PetSpecies species, string breed, PetSex sex, Guid tutorId)
+    private Pet(Guid id, string name, PetSpecies species, string breed, PetSex sex, Guid tutorId, DateOnly? birthDate)
         : base(id)
     {
         Name = name;
@@ -29,12 +32,13 @@ public class Pet : Entity, ISoftDeletable, IAuditable
         Breed = breed;
         Sex = sex;
         TutorId = tutorId;
+        BirthDate = birthDate;
     }
 
     /// <summary>
     /// Factory Method para criação de um Pet com validações.
     /// </summary>
-    public static Result<Pet> Create(string name, PetSpecies species, string breed, PetSex sex, Guid tutorId, Guid id = default)
+    public static Result<Pet> Create(string name, PetSpecies species, string breed, PetSex sex, Guid tutorId, Guid id = default, DateOnly? birthDate = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -56,14 +60,20 @@ public class Pet : Entity, ISoftDeletable, IAuditable
             return Result.Failure<Pet>(ErrorCodes.Pet.InvalidSex);
         }
 
-        var pet = new Pet(id, name.Trim(), species, breed?.Trim() ?? string.Empty, sex, tutorId);
+        var birthValidation = ValidateBirthDate(birthDate);
+        if (birthValidation.IsFailure)
+        {
+            return Result.Failure<Pet>(birthValidation.Error);
+        }
+
+        var pet = new Pet(id, name.Trim(), species, breed?.Trim() ?? string.Empty, sex, tutorId, birthDate);
         return Result.Success(pet);
     }
 
     /// <summary>
     /// Atualiza dados do pet enquanto não estiver excluído logicamente.
     /// </summary>
-    public Result Update(string name, PetSpecies species, string breed, PetSex sex)
+    public Result Update(string name, PetSpecies species, string breed, PetSex sex, DateOnly? birthDate = null)
     {
         if (IsDeleted)
         {
@@ -85,11 +95,34 @@ public class Pet : Entity, ISoftDeletable, IAuditable
             return Result.Failure(ErrorCodes.Pet.InvalidSex);
         }
 
+        var birthValidation = ValidateBirthDate(birthDate);
+        if (birthValidation.IsFailure)
+        {
+            return birthValidation;
+        }
+
         Name = name.Trim();
         Species = species;
         Breed = breed?.Trim() ?? string.Empty;
         Sex = sex;
+        BirthDate = birthDate;
         UpdatedAt = DateTimeOffset.UtcNow;
+
+        return Result.Success();
+    }
+
+    private static Result ValidateBirthDate(DateOnly? birthDate)
+    {
+        if (birthDate is null)
+        {
+            return Result.Success();
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (birthDate.Value > today)
+        {
+            return Result.Failure(ErrorCodes.Pet.InvalidBirthDate);
+        }
 
         return Result.Success();
     }

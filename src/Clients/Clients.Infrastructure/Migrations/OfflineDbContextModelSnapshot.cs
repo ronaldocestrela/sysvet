@@ -76,6 +76,9 @@ namespace Clients.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateOnly?>("BirthDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Breed")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -589,6 +592,127 @@ namespace Clients.Infrastructure.Migrations
                     b.ToTable("ScheduleSlots", (string)null);
                 });
 
+            modelBuilder.Entity("Veterinary.Domain.Entities.VaccineDose", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("NextDueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ProtocolDoseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ProtocolId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NextDueDate");
+
+                    b.HasIndex("PetId");
+
+                    b.ToTable("VaccineDoses", (string)null);
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.VaccineProtocol", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Species")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VaccineProtocols", (string)null);
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.VaccineProtocolDose", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("IntervalFromPreviousInDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("MaxAgeInDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MinAgeInDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("NextDoseIntervalInDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("VaccineProtocolId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VaccineProtocolId");
+
+                    b.ToTable("VaccineProtocolDoses", (string)null);
+                });
+
             modelBuilder.Entity("Core.Domain.Entities.Pet", b =>
                 {
                     b.HasOne("Core.Domain.Entities.Tutor", null)
@@ -750,6 +874,15 @@ namespace Clients.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Veterinary.Domain.Entities.VaccineProtocolDose", b =>
+                {
+                    b.HasOne("Veterinary.Domain.Entities.VaccineProtocol", null)
+                        .WithMany("Doses")
+                        .HasForeignKey("VaccineProtocolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Core.Domain.Entities.Tutor", b =>
                 {
                     b.Navigation("Pets");
@@ -768,6 +901,11 @@ namespace Clients.Infrastructure.Migrations
             modelBuilder.Entity("Veterinary.Domain.Entities.PrescriptionTemplate", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.VaccineProtocol", b =>
+                {
+                    b.Navigation("Doses");
                 });
 #pragma warning restore 612, 618
         }

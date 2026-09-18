@@ -117,10 +117,28 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             attachmentCandidates = attachmentCandidates.Take(take).ToList();
         }
 
+        var protocols = await _dbContext.VaccineProtocols.AsNoTracking().Include(p => p.Doses).ToListAsync(cancellationToken);
+        var protocolCandidates = protocols.Where(p => p.UpdatedAt > since).OrderBy(p => p.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreProtocols = protocolCandidates.Count > take;
+        if (hasMoreProtocols)
+        {
+            protocolCandidates = protocolCandidates.Take(take).ToList();
+        }
+
+        var vaccineDoses = await _dbContext.VaccineDoses.AsNoTracking().ToListAsync(cancellationToken);
+        var doseCandidates = vaccineDoses.Where(v => v.UpdatedAt > since).OrderBy(v => v.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreDoses = doseCandidates.Count > take;
+        if (hasMoreDoses)
+        {
+            doseCandidates = doseCandidates.Take(take).ToList();
+        }
+
         foreach (var updatedAt in templateCandidates.Select(t => t.UpdatedAt)
                      .Concat(prescriptionCandidates.Select(p => p.UpdatedAt))
                      .Concat(examCandidates.Select(e => e.UpdatedAt))
-                     .Concat(attachmentCandidates.Select(a => a.UpdatedAt)))
+                     .Concat(attachmentCandidates.Select(a => a.UpdatedAt))
+                     .Concat(protocolCandidates.Select(p => p.UpdatedAt))
+                     .Concat(doseCandidates.Select(d => d.UpdatedAt)))
         {
             if (updatedAt > maxUpdated)
             {
@@ -137,10 +155,48 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             IssuedPrescriptions = prescriptionCandidates.Select(MapIssuedPrescription).ToList(),
             ClinicalExams = examCandidates.Select(MapExam).ToList(),
             ClinicalAttachments = attachmentCandidates.Select(MapAttachment).ToList(),
+            VaccineProtocols = protocolCandidates.Select(MapVaccineProtocol).ToList(),
+            VaccineDoses = doseCandidates.Select(MapVaccineDose).ToList(),
             MaxUpdatedAt = maxUpdated,
-            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords || hasMoreTemplates || hasMorePrescriptions || hasMoreExams || hasMoreAttachments
+            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords || hasMoreTemplates || hasMorePrescriptions || hasMoreExams || hasMoreAttachments || hasMoreProtocols || hasMoreDoses
         };
     }
+
+    private static SyncVaccineProtocolDto MapVaccineProtocol(VaccineProtocol protocol) =>
+        new()
+        {
+            Id = protocol.Id,
+            Name = protocol.Name,
+            Species = protocol.Species.ToString(),
+            IsActive = protocol.IsActive,
+            Doses = protocol.Doses.OrderBy(d => d.Sequence).Select(d => new SyncVaccineProtocolDoseDto
+            {
+                Id = d.Id,
+                Sequence = d.Sequence,
+                Label = d.Label,
+                MinAgeInDays = d.MinAgeInDays,
+                MaxAgeInDays = d.MaxAgeInDays,
+                IntervalFromPreviousInDays = d.IntervalFromPreviousInDays,
+                NextDoseIntervalInDays = d.NextDoseIntervalInDays
+            }).ToList(),
+            UpdatedAt = protocol.UpdatedAt,
+            RowVersion = Convert.ToBase64String(protocol.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncVaccineDoseDto MapVaccineDose(VaccineDose dose) =>
+        new()
+        {
+            Id = dose.Id,
+            PetId = dose.PetId,
+            Name = dose.Name,
+            BatchNumber = dose.BatchNumber,
+            AppliedAt = dose.AppliedAt,
+            NextDueDate = dose.NextDueDate,
+            ProtocolId = dose.ProtocolId,
+            ProtocolDoseId = dose.ProtocolDoseId,
+            UpdatedAt = dose.UpdatedAt,
+            RowVersion = Convert.ToBase64String(dose.RowVersion ?? Array.Empty<byte>())
+        };
 
     private static SyncAppointmentDto MapAppointment(Appointment appointment) =>
         new()

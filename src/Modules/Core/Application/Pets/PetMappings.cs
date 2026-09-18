@@ -18,6 +18,7 @@ public static class PetMappings
         Species = pet.Species,
         Breed = pet.Breed,
         Sex = pet.Sex,
-        TutorId = pet.TutorId
+        TutorId = pet.TutorId,
+        BirthDate = pet.BirthDate
     };
 }

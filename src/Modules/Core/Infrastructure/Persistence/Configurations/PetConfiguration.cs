@@ -41,6 +41,8 @@ public class PetConfiguration : IEntityTypeConfiguration<Pet>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        builder.Property(p => p.BirthDate);
+
         builder.HasOne<Tutor>()
             .WithMany(t => t.Pets)
             .HasForeignKey(p => p.TutorId)

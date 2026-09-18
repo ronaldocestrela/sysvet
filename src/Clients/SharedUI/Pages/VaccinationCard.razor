@@ -1,0 +1,143 @@
+@page "/pets/{petId:guid}/vaccination-card"
+@using Microsoft.JSInterop
+@using SharedUI.Components
+@using SharedUI.Services
+@using Clients.Infrastructure.Crm
+@inject IVaccineStore VaccineStore
+@inject IToastService Toast
+@inject IJSRuntime Js
+
+<div class="header-section no-print">
+    <h1>Carteira de vacinação</h1>
+    <div class="actions">
+        <button class="btn btn-outline" @onclick="PrintCard">Imprimir / PDF</button>
+    </div>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando carteira...">
+    @if (_card is not null)
+    {
+        <div class="card print-area" id="vaccination-card">
+            <h2>@_card.PetName</h2>
+            <p><strong>Espécie:</strong> @_card.Species · <strong>Raça:</strong> @_card.Breed</p>
+            <p><strong>Tutor:</strong> @_card.TutorName</p>
+            @if (_card.BirthDate is not null)
+            {
+                <p><strong>Nascimento:</strong> @_card.BirthDate.Value.ToString("dd/MM/yyyy")</p>
+            }
+
+            <h3>Doses aplicadas</h3>
+            @if (_card.AppliedDoses.Count == 0)
+            {
+                <p class="muted">Nenhuma dose registrada.</p>
+            }
+            else
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Vacina</th><th>Lote</th><th>Aplicada em</th><th>Próxima</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dose in _card.AppliedDoses)
+                        {
+                            <tr>
+                                <td>@dose.Name</td>
+                                <td>@dose.BatchNumber</td>
+                                <td>@dose.AppliedAt.LocalDateTime.ToString("g")</td>
+                                <td>@(dose.NextDueDate?.LocalDateTime.ToString("g") ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            @if (_card.SuggestedDoses.Count > 0)
+            {
+                <h3>Sugeridas pelo protocolo</h3>
+                <ul>
+                    @foreach (var s in _card.SuggestedDoses)
+                    {
+                        <li>@s.ProtocolName — @s.Label</li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="card no-print register-panel">
+            <h3>Registrar aplicação</h3>
+            <FormField Label="Vacina">
+                <input class="form-control" @bind="_registerName" />
+            </FormField>
+            <FormField Label="Lote">
+                <input class="form-control" @bind="_registerBatch" />
+            </FormField>
+            <FormField Label="Aplicada em">
+                <input type="datetime-local" class="form-control" @bind="_registerAppliedAt" />
+            </FormField>
+            <button class="btn btn-primary" @onclick="RegisterDoseAsync">Salvar</button>
+        </div>
+    }
+</LoadingState>
+
+<style>
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); }
+    .actions { display: flex; gap: var(--spacing-sm); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { border: 1px solid var(--color-border); padding: var(--spacing-sm); text-align: left; }
+    .muted { color: var(--color-text-muted); }
+    .register-panel { margin-top: var(--spacing-lg); }
+    @@media print {
+        .no-print { display: none !important; }
+        .print-area { box-shadow: none; border: none; }
+    }
+</style>
+
+@code {
+    [Parameter] public Guid PetId { get; set; }
+
+    private VaccinationCardDto? _card;
+    private bool _loading = true;
+    private string _registerName = string.Empty;
+    private string _registerBatch = string.Empty;
+    private DateTime _registerAppliedAt = DateTime.Now;
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await VaccineStore.GetCardAsync(PetId);
+        _card = result.IsSuccess ? result.Value : null;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private async Task RegisterDoseAsync()
+    {
+        var applied = new DateTimeOffset(_registerAppliedAt);
+        var result = await VaccineStore.RegisterDoseAsync(new RegisterVaccineDoseRequest
+        {
+            PetId = PetId,
+            Name = _registerName,
+            BatchNumber = _registerBatch,
+            AppliedAt = applied
+        });
+
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Dose registrada.", ToastType.Success);
+        _registerName = string.Empty;
+        _registerBatch = string.Empty;
+        await LoadAsync();
+    }
+
+    private async Task PrintCard() => await Js.InvokeVoidAsync("print");
+}

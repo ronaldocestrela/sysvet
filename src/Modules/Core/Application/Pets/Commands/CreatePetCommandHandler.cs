@@ -41,7 +41,7 @@ public class CreatePetCommandHandler : IRequestHandler<CreatePetCommand, Result<
             return Result.Failure<Guid>(ErrorCodes.Pet.TutorInactive);
         }
 
-        var petResult = Pet.Create(request.Name, request.Species, request.Breed, request.Sex, request.TutorId, request.Id);
+        var petResult = Pet.Create(request.Name, request.Species, request.Breed, request.Sex, request.TutorId, request.Id, request.BirthDate);
         if (petResult.IsFailure) return Result.Failure<Guid>(petResult.Error);
 
         var addResult = tutor.AddPet(petResult.Value);

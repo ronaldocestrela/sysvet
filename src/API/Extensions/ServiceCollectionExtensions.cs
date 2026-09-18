@@ -1,3 +1,4 @@
+using API.Serialization;
 using Core.Infrastructure;
 using Fiscal.Infrastructure;
 using Inventory.Infrastructure;
@@ -21,6 +22,12 @@ public static class ServiceCollectionExtensions
     /// <returns>A própria coleção de serviços configurada.</returns>
     public static IServiceCollection AddApiDocumentation(this IServiceCollection services)
     {
+        services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+            options.SerializerOptions.Converters.Add(new NullableDateOnlyJsonConverter());
+        });
+
         services.AddOpenApi(options =>
         {
             options.AddDocumentTransformer<OpenApiBearerSecurityTransformer>();

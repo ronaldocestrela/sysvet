@@ -1,5 +1,7 @@
 @page "/"
 @using SharedUI.Components
+@using Clients.Infrastructure.Crm
+@inject IVaccineStore VaccineStore
 
 <div class="header-section">
     <h1>Dashboard</h1>
@@ -21,7 +23,22 @@
         <h3>Consultas Hoje</h3>
         <p class="stat-value">8</p>
     </div>
+
+    <div class="card stat-card">
+        <h3>Vacinas atrasadas</h3>
+        <p class="stat-value">@_overdueVaccines</p>
+    </div>
 </div>
+
+@code {
+    private int _overdueVaccines;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await VaccineStore.CountOverdueAlertsAsync();
+        _overdueVaccines = result.IsSuccess ? result.Value : 0;
+    }
+}
 
 <style>
     .header-section {

@@ -30,10 +30,34 @@ public class VaccineDoseRepository : IVaccineDoseRepository
 
     public async Task<List<VaccineDose>> GetByPetIdAsync(Guid petId, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.VaccineDoses
+        var doses = await _dbContext.VaccineDoses
             .Where(v => v.PetId == petId)
-            .OrderByDescending(v => v.AppliedAt)
             .ToListAsync(cancellationToken);
+        return doses.OrderByDescending(v => v.AppliedAt).ToList();
+    }
+
+    public async Task<List<VaccineDose>> GetDueAsync(DateTimeOffset utcNow, DateTimeOffset until, int take, CancellationToken cancellationToken = default)
+    {
+        var doses = await _dbContext.VaccineDoses
+            .Where(v => v.NextDueDate != null)
+            .ToListAsync(cancellationToken);
+        return doses
+            .Where(v => v.NextDueDate >= utcNow && v.NextDueDate <= until)
+            .OrderBy(v => v.NextDueDate)
+            .Take(take)
+            .ToList();
+    }
+
+    public async Task<List<VaccineDose>> GetOverdueAsync(DateTimeOffset utcNow, int take, CancellationToken cancellationToken = default)
+    {
+        var doses = await _dbContext.VaccineDoses
+            .Where(v => v.NextDueDate != null)
+            .ToListAsync(cancellationToken);
+        return doses
+            .Where(v => v.NextDueDate < utcNow)
+            .OrderBy(v => v.NextDueDate)
+            .Take(take)
+            .ToList();
     }
 
     public void Update(VaccineDose vaccineDose)

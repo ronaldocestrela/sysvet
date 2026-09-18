@@ -24,5 +24,9 @@ internal sealed class VaccineDoseConfiguration : IEntityTypeConfiguration<Vaccin
 
         builder.Property(v => v.AppliedAt).IsRequired();
         builder.Property(v => v.NextDueDate);
+        builder.Property(v => v.ProtocolId);
+        builder.Property(v => v.ProtocolDoseId);
+        builder.HasIndex(v => v.PetId);
+        builder.HasIndex(v => v.NextDueDate);
     }
 }

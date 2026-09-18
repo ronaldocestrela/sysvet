@@ -74,6 +74,16 @@ public sealed class OfflineSyncPullApplier
                 await UpsertClinicalAttachmentAsync(dto, cancellationToken);
             }
 
+            foreach (var dto in page.VaccineProtocols)
+            {
+                await UpsertVaccineProtocolAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.VaccineDoses)
+            {
+                await UpsertVaccineDoseAsync(dto, cancellationToken);
+            }
+
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
                         ?? _dbContext.SyncState.Add(new SyncState()).Entity;
             state.LastPullAt = page.NextSince;
@@ -154,7 +164,7 @@ public sealed class OfflineSyncPullApplier
         var pet = await _dbContext.Pets.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == dto.Id, cancellationToken);
         if (pet is null)
         {
-            var created = Pet.Create(dto.Name, species, dto.Breed, sex, dto.TutorId, dto.Id);
+            var created = Pet.Create(dto.Name, species, dto.Breed, sex, dto.TutorId, dto.Id, dto.BirthDate);
             if (created.IsFailure)
             {
                 return;
@@ -183,7 +193,7 @@ public sealed class OfflineSyncPullApplier
             return;
         }
 
-        pet.Update(dto.Name, species, dto.Breed, sex);
+        pet.Update(dto.Name, species, dto.Breed, sex, dto.BirthDate);
         pet.UpdatedAt = dto.UpdatedAt;
     }
 
@@ -416,6 +426,63 @@ public sealed class OfflineSyncPullApplier
             kind,
             dto.BlobKey,
             dto.IsDeleted,
+            dto.UpdatedAt);
+    }
+
+    private async Task UpsertVaccineProtocolAsync(ClientSyncVaccineProtocolDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<PetSpecies>(dto.Species, out var species))
+        {
+            return;
+        }
+
+        var doses = dto.Doses.Select(d => (d.Id, d.Sequence, d.Label, d.MinAgeInDays, d.MaxAgeInDays, d.IntervalFromPreviousInDays, d.NextDoseIntervalInDays));
+        var protocol = await _dbContext.VaccineProtocols.Include(p => p.Doses).FirstOrDefaultAsync(p => p.Id == dto.Id, cancellationToken);
+        if (protocol is null)
+        {
+            _dbContext.VaccineProtocols.Add(VaccineProtocol.RestoreFromSync(
+                dto.Id, dto.Name, species, dto.IsActive, dto.UpdatedAt, doses));
+            return;
+        }
+
+        if (dto.UpdatedAt <= protocol.UpdatedAt)
+        {
+            return;
+        }
+
+        protocol.ApplySyncSnapshot(dto.Name, species, dto.IsActive, dto.UpdatedAt, doses);
+    }
+
+    private async Task UpsertVaccineDoseAsync(ClientSyncVaccineDoseDto dto, CancellationToken cancellationToken)
+    {
+        var dose = await _dbContext.VaccineDoses.FirstOrDefaultAsync(d => d.Id == dto.Id, cancellationToken);
+        if (dose is null)
+        {
+            _dbContext.VaccineDoses.Add(VaccineDose.RestoreFromSync(
+                dto.Id,
+                dto.PetId,
+                dto.Name,
+                dto.BatchNumber,
+                dto.AppliedAt,
+                dto.NextDueDate,
+                dto.ProtocolId,
+                dto.ProtocolDoseId,
+                dto.UpdatedAt));
+            return;
+        }
+
+        if (dto.UpdatedAt <= dose.UpdatedAt)
+        {
+            return;
+        }
+
+        dose.ApplySyncSnapshot(
+            dto.Name,
+            dto.BatchNumber,
+            dto.AppliedAt,
+            dto.NextDueDate,
+            dto.ProtocolId,
+            dto.ProtocolDoseId,
             dto.UpdatedAt);
     }
 }

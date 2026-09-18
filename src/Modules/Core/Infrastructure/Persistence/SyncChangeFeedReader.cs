@@ -78,6 +78,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var issuedPrescriptions = new List<SyncIssuedPrescriptionDto>();
         var clinicalExams = new List<SyncClinicalExamDto>();
         var clinicalAttachments = new List<SyncClinicalAttachmentDto>();
+        var vaccineProtocols = new List<SyncVaccineProtocolDto>();
+        var vaccineDoses = new List<SyncVaccineDoseDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -90,6 +92,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             issuedPrescriptions.AddRange(modulePage.IssuedPrescriptions);
             clinicalExams.AddRange(modulePage.ClinicalExams);
             clinicalAttachments.AddRange(modulePage.ClinicalAttachments);
+            vaccineProtocols.AddRange(modulePage.VaccineProtocols);
+            vaccineDoses.AddRange(modulePage.VaccineDoses);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -109,6 +113,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             IssuedPrescriptions = issuedPrescriptions,
             ClinicalExams = clinicalExams,
             ClinicalAttachments = clinicalAttachments,
+            VaccineProtocols = vaccineProtocols,
+            VaccineDoses = vaccineDoses,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };
@@ -136,6 +142,7 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             Breed = pet.Breed,
             Sex = pet.Sex.ToString(),
             TutorId = pet.TutorId,
+            BirthDate = pet.BirthDate,
             IsDeleted = pet.IsDeleted,
             UpdatedAt = pet.UpdatedAt,
             RowVersion = Convert.ToBase64String(pet.RowVersion ?? Array.Empty<byte>())

@@ -102,6 +102,30 @@ public class PetTests
     }
 
     [Fact]
+    public void Create_ShouldReturnFailure_WhenBirthDateIsInFuture()
+    {
+        var tutorId = Guid.NewGuid();
+        var future = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(2));
+
+        var result = Pet.Create("Thor", PetSpecies.Dog, "Bulldog", PetSex.Male, tutorId, birthDate: future);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Pet.InvalidBirthDate");
+    }
+
+    [Fact]
+    public void Create_ShouldPersistBirthDate_WhenValid()
+    {
+        var tutorId = Guid.NewGuid();
+        var birth = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-2));
+
+        var result = Pet.Create("Thor", PetSpecies.Dog, "Bulldog", PetSex.Male, tutorId, birthDate: birth);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.BirthDate.Should().Be(birth);
+    }
+
+    [Fact]
     public void SoftDelete_ShouldBumpUpdatedAt_WhenFirstDelete()
     {
         var tutorId = Guid.NewGuid();

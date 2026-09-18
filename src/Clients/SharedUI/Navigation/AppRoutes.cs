@@ -23,6 +23,12 @@ public static class AppRoutes
             ? $"/pets/{petId}/medical-records"
             : $"/pets/{petId}/medical-records?appointmentId={appointmentId}";
 
+    /// <summary>Pet vaccination card (printable).</summary>
+    public static string PetVaccinationCard(Guid petId) => $"/pets/{petId}/vaccination-card";
+
+    /// <summary>Clinic vaccine alerts backoffice list.</summary>
+    public const string VaccineAlerts = "/vaccine-alerts";
+
     /// <summary>Clinical appointments.</summary>
     public const string Appointments = "/appointments";
 

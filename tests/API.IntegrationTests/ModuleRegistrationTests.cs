@@ -8,12 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Veterinary.Application.Appointments.Commands;
 using Veterinary.Application.Clinical.Commands;
 using Veterinary.Application.Clinical.Dtos;
+using Veterinary.Application.Vaccines.Commands;
+using Veterinary.Application.Vaccines.Dtos;
 
 namespace API.IntegrationTests;
 
 public class ModuleRegistrationTests
 {
-    private static ServiceProvider BuildProvider()
+    internal static ServiceProvider BuildProvider(Action<IServiceCollection>? configure = null)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -33,6 +35,7 @@ public class ModuleRegistrationTests
         services.AddLogging();
         services.AddSingleton<IConfiguration>(configuration);
         services.AddApplicationModules(configuration);
+        configure?.Invoke(services);
         return services.BuildServiceProvider();
     }
 
@@ -54,6 +57,7 @@ public class ModuleRegistrationTests
         provider.GetService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>().Should().NotBeNull();
         provider.GetService<IRequestHandler<ScheduleAppointmentCommand, Result<Guid>>>().Should().NotBeNull();
         provider.GetService<IRequestHandler<ListClinicalExamsByAppointmentQuery, Result<IReadOnlyList<ClinicalExamDto>>>>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<ListVaccineDosesByPetQuery, Result<IReadOnlyList<VaccineDoseDto>>>>().Should().NotBeNull();
     }
 
     [Fact]

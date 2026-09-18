@@ -13,6 +13,7 @@ public static class MenuNavigation
             ["tutors"] = new(AppRoutes.Tutors, "Tutores", "bi-people"),
             ["pets"] = new(AppRoutes.Pets, "Pets", "bi-heart"),
             ["appointments"] = new(AppRoutes.Appointments, "Agenda", "bi-calendar-event"),
+            ["vaccines"] = new(AppRoutes.VaccineAlerts, "Alertas de vacina", "bi-exclamation-triangle"),
             ["inventory"] = new(AppRoutes.Products, "Produtos", "bi-box-seam"),
             ["audit"] = new(AppRoutes.Home, "Auditoria", "bi-journal-text")
         };

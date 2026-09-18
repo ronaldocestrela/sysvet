@@ -90,7 +90,14 @@ Iniciado o módulo de estoque.
 - Sync: metadados 4.3 no plugin Veterinary; bytes só online.
 - UI: exames, receitas e anexos em [`MedicalRecords.razor`](../src/Clients/SharedUI/Pages/MedicalRecords.razor).
 
-### 👉 **Próxima Ação: Fase 4.4 — Carteira de vacinação e alertas**
+### Fase 4.4 (Carteira de vacinação e alertas) — Concluída
+
+- Domínio: protocolos por espécie/idade, `VaccineSchedule`, doses com próxima prevista; `Pet.BirthDate`.
+- API/CQRS: protocolos, registro idempotente, carteira, query Overdue/Upcoming (horizon 7d).
+- Sync: protocolos + doses no plugin Veterinary; outbox client para dose.
+- UI: `/pets/{id}/vaccination-card`, `/vaccine-alerts`, menu `vaccines`; ADR-016.
+
+### 👉 **Próxima Ação: Fase 4.5 — Orçamentos clínicos**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 4.
 

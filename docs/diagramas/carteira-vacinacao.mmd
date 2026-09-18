@@ -1,0 +1,25 @@
+flowchart LR
+  subgraph catalog [Catálogo tenant]
+    Protocol[VaccineProtocol]
+    DoseDef[VaccineProtocolDose]
+    Protocol --> DoseDef
+  end
+  subgraph clinical [Clínico]
+    Pet[Pet BirthDate Species]
+    Applied[VaccineDose]
+    Pet --> Applied
+    DoseDef -->|"opcional ProtocolDoseId"| Applied
+  end
+  subgraph reads [Leituras]
+    Card[GetVaccinationCard]
+    Alerts[ListVaccineAlerts]
+    Applied --> Card
+    Applied --> Alerts
+    Protocol --> Card
+  end
+  subgraph clients [SharedUI]
+    CardUI[VaccinationCard print]
+    AlertsUI[VaccineAlerts]
+    Card --> CardUI
+    Alerts --> AlertsUI
+  end

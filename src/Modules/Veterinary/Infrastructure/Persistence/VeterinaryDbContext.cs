@@ -21,6 +21,8 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
     public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
     public DbSet<EvolutionNote> EvolutionNotes => Set<EvolutionNote>();
     public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
+    public DbSet<VaccineProtocol> VaccineProtocols => Set<VaccineProtocol>();
+    public DbSet<VaccineProtocolDose> VaccineProtocolDoses => Set<VaccineProtocolDose>();
     public DbSet<Hospitalization> Hospitalizations => Set<Hospitalization>();
     public DbSet<PrescriptionTemplate> PrescriptionTemplates => Set<PrescriptionTemplate>();
     public DbSet<PrescriptionTemplateItem> PrescriptionTemplateItems => Set<PrescriptionTemplateItem>();

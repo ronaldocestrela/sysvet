@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
         services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
         services.AddScoped<IVaccineDoseRepository, VaccineDoseRepository>();
+        services.AddScoped<IVaccineProtocolRepository, VaccineProtocolRepository>();
         services.AddScoped<IHospitalizationRepository, HospitalizationRepository>();
         services.AddScoped<IPrescriptionExecutionRepository, PrescriptionExecutionRepository>();
         services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();

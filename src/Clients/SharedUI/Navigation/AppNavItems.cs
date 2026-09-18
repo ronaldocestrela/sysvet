@@ -14,6 +14,7 @@ public static class AppNavItems
         new(AppRoutes.Tutors, "Tutores", "bi-people"),
         new(AppRoutes.Pets, "Pets", "bi-heart"),
         new(AppRoutes.Appointments, "Agenda", "bi-calendar-event"),
+        new(AppRoutes.VaccineAlerts, "Alertas de vacina", "bi-exclamation-triangle"),
         new(AppRoutes.Hospitalizations, "Internação", "bi-hospital"),
         new(AppRoutes.Products, "Produtos", "bi-box-seam"),
         new(AppRoutes.StockMovements, "Estoque", "bi-arrow-left-right"),

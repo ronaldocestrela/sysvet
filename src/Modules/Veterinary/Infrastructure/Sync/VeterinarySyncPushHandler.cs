@@ -7,6 +7,7 @@ using MediatR;
 using Veterinary.Application.Appointments.Commands;
 using Veterinary.Application.Clinical.Commands;
 using Veterinary.Application.MedicalRecords.Commands;
+using Veterinary.Application.Vaccines.Commands;
 
 namespace Veterinary.Infrastructure.Sync;
 
@@ -85,6 +86,9 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
             nameof(IssuePrescriptionCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<IssuePrescriptionCommand>(message.Payload, JsonOptions),
                 message.Id),
+            nameof(RegisterVaccineDoseCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<RegisterVaccineDoseCommand>(message.Payload, JsonOptions),
+                message.Id),
             _ => null
         };
     }
@@ -145,6 +149,11 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
             }
             case IssuePrescriptionCommand issuePrescription:
                 return await _mediator.Send(issuePrescription, cancellationToken);
+            case RegisterVaccineDoseCommand registerVaccine:
+            {
+                var vaccineResult = await _mediator.Send(registerVaccine, cancellationToken);
+                return vaccineResult.IsSuccess ? Result.Success() : Result.Failure(vaccineResult.Error);
+            }
             default:
                 return Result.Failure(new Error("Sync.HandlerMismatch", "Not a veterinary sync command."));
         }
@@ -203,4 +212,7 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
 
     private static IssuePrescriptionCommand? WithIdempotency(IssuePrescriptionCommand? command, Guid idempotencyKey) =>
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static RegisterVaccineDoseCommand? WithIdempotency(RegisterVaccineDoseCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey, Id = idempotencyKey };
 }

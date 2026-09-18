@@ -45,8 +45,23 @@ public static class ErrorCodes
 
     public static class VaccineDose
     {
+        public static readonly Error NotFound = new("VaccineDose.NotFound", "The specified vaccine dose was not found.");
         public static readonly Error InvalidName = new("VaccineDose.InvalidName", "Vaccine name cannot be empty.");
         public static readonly Error FutureApplicationDate = new("VaccineDose.FutureApplicationDate", "Application date cannot be in the future.");
+        public static readonly Error SpeciesMismatch = new("VaccineDose.SpeciesMismatch", "The vaccine protocol does not match the pet species.");
+        public static readonly Error InvalidProtocolDose = new("VaccineDose.InvalidProtocolDose", "The specified protocol dose was not found.");
+    }
+
+    public static class VaccineProtocol
+    {
+        public static readonly Error NotFound = new("VaccineProtocol.NotFound", "The specified vaccine protocol was not found.");
+        public static readonly Error InvalidName = new("VaccineProtocol.InvalidName", "Protocol name is required and must be at most 200 characters.");
+        public static readonly Error InvalidSpecies = new("VaccineProtocol.InvalidSpecies", "Protocol species must be valid.");
+        public static readonly Error InvalidIdentifiers = new("VaccineProtocol.InvalidIdentifiers", "Protocol identifiers are invalid.");
+        public static readonly Error InvalidSequence = new("VaccineProtocol.InvalidSequence", "Dose sequence must be greater than zero.");
+        public static readonly Error InvalidDoseLabel = new("VaccineProtocol.InvalidDoseLabel", "Dose label is required and must be at most 100 characters.");
+        public static readonly Error InvalidAgeRange = new("VaccineProtocol.InvalidAgeRange", "Dose age range is invalid.");
+        public static readonly Error AlreadyInactive = new("VaccineProtocol.AlreadyInactive", "The protocol is already inactive.");
     }
 
     public static class PrescriptionExecution

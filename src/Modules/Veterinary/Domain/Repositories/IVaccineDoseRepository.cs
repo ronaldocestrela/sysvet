@@ -10,6 +10,8 @@ public interface IVaccineDoseRepository
 {
     Task<VaccineDose?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<List<VaccineDose>> GetByPetIdAsync(Guid petId, CancellationToken cancellationToken = default);
+    Task<List<VaccineDose>> GetDueAsync(DateTimeOffset utcNow, DateTimeOffset until, int take, CancellationToken cancellationToken = default);
+    Task<List<VaccineDose>> GetOverdueAsync(DateTimeOffset utcNow, int take, CancellationToken cancellationToken = default);
     Task AddAsync(VaccineDose vaccineDose, CancellationToken cancellationToken = default);
     void Update(VaccineDose vaccineDose);
 }

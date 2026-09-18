@@ -60,7 +60,8 @@ public sealed class OfflinePetStore : IPetStore
             request.Breed,
             CrmDtoMappings.ToDomainSex(request.Sex),
             request.TutorId,
-            id);
+            id,
+            request.BirthDate);
 
         if (petResult.IsFailure)
         {
@@ -85,7 +86,8 @@ public sealed class OfflinePetStore : IPetStore
             request.Name,
             CrmDtoMappings.ToDomainSpecies(request.Species),
             request.Breed,
-            CrmDtoMappings.ToDomainSex(request.Sex));
+            CrmDtoMappings.ToDomainSex(request.Sex),
+            request.BirthDate);
 
         if (updateResult.IsFailure)
         {

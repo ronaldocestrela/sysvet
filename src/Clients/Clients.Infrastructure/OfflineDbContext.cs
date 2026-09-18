@@ -73,6 +73,15 @@ public class OfflineDbContext : DbContext
     /// <summary>Local template lines.</summary>
     public DbSet<PrescriptionTemplateItem> PrescriptionTemplateItems => Set<PrescriptionTemplateItem>();
 
+    /// <summary>Local vaccine protocols (Fase 4.4).</summary>
+    public DbSet<VaccineProtocol> VaccineProtocols => Set<VaccineProtocol>();
+
+    /// <summary>Local vaccine protocol dose lines.</summary>
+    public DbSet<VaccineProtocolDose> VaccineProtocolDoses => Set<VaccineProtocolDose>();
+
+    /// <summary>Local applied vaccine doses.</summary>
+    public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -92,6 +101,9 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OfflineClinicalAttachmentConfiguration());
         modelBuilder.ApplyConfiguration(new OfflinePrescriptionTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new OfflinePrescriptionTemplateItemConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineVaccineProtocolConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineVaccineProtocolDoseConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineVaccineDoseConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
@@ -156,6 +168,34 @@ public class OfflineDbContext : DbContext
         {
             EnqueueClinicalExamOutbox(entry, clinicalExam, outboxMessages);
         }
+        else if (entry.Entity is VaccineDose vaccineDose)
+        {
+            EnqueueVaccineDoseOutbox(entry, vaccineDose, outboxMessages);
+        }
+    }
+
+    private static void EnqueueVaccineDoseOutbox(EntityEntry entry, VaccineDose dose, ICollection<OutboxMessage> outboxMessages)
+    {
+        if (entry.State != EntityState.Added)
+        {
+            return;
+        }
+
+        var outboxId = Guid.NewGuid();
+        outboxMessages.Add(new OutboxMessage
+        {
+            Id = outboxId,
+            Type = "RegisterVaccineDoseCommand",
+            Payload = OutboxPayloadFactory.RegisterVaccineDose(
+                dose.Id,
+                dose.PetId,
+                dose.Name,
+                dose.BatchNumber,
+                dose.AppliedAt,
+                dose.NextDueDate,
+                dose.ProtocolDoseId,
+                outboxId)
+        });
     }
 
     private static void EnqueueClinicalExamOutbox(EntityEntry entry, ClinicalExam exam, ICollection<OutboxMessage> outboxMessages)
@@ -398,6 +438,7 @@ public class OfflineDbContext : DbContext
                     pet.Breed,
                     pet.Sex.ToString(),
                     pet.TutorId,
+                    pet.BirthDate,
                     outboxId)
             });
             return;
@@ -424,6 +465,7 @@ public class OfflineDbContext : DbContext
                 pet.Species.ToString(),
                 pet.Breed,
                 pet.Sex.ToString(),
+                pet.BirthDate,
                 pet.UpdatedAt,
                 outboxId)
         });
