@@ -1,0 +1,91 @@
+@page "/hospitalizations/{HospitalizationId:guid}"
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@using Clients.Infrastructure.Crm
+@inject IHospitalizationStore HospitalizationStore
+@inject INavigationService Navigation
+@inject IToastService Toast
+
+<div class="header-section no-print">
+    <h1>Internação</h1>
+    <button class="btn btn-outline" @onclick="BackToMap">Mapa</button>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando internação...">
+    @if (_detail is null)
+    {
+        <div class="empty-state">Internação não encontrada.</div>
+    }
+    else
+    {
+        <section class="detail-card">
+            <h2>@_detail.PetName</h2>
+            <p class="muted">@_detail.Reason</p>
+            <p>Admissão: @_detail.AdmittedAt.ToLocalTime().ToString("g") · @_detail.Status</p>
+        </section>
+
+        <section class="detail-section">
+            <h3>Prescrições</h3>
+            @if (_detail.MedicationOrders.Count == 0)
+            {
+                <p class="muted">Nenhuma ordem de medicação.</p>
+            }
+            @foreach (var order in _detail.MedicationOrders)
+            {
+                <div class="line-item">@order.MedicationName @order.Dose (@order.Route) — @order.Status</div>
+            }
+        </section>
+
+        <section class="detail-section">
+            <h3>Evolução</h3>
+            @foreach (var note in _detail.ProgressNotes)
+            {
+                <div class="line-item">
+                    <div class="muted">@note.RecordedAt.ToLocalTime().ToString("g")</div>
+                    @note.Text
+                </div>
+            }
+        </section>
+
+        <section class="detail-section">
+            <h3>Procedimentos</h3>
+            @foreach (var proc in _detail.Procedures)
+            {
+                <div class="line-item">@proc.Name · @proc.PerformedAt.ToLocalTime().ToString("g")</div>
+            }
+        </section>
+    }
+</LoadingState>
+
+<style>
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); }
+    .detail-card { background: var(--color-surface, #fff); padding: var(--spacing-md); border-radius: 8px; margin-bottom: var(--spacing-md); }
+    .detail-section { margin-bottom: var(--spacing-lg); }
+    .line-item { padding: 8px 0; border-bottom: 1px solid var(--color-border, #eee); }
+    .muted { color: var(--color-text-muted, #666); font-size: 0.9rem; }
+</style>
+
+@code {
+    [Parameter] public Guid HospitalizationId { get; set; }
+
+    private HospitalizationDetailViewModel? _detail;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await HospitalizationStore.GetDetailAsync(HospitalizationId);
+        _detail = result.IsSuccess ? result.Value : null;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private void BackToMap() => Navigation.NavigateTo(AppRoutes.Hospitalizations);
+}

@@ -4,7 +4,7 @@ Módulo responsável por operações **clínicas**: agenda unificada, prontuári
 
 ## Status
 
-> **Em progresso (Fase 4).** Agenda clínica unificada (4.1) implementada; prontuário completo (4.2+) em evolução.
+> **Fase 4 clínica concluída (4.1–4.6).** Próximo macro-escopo: Fase 5 (estoque).
 
 ## Escopo de Negócio
 
@@ -14,7 +14,7 @@ Módulo responsável por operações **clínicas**: agenda unificada, prontuári
 | **Prontuário** (`MedicalRecord`) | Concluído (4.2 — anamnese, vitais, evolução, timeline, sync) |
 | **Vacinas** (`VaccineProtocol`, `VaccineDose`, alertas) | Concluído (4.4) |
 | **Orçamentos** (`ClinicalQuote`, pending PDV) | Concluído (4.5) |
-| **Internação** (`Hospitalization`) | Parcial |
+| **Internação** (`Hospitalization`, mapa de execução, `WardUnit`) | Concluído (4.6) |
 
 ## Estrutura de Camadas
 

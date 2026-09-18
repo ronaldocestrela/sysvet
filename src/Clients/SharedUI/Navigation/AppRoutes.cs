@@ -41,6 +41,12 @@ public static class AppRoutes
     /// <summary>Hospitalizations.</summary>
     public const string Hospitalizations = "/hospitalizations";
 
+    /// <summary>Ward units and beds configuration.</summary>
+    public const string HospitalizationUnits = "/hospitalizations/units";
+
+    /// <summary>Hospitalization detail.</summary>
+    public static string HospitalizationDetail(Guid id) => $"/hospitalizations/{id}";
+
     /// <summary>Inventory products.</summary>
     public const string Products = "/products";
 

@@ -23,6 +23,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-015](./ADR-015-blob-storage-clinico.md) | Blob storage clínico (anexos, sync metadados) | Accepted |
 | [ADR-016](./ADR-016-carteira-vacinacao.md) | Carteira de vacinação, alertas e export print | Accepted |
 | [ADR-017](./ADR-017-orcamentos-clinicos.md) | Orçamentos clínicos e fila PDV | Accepted |
+| [ADR-018](./ADR-018-internacao-mapa-execucao.md) | Internação e mapa de execução | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

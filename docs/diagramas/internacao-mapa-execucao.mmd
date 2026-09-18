@@ -1,0 +1,20 @@
+flowchart TB
+  subgraph catalog [Catalog pull-only]
+    WardUnit --> Bed
+  end
+
+  subgraph clinical [Hospitalization aggregate]
+    Hospitalization --> Bed
+    Hospitalization --> HospitalMedicationOrder
+    HospitalMedicationOrder --> MedicationAdministration
+    Hospitalization --> HospitalizationProgressNote
+    Hospitalization --> HospitalProcedure
+  end
+
+  GetExecutionMap["GET execution-map?date="] --> WardUnit
+  GetExecutionMap --> MedicationAdministration
+
+  ClientMap["SharedUI mapa /hospitalizations"] --> IHospitalizationStore
+  IHospitalizationStore --> OfflineDb[(SQLite)]
+  SyncPull --> OfflineDb
+  Outbox --> SyncPush["POST /sync/push"]

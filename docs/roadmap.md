@@ -420,7 +420,7 @@ flowchart TD
 | **4.3 Exames, receitas e anexos** | 8 | Concluído |
 | **4.4 Carteira de vacinação e alertas** | 8 | Concluído |
 | **4.5 Orçamentos clínicos** | 5 | Concluído |
-| **4.6 Internação e mapa de execução** | 13 | Pendente |
+| **4.6 Internação e mapa de execução** | 13 | Concluído |
 | **Total Fase 4** | **55 SP** | |
 
 ### 4.1 Agenda clínica unificada (8 SP) — Concluído
@@ -531,11 +531,23 @@ flowchart TD
 
 **Aceite:** Orçamento aprovado gera item pendente para conversão em venda (`pending-conversions`).
 
-### 4.6 Internação e mapa de execução (13 SP)
+### 4.6 Internação e mapa de execução (13 SP) — Concluído
 
-- [ ] Leitos/unidades; mapa de pacientes internados
-- [ ] Prescrições com horários; administração de medicamentos
-- [ ] Evolução diária; histórico de procedimentos
+**Domain**
+- [x] `WardUnit`/`Bed`; `Hospitalization` com `BedId`, transfer/discharge; `HospitalMedicationOrder` + `MedicationAdministration` (`MedicationSchedule`)
+- [x] `HospitalizationProgressNote`, `HospitalProcedure`; remoção de `PrescriptionExecution`
+
+**Application**
+- [x] CQRS ward-units + hospitalizations (mapa, ordens, administrar/pular, evolução, procedimentos); permissões `Hospitalizations.Read/Write`
+
+**API**
+- [x] `/api/v1/ward-units/*`, `/api/v1/hospitalizations/*` (execution-map, medication-orders, administrations)
+
+**Sync**
+- [x] Pull `WardUnits`/`Hospitalizations`; outbox client para mutações clínicas
+
+**Clients**
+- [x] `IHospitalizationStore`, mapa `/hospitalizations`, detalhe `/hospitalizations/{id}`, recintos `/hospitalizations/units`; menu `hospitalizations`; ADR-018
 
 **Aceite:** Mapa de execução exibe prescrições do dia por leito; registro de medicação aplicada.
 

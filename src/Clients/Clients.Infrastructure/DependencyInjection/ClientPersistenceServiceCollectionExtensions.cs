@@ -53,6 +53,7 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<IClinicalStore, OfflineClinicalStore>();
         services.AddScoped<IVaccineStore, OfflineVaccineStore>();
         services.AddScoped<IClinicalQuoteStore, OfflineClinicalQuoteStore>();
+        services.AddScoped<IHospitalizationStore, OfflineHospitalizationStore>();
         services.AddScoped<OfflineSyncPullApplier>();
 
         return services;

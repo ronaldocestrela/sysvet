@@ -29,6 +29,7 @@ builder.Services.AddHttpClient("API", client => client.BaseAddress = new Uri(api
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
 builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
+builder.Services.AddScoped<Clients.Infrastructure.Http.IWardUnitApiService, Clients.Infrastructure.Http.WardUnitApiService>();
 builder.Services.AddScoped<Clients.Infrastructure.Crm.IClinicalAttachmentService, Clients.Infrastructure.Http.ClinicalAttachmentService>();
 
 builder.Services.AddSharedUI();

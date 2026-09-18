@@ -103,9 +103,16 @@ Iniciado o módulo de estoque.
 - API/CQRS: CRUD de fluxo, inbox pending-conversions; ADR-017.
 - Sync: pull + outbox client; SharedUI prontuário, print e `/clinical-quotes/pending`.
 
-### 👉 **Próxima Ação: Fase 4.6 — Internação e mapa de execução**
+### Fase 4.6 (Internação e mapa de execução) — Concluída
 
-Ver [`roadmap.md`](roadmap.md) § Fase 4.
+- Domínio: recintos/leitos, ordens horárias, slots de administração, evolução e procedimentos internados.
+- API/CQRS: mapa do dia, CRUD clínico; migration `AddHospitalizationExecutionMap`; ADR-018.
+- Sync: pull ward/hospitalizations; outbox client; SQLite offline.
+- UI: mapa por leito, detalhe, configuração de recintos (API online); testes bUnit.
+
+### 👉 **Próxima Ação: Fase 5 — Estoque e Compras**
+
+Ver [`roadmap.md`](roadmap.md) § Fase 5.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

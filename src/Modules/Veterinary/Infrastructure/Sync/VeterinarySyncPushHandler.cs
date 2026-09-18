@@ -8,6 +8,7 @@ using Veterinary.Application.Appointments.Commands;
 using Veterinary.Application.Clinical.Commands;
 using Veterinary.Application.MedicalRecords.Commands;
 using Veterinary.Application.Quotes.Commands;
+using Veterinary.Application.Hospitalizations.Commands;
 using Veterinary.Application.Vaccines.Commands;
 
 namespace Veterinary.Infrastructure.Sync;
@@ -105,6 +106,30 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
             nameof(RejectClinicalQuoteCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<RejectClinicalQuoteCommand>(message.Payload, JsonOptions),
                 message.Id),
+            nameof(AdmitPetCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<AdmitPetCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(DischargePetCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<DischargePetCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(TransferHospitalizationBedCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<TransferHospitalizationBedCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(CreateMedicationOrderCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<CreateMedicationOrderCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(AdministerMedicationCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<AdministerMedicationCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(SkipMedicationCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<SkipMedicationCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(AddHospitalizationProgressNoteCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<AddHospitalizationProgressNoteCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(AddHospitalProcedureCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<AddHospitalProcedureCommand>(message.Payload, JsonOptions),
+                message.Id),
             _ => null
         };
     }
@@ -183,6 +208,37 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
                 return await _mediator.Send(approveQuote, cancellationToken);
             case RejectClinicalQuoteCommand rejectQuote:
                 return await _mediator.Send(rejectQuote, cancellationToken);
+            case AdmitPetCommand admitPet:
+            {
+                var admitResult = await _mediator.Send(admitPet, cancellationToken);
+                return admitResult.IsSuccess ? Result.Success() : Result.Failure(admitResult.Error);
+            }
+            case DischargePetCommand dischargePet:
+            {
+                var dischargeResult = await _mediator.Send(dischargePet, cancellationToken);
+                return dischargeResult.IsSuccess ? Result.Success() : Result.Failure(dischargeResult.Error);
+            }
+            case TransferHospitalizationBedCommand transferBed:
+                return await _mediator.Send(transferBed, cancellationToken);
+            case CreateMedicationOrderCommand medicationOrder:
+            {
+                var orderResult = await _mediator.Send(medicationOrder, cancellationToken);
+                return orderResult.IsSuccess ? Result.Success() : Result.Failure(orderResult.Error);
+            }
+            case AdministerMedicationCommand administer:
+                return await _mediator.Send(administer, cancellationToken);
+            case SkipMedicationCommand skip:
+                return await _mediator.Send(skip, cancellationToken);
+            case AddHospitalizationProgressNoteCommand progressNote:
+            {
+                var noteResult = await _mediator.Send(progressNote, cancellationToken);
+                return noteResult.IsSuccess ? Result.Success() : Result.Failure(noteResult.Error);
+            }
+            case AddHospitalProcedureCommand procedure:
+            {
+                var procResult = await _mediator.Send(procedure, cancellationToken);
+                return procResult.IsSuccess ? Result.Success() : Result.Failure(procResult.Error);
+            }
             default:
                 return Result.Failure(new Error("Sync.HandlerMismatch", "Not a veterinary sync command."));
         }
@@ -259,4 +315,28 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
 
     private static RejectClinicalQuoteCommand? WithIdempotency(RejectClinicalQuoteCommand? command, Guid idempotencyKey) =>
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static AdmitPetCommand? WithIdempotency(AdmitPetCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey, HospitalizationId = command.HospitalizationId == Guid.Empty ? idempotencyKey : command.HospitalizationId };
+
+    private static DischargePetCommand? WithIdempotency(DischargePetCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static TransferHospitalizationBedCommand? WithIdempotency(TransferHospitalizationBedCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static CreateMedicationOrderCommand? WithIdempotency(CreateMedicationOrderCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey, OrderId = command.OrderId == Guid.Empty ? idempotencyKey : command.OrderId };
+
+    private static AdministerMedicationCommand? WithIdempotency(AdministerMedicationCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static SkipMedicationCommand? WithIdempotency(SkipMedicationCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static AddHospitalizationProgressNoteCommand? WithIdempotency(AddHospitalizationProgressNoteCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey, NoteId = command.NoteId == Guid.Empty ? idempotencyKey : command.NoteId };
+
+    private static AddHospitalProcedureCommand? WithIdempotency(AddHospitalProcedureCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey, ProcedureId = command.ProcedureId == Guid.Empty ? idempotencyKey : command.ProcedureId };
 }

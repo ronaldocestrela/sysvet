@@ -24,8 +24,46 @@ public static class ErrorCodes
     {
         public static readonly Error NotFound = new("Hospitalization.NotFound", "The specified hospitalization was not found.");
         public static readonly Error InvalidReason = new("Hospitalization.InvalidReason", "Reason for admission cannot be empty.");
+        public static readonly Error InvalidIdentifiers = new("Hospitalization.InvalidIdentifiers", "Hospitalization requires valid pet, veterinarian, and bed identifiers.");
+        public static readonly Error InvalidBed = new("Hospitalization.InvalidBed", "Target bed is invalid.");
         public static readonly Error AlreadyDischarged = new("Hospitalization.AlreadyDischarged", "The hospitalization is already discharged.");
-        public static readonly Error Discharged = new("Hospitalization.Discharged", "Cannot execute prescriptions for a discharged patient.");
+        public static readonly Error Discharged = new("Hospitalization.Discharged", "Cannot modify a discharged hospitalization.");
+        public static readonly Error PetAlreadyAdmitted = new("Hospitalization.PetAlreadyAdmitted", "The pet already has an active hospitalization.");
+        public static readonly Error BedOccupied = new("Hospitalization.BedOccupied", "The bed is already occupied.");
+    }
+
+    public static class WardUnit
+    {
+        public static readonly Error NotFound = new("WardUnit.NotFound", "The specified ward unit was not found.");
+        public static readonly Error InvalidName = new("WardUnit.InvalidName", "Ward unit name is required and must be at most 200 characters.");
+        public static readonly Error InvalidIdentifiers = new("WardUnit.InvalidIdentifiers", "Ward unit identifiers are invalid.");
+        public static readonly Error InvalidBedCode = new("WardUnit.InvalidBedCode", "Bed code is required and must be at most 20 characters.");
+        public static readonly Error AlreadyInactive = new("WardUnit.AlreadyInactive", "The ward unit is already inactive.");
+    }
+
+    public static class HospitalMedicationOrder
+    {
+        public static readonly Error InvalidMedication = new("HospitalMedicationOrder.InvalidMedication", "Medication name is required.");
+        public static readonly Error InvalidSchedule = new("HospitalMedicationOrder.InvalidSchedule", "Medication schedule is invalid or exceeds the maximum duration.");
+    }
+
+    public static class MedicationAdministration
+    {
+        public static readonly Error NotFound = new("MedicationAdministration.NotFound", "The specified administration slot was not found.");
+        public static readonly Error InvalidTransition = new("MedicationAdministration.InvalidTransition", "The administration slot cannot transition to the requested status.");
+        public static readonly Error InvalidActor = new("MedicationAdministration.InvalidActor", "Actor identifier is required.");
+    }
+
+    public static class HospitalizationProgressNote
+    {
+        public static readonly Error EmptyText = new("HospitalizationProgressNote.EmptyText", "Progress note text and author are required.");
+        public static readonly Error InvalidText = new("HospitalizationProgressNote.InvalidText", "Progress note exceeds maximum length.");
+    }
+
+    public static class HospitalProcedure
+    {
+        public static readonly Error InvalidName = new("HospitalProcedure.InvalidName", "Procedure name is required and must be at most 200 characters.");
+        public static readonly Error InvalidIdentifiers = new("HospitalProcedure.InvalidIdentifiers", "Procedure requires a valid veterinarian identifier.");
     }
 
     public static class MedicalRecord
@@ -62,11 +100,6 @@ public static class ErrorCodes
         public static readonly Error InvalidDoseLabel = new("VaccineProtocol.InvalidDoseLabel", "Dose label is required and must be at most 100 characters.");
         public static readonly Error InvalidAgeRange = new("VaccineProtocol.InvalidAgeRange", "Dose age range is invalid.");
         public static readonly Error AlreadyInactive = new("VaccineProtocol.AlreadyInactive", "The protocol is already inactive.");
-    }
-
-    public static class PrescriptionExecution
-    {
-        public static readonly Error InvalidMedicationName = new("PrescriptionExecution.InvalidMedicationName", "Medication name cannot be empty.");
     }
 
     public static class PrescriptionTemplate

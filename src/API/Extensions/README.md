@@ -17,7 +17,7 @@ Ordem de registro: **Core** (Identity, JWT, behaviors MediatR) → Veterinary �
 |---|---|
 | [`EndpointExtensions.MapCoreEndpoints`](./EndpointExtensions.cs) | Tutors, Pets, Sync |
 | [`AuthEndpointsExtensions`](./AuthEndpointsExtensions.cs) | Login / refresh |
-| [`VeterinaryEndpointExtensions`](./VeterinaryEndpointExtensions.cs) | Agenda, prontuário, internação |
+| [`VeterinaryEndpointExtensions`](./VeterinaryEndpointExtensions.cs) | Agenda, prontuário, vacinas, orçamentos, `/api/v1/ward-units`, `/api/v1/hospitalizations` (execution-map, medication-orders, administrations) |
 | [`InventoryEndpointExtensions`](./InventoryEndpointExtensions.cs) | Produtos e movimentações |
 | [`SalesEndpointExtensions`](./SalesEndpointExtensions.cs) | PDV e caixa |
 | [`PetshopEndpointExtensions`](./PetshopEndpointExtensions.cs) | Stub |

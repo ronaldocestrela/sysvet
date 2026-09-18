@@ -1,0 +1,78 @@
+@page "/hospitalizations/units"
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@using Clients.Infrastructure.Http
+@inject IWardUnitApiService WardUnitApi
+@inject INavigationService Navigation
+@inject IToastService Toast
+
+<div class="header-section no-print">
+    <h1>Recintos e leitos</h1>
+    <button class="btn btn-outline" @onclick="() => Navigation.NavigateTo(AppRoutes.Hospitalizations)">Mapa</button>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando unidades...">
+    <div class="form-card">
+        <h3>Nova unidade</h3>
+        <input class="form-control" placeholder="Nome (ex. ICU)" @bind="_newName" />
+        <input class="form-control" placeholder="Código do leito" @bind="_newBedCode" />
+        <button class="btn btn-primary" @onclick="CreateUnitAsync">Criar</button>
+    </div>
+
+    <ul class="unit-list">
+        @foreach (var unit in _units)
+        {
+            <li>@unit.Name · @unit.BedCount leito(s) @(unit.IsActive ? "" : "(inativa)")</li>
+        }
+    </ul>
+</LoadingState>
+
+<style>
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); }
+    .form-card { display: flex; flex-direction: column; gap: 8px; max-width: 420px; margin-bottom: var(--spacing-lg); }
+    .unit-list { list-style: none; padding: 0; }
+    .unit-list li { padding: 8px 0; border-bottom: 1px solid var(--color-border, #eee); }
+</style>
+
+@code {
+    private IReadOnlyList<WardUnitListItemDto> _units = Array.Empty<WardUnitListItemDto>();
+    private bool _loading = true;
+    private string _newName = string.Empty;
+    private string _newBedCode = "A1";
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await WardUnitApi.ListAsync(activeOnly: false);
+        _units = result.IsSuccess ? result.Value ?? Array.Empty<WardUnitListItemDto>() : Array.Empty<WardUnitListItemDto>();
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private async Task CreateUnitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newName) || string.IsNullOrWhiteSpace(_newBedCode))
+        {
+            Toast.Show("Informe nome e código do leito.", ToastType.Warning);
+            return;
+        }
+
+        var result = await WardUnitApi.CreateAsync(_newName.Trim(), [new WardBedInputDto { Code = _newBedCode.Trim(), SortOrder = 0 }]);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Unidade criada. Sincronize para ver no mapa offline.", ToastType.Success);
+        _newName = string.Empty;
+        await LoadAsync();
+    }
+}

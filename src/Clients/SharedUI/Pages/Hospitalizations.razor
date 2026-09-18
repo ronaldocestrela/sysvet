@@ -1,102 +1,142 @@
 @page "/hospitalizations"
 @using SharedUI.Components
+@using SharedUI.Navigation
 @using SharedUI.Services
-@inject IVeterinaryApiService VeterinaryApi
+@using Clients.Infrastructure.Crm
+@inject IHospitalizationStore HospitalizationStore
+@inject INavigationService Navigation
+@inject IToastService Toast
 
-<div class="header-section">
-    <h1>Painel de Internação</h1>
+<div class="header-section no-print">
+    <h1>Mapa de execução</h1>
+    <div class="header-actions">
+        <button class="btn btn-sm btn-outline" @onclick="() => Navigation.NavigateTo(AppRoutes.HospitalizationUnits)">Recintos</button>
+        <input type="date" class="form-control date-filter" @bind="_mapDate" @bind:after="LoadMapAsync" />
+    </div>
 </div>
 
-<div class="hospitalizations-grid">
-    @if (_isLoading)
+<LoadingState IsLoading="_loading" Message="Carregando mapa...">
+    @if (_map is null || _map.Wards.Count == 0)
     {
-        <LoadingState Message="Carregando internações..." />
-    }
-    else if (_hospitalizations == null || !_hospitalizations.Any())
-    {
-        <div class="empty-state">Nenhum animal internado no momento.</div>
+        <div class="empty-state">Nenhuma unidade/leito configurado ou sem internações.</div>
     }
     else
     {
-        @foreach (var hosp in _hospitalizations)
+        @foreach (var ward in _map.Wards)
         {
-            <div class="hosp-card">
-                <div class="hosp-header">
-                    <h3>@hosp.PetName</h3>
-                    <span class="badge badge-warning">Internado</span>
-                </div>
-                <div class="hosp-body">
-                    <p><strong>Motivo:</strong> @hosp.Reason</p>
-                    <p><strong>Desde:</strong> @hosp.AdmittedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
-                </div>
-                <div class="hosp-actions">
-                    <button class="btn btn-sm btn-primary" @onclick="() => OpenPrescriptionModal(hosp.Id)">Prescrição</button>
-                    <button class="btn btn-sm btn-outline" @onclick="() => Discharge(hosp.Id)">Dar Alta</button>
-                </div>
+            <h2 class="ward-title">@ward.WardName</h2>
+            <div class="hospitalizations-grid">
+                @foreach (var bed in ward.Beds)
+                {
+                    <div class="hosp-card @(bed.HospitalizationId.HasValue ? "occupied" : "vacant")">
+                        <div class="hosp-header">
+                            <h3>Leito @bed.BedCode</h3>
+                            @if (bed.HospitalizationId.HasValue)
+                            {
+                                <span class="badge badge-warning">@bed.PetName</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-muted">Vago</span>
+                            }
+                        </div>
+                        @if (bed.HospitalizationId.HasValue)
+                        {
+                            <div class="admin-list">
+                                @if (bed.Administrations.Count == 0)
+                                {
+                                    <p class="muted">Sem prescrições para @_map.Date.ToString("dd/MM/yyyy").</p>
+                                }
+                                @foreach (var admin in bed.Administrations)
+                                {
+                                    <div class="admin-row">
+                                        <div>
+                                            <strong>@admin.MedicationName</strong> @admin.Dose
+                                            <div class="muted">@admin.ScheduledAt.ToLocalTime().ToString("HH:mm") · @DisplayStatus(admin.Status)</div>
+                                        </div>
+                                        @if (admin.Status == "Pending")
+                                        {
+                                            <button class="btn btn-sm btn-primary" @onclick="() => Administer(bed.HospitalizationId!.Value, admin.Id)">Aplicar</button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <div class="hosp-actions">
+                                <button class="btn btn-sm btn-outline" @onclick="() => Navigation.NavigateTo(AppRoutes.HospitalizationDetail(bed.HospitalizationId!.Value))">Detalhe</button>
+                                <button class="btn btn-sm btn-outline" @onclick="() => Discharge(bed.HospitalizationId!.Value)">Alta</button>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         }
     }
-</div>
+</LoadingState>
 
-<Modal @bind-IsVisible="_showModal" Title="Executar Prescrição">
-    <ChildContent>
-        <FormField Label="Medicação">
-            <input type="text" @bind="_medication" />
-        </FormField>
-        <FormField Label="Dose">
-            <input type="text" @bind="_dose" />
-        </FormField>
-        <FormField Label="Observações">
-            <input type="text" @bind="_notes" />
-        </FormField>
-    </ChildContent>
-    <FooterTemplate>
-        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
-        <button class="btn btn-primary" @onclick="ExecutePrescription">Confirmar</button>
-    </FooterTemplate>
-</Modal>
+<style>
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); gap: var(--spacing-md); }
+    .header-actions { display: flex; align-items: center; gap: var(--spacing-sm); }
+    .date-filter { max-width: 180px; }
+    .ward-title { margin: var(--spacing-lg) 0 var(--spacing-sm); font-size: 1.1rem; }
+    .admin-list { margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+    .admin-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.9rem; }
+    .muted { color: var(--color-text-muted, #666); font-size: 0.85rem; }
+    .badge-muted { background: #e5e7eb; color: #374151; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; }
+    .hosp-card.vacant { border-top-color: var(--color-border, #ccc); opacity: 0.85; }
+</style>
 
 @code {
-    private List<HospitalizationDto>? _hospitalizations;
-    private bool _isLoading;
-    
-    private bool _showModal;
-    private Guid _selectedHospId;
-    private string _medication = "";
-    private string _dose = "";
-    private string _notes = "";
+    private ExecutionMapViewModel? _map;
+    private bool _loading = true;
+    private DateTime _mapDate = DateTime.UtcNow.Date;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadMapAsync();
+
+    private async Task LoadMapAsync()
     {
-        await LoadDataAsync();
+        _loading = true;
+        var day = DateOnly.FromDateTime(_mapDate.ToUniversalTime());
+        var result = await HospitalizationStore.GetExecutionMapAsync(day);
+        _map = result.IsSuccess ? result.Value : null;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
     }
 
-    private async Task LoadDataAsync()
+    private static string DisplayStatus(string status) => status switch
     {
-        _isLoading = true;
-        _hospitalizations = await VeterinaryApi.GetActiveHospitalizationsAsync();
-        _isLoading = false;
-    }
+        "Administered" => "Aplicada",
+        "Skipped" => "Pulada",
+        "Cancelled" => "Cancelada",
+        _ => "Pendente"
+    };
 
-    private void OpenPrescriptionModal(Guid hospId)
+    private async Task Administer(Guid hospId, Guid adminId)
     {
-        _selectedHospId = hospId;
-        _medication = "";
-        _dose = "";
-        _notes = "";
-        _showModal = true;
-    }
+        var result = await HospitalizationStore.AdministerAsync(hospId, adminId, null);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
 
-    private async Task ExecutePrescription()
-    {
-        await VeterinaryApi.ExecutePrescriptionAsync(_selectedHospId, _medication, _dose, _notes, Guid.NewGuid());
-        _showModal = false;
-        // Optionally show a toast here
+        Toast.Show("Medicação registrada.", ToastType.Success);
+        await LoadMapAsync();
     }
 
     private async Task Discharge(Guid hospId)
     {
-        await VeterinaryApi.DischargePetAsync(hospId);
-        await LoadDataAsync();
+        var result = await HospitalizationStore.DischargeAsync(hospId);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Alta registrada.", ToastType.Success);
+        await LoadMapAsync();
     }
 }

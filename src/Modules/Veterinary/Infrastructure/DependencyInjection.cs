@@ -1,5 +1,6 @@
 using Core.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -32,6 +33,7 @@ public static class DependencyInjection
             var databaseOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             var moduleOptions = serviceProvider.GetRequiredService<IOptions<VeterinaryOptions>>().Value;
             options.ConfigureModuleDatabase(config, databaseOptions, moduleOptions.ConnectionString);
+            options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
@@ -39,8 +41,8 @@ public static class DependencyInjection
         services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
         services.AddScoped<IVaccineDoseRepository, VaccineDoseRepository>();
         services.AddScoped<IVaccineProtocolRepository, VaccineProtocolRepository>();
+        services.AddScoped<IWardUnitRepository, WardUnitRepository>();
         services.AddScoped<IHospitalizationRepository, HospitalizationRepository>();
-        services.AddScoped<IPrescriptionExecutionRepository, PrescriptionExecutionRepository>();
         services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
         services.AddScoped<IIssuedPrescriptionRepository, IssuedPrescriptionRepository>();
         services.AddScoped<IClinicalExamRepository, ClinicalExamRepository>();

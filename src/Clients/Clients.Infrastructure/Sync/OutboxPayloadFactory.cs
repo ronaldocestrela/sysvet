@@ -203,4 +203,59 @@ internal static class OutboxPayloadFactory
             ProtocolDoseId = protocolDoseId,
             IdempotencyKey = idempotencyKey
         });
+
+    public static string AdmitPet(Guid petId, Guid veterinarianId, Guid bedId, string reason, Guid hospitalizationId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            PetId = petId,
+            VeterinarianId = veterinarianId,
+            BedId = bedId,
+            Reason = reason,
+            HospitalizationId = hospitalizationId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string DischargePet(Guid hospitalizationId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { HospitalizationId = hospitalizationId, IdempotencyKey = idempotencyKey });
+
+    public static string AdministerMedication(Guid hospitalizationId, Guid administrationId, string? notes, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            HospitalizationId = hospitalizationId,
+            AdministrationId = administrationId,
+            Notes = notes,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string SkipMedication(Guid hospitalizationId, Guid administrationId, string? notes, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            HospitalizationId = hospitalizationId,
+            AdministrationId = administrationId,
+            Notes = notes,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string CreateMedicationOrder(
+        Guid hospitalizationId,
+        string medicationName,
+        string dose,
+        string route,
+        IReadOnlyList<TimeOnly> dailyTimes,
+        DateOnly startsOn,
+        DateOnly endsOn,
+        Guid orderId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            HospitalizationId = hospitalizationId,
+            MedicationName = medicationName,
+            Dose = dose,
+            Route = route,
+            DailyTimes = dailyTimes,
+            StartsOn = startsOn,
+            EndsOn = endsOn,
+            OrderId = orderId,
+            IdempotencyKey = idempotencyKey
+        });
 }

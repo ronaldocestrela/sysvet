@@ -26,6 +26,7 @@ public static class ServiceCollectionExtensions
         {
             options.SerializerOptions.Converters.Add(new DateOnlyJsonConverter());
             options.SerializerOptions.Converters.Add(new NullableDateOnlyJsonConverter());
+            options.SerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
         });
 
         services.AddOpenApi(options =>

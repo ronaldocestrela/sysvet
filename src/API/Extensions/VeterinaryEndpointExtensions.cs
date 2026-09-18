@@ -151,25 +151,88 @@ public static class VeterinaryEndpointExtensions
             .RequireAuthorization()
             .WithTags("Veterinary", "VaccineAlerts");
 
-        var hospGroup = builder.MapGroup("/api/v1/hospitalizations").RequireAuthorization().WithTags("Veterinary", "Hospitalizations");
-        hospGroup.MapPost("/", async ([FromBody] Veterinary.Application.Hospitalizations.Commands.AdmitPetCommand command, IMediator mediator) =>
-            (await mediator.Send(command)).ToHttpResult());
+        var wardGroup = builder.MapGroup("/api/v1/ward-units").RequireAuthorization().WithTags("Veterinary", "WardUnits");
+        wardGroup.MapGet("/", async (IMediator mediator, [FromQuery] bool activeOnly = true) =>
+            (await mediator.Send(new Veterinary.Application.WardUnits.Commands.ListWardUnitsQuery(activeOnly))).ToHttpResult());
+        wardGroup.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.WardUnits.Commands.GetWardUnitByIdQuery(id))).ToHttpResult());
+        wardGroup.MapPost("/", async (HttpContext httpContext, [FromBody] CreateWardUnitRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.WardUnits.Commands.CreateWardUnitCommand(body.Name, body.Beds, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        wardGroup.MapPut("/{id:guid}", async (Guid id, HttpContext httpContext, [FromBody] UpdateWardUnitRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.WardUnits.Commands.UpdateWardUnitCommand(id, body.Name, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        wardGroup.MapPut("/{id:guid}/beds", async (Guid id, HttpContext httpContext, [FromBody] ReplaceWardBedsRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.WardUnits.Commands.ReplaceWardUnitBedsCommand(id, body.Beds, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        wardGroup.MapPost("/{id:guid}/deactivate", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.WardUnits.Commands.DeactivateWardUnitCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
-        hospGroup.MapPost("/{id:guid}/discharge", async (Guid id, IMediator mediator) =>
+        var hospGroup = builder.MapGroup("/api/v1/hospitalizations").RequireAuthorization().WithTags("Veterinary", "Hospitalizations");
+        hospGroup.MapGet("/execution-map", async (IMediator mediator, [FromQuery] DateOnly? date) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.GetExecutionMapQuery(date))).ToHttpResult());
+        hospGroup.MapGet("/", async (IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.ListActiveHospitalizationsQuery())).ToHttpResult());
+        hospGroup.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.GetHospitalizationByIdQuery(id))).ToHttpResult());
+        hospGroup.MapPost("/", async (HttpContext httpContext, [FromBody] AdmitPetRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.AdmitPetCommand(
+                body.PetId,
+                body.VeterinarianId,
+                body.BedId,
+                body.Reason,
+                body.HospitalizationId,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        hospGroup.MapPost("/{id:guid}/discharge", async (Guid id, HttpContext httpContext, IMediator mediator) =>
         {
-            var result = await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.DischargePetCommand(id));
+            var result = await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.DischargePetCommand(id, EndpointIdempotency.ReadKey(httpContext)));
             return result.IsSuccess ? Results.NoContent() : result.ToProblemDetails();
         });
-
-        hospGroup.MapPost("/{id:guid}/prescriptions/execute", async (Guid id, [FromBody] Veterinary.Application.Hospitalizations.Commands.ExecutePrescriptionCommand command, IMediator mediator) =>
+        hospGroup.MapPost("/{id:guid}/transfer", async (Guid id, HttpContext httpContext, [FromBody] TransferBedRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.TransferHospitalizationBedCommand(id, body.NewBedId, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        hospGroup.MapPost("/{id:guid}/medication-orders", async (Guid id, HttpContext httpContext, [FromBody] CreateMedicationOrderRequest body, IMediator mediator) =>
         {
-            if (id != command.HospitalizationId)
+            var times = body.DailyTimes?.ToList() ?? [];
+            if (times.Count == 0 && body.DailyTimeStrings is { Count: > 0 })
             {
-                return Result.Failure<Guid>(new Error("Hospitalization.MismatchedId", "URL id does not match command.")).ToHttpResult();
+                times = body.DailyTimeStrings.Select(TimeOnly.Parse).ToList();
             }
 
-            return (await mediator.Send(command)).ToHttpResult();
+            return (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.CreateMedicationOrderCommand(
+                id,
+                body.MedicationName,
+                body.Dose,
+                body.Route,
+                times,
+                body.StartsOn,
+                body.EndsOn,
+                body.OrderId,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult();
         });
+        hospGroup.MapPost("/{id:guid}/administrations/{administrationId:guid}/administer", async (Guid id, Guid administrationId, HttpContext httpContext, [FromBody] AdministrationNotesRequest? body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.AdministerMedicationCommand(
+                id,
+                administrationId,
+                body?.Notes,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        hospGroup.MapPost("/{id:guid}/administrations/{administrationId:guid}/skip", async (Guid id, Guid administrationId, HttpContext httpContext, [FromBody] AdministrationNotesRequest? body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.SkipMedicationCommand(
+                id,
+                administrationId,
+                body?.Notes,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        hospGroup.MapPost("/{id:guid}/progress-notes", async (Guid id, HttpContext httpContext, [FromBody] AddProgressNoteRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.AddHospitalizationProgressNoteCommand(
+                id,
+                body.Text,
+                body.NoteId,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        hospGroup.MapPost("/{id:guid}/procedures", async (Guid id, HttpContext httpContext, [FromBody] AddHospitalProcedureRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Hospitalizations.Commands.AddHospitalProcedureCommand(
+                id,
+                body.Name,
+                body.VeterinarianId,
+                body.PerformedAt,
+                body.Notes,
+                body.ProcedureId,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
         var templatesGroup = builder.MapGroup("/api/v1/prescription-templates").RequireAuthorization().WithTags("Veterinary", "PrescriptionTemplates");
         templatesGroup.MapGet("/", async (IMediator mediator) =>
@@ -360,4 +423,44 @@ public static class VeterinaryEndpointExtensions
     public record ReplaceClinicalQuoteItemsRequest(
         IReadOnlyList<Veterinary.Application.Quotes.Commands.ClinicalQuoteLineInput> Items,
         string? Notes);
+
+    /// <summary>Ward unit create body.</summary>
+    public record CreateWardUnitRequest(string Name, IReadOnlyList<Veterinary.Application.WardUnits.Commands.WardBedInput> Beds);
+
+    /// <summary>Ward unit rename body.</summary>
+    public record UpdateWardUnitRequest(string Name);
+
+    /// <summary>Replace ward beds body.</summary>
+    public record ReplaceWardBedsRequest(IReadOnlyList<Veterinary.Application.WardUnits.Commands.WardBedInput> Beds);
+
+    /// <summary>Admit pet body.</summary>
+    public record AdmitPetRequest(Guid PetId, Guid VeterinarianId, Guid BedId, string Reason, Guid HospitalizationId = default);
+
+    /// <summary>Transfer bed body.</summary>
+    public record TransferBedRequest(Guid NewBedId);
+
+    /// <summary>Medication order body.</summary>
+    public record CreateMedicationOrderRequest(
+        string MedicationName,
+        string Dose,
+        string Route,
+        IReadOnlyList<TimeOnly>? DailyTimes,
+        IReadOnlyList<string>? DailyTimeStrings,
+        DateOnly StartsOn,
+        DateOnly EndsOn,
+        Guid OrderId = default);
+
+    /// <summary>Administration notes body.</summary>
+    public record AdministrationNotesRequest(string? Notes);
+
+    /// <summary>Progress note body.</summary>
+    public record AddProgressNoteRequest(string Text, Guid NoteId = default);
+
+    /// <summary>Inpatient procedure body.</summary>
+    public record AddHospitalProcedureRequest(
+        string Name,
+        Guid VeterinarianId,
+        DateTimeOffset PerformedAt,
+        string? Notes,
+        Guid ProcedureId = default);
 }

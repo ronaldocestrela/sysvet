@@ -23,7 +23,13 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork, IDomainEven
     public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
     public DbSet<VaccineProtocol> VaccineProtocols => Set<VaccineProtocol>();
     public DbSet<VaccineProtocolDose> VaccineProtocolDoses => Set<VaccineProtocolDose>();
+    public DbSet<WardUnit> WardUnits => Set<WardUnit>();
+    public DbSet<Bed> Beds => Set<Bed>();
     public DbSet<Hospitalization> Hospitalizations => Set<Hospitalization>();
+    public DbSet<HospitalMedicationOrder> HospitalMedicationOrders => Set<HospitalMedicationOrder>();
+    public DbSet<MedicationAdministration> MedicationAdministrations => Set<MedicationAdministration>();
+    public DbSet<HospitalizationProgressNote> HospitalizationProgressNotes => Set<HospitalizationProgressNote>();
+    public DbSet<HospitalProcedure> HospitalProcedures => Set<HospitalProcedure>();
     public DbSet<PrescriptionTemplate> PrescriptionTemplates => Set<PrescriptionTemplate>();
     public DbSet<PrescriptionTemplateItem> PrescriptionTemplateItems => Set<PrescriptionTemplateItem>();
     public DbSet<IssuedPrescription> IssuedPrescriptions => Set<IssuedPrescription>();

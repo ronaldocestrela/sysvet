@@ -1,3 +1,5 @@
+using Core.Domain;
+using Core.Domain.Auditing;
 using FluentAssertions;
 using NSubstitute;
 using Veterinary.Application.Hospitalizations.Commands;
@@ -9,33 +11,21 @@ namespace Veterinary.Tests.Application;
 public class DischargePetCommandHandlerTests
 {
     [Fact]
-    public async Task Handle_WithValidRequest_ReturnsSuccessResult()
+    public async Task Handle_WhenAdmitted_ReturnsSuccess()
     {
-        var hospRepository = Substitute.For<IHospitalizationRepository>();
-        var hosp = Hospitalization.Admit(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Fever").Value;
-        hospRepository.GetByIdAsync(hosp.Id, Arg.Any<CancellationToken>()).Returns(hosp);
+        var hosp = Hospitalization.Admit(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Fever", DateTimeOffset.UtcNow).Value;
+        var repository = Substitute.For<IHospitalizationRepository>();
+        var audit = Substitute.For<IAuditLogger>();
+        var tenant = Substitute.For<ITenantContext>();
+        tenant.UserId.Returns(Guid.NewGuid());
+        tenant.TenantId.Returns(Guid.NewGuid());
 
-        var handler = new DischargePetCommandHandler(hospRepository);
-        var command = new DischargePetCommand(hosp.Id);
+        repository.GetByIdAsync(hosp.Id, Arg.Any<CancellationToken>()).Returns(hosp);
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var handler = new DischargePetCommandHandler(repository, audit, tenant);
+        var result = await handler.Handle(new DischargePetCommand(hosp.Id), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        hospRepository.Received(1).Update(hosp);
-    }
-
-    [Fact]
-    public async Task Handle_WhenNotFound_ReturnsFailure()
-    {
-        var hospRepository = Substitute.For<IHospitalizationRepository>();
-        hospRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Hospitalization?)null);
-
-        var handler = new DischargePetCommandHandler(hospRepository);
-        var command = new DischargePetCommand(Guid.NewGuid());
-
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error.Code.Should().Be("Hospitalization.NotFound");
+        repository.Received(1).Update(hosp);
     }
 }

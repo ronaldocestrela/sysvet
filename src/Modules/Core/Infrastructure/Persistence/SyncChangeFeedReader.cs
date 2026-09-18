@@ -81,6 +81,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var vaccineProtocols = new List<SyncVaccineProtocolDto>();
         var vaccineDoses = new List<SyncVaccineDoseDto>();
         var clinicalQuotes = new List<SyncClinicalQuoteDto>();
+        var wardUnits = new List<SyncWardUnitDto>();
+        var hospitalizations = new List<SyncHospitalizationDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -96,6 +98,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             vaccineProtocols.AddRange(modulePage.VaccineProtocols);
             vaccineDoses.AddRange(modulePage.VaccineDoses);
             clinicalQuotes.AddRange(modulePage.ClinicalQuotes);
+            wardUnits.AddRange(modulePage.WardUnits);
+            hospitalizations.AddRange(modulePage.Hospitalizations);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -118,6 +122,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             VaccineProtocols = vaccineProtocols,
             VaccineDoses = vaccineDoses,
             ClinicalQuotes = clinicalQuotes,
+            WardUnits = wardUnits,
+            Hospitalizations = hospitalizations,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

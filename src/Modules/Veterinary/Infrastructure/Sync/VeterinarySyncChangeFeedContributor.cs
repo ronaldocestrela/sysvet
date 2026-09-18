@@ -141,13 +141,34 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             quoteCandidates = quoteCandidates.Take(take).ToList();
         }
 
+        var wardUnits = await _dbContext.WardUnits.AsNoTracking().Include(u => u.Beds).ToListAsync(cancellationToken);
+        var wardCandidates = wardUnits.Where(u => u.UpdatedAt > since).OrderBy(u => u.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreWards = wardCandidates.Count > take;
+        if (hasMoreWards)
+        {
+            wardCandidates = wardCandidates.Take(take).ToList();
+        }
+
+        var hospitalizations = await _dbContext.Hospitalizations.AsNoTracking()
+            .Include(h => h.MedicationOrders)
+            .Include(h => h.Administrations)
+            .ToListAsync(cancellationToken);
+        var hospCandidates = hospitalizations.Where(h => h.UpdatedAt > since).OrderBy(h => h.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreHosp = hospCandidates.Count > take;
+        if (hasMoreHosp)
+        {
+            hospCandidates = hospCandidates.Take(take).ToList();
+        }
+
         foreach (var updatedAt in templateCandidates.Select(t => t.UpdatedAt)
                      .Concat(prescriptionCandidates.Select(p => p.UpdatedAt))
                      .Concat(examCandidates.Select(e => e.UpdatedAt))
                      .Concat(attachmentCandidates.Select(a => a.UpdatedAt))
                      .Concat(protocolCandidates.Select(p => p.UpdatedAt))
                      .Concat(doseCandidates.Select(d => d.UpdatedAt))
-                     .Concat(quoteCandidates.Select(q => q.UpdatedAt)))
+                     .Concat(quoteCandidates.Select(q => q.UpdatedAt))
+                     .Concat(wardCandidates.Select(w => w.UpdatedAt))
+                     .Concat(hospCandidates.Select(h => h.UpdatedAt)))
         {
             if (updatedAt > maxUpdated)
             {
@@ -167,10 +188,67 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             VaccineProtocols = protocolCandidates.Select(MapVaccineProtocol).ToList(),
             VaccineDoses = doseCandidates.Select(MapVaccineDose).ToList(),
             ClinicalQuotes = quoteCandidates.Select(MapClinicalQuote).ToList(),
+            WardUnits = wardCandidates.Select(MapWardUnit).ToList(),
+            Hospitalizations = hospCandidates.Select(MapHospitalization).ToList(),
             MaxUpdatedAt = maxUpdated,
-            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords || hasMoreTemplates || hasMorePrescriptions || hasMoreExams || hasMoreAttachments || hasMoreProtocols || hasMoreDoses || hasMoreQuotes
+            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords || hasMoreTemplates || hasMorePrescriptions || hasMoreExams || hasMoreAttachments || hasMoreProtocols || hasMoreDoses || hasMoreQuotes || hasMoreWards || hasMoreHosp
         };
     }
+
+    private static SyncWardUnitDto MapWardUnit(WardUnit unit) =>
+        new()
+        {
+            Id = unit.Id,
+            Name = unit.Name,
+            IsActive = unit.IsActive,
+            Beds = unit.Beds.OrderBy(b => b.SortOrder).Select(b => new SyncBedDto
+            {
+                Id = b.Id,
+                Code = b.Code,
+                SortOrder = b.SortOrder,
+                IsActive = b.IsActive
+            }).ToList(),
+            UpdatedAt = unit.UpdatedAt,
+            RowVersion = Convert.ToBase64String(unit.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncHospitalizationDto MapHospitalization(Hospitalization hosp) =>
+        new()
+        {
+            Id = hosp.Id,
+            PetId = hosp.PetId,
+            VeterinarianId = hosp.VeterinarianId,
+            BedId = hosp.BedId,
+            Reason = hosp.Reason,
+            AdmittedAt = hosp.AdmittedAt,
+            DischargedAt = hosp.DischargedAt,
+            Status = hosp.Status.ToString(),
+            MedicationOrders = hosp.MedicationOrders.Select(o => new SyncHospitalMedicationOrderDto
+            {
+                Id = o.Id,
+                MedicationName = o.MedicationName,
+                Dose = o.Dose,
+                Route = o.Route,
+                DailyTimesCsv = o.DailyTimesCsv,
+                StartsOn = o.StartsOn,
+                EndsOn = o.EndsOn,
+                Status = o.Status.ToString(),
+                UpdatedAt = o.UpdatedAt
+            }).ToList(),
+            Administrations = hosp.Administrations.Select(a => new SyncMedicationAdministrationDto
+            {
+                Id = a.Id,
+                MedicationOrderId = a.MedicationOrderId,
+                ScheduledAt = a.ScheduledAt,
+                Status = a.Status.ToString(),
+                ActorId = a.ActorId,
+                ActedAt = a.ActedAt,
+                Notes = a.Notes,
+                UpdatedAt = a.UpdatedAt
+            }).ToList(),
+            UpdatedAt = hosp.UpdatedAt,
+            RowVersion = Convert.ToBase64String(hosp.RowVersion ?? Array.Empty<byte>())
+        };
 
     private static SyncVaccineProtocolDto MapVaccineProtocol(VaccineProtocol protocol) =>
         new()

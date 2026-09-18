@@ -29,6 +29,8 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncVaccineProtocolDto> VaccineProtocols { get; init; } = Array.Empty<ClientSyncVaccineProtocolDto>();
     public IReadOnlyList<ClientSyncVaccineDoseDto> VaccineDoses { get; init; } = Array.Empty<ClientSyncVaccineDoseDto>();
     public IReadOnlyList<ClientSyncClinicalQuoteDto> ClinicalQuotes { get; init; } = Array.Empty<ClientSyncClinicalQuoteDto>();
+    public IReadOnlyList<ClientSyncWardUnitDto> WardUnits { get; init; } = Array.Empty<ClientSyncWardUnitDto>();
+    public IReadOnlyList<ClientSyncHospitalizationDto> Hospitalizations { get; init; } = Array.Empty<ClientSyncHospitalizationDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -243,5 +245,62 @@ public sealed class ClientSyncClinicalQuoteDto
     public DateTimeOffset? SentAt { get; init; }
     public DateTimeOffset? DecidedAt { get; init; }
     public IReadOnlyList<ClientSyncClinicalQuoteItemDto> Items { get; init; } = Array.Empty<ClientSyncClinicalQuoteItemDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncBedDto
+{
+    public Guid Id { get; init; }
+    public string Code { get; init; } = string.Empty;
+    public int SortOrder { get; init; }
+    public bool IsActive { get; init; }
+}
+
+public sealed class ClientSyncWardUnitDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public IReadOnlyList<ClientSyncBedDto> Beds { get; init; } = Array.Empty<ClientSyncBedDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncHospitalMedicationOrderDto
+{
+    public Guid Id { get; init; }
+    public string MedicationName { get; init; } = string.Empty;
+    public string Dose { get; init; } = string.Empty;
+    public string Route { get; init; } = string.Empty;
+    public string DailyTimesCsv { get; init; } = string.Empty;
+    public DateOnly StartsOn { get; init; }
+    public DateOnly EndsOn { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncMedicationAdministrationDto
+{
+    public Guid Id { get; init; }
+    public Guid MedicationOrderId { get; init; }
+    public DateTimeOffset ScheduledAt { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public Guid? ActorId { get; init; }
+    public DateTimeOffset? ActedAt { get; init; }
+    public string Notes { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncHospitalizationDto
+{
+    public Guid Id { get; init; }
+    public Guid PetId { get; init; }
+    public Guid VeterinarianId { get; init; }
+    public Guid BedId { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public DateTimeOffset AdmittedAt { get; init; }
+    public DateTimeOffset? DischargedAt { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public IReadOnlyList<ClientSyncHospitalMedicationOrderDto> MedicationOrders { get; init; } = Array.Empty<ClientSyncHospitalMedicationOrderDto>();
+    public IReadOnlyList<ClientSyncMedicationAdministrationDto> Administrations { get; init; } = Array.Empty<ClientSyncMedicationAdministrationDto>();
     public DateTimeOffset UpdatedAt { get; init; }
 }

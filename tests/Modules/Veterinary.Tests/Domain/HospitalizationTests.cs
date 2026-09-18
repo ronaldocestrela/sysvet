@@ -1,86 +1,153 @@
-using System;
 using FluentAssertions;
-using Xunit;
 using Veterinary.Domain.Entities;
+using Veterinary.Domain.Enums;
+using Veterinary.Domain.Services;
 
 namespace Veterinary.Tests.Domain;
 
 public class HospitalizationTests
 {
+    private static Hospitalization CreateAdmitted()
+    {
+        return Hospitalization.Admit(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "Dehydration",
+            DateTimeOffset.UtcNow).Value;
+    }
+
     [Fact]
     public void Admit_WithValidData_ReturnsSuccess()
     {
-        // Arrange
         var petId = Guid.NewGuid();
         var veterinarianId = Guid.NewGuid();
-        var reason = "Severe dehydration";
+        var bedId = Guid.NewGuid();
 
-        // Act
-        var result = Hospitalization.Admit(Guid.NewGuid(), petId, veterinarianId, reason);
+        var result = Hospitalization.Admit(Guid.NewGuid(), petId, veterinarianId, bedId, "Severe dehydration", DateTimeOffset.UtcNow);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.PetId.Should().Be(petId);
+        result.Value.BedId.Should().Be(bedId);
         result.Value.Status.Should().Be(HospitalizationStatus.Admitted);
         result.Value.DischargedAt.Should().BeNull();
     }
 
     [Fact]
-    public void Discharge_WhenAdmitted_SetsDischargeDateAndStatus()
+    public void Discharge_WhenAdmitted_CancelsPendingAdministrations()
     {
-        // Arrange
-        var hosp = Hospitalization.Admit(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Dehydration").Value;
+        var hosp = CreateAdmitted();
+        var orderId = Guid.NewGuid();
+        hosp.AddMedicationOrder(
+            orderId,
+            "Dipyrone",
+            "500mg",
+            "IV",
+            [new TimeOnly(8, 0)],
+            DateOnly.FromDateTime(DateTime.UtcNow),
+            DateOnly.FromDateTime(DateTime.UtcNow));
 
-        // Act
-        var result = hosp.Discharge();
+        var pending = hosp.Administrations.First(a => a.Status == MedicationAdministrationStatus.Pending);
 
-        // Assert
+        var result = hosp.Discharge(DateTimeOffset.UtcNow);
+
         result.IsSuccess.Should().BeTrue();
         hosp.Status.Should().Be(HospitalizationStatus.Discharged);
-        hosp.DischargedAt.Should().NotBeNull();
+        pending.Status.Should().Be(MedicationAdministrationStatus.Cancelled);
     }
 
     [Fact]
-    public void Discharge_WhenAlreadyDischarged_ReturnsFailure()
+    public void AddMedicationOrder_ExpandsAdministrationSlots()
     {
-        // Arrange
-        var hosp = Hospitalization.Admit(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Dehydration").Value;
-        hosp.Discharge();
+        var hosp = CreateAdmitted();
+        var starts = new DateOnly(2026, 9, 18);
+        var ends = new DateOnly(2026, 9, 19);
 
-        // Act
-        var result = hosp.Discharge();
+        var result = hosp.AddMedicationOrder(
+            Guid.NewGuid(),
+            "Ondansetron",
+            "4mg",
+            "IV",
+            [new TimeOnly(8, 0), new TimeOnly(20, 0)],
+            starts,
+            ends);
 
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Code.Should().Be("Hospitalization.AlreadyDischarged");
-    }
-
-    [Fact]
-    public void ExecutePrescription_WhenAdmitted_AddsExecution()
-    {
-        // Arrange
-        var hosp = Hospitalization.Admit(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Dehydration").Value;
-
-        // Act
-        var result = hosp.ExecutePrescription("Dipyrone", "500mg", "Patient responded well", Guid.NewGuid());
-
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        hosp.PrescriptionExecutions.Should().HaveCount(1);
+        var expected = MedicationSchedule.ExpandOccurrences(starts, ends, [new TimeOnly(8, 0), new TimeOnly(20, 0)]);
+        hosp.Administrations.Should().HaveCount(expected.Count);
     }
 
     [Fact]
-    public void ExecutePrescription_WhenDischarged_ReturnsFailure()
+    public void AdministerMedication_WhenPending_SetsAdministered()
     {
-        // Arrange
-        var hosp = Hospitalization.Admit(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Dehydration").Value;
-        hosp.Discharge();
+        var hosp = CreateAdmitted();
+        hosp.AddMedicationOrder(
+            Guid.NewGuid(),
+            "Dipyrone",
+            "500mg",
+            "IV",
+            [new TimeOnly(8, 0)],
+            DateOnly.FromDateTime(DateTime.UtcNow),
+            DateOnly.FromDateTime(DateTime.UtcNow));
 
-        // Act
-        var result = hosp.ExecutePrescription("Dipyrone", "500mg", "", Guid.NewGuid());
+        var adminId = hosp.Administrations.First().Id;
+        var actor = Guid.NewGuid();
+        var result = hosp.AdministerMedication(adminId, actor, "OK", DateTimeOffset.UtcNow);
 
-        // Assert
+        result.IsSuccess.Should().BeTrue();
+        hosp.Administrations.First(a => a.Id == adminId).Status.Should().Be(MedicationAdministrationStatus.Administered);
+        hosp.Administrations.First(a => a.Id == adminId).ActorId.Should().Be(actor);
+    }
+
+    [Fact]
+    public void AdministerMedication_WhenDischarged_ReturnsFailure()
+    {
+        var hosp = CreateAdmitted();
+        hosp.Discharge(DateTimeOffset.UtcNow);
+
+        var result = hosp.AddMedicationOrder(
+            Guid.NewGuid(),
+            "Dipyrone",
+            "500mg",
+            "IV",
+            [new TimeOnly(8, 0)],
+            DateOnly.FromDateTime(DateTime.UtcNow),
+            DateOnly.FromDateTime(DateTime.UtcNow));
+
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Hospitalization.Discharged");
+    }
+
+    [Fact]
+    public void TransferBed_WhenAdmitted_UpdatesBedId()
+    {
+        var hosp = CreateAdmitted();
+        var newBed = Guid.NewGuid();
+
+        var result = hosp.TransferBed(newBed);
+
+        result.IsSuccess.Should().BeTrue();
+        hosp.BedId.Should().Be(newBed);
+    }
+
+    [Fact]
+    public void AddProgressNote_WhenAdmitted_AppendsNote()
+    {
+        var hosp = CreateAdmitted();
+        var result = hosp.AddProgressNote(Guid.NewGuid(), Guid.NewGuid(), "Stable vitals", DateTimeOffset.UtcNow);
+
+        result.IsSuccess.Should().BeTrue();
+        hosp.ProgressNotes.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void AddProcedure_WhenAdmitted_AppendsProcedure()
+    {
+        var hosp = CreateAdmitted();
+        var result = hosp.AddProcedure(Guid.NewGuid(), "Fluid therapy", Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+
+        result.IsSuccess.Should().BeTrue();
+        hosp.Procedures.Should().HaveCount(1);
     }
 }

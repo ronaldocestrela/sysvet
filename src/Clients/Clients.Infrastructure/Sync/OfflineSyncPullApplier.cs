@@ -89,6 +89,16 @@ public sealed class OfflineSyncPullApplier
                 await UpsertClinicalQuoteAsync(dto, cancellationToken);
             }
 
+            foreach (var dto in page.WardUnits)
+            {
+                await UpsertWardUnitAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.Hospitalizations)
+            {
+                await UpsertHospitalizationAsync(dto, cancellationToken);
+            }
+
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
                         ?? _dbContext.SyncState.Add(new SyncState()).Entity;
             state.LastPullAt = page.NextSince;
@@ -543,5 +553,85 @@ public sealed class OfflineSyncPullApplier
             dto.ProtocolId,
             dto.ProtocolDoseId,
             dto.UpdatedAt);
+    }
+
+    private async Task UpsertWardUnitAsync(ClientSyncWardUnitDto dto, CancellationToken cancellationToken)
+    {
+        var beds = dto.Beds.Select(b => (b.Id, b.Code, b.SortOrder, b.IsActive));
+        var unit = await _dbContext.WardUnits.Include(u => u.Beds).FirstOrDefaultAsync(u => u.Id == dto.Id, cancellationToken);
+        if (unit is null)
+        {
+            _dbContext.WardUnits.Add(WardUnit.RestoreFromSync(dto.Id, dto.Name, dto.IsActive, dto.UpdatedAt, beds));
+            return;
+        }
+
+        if (dto.UpdatedAt <= unit.UpdatedAt)
+        {
+            return;
+        }
+
+        unit.ApplySyncSnapshot(dto.Name, dto.IsActive, dto.UpdatedAt, beds);
+    }
+
+    private async Task UpsertHospitalizationAsync(ClientSyncHospitalizationDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<HospitalizationStatus>(dto.Status, out var status))
+        {
+            return;
+        }
+
+        var orders = dto.MedicationOrders.Select(o =>
+        {
+            Enum.TryParse<HospitalMedicationOrderStatus>(o.Status, out var orderStatus);
+            return (o.Id, o.MedicationName, o.Dose, o.Route, o.DailyTimesCsv, o.StartsOn, o.EndsOn, orderStatus, o.UpdatedAt);
+        });
+        var admins = dto.Administrations.Select(a =>
+        {
+            Enum.TryParse<MedicationAdministrationStatus>(a.Status, out var adminStatus);
+            return (a.Id, a.MedicationOrderId, a.ScheduledAt, adminStatus, a.ActorId, a.ActedAt, a.Notes, a.UpdatedAt);
+        });
+
+        var hosp = await _dbContext.Hospitalizations
+            .Include(h => h.MedicationOrders)
+            .Include(h => h.Administrations)
+            .FirstOrDefaultAsync(h => h.Id == dto.Id, cancellationToken);
+
+        if (hosp is null)
+        {
+            _dbContext.Hospitalizations.Add(Hospitalization.RestoreFromSync(
+                dto.Id,
+                dto.PetId,
+                dto.VeterinarianId,
+                dto.BedId,
+                dto.Reason,
+                dto.AdmittedAt,
+                dto.DischargedAt,
+                status,
+                dto.UpdatedAt,
+                orders,
+                admins,
+                Array.Empty<(Guid, Guid, string, DateTimeOffset, DateTimeOffset)>(),
+                Array.Empty<(Guid, string, Guid, DateTimeOffset, string, DateTimeOffset)>()));
+            return;
+        }
+
+        if (dto.UpdatedAt <= hosp.UpdatedAt)
+        {
+            return;
+        }
+
+        hosp.ApplySyncSnapshot(
+            dto.PetId,
+            dto.VeterinarianId,
+            dto.BedId,
+            dto.Reason,
+            dto.AdmittedAt,
+            dto.DischargedAt,
+            status,
+            dto.UpdatedAt,
+            orders,
+            admins,
+            Array.Empty<(Guid, Guid, string, DateTimeOffset, DateTimeOffset)>(),
+            Array.Empty<(Guid, string, Guid, DateTimeOffset, string, DateTimeOffset)>());
     }
 }

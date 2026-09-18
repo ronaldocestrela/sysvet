@@ -88,6 +88,27 @@ public class OfflineDbContext : DbContext
     /// <summary>Local clinical quote lines.</summary>
     public DbSet<ClinicalQuoteItem> ClinicalQuoteItems => Set<ClinicalQuoteItem>();
 
+    /// <summary>Local ward units (Fase 4.6).</summary>
+    public DbSet<WardUnit> WardUnits => Set<WardUnit>();
+
+    /// <summary>Local beds.</summary>
+    public DbSet<Bed> Beds => Set<Bed>();
+
+    /// <summary>Local hospitalizations.</summary>
+    public DbSet<Hospitalization> Hospitalizations => Set<Hospitalization>();
+
+    /// <summary>Local medication orders.</summary>
+    public DbSet<HospitalMedicationOrder> HospitalMedicationOrders => Set<HospitalMedicationOrder>();
+
+    /// <summary>Local administration slots.</summary>
+    public DbSet<MedicationAdministration> MedicationAdministrations => Set<MedicationAdministration>();
+
+    /// <summary>Local inpatient progress notes.</summary>
+    public DbSet<HospitalizationProgressNote> HospitalizationProgressNotes => Set<HospitalizationProgressNote>();
+
+    /// <summary>Local inpatient procedures.</summary>
+    public DbSet<HospitalProcedure> HospitalProcedures => Set<HospitalProcedure>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -112,6 +133,13 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OfflineVaccineDoseConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineClinicalQuoteConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineClinicalQuoteItemConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineWardUnitConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineBedConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineHospitalizationConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineHospitalMedicationOrderConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineMedicationAdministrationConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineHospitalizationProgressNoteConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineHospitalProcedureConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

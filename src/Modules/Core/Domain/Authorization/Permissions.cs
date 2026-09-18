@@ -102,6 +102,7 @@ public static class Permissions
         TutorsRead, TutorsWrite,
         PetsRead, PetsWrite,
         AppointmentsRead, AppointmentsWrite,
+        HospitalizationsRead,
         VaccinesRead,
         ClinicalQuotesRead, ClinicalQuotesWrite
     ];

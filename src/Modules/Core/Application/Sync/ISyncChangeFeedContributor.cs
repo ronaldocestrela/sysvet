@@ -22,6 +22,8 @@ public sealed class SyncContributorChanges
     public IReadOnlyList<SyncVaccineProtocolDto> VaccineProtocols { get; init; } = Array.Empty<SyncVaccineProtocolDto>();
     public IReadOnlyList<SyncVaccineDoseDto> VaccineDoses { get; init; } = Array.Empty<SyncVaccineDoseDto>();
     public IReadOnlyList<SyncClinicalQuoteDto> ClinicalQuotes { get; init; } = Array.Empty<SyncClinicalQuoteDto>();
+    public IReadOnlyList<SyncWardUnitDto> WardUnits { get; init; } = Array.Empty<SyncWardUnitDto>();
+    public IReadOnlyList<SyncHospitalizationDto> Hospitalizations { get; init; } = Array.Empty<SyncHospitalizationDto>();
     public DateTimeOffset MaxUpdatedAt { get; init; }
     public bool HasMore { get; init; }
 }
