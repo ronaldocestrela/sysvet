@@ -1,0 +1,59 @@
+@using Clients.Infrastructure.Crm
+
+<div class="day-calendar">
+    @if (Items is null || Items.Count == 0)
+    {
+        <p class="empty-state">Não há consultas agendadas para este dia.</p>
+    }
+    else
+    {
+        <div class="appointments-list">
+            @foreach (var apt in Items.OrderBy(a => a.Date))
+            {
+                <div class="appointment-card @StatusCss(apt.Status)">
+                    <div class="time">@apt.Date.ToString("HH:mm")</div>
+                    <div class="details">
+                        <h4>@apt.PetName</h4>
+                        <span class="reason">@apt.Reason</span>
+                        <span class="status-badge">@apt.Status</span>
+                    </div>
+                    @if (ShowActions)
+                    {
+                        <div class="actions">
+                            @if (apt.Status is "Scheduled")
+                            {
+                                <button class="btn btn-sm btn-outline" @onclick="() => OnConfirm.InvokeAsync(apt.Id)">Confirmar</button>
+                            }
+                            @if (apt.Status is "Confirmed")
+                            {
+                                <button class="btn btn-sm btn-primary" @onclick="() => OnStart.InvokeAsync(apt.Id)">Iniciar</button>
+                            }
+                            @if (apt.Status is not "Completed" and not "Cancelled" and not "NoShow")
+                            {
+                                <button class="btn btn-sm btn-danger" @onclick="() => OnCancel.InvokeAsync(apt.Id)">Cancelar</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<AppointmentListItemDto>? Items { get; set; }
+    [Parameter] public bool ShowActions { get; set; } = true;
+    [Parameter] public EventCallback<Guid> OnConfirm { get; set; }
+    [Parameter] public EventCallback<Guid> OnStart { get; set; }
+    [Parameter] public EventCallback<Guid> OnCancel { get; set; }
+
+    private static string StatusCss(string status) => status.ToLowerInvariant() switch
+    {
+        "confirmed" => "confirmed",
+        "inprogress" => "inprogress",
+        "completed" => "completed",
+        "cancelled" => "canceled",
+        "noshow" => "noshow",
+        _ => "scheduled"
+    };
+}

@@ -3,6 +3,7 @@ using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Repositories;
+
 namespace Veterinary.Infrastructure.Persistence;
 
 public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
@@ -24,7 +25,7 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         if (!string.IsNullOrWhiteSpace(SchemaName))
         {
             modelBuilder.HasDefaultSchema(SchemaName);
@@ -37,18 +38,14 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Aqui poderíamos injetar atualizações de UpdatedAt se não estivesse na base Entity ou interceptor global,
-        // mas o EF Core atualiza o RowVersion (se configurado) e o UpdatedAt pode ser controlado pelo handler/entidade.
         foreach (var entry in ChangeTracker.Entries<Entity>())
         {
-            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+            if (entry.State is EntityState.Added or EntityState.Modified)
             {
-                // Para simplificar, garantimos que a entidade tenha a propriedade UpdatedAt atualizada
-                // Isso pode requerer expor o UpdatedAt para settar internamente ou usar reflexão caso seja private setter
-                // Mas de acordo com Entity.cs, ela deve ser atualizada de alguma forma
+                entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
             }
         }
-        
+
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

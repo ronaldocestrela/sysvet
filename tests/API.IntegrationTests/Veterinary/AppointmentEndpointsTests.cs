@@ -76,13 +76,15 @@ public class AppointmentEndpointsTests : IClassFixture<WebApplicationFactory<Pro
             User = new ClaimsPrincipal(new ClaimsIdentity(
             [
                 new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, "Veterinarian"),
+                new Claim(ClaimTypes.Role, "Admin"),
+                new Claim("TenantId", Guid.NewGuid().ToString()),
             ],
             authenticationType: "Test"))
         };
 
         var mediator = scope.ServiceProvider.GetRequiredService<MediatR.IMediator>();
         var command = new ScheduleAppointmentCommand(
+            Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -102,13 +104,13 @@ public class AppointmentEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         // Arrange
         var client = await CreateAuthenticatedClientAsync();
         var command = new ScheduleAppointmentCommand(
-            Guid.NewGuid(), // TutorId
-            Guid.NewGuid(), // PetId
-            Guid.NewGuid(), // VeterinarianId
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
             DateTimeOffset.UtcNow.AddDays(1),
             30,
-            "Routine checkup"
-        );
+            "Routine checkup");
 
         // Act
         var response = await client.PostAsJsonAsync("/api/v1/appointments", command);

@@ -7,7 +7,7 @@ Coração da aplicação. Contém todos os **módulos de domínio** isolados, ca
 | Módulo | Propósito de Negócio | Status |
 |---|---|---|
 | [`Core/`](./Core/README.md) | Base transversal: entidades compartilhadas (Tutor, Pet), Value Objects, padrão Result, sincronização e gestão de acesso | 🟡 Em desenvolvimento |
-| [`Veterinary/`](./Veterinary/README.md) | Prontuários clínicos, internações, vacinas, prescrições e histórico médico | 🔴 Não iniciado |
+| [`Veterinary/`](./Veterinary/README.md) | Agenda clínica, prontuários, internações, vacinas | 🟡 Agenda (4.1) concluída |
 | [`Petshop/`](./Petshop/README.md) | Agendamento de banho, tosa e serviços estéticos | 🔴 Não iniciado |
 | [`Sales/`](./Sales/README.md) | PDV (Ponto de Venda) com suporte offline, pedidos e comissões | 🔴 Não iniciado |
 | [`Inventory/`](./Inventory/README.md) | Controle de estoque de produtos e insumos | 🔴 Não iniciado |

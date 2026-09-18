@@ -11,6 +11,13 @@ public static class ErrorCodes
     {
         public static readonly Error NotFound = new("Appointment.NotFound", "The specified appointment was not found.");
         public static readonly Error SlotUnavailable = new("Appointment.SlotUnavailable", "The requested time slot is not available.");
+        public static readonly Error Overlap = new("Appointment.Overlap", "Another appointment overlaps this time for the veterinarian.");
+    }
+
+    public static class ScheduleSlot
+    {
+        public static readonly Error NotFound = new("ScheduleSlot.NotFound", "The specified schedule slot was not found.");
+        public static readonly Error NotAvailable = new("ScheduleSlot.NotAvailable", "The schedule slot is not available.");
     }
 
     public static class Hospitalization

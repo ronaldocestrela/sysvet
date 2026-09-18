@@ -56,4 +56,37 @@ internal static class OutboxPayloadFactory
 
     public static string DeletePet(Guid id, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { Id = id, IdempotencyKey = idempotencyKey });
+
+    public static string ScheduleAppointment(
+        Guid id,
+        Guid tutorId,
+        Guid petId,
+        Guid veterinarianId,
+        DateTimeOffset date,
+        int durationInMinutes,
+        string reason,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Id = id,
+            TutorId = tutorId,
+            PetId = petId,
+            VeterinarianId = veterinarianId,
+            Date = date,
+            DurationInMinutes = durationInMinutes,
+            Reason = reason,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string ConfirmAppointment(Guid appointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string StartAppointment(Guid appointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string CancelAppointment(Guid appointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string MarkNoShowAppointment(Guid appointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, IdempotencyKey = idempotencyKey });
 }

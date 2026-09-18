@@ -97,4 +97,77 @@ public class AppointmentTests
         appointment.Date.Should().Be(newDate);
         appointment.Status.Should().Be(AppointmentStatus.Scheduled); // Status is reset to scheduled because the date changed
     }
+
+    [Fact]
+    public void Start_WhenConfirmed_ShouldChangeStatusToInProgress()
+    {
+        var appointment = Appointment.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1), 30, "Checkup").Value;
+        appointment.Confirm();
+
+        var result = appointment.Start();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.Status.Should().Be(AppointmentStatus.InProgress);
+    }
+
+    [Fact]
+    public void Start_WhenScheduled_ShouldReturnFailure()
+    {
+        var appointment = Appointment.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1), 30, "Checkup").Value;
+
+        var result = appointment.Start();
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("Appointment.InvalidStatusTransition");
+    }
+
+    [Fact]
+    public void Complete_WhenInProgress_ShouldChangeStatusToCompleted()
+    {
+        var appointment = Appointment.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1), 30, "Checkup").Value;
+        appointment.Confirm();
+        appointment.Start();
+
+        var result = appointment.Complete();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.Status.Should().Be(AppointmentStatus.Completed);
+    }
+
+    [Fact]
+    public void MarkNoShow_WhenScheduled_ShouldChangeStatusToNoShow()
+    {
+        var appointment = Appointment.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1), 30, "Checkup").Value;
+
+        var result = appointment.MarkNoShow();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.Status.Should().Be(AppointmentStatus.NoShow);
+    }
+
+    [Fact]
+    public void MarkNoShow_WhenInProgress_ShouldReturnFailure()
+    {
+        var appointment = Appointment.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1), 30, "Checkup").Value;
+        appointment.Confirm();
+        appointment.Start();
+
+        var result = appointment.MarkNoShow();
+
+        result.IsSuccess.Should().BeFalse();
+        appointment.Status.Should().Be(AppointmentStatus.InProgress);
+    }
+
+    [Fact]
+    public void Cancel_WhenInProgress_ShouldChangeStatusToCancelled()
+    {
+        var appointment = Appointment.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1), 30, "Checkup").Value;
+        appointment.Confirm();
+        appointment.Start();
+
+        var result = appointment.Cancel();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.Status.Should().Be(AppointmentStatus.Cancelled);
+    }
 }

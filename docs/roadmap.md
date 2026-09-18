@@ -415,7 +415,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **4.1 Agenda clínica unificada** | 8 | Pendente |
+| **4.1 Agenda clínica unificada** | 8 | Concluído |
 | **4.2 Prontuário veterinário** | 13 | Pendente |
 | **4.3 Exames, receitas e anexos** | 8 | Pendente |
 | **4.4 Carteira de vacinação e alertas** | 8 | Pendente |
@@ -423,15 +423,28 @@ flowchart TD
 | **4.6 Internação e mapa de execução** | 13 | Pendente |
 | **Total Fase 4** | **55 SP** | |
 
-### 4.1 Agenda clínica unificada (8 SP)
+### 4.1 Agenda clínica unificada (8 SP) — Concluído
 
-**Domain:** `Appointment`, `ScheduleSlot`, status (agendado, confirmado, em atendimento, concluído, falta).
+**Domain**
+- [x] `Appointment`, `ScheduleSlot`, status (`Scheduled`, `Confirmed`, `InProgress`, `Completed`, `Cancelled`, `NoShow`)
+- [x] Bloqueio/liberação de slots via `Result` (sem exceções)
 
-**Application:** CRUD agenda; visão por profissional/dia; bloqueio de horários.
+**Application**
+- [x] CRUD agenda + transições (`Confirm`, `Start`, `Complete`, `NoShow`, `Cancel`, `Reschedule`)
+- [x] `DefineDailyAvailability`, `Block`/`Unblock` slot; `GetDailySchedule` unificada (vet opcional)
+- [x] Auth `ClinicStaff` + `Appointments.Read`/`Appointments.Write`; commands idempotentes
 
-**Clients:** Calendário SharedUI; sync offline de compromissos.
+**API**
+- [x] `/api/v1/appointments/*`, `/api/v1/schedule-slots/*`
 
-**Aceite:** Veterinário visualiza agenda do dia; alteração offline sincroniza.
+**Sync (ADR-002 plugin)**
+- [x] `ISyncPushHandler` / `ISyncChangeFeedContributor` (Veterinary)
+- [x] SQLite local + outbox/pull LWW para appointments
+
+**Clients**
+- [x] `DayCalendar` SharedUI + `IAppointmentStore` offline; página `/appointments`
+
+**Aceite:** Veterinário/recepção visualizam agenda do dia; alteração offline sincroniza via outbox.
 
 ### 4.2 Prontuário veterinário (13 SP)
 

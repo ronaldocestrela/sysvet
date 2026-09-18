@@ -30,7 +30,7 @@ public class SyncChangeFeedReaderTests
         db.Tutors.Add(tutor);
         await db.SaveChangesAsync();
 
-        var reader = new SyncChangeFeedReader(db);
+        var reader = new SyncChangeFeedReader(db, Array.Empty<ISyncChangeFeedContributor>());
         var page = await reader.ReadChangesAsync(DateTimeOffset.UtcNow.AddHours(-1), 50, CancellationToken.None);
 
         page.Tutors.Should().ContainSingle(t => t.Id == tutor.Id && t.IsDeleted);

@@ -1,6 +1,6 @@
 # Status do Projeto SysVet
 
-**Data de Atualização:** 17/09/2026
+**Data de Atualização:** 18/09/2026
 
 Este documento contém o resumo de tudo o que foi construído até agora e serve de bússola para os desenvolvedores e IA saberem exatamente onde estamos no cronograma de desenvolvimento, evitando análises exaustivas a cada nova interação.
 
@@ -70,7 +70,13 @@ Iniciado o módulo de estoque.
 - Cenário automatizado: `tests/API.IntegrationTests/Sync/OfflineToCloudPocTests.cs` (worker real + métricas).
 - Documentação: [`docs/arquitetura/sync-poc.md`](arquitetura/sync-poc.md).
 
-### 👉 **Próxima Ação: Fase 4.1 — Agenda clínica unificada**
+### Fase 4.1 (Agenda clínica unificada) — Concluída
+
+- Domínio: `InProgress`, máquina de estados, `ScheduleSlot.Block`/`Book` com `Result`.
+- API: CRUD agenda, slots, transições; sync plugin Veterinary no push/pull.
+- Clients: `DayCalendar`, `IAppointmentStore` offline, migration `AddOfflineAppointments`.
+
+### 👉 **Próxima Ação: Fase 4.2 — Prontuário veterinário**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 4.
 

@@ -1,6 +1,7 @@
 using Core.Application.Messaging;
 using Core.Domain;
 using MediatR;
+using Veterinary.Application.Appointments;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Repositories;
 
@@ -21,26 +22,43 @@ public class ScheduleAppointmentCommandHandler : IRequestHandler<ScheduleAppoint
 
     public async Task<Result<Guid>> Handle(ScheduleAppointmentCommand request, CancellationToken cancellationToken)
     {
-        var startTime = request.Date.TimeOfDay;
-        var endTime = startTime.Add(TimeSpan.FromMinutes(request.DurationInMinutes));
+        var existing = await _appointmentRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (existing is not null)
+        {
+            return Result.Success(existing.Id);
+        }
+
+        if (await _appointmentRepository.HasOverlappingAsync(
+                request.VeterinarianId,
+                request.Date,
+                request.DurationInMinutes,
+                null,
+                cancellationToken))
+        {
+            return Result.Failure<Guid>(Veterinary.Domain.ErrorCodes.Appointment.Overlap);
+        }
 
         var availableSlots = await _scheduleSlotRepository.GetAvailableSlotsAsync(
             request.VeterinarianId,
             request.Date,
             cancellationToken);
 
-        var slot = availableSlots.FirstOrDefault(s => s.StartTime <= startTime && s.EndTime >= endTime);
-
-        if (slot == null)
+        var slot = AppointmentSlotHelper.FindCoveringSlot(availableSlots, request.Date, request.DurationInMinutes);
+        if (slot is null)
         {
             return Result.Failure<Guid>(Veterinary.Domain.ErrorCodes.Appointment.SlotUnavailable);
         }
 
-        slot.Book();
+        var bookResult = slot.Book();
+        if (bookResult.IsFailure)
+        {
+            return Result.Failure<Guid>(bookResult.Error);
+        }
+
         _scheduleSlotRepository.Update(slot);
 
         var appointmentResult = Appointment.Create(
-            Guid.NewGuid(),
+            request.Id,
             request.TutorId,
             request.PetId,
             request.VeterinarianId,
@@ -53,10 +71,7 @@ public class ScheduleAppointmentCommandHandler : IRequestHandler<ScheduleAppoint
             return Result.Failure<Guid>(appointmentResult.Error);
         }
 
-        var appointment = appointmentResult.Value;
-
-        await _appointmentRepository.AddAsync(appointment, cancellationToken);
-
-        return Result.Success(appointment.Id);
+        await _appointmentRepository.AddAsync(appointmentResult.Value, cancellationToken);
+        return Result.Success(appointmentResult.Value.Id);
     }
 }

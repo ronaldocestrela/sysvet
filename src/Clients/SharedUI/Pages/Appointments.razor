@@ -1,7 +1,10 @@
 @page "/appointments"
 @using SharedUI.Components
 @using SharedUI.Services
-@inject IVeterinaryApiService VeterinaryApi
+@using Clients.Infrastructure.Crm
+@inject IAppointmentStore AppointmentStore
+@inject IPetStore PetStore
+@inject IToastService Toast
 
 <div class="header-section">
     <h1>Agenda de Consultas</h1>
@@ -15,48 +18,41 @@
         <button class="btn btn-sm" @onclick="NextDay">Próximo &gt;</button>
     </div>
 
-    @if (_isLoading)
-    {
-        <LoadingState Message="Carregando agenda..." />
-    }
-    else if (_appointments == null || !_appointments.Any())
-    {
-        <p class="empty-state">Não há consultas agendadas para este dia.</p>
-    }
-    else
-    {
-        <div class="appointments-list">
-            @foreach (var apt in _appointments.OrderBy(a => a.SlotTime))
-            {
-                <div class="appointment-card @apt.Status.ToLower()">
-                    <div class="time">@apt.SlotTime.ToString("HH:mm")</div>
-                    <div class="details">
-                        <h4>@apt.PetName</h4>
-                        <span class="vet">@apt.VetName</span>
-                        <span class="reason">@apt.Reason</span>
-                    </div>
-                    <div class="actions">
-                        <button class="btn btn-sm btn-outline">Reagendar</button>
-                    </div>
-                </div>
-            }
-        </div>
-    }
+    <FormField Label="Veterinário (opcional)">
+        <input type="text" class="form-control" @bind="_veterinarianFilter" placeholder="Guid do veterinário ou vazio para todos" />
+        <button class="btn btn-sm mt-2" @onclick="LoadAppointmentsAsync">Filtrar</button>
+    </FormField>
+
+    <LoadingState IsLoading="_isLoading" Message="Carregando agenda...">
+        <DayCalendar Items="_appointments"
+                     OnConfirm="ConfirmAppointmentAsync"
+                     OnStart="StartAppointmentAsync"
+                     OnCancel="CancelAppointmentAsync" />
+    </LoadingState>
 </div>
 
 <Modal @bind-IsVisible="_showModal" Title="Novo Agendamento">
     <ChildContent>
-        <FormField Label="Pet (ID)">
-            <input type="text" @bind="_newAppointment.PetId" placeholder="Guid do Pet" />
+        <FormField Label="Pet">
+            <select class="form-control" @bind="_selectedPetId">
+                <option value="@Guid.Empty">Selecione...</option>
+                @if (_pets is not null)
+                {
+                    @foreach (var pet in _pets)
+                    {
+                        <option value="@pet.Id">@pet.Name</option>
+                    }
+                }
+            </select>
         </FormField>
         <FormField Label="Veterinário (ID)">
-            <input type="text" @bind="_newAppointment.VeterinarianId" placeholder="Guid do Veterinário" />
+            <input type="text" class="form-control" @bind="_veterinarianIdInput" placeholder="Guid do Veterinário" />
         </FormField>
         <FormField Label="Data e Hora">
-            <input type="datetime-local" @bind="_newAppointment.SlotTime" />
+            <input type="datetime-local" class="form-control" @bind="_slotLocal" />
         </FormField>
         <FormField Label="Motivo">
-            <input type="text" @bind="_newAppointment.Reason" />
+            <input type="text" class="form-control" @bind="_reason" />
         </FormField>
     </ChildContent>
     <FooterTemplate>
@@ -67,22 +63,37 @@
 
 @code {
     private DateTimeOffset _currentDate = DateTimeOffset.UtcNow.Date;
-    private List<AppointmentDto>? _appointments;
+    private List<AppointmentListItemDto>? _appointments;
+    private List<Clients.Infrastructure.Http.PetDto>? _pets;
     private bool _isLoading;
     private bool _showModal;
-    
-    // Model for new form
-    private AppointmentDto _newAppointment = new() { SlotTime = DateTimeOffset.UtcNow.AddDays(1) };
+    private string _veterinarianFilter = string.Empty;
+    private string _veterinarianIdInput = string.Empty;
+    private Guid _selectedPetId;
+    private DateTime _slotLocal = DateTime.UtcNow.AddDays(1);
+    private string _reason = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadPetsAsync();
         await LoadAppointmentsAsync();
+    }
+
+    private async Task LoadPetsAsync()
+    {
+        var result = await PetStore.ListAsync(1, 200);
+        if (result.IsSuccess)
+        {
+            _pets = result.Value.Items.ToList();
+        }
     }
 
     private async Task LoadAppointmentsAsync()
     {
         _isLoading = true;
-        _appointments = await VeterinaryApi.GetDailyAppointmentsAsync(_currentDate);
+        Guid? vetId = Guid.TryParse(_veterinarianFilter, out var parsed) ? parsed : null;
+        var result = await AppointmentStore.GetDailyAsync(vetId, _currentDate);
+        _appointments = result.IsSuccess ? result.Value : [];
         _isLoading = false;
     }
 
@@ -100,14 +111,85 @@
 
     private void OpenAddModal()
     {
-        _newAppointment = new AppointmentDto { SlotTime = _currentDate.AddHours(9) };
+        _slotLocal = _currentDate.UtcDateTime.AddHours(9);
         _showModal = true;
     }
 
     private async Task SaveAppointment()
     {
-        await VeterinaryApi.ScheduleAppointmentAsync(_newAppointment.PetId, _newAppointment.VeterinarianId, _newAppointment.SlotTime, _newAppointment.Reason);
-        _showModal = false;
-        await LoadAppointmentsAsync();
+        if (_selectedPetId == Guid.Empty || !Guid.TryParse(_veterinarianIdInput, out var vetId))
+        {
+            Toast.Show("Selecione pet e veterinário válidos.", ToastType.Error);
+            return;
+        }
+
+        var pet = _pets?.FirstOrDefault(p => p.Id == _selectedPetId);
+        if (pet is null)
+        {
+            Toast.Show("Pet não encontrado.", ToastType.Error);
+            return;
+        }
+
+        var slot = new DateTimeOffset(DateTime.SpecifyKind(_slotLocal, DateTimeKind.Utc));
+        var request = new ScheduleAppointmentRequest
+        {
+            TutorId = pet.TutorId,
+            PetId = pet.Id,
+            VeterinarianId = vetId,
+            Date = slot,
+            DurationInMinutes = 30,
+            Reason = _reason
+        };
+
+        var result = await AppointmentStore.ScheduleAsync(request);
+        if (result.IsSuccess)
+        {
+            Toast.Show("Consulta agendada.", ToastType.Success);
+            _showModal = false;
+            await LoadAppointmentsAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+
+    private async Task ConfirmAppointmentAsync(Guid id)
+    {
+        var result = await AppointmentStore.ConfirmAsync(id);
+        if (result.IsSuccess)
+        {
+            await LoadAppointmentsAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+
+    private async Task StartAppointmentAsync(Guid id)
+    {
+        var result = await AppointmentStore.StartAsync(id);
+        if (result.IsSuccess)
+        {
+            await LoadAppointmentsAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+
+    private async Task CancelAppointmentAsync(Guid id)
+    {
+        var result = await AppointmentStore.CancelAsync(id);
+        if (result.IsSuccess)
+        {
+            await LoadAppointmentsAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
     }
 }

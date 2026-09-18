@@ -64,7 +64,7 @@ A UI **não** é automatizada nesta SP. Para inspeção visual:
 
 ## Limitações conhecidas da PoC
 
-- **Escopo CRM:** apenas tutor/pet (create/update/delete via outbox). Agenda, prontuário e demais módulos (Fase 4+) ficam fora.
+- **Escopo sync client:** tutor/pet (CRM) + **appointments** (agenda Fase 4.1) via outbox; prontuário e demais módulos clínicos avançados ainda fora.
 - **Worker WASM:** sincroniza enquanto a aba PWA permanece aberta.
 - **Persistência WASM:** snapshot IndexedDB copia o arquivo `.db` inteiro ([ADR-014](./ADR-014-sqlite-local-clients.md)).
 - **Conflitos CRM:** Last-Write-Wins por `UpdatedAt` / `OccurredAt`; merge por campo reservado ao domínio clínico.

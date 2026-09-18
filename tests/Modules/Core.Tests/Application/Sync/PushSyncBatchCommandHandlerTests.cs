@@ -20,7 +20,7 @@ public class PushSyncBatchCommandHandlerTests
     public PushSyncBatchCommandHandlerTests()
     {
         _mediator = Substitute.For<IMediator>();
-        _handler = new PushSyncBatchCommandHandler(_mediator);
+        _handler = new PushSyncBatchCommandHandler(_mediator, Array.Empty<ISyncPushHandler>());
     }
 
     [Fact]

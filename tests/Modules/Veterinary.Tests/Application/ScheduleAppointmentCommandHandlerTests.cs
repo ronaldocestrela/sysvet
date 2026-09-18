@@ -26,6 +26,7 @@ public class ScheduleAppointmentCommandHandlerTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
+            Guid.NewGuid(),
             DateTimeOffset.UtcNow.AddDays(1).Date.Add(TimeSpan.FromHours(10)),
             30,
             "Checkup");
@@ -46,6 +47,7 @@ public class ScheduleAppointmentCommandHandlerTests
     public async Task Handle_Should_ReturnFailure_When_SlotIsNotAvailable()
     {
         var command = new ScheduleAppointmentCommand(
+            Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),

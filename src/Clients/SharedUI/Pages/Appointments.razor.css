@@ -52,6 +52,20 @@
     border-left-color: #ef4444;
 }
 
+.appointment-card.inprogress {
+    border-left-color: #f59e0b;
+}
+
+.appointment-card.confirmed {
+    border-left-color: #6366f1;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
 .time {
     font-size: 1.2rem;
     font-weight: bold;

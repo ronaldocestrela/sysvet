@@ -48,6 +48,7 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<HttpPetStore>();
         services.AddScoped<ITutorStore, OfflineTutorStore>();
         services.AddScoped<IPetStore, OfflinePetStore>();
+        services.AddScoped<IAppointmentStore, OfflineAppointmentStore>();
         services.AddScoped<OfflineSyncPullApplier>();
 
         return services;

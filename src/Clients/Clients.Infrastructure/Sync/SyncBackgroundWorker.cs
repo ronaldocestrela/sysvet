@@ -182,7 +182,7 @@ public class SyncBackgroundWorker : BackgroundService
                 break;
             }
 
-            if (page.Tutors.Count == 0 && page.Pets.Count == 0)
+            if (page.Tutors.Count == 0 && page.Pets.Count == 0 && page.Appointments.Count == 0 && page.ScheduleSlots.Count == 0)
             {
                 break;
             }

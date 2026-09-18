@@ -5,6 +5,8 @@ using Core.Domain;
 using Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Veterinary.Domain.Entities;
+using Veterinary.Domain.Enums;
 
 namespace Clients.Infrastructure;
 
@@ -41,6 +43,12 @@ public class OfflineDbContext : DbContext
     /// <summary>Pull cursor singleton.</summary>
     public DbSet<SyncState> SyncState => Set<SyncState>();
 
+    /// <summary>Local clinical appointments (Fase 4.1).</summary>
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+
+    /// <summary>Local schedule slots mirror.</summary>
+    public DbSet<ScheduleSlot> ScheduleSlots => Set<ScheduleSlot>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +58,8 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OfflinePetConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new SyncStateConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineAppointmentConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineScheduleSlotConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
@@ -98,6 +108,69 @@ public class OfflineDbContext : DbContext
         {
             EnqueuePetOutbox(entry, pet, outboxMessages);
         }
+        else if (entry.Entity is Appointment appointment)
+        {
+            EnqueueAppointmentOutbox(entry, appointment, outboxMessages);
+        }
+    }
+
+    private static void EnqueueAppointmentOutbox(EntityEntry entry, Appointment appointment, ICollection<OutboxMessage> outboxMessages)
+    {
+        var outboxId = Guid.NewGuid();
+
+        if (entry.State == EntityState.Added)
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "ScheduleAppointmentCommand",
+                Payload = OutboxPayloadFactory.ScheduleAppointment(
+                    appointment.Id,
+                    appointment.TutorId,
+                    appointment.PetId,
+                    appointment.VeterinarianId,
+                    appointment.Date,
+                    appointment.DurationInMinutes,
+                    appointment.Reason,
+                    outboxId)
+            });
+            return;
+        }
+
+        if (entry.State != EntityState.Modified)
+        {
+            return;
+        }
+
+        var statusProperty = entry.Property(nameof(Appointment.Status));
+        if (!statusProperty.IsModified)
+        {
+            return;
+        }
+
+        var (type, payload) = appointment.Status switch
+        {
+            AppointmentStatus.Confirmed => (
+                "ConfirmAppointmentCommand",
+                OutboxPayloadFactory.ConfirmAppointment(appointment.Id, outboxId)),
+            AppointmentStatus.InProgress => (
+                "StartAppointmentCommand",
+                OutboxPayloadFactory.StartAppointment(appointment.Id, outboxId)),
+            AppointmentStatus.Cancelled => (
+                "CancelAppointmentCommand",
+                OutboxPayloadFactory.CancelAppointment(appointment.Id, outboxId)),
+            AppointmentStatus.NoShow => (
+                "MarkNoShowAppointmentCommand",
+                OutboxPayloadFactory.MarkNoShowAppointment(appointment.Id, outboxId)),
+            _ => (null, null)
+        };
+
+        if (type is null || payload is null)
+        {
+            return;
+        }
+
+        outboxMessages.Add(new OutboxMessage { Id = outboxId, Type = type, Payload = payload });
     }
 
     private static void EnqueueTutorOutbox(EntityEntry entry, Tutor tutor, ICollection<OutboxMessage> outboxMessages)

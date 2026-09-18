@@ -37,7 +37,8 @@ Diagrama de sequência: [`docs/diagramas/sync-sequence.mmd`](../diagramas/sync-s
 - **Conflitos (CRM):** Last-Write-Wins por `UpdatedAt` (UTC) via `OccurredAt` nos commands de update; REST online continua com `RowVersion` / `409` quando aplicável.
 - **Pull:** `PullChangesQuery` + `SyncChangeFeedReader` (tombstones com `IgnoreQueryFilters`); cliente aplica via `OfflineSyncPullApplier` com `SuppressOutbox`.
 - **Push:** `PushSyncBatchCommand` (MediatR, stop-on-first-error); `OutboxMessage.Id` → `IdempotencyKey`; ingestão **síncrona** no `POST /api/v1/sync/push` (sem fila no servidor).
-- **Ordem:** FIFO por `CreatedAt`; tutor antes de pet (FK).
+- **Ordem:** FIFO por `CreatedAt`; tutor antes de pet (FK); appointment após tutor/pet.
+- **Módulos (Fase 4.1+):** push/pull estendidos via `ISyncPushHandler` e `ISyncChangeFeedContributor` (Veterinary registra agenda); Core não referencia Veterinary.
 - **Falhas no client:** backoff exponencial (`AttemptCount`, `NextRetryAt`); dead-letter em `OutboxMessage.Error` para falhas permanentes.
 - **UI:** `ISyncConnectivity` / `SetSyncing` durante ciclo online; worker no client (Blazor WASM / MAUI).
 
@@ -53,6 +54,8 @@ Diagrama de sequência: [`docs/diagramas/sync-sequence.mmd`](../diagramas/sync-s
 - [`OutboxMessage`](../../src/Clients/Clients.Infrastructure/Sync/OutboxMessage.cs) — retry/dead-letter.
 - [`SyncBackgroundWorker`](../../src/Clients/Clients.Infrastructure/Sync/SyncBackgroundWorker.cs) — push/pull, backoff, `ISyncConnectivity`.
 - [`PushSyncBatchCommand`](../../src/Modules/Core/Application/Sync/PushSyncBatchCommand.cs) / [`PullChangesQuery`](../../src/Modules/Core/Application/Sync/PullChangesQuery.cs) — ingestão CQRS.
+- [`ISyncPushHandler`](../../src/Modules/Core/Application/Sync/ISyncPushHandler.cs) / [`VeterinarySyncPushHandler`](../../src/Modules/Veterinary/Infrastructure/Sync/VeterinarySyncPushHandler.cs) — agenda no push.
+- [`ISyncChangeFeedContributor`](../../src/Modules/Core/Application/Sync/ISyncChangeFeedContributor.cs) / [`VeterinarySyncChangeFeedContributor`](../../src/Modules/Veterinary/Infrastructure/Sync/VeterinarySyncChangeFeedContributor.cs) — agenda no pull.
 - [`SyncEndpointExtensions`](../../src/API/Extensions/SyncEndpointExtensions.cs) — `/api/v1/sync/push|pull`.
 - PoC histórica: [`tests/PoC.SyncTests/`](../../tests/PoC.SyncTests/); E2E HTTP: [`EndToEndSyncTests.cs`](../../tests/API.IntegrationTests/EndToEndSyncTests.cs); PoC 3.6: [`OfflineToCloudPocTests.cs`](../../tests/API.IntegrationTests/Sync/OfflineToCloudPocTests.cs).
 

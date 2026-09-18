@@ -8,7 +8,9 @@ using Core.Domain;
 using Veterinary.Domain.Repositories;
 using Veterinary.Infrastructure.Configuration;
 using Veterinary.Infrastructure.Persistence;
+using Core.Application.Sync;
 using Veterinary.Infrastructure.Persistence.Repositories;
+using Veterinary.Infrastructure.Sync;
 
 namespace Veterinary.Infrastructure;
 
@@ -45,6 +47,9 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(typeof(ScheduleAppointmentCommand).Assembly));
 
         FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(ScheduleAppointmentCommand).Assembly);
+
+        services.AddScoped<ISyncPushHandler, VeterinarySyncPushHandler>();
+        services.AddScoped<ISyncChangeFeedContributor, VeterinarySyncChangeFeedContributor>();
 
         return services;
     }

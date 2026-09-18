@@ -1,9 +1,8 @@
-using Core.Domain;
 using Core.Application.Messaging;
+using Core.Domain;
+using MediatR;
 using Veterinary.Application.Appointments.DTOs;
 using Veterinary.Domain.Repositories;
-
-using MediatR;
 
 namespace Veterinary.Application.Appointments.Queries;
 
@@ -18,9 +17,9 @@ public class GetDailyScheduleQueryHandler : IRequestHandler<GetDailyScheduleQuer
 
     public async Task<Result<List<AppointmentDto>>> Handle(GetDailyScheduleQuery request, CancellationToken cancellationToken)
     {
-        var appointments = await _appointmentRepository.GetByVeterinarianAndDateAsync(
-            request.VeterinarianId, 
-            request.Date, 
+        var appointments = await _appointmentRepository.GetByDayAsync(
+            request.VeterinarianId,
+            request.Date,
             cancellationToken);
 
         var dtos = appointments.Select(a => new AppointmentDto

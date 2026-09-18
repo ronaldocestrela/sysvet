@@ -5,18 +5,20 @@ using Microsoft.EntityFrameworkCore;
 namespace Core.Infrastructure.Persistence;
 
 /// <summary>
-/// EF-backed change feed for sync pull, including soft-deleted tombstones.
+/// EF-backed change feed for sync pull, including soft-deleted tombstones and module contributors.
 /// </summary>
 public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
 {
     private readonly CoreDbContext _dbContext;
+    private readonly IEnumerable<ISyncChangeFeedContributor> _contributors;
 
     /// <summary>
     /// Creates the reader.
     /// </summary>
-    public SyncChangeFeedReader(CoreDbContext dbContext)
+    public SyncChangeFeedReader(CoreDbContext dbContext, IEnumerable<ISyncChangeFeedContributor> contributors)
     {
         _dbContext = dbContext;
+        _contributors = contributors;
     }
 
     /// <inheritdoc />
@@ -69,12 +71,31 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             }
         }
 
+        var appointments = new List<SyncAppointmentDto>();
+        var scheduleSlots = new List<SyncScheduleSlotDto>();
+        var hasMoreModules = false;
+
+        foreach (var contributor in _contributors)
+        {
+            var modulePage = await contributor.ReadChangesAsync(since, take, cancellationToken);
+            appointments.AddRange(modulePage.Appointments);
+            scheduleSlots.AddRange(modulePage.ScheduleSlots);
+            if (modulePage.MaxUpdatedAt > maxUpdated)
+            {
+                maxUpdated = modulePage.MaxUpdatedAt;
+            }
+
+            hasMoreModules |= modulePage.HasMore;
+        }
+
         return new PullChangesResult
         {
             Tutors = mappedTutors,
             Pets = mappedPets,
+            Appointments = appointments,
+            ScheduleSlots = scheduleSlots,
             NextSince = maxUpdated,
-            HasMore = hasMoreTutors || hasMorePets
+            HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };
     }
 

@@ -6,6 +6,7 @@ public class ScheduleAppointmentCommandValidator : AbstractValidator<ScheduleApp
 {
     public ScheduleAppointmentCommandValidator()
     {
+        RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.TutorId).NotEmpty();
         RuleFor(x => x.PetId).NotEmpty();
         RuleFor(x => x.VeterinarianId).NotEmpty();

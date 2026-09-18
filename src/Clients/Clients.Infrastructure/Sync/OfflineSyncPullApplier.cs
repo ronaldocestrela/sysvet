@@ -2,7 +2,8 @@ using Core.Domain;
 using Core.Domain.Entities;
 using Core.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Veterinary.Domain.Entities;
+using Veterinary.Domain.Enums;
 
 namespace Clients.Infrastructure.Sync;
 
@@ -35,6 +36,16 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.Pets)
             {
                 await UpsertPetAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.Appointments)
+            {
+                await UpsertAppointmentAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.ScheduleSlots)
+            {
+                await UpsertScheduleSlotAsync(dto, cancellationToken);
             }
 
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
@@ -148,5 +159,70 @@ public sealed class OfflineSyncPullApplier
 
         pet.Update(dto.Name, species, dto.Breed, sex);
         pet.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertAppointmentAsync(ClientSyncAppointmentDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<AppointmentStatus>(dto.Status, out var status))
+        {
+            return;
+        }
+
+        var appointment = await _dbContext.Appointments.FindAsync([dto.Id], cancellationToken);
+        if (appointment is null)
+        {
+            var created = Appointment.RestoreFromSync(
+                dto.Id,
+                dto.TutorId,
+                dto.PetId,
+                dto.VeterinarianId,
+                dto.Date,
+                dto.DurationInMinutes,
+                dto.Reason,
+                status,
+                dto.UpdatedAt);
+            _dbContext.Appointments.Add(created);
+            return;
+        }
+
+        if (dto.UpdatedAt <= appointment.UpdatedAt)
+        {
+            return;
+        }
+
+        appointment.ApplySyncSnapshot(dto.Date, dto.DurationInMinutes, dto.Reason, status, dto.UpdatedAt);
+    }
+
+    private async Task UpsertScheduleSlotAsync(ClientSyncScheduleSlotDto dto, CancellationToken cancellationToken)
+    {
+        var slot = await _dbContext.ScheduleSlots.FindAsync([dto.Id], cancellationToken);
+        if (slot is null)
+        {
+            slot = new ScheduleSlot(dto.Id, dto.VeterinarianId, dto.Date, dto.StartTime, dto.EndTime);
+            slot.UpdatedAt = dto.UpdatedAt;
+            if (!dto.IsAvailable)
+            {
+                slot.Block();
+            }
+
+            _dbContext.ScheduleSlots.Add(slot);
+            return;
+        }
+
+        if (dto.UpdatedAt <= slot.UpdatedAt)
+        {
+            return;
+        }
+
+        if (dto.IsAvailable)
+        {
+            slot.Unblock();
+        }
+        else if (slot.IsAvailable)
+        {
+            slot.Block();
+        }
+
+        slot.UpdatedAt = dto.UpdatedAt;
     }
 }

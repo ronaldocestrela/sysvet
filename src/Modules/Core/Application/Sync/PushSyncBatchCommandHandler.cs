@@ -11,13 +11,15 @@ namespace Core.Application.Sync;
 public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchCommand, Result<SyncPushResult>>
 {
     private readonly IMediator _mediator;
+    private readonly IEnumerable<ISyncPushHandler> _modulePushHandlers;
 
     /// <summary>
     /// Creates the handler.
     /// </summary>
-    public PushSyncBatchCommandHandler(IMediator mediator)
+    public PushSyncBatchCommandHandler(IMediator mediator, IEnumerable<ISyncPushHandler> modulePushHandlers)
     {
         _mediator = mediator;
+        _modulePushHandlers = modulePushHandlers;
     }
 
     /// <inheritdoc />
@@ -33,6 +35,11 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
         foreach (var message in request.Messages.OrderBy(m => m.CreatedAt))
         {
             var command = SyncOutboxCommandMapper.MapToCommand(message);
+            if (command is null)
+            {
+                command = TryMapModuleCommand(message);
+            }
+
             if (command is null)
             {
                 return Result.Success(new SyncPushResult
@@ -64,6 +71,20 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
         return Result.Success(new SyncPushResult { ProcessedIds = processed });
     }
 
+    private object? TryMapModuleCommand(SyncOutboxMessageDto message)
+    {
+        foreach (var handler in _modulePushHandlers)
+        {
+            var command = handler.TryMapCommand(message);
+            if (command is not null)
+            {
+                return command;
+            }
+        }
+
+        return null;
+    }
+
     private async Task<Result> DispatchAsync(object command, CancellationToken cancellationToken)
     {
         switch (command)
@@ -87,6 +108,15 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
             case DeletePetCommand c:
                 return await _mediator.Send(c, cancellationToken);
             default:
+                foreach (var handler in _modulePushHandlers)
+                {
+                    var moduleResult = await handler.DispatchAsync(command, cancellationToken);
+                    if (moduleResult.Error.Code != "Sync.HandlerMismatch")
+                    {
+                        return moduleResult;
+                    }
+                }
+
                 return Result.Failure(new Error("Sync.UnknownCommand", "Command type could not be dispatched."));
         }
     }
