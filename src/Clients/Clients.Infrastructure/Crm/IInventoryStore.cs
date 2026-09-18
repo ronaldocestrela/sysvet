@@ -1,5 +1,7 @@
 using Core.Domain;
+using Inventory.Domain.Entities;
 using Inventory.Domain.Enums;
+using Inventory.Domain.Services;
 
 namespace Clients.Infrastructure.Crm;
 
@@ -38,6 +40,37 @@ public interface IInventoryStore
         string document,
         string? contactEmail,
         string? contactPhone,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Guid>> RegisterStockMovementAsync(
+        Guid productId,
+        MovementType type,
+        decimal quantity,
+        string reason,
+        Guid? productLotId = null,
+        AdjustmentDirection? adjustmentDirection = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Guid>> TransferStockAsync(
+        Guid productId,
+        Guid sourceLotId,
+        Guid destinationLotId,
+        decimal quantity,
+        string reason,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<IReadOnlyList<InventoryStockMovementItem>>> ListStockMovementsAsync(
+        Guid? productId = null,
+        int take = 50,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<IReadOnlyList<InventoryKardexLine>>> GetProductKardexAsync(
+        Guid productId,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<IReadOnlyList<InventoryStockAlertItem>>> GetStockAlertsAsync(
+        StockAlertKind? kind = null,
+        int horizonDays = 30,
         CancellationToken cancellationToken = default);
 }
 
@@ -83,6 +116,40 @@ public sealed class InventoryProductDetail
     public bool RequiresLot { get; init; }
     public bool IsActive { get; init; }
     public IReadOnlyList<InventoryProductLotItem> Lots { get; init; } = Array.Empty<InventoryProductLotItem>();
+}
+
+public sealed class InventoryStockMovementItem
+{
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public MovementType Type { get; init; }
+    public decimal Quantity { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public string? LotNumber { get; init; }
+    public DateTimeOffset Date { get; init; }
+}
+
+public sealed class InventoryKardexLine
+{
+    public DateTimeOffset Date { get; init; }
+    public MovementType Type { get; init; }
+    public decimal Quantity { get; init; }
+    public decimal RunningBalance { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public string? LotNumber { get; init; }
+}
+
+public sealed class InventoryStockAlertItem
+{
+    public StockAlertKind Kind { get; init; }
+    public Guid ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public string Sku { get; init; } = string.Empty;
+    public string? LotNumber { get; init; }
+    public decimal? TotalQuantity { get; init; }
+    public decimal? ReorderLevel { get; init; }
+    public DateTimeOffset? ExpirationDate { get; init; }
 }
 
 public sealed class InventorySupplierItem

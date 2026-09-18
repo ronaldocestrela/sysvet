@@ -118,11 +118,13 @@ namespace Inventory.Infrastructure.Migrations
                     ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
                     ProductLotId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Type = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    AdjustmentDirection = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
                     Quantity = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false),
                     BatchNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
                     ExpirationDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
                     Reason = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Date = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    CorrelationId = table.Column<Guid>(type: "TEXT", nullable: true),
                     TenantId = table.Column<Guid>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     RowVersion = table.Column<byte[]>(type: "BLOB", nullable: false)

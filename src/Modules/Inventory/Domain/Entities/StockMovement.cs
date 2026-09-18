@@ -11,32 +11,40 @@ public class StockMovement : Entity
     public Guid ProductId { get; private set; }
     public Guid? ProductLotId { get; private set; }
     public MovementType Type { get; private set; }
+    public AdjustmentDirection? AdjustmentDirection { get; private set; }
     public decimal Quantity { get; private set; }
     public string? BatchNumber { get; private set; }
     public DateTimeOffset? ExpirationDate { get; private set; }
     public string Reason { get; private set; } = string.Empty;
     public DateTimeOffset Date { get; private set; }
+    public Guid? CorrelationId { get; private set; }
 
     private StockMovement() { }
 
     private StockMovement(
+        Guid id,
         Guid productId,
         Guid? productLotId,
         MovementType type,
+        AdjustmentDirection? adjustmentDirection,
         decimal quantity,
         string? batchNumber,
         DateTimeOffset? expirationDate,
-        string reason)
+        string reason,
+        DateTimeOffset date,
+        Guid? correlationId)
+        : base(id)
     {
-        Id = Guid.NewGuid();
         ProductId = productId;
         ProductLotId = productLotId;
         Type = type;
+        AdjustmentDirection = adjustmentDirection;
         Quantity = quantity;
         BatchNumber = batchNumber;
         ExpirationDate = expirationDate;
         Reason = reason;
-        Date = DateTimeOffset.UtcNow;
+        Date = date;
+        CorrelationId = correlationId;
     }
 
     /// <summary>
@@ -49,7 +57,11 @@ public class StockMovement : Entity
         string? batchNumber,
         DateTimeOffset? expirationDate,
         string reason,
-        Guid? productLotId = null)
+        Guid? productLotId = null,
+        AdjustmentDirection? adjustmentDirection = null,
+        Guid? id = null,
+        DateTimeOffset? occurredAt = null,
+        Guid? correlationId = null)
     {
         if (quantity <= 0)
         {
@@ -61,6 +73,30 @@ public class StockMovement : Entity
             return Result.Failure<StockMovement>(ErrorCodes.StockMovement.InvalidReason);
         }
 
-        return Result.Success(new StockMovement(productId, productLotId, type, quantity, batchNumber, expirationDate, reason));
+        if (type == MovementType.Adjustment && adjustmentDirection is null)
+        {
+            return Result.Failure<StockMovement>(ErrorCodes.StockMovement.InvalidAdjustmentDirection);
+        }
+
+        if (type != MovementType.Adjustment && adjustmentDirection is not null)
+        {
+            return Result.Failure<StockMovement>(ErrorCodes.StockMovement.InvalidAdjustmentDirection);
+        }
+
+        var movementId = id ?? Guid.NewGuid();
+        var date = occurredAt ?? DateTimeOffset.UtcNow;
+
+        return Result.Success(new StockMovement(
+            movementId,
+            productId,
+            productLotId,
+            type,
+            adjustmentDirection,
+            quantity,
+            batchNumber,
+            expirationDate,
+            reason,
+            date,
+            correlationId));
     }
 }

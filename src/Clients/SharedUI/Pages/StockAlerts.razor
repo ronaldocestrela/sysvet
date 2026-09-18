@@ -1,0 +1,78 @@
+@page "/stock-alerts"
+@using Clients.Infrastructure.Crm
+@using Inventory.Domain.Services
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IInventoryStore InventoryStore
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Alertas de estoque</h1>
+    <select class="form-control filter" @bind="_kindFilter" @bind:after="LoadAsync">
+        <option value="">Todos</option>
+        <option value="LowStock">Estoque baixo</option>
+        <option value="ExpiringSoon">Validade próxima</option>
+        <option value="Expired">Vencido</option>
+    </select>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando alertas...">
+    <div class="card">
+        <DataGrid Items="_alerts">
+            <HeaderTemplate>
+                <th>Produto</th>
+                <th>SKU</th>
+                <th>Lote</th>
+                <th>Saldo</th>
+                <th>Validade</th>
+                <th>Tipo</th>
+            </HeaderTemplate>
+            <RowTemplate Context="alert">
+                <td>@alert.ProductName</td>
+                <td>@alert.Sku</td>
+                <td>@(alert.LotNumber ?? "—")</td>
+                <td>@(alert.TotalQuantity?.ToString("N2") ?? "—")</td>
+                <td>@(alert.ExpirationDate?.LocalDateTime.ToString("d") ?? "—")</td>
+                <td>@DisplayKind(alert.Kind)</td>
+            </RowTemplate>
+        </DataGrid>
+    </div>
+</LoadingState>
+
+<style>
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); gap: var(--spacing-md); }
+    .filter { max-width: 220px; }
+</style>
+
+@code {
+    private List<InventoryStockAlertItem> _alerts = [];
+    private bool _loading = true;
+    private string _kindFilter = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        StockAlertKind? kind = string.IsNullOrWhiteSpace(_kindFilter)
+            ? null
+            : Enum.Parse<StockAlertKind>(_kindFilter);
+
+        var result = await InventoryStore.GetStockAlertsAsync(kind, horizonDays: 30);
+        _alerts = result.IsSuccess ? result.Value.ToList() : [];
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private static string DisplayKind(StockAlertKind kind) => kind switch
+    {
+        StockAlertKind.LowStock => "Estoque baixo",
+        StockAlertKind.ExpiringSoon => "Validade próxima",
+        StockAlertKind.Expired => "Vencido",
+        _ => kind.ToString()
+    };
+}

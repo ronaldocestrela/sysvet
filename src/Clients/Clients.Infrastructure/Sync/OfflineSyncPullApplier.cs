@@ -116,6 +116,11 @@ public sealed class OfflineSyncPullApplier
                 await UpsertInventoryProductLotAsync(dto, cancellationToken);
             }
 
+            foreach (var dto in page.InventoryStockMovements)
+            {
+                await UpsertInventoryStockMovementAsync(dto, cancellationToken);
+            }
+
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
                         ?? _dbContext.SyncState.Add(new SyncState()).Entity;
             state.LastPullAt = page.NextSince;
@@ -764,5 +769,46 @@ public sealed class OfflineSyncPullApplier
         lot.SetQuantity(dto.Quantity);
         lot.SetActive(dto.IsActive);
         lot.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertInventoryStockMovementAsync(ClientSyncInventoryStockMovementDto dto, CancellationToken cancellationToken)
+    {
+        if (await _dbContext.StockMovements.AnyAsync(m => m.Id == dto.Id, cancellationToken))
+        {
+            return;
+        }
+
+        if (!Enum.TryParse<MovementType>(dto.Type, true, out var type))
+        {
+            return;
+        }
+
+        AdjustmentDirection? direction = null;
+        if (!string.IsNullOrWhiteSpace(dto.AdjustmentDirection) &&
+            Enum.TryParse<AdjustmentDirection>(dto.AdjustmentDirection, true, out var parsed))
+        {
+            direction = parsed;
+        }
+
+        var movement = StockMovement.Create(
+            dto.ProductId,
+            type,
+            dto.Quantity,
+            dto.BatchNumber,
+            dto.ExpirationDate,
+            dto.Reason,
+            dto.ProductLotId,
+            direction,
+            dto.Id,
+            dto.Date,
+            dto.CorrelationId);
+
+        if (movement.IsFailure)
+        {
+            return;
+        }
+
+        movement.Value.UpdatedAt = dto.UpdatedAt;
+        _dbContext.StockMovements.Add(movement.Value);
     }
 }

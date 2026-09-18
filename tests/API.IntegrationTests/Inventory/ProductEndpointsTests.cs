@@ -131,10 +131,9 @@ public class ProductEndpointsTests : IClassFixture<WebApplicationFactory<Program
             productId,
             MovementType.In,
             20m,
-            "LOTE001",
-            DateTimeOffset.UtcNow.AddMonths(12),
-            "Fornecedor Teste"
-        );
+            "Fornecedor Teste",
+            BatchNumber: "LOTE001",
+            ExpirationDate: DateTimeOffset.UtcNow.AddMonths(12));
 
         // Act
         var movementResponse = await client.PostAsJsonAsync("/api/v1/inventory/stock/movements", movementCommand);

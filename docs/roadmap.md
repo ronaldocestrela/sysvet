@@ -564,7 +564,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **5.1 Cadastro de produtos e lotes** | 8 | Concluído |
-| **5.2 Movimentações e alertas** | 8 | Pendente |
+| **5.2 Movimentações e alertas** | 8 | Concluído |
 | **5.3 Entrada via XML (NF compra)** | 8 | Pendente |
 | **5.4 Perdas, fracionamento e devoluções** | 5 | Pendente |
 | **5.5 Inventário mobile (barcode)** | 8 | Pendente |
@@ -593,13 +593,26 @@ flowchart TD
 
 **Aceite:** Produto com múltiplos lotes; saldo calculado por lote.
 
-### 5.2 Movimentações e alertas (8 SP)
+### 5.2 Movimentações e alertas (8 SP) — Concluído
 
-- [ ] Entrada, saída, transferência, ajuste
-- [ ] Alertas: estoque mínimo, validade próxima
-- [ ] Kardex por produto
+**Domain**
+- [x] `AdjustmentDirection`, `CorrelationId` em `StockMovement`; `StockQuantityApplier`, `LotAllocationService` (FEFO), `StockAlertClassifier`
+- [x] Motivos `Purchase`, `Sale`, `Transfer`, `Adjustment`; ADR-020
 
-**Aceite:** Saída reduz saldo; alerta dispara abaixo do mínimo configurado.
+**Application**
+- [x] CQRS lot-aware `RegisterStockMovement` / `TransferStock` (idempotente); kardex e `ListStockAlerts`
+- [x] Permissões `Stock.Read` / `Stock.Write`; `OrderPaidEvent` com FEFO
+
+**API**
+- [x] `/api/v1/inventory/stock/movements`, `/stock/transfers`, `/stock/alerts`, `/products/{id}/kardex`
+
+**Sync**
+- [x] Pull/push `StockMovement`; SQLite local + outbox
+
+**Clients**
+- [x] `IInventoryStore` movimentações/kardex/alertas; `StockMovements`, `StockAlerts`, kardex em `ProductDetail`
+
+**Aceite:** Saída reduz saldo do lote; produto abaixo de `ReorderLevel` aparece nos alertas (projeção CQRS).
 
 ### 5.3 Entrada via XML (NF compra) (8 SP)
 

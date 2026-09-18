@@ -38,7 +38,23 @@ public class ProductBalance : Entity
     }
 
     /// <summary>
-    /// Applies movement delta (legacy path until 5.2 lot-aware movements).
+    /// Applies a signed quantity change when no lot rows exist.
+    /// </summary>
+    public Result ApplySignedDelta(decimal signedDelta)
+    {
+        var newBalance = TotalQuantity + signedDelta;
+        if (newBalance < 0)
+        {
+            return Result.Failure(ErrorCodes.ProductBalance.InsufficientFunds);
+        }
+
+        TotalQuantity = newBalance;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Applies movement delta (legacy path for non-lot products).
     /// </summary>
     public Result UpdateBalance(decimal amount, MovementType type)
     {

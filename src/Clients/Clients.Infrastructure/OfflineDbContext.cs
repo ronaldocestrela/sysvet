@@ -122,6 +122,9 @@ public class OfflineDbContext : DbContext
     /// <summary>Local suppliers.</summary>
     public DbSet<Supplier> Suppliers => Set<Supplier>();
 
+    /// <summary>Local stock movement ledger.</summary>
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -157,6 +160,7 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineProductLotConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineProductBalanceConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSupplierConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineStockMovementConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

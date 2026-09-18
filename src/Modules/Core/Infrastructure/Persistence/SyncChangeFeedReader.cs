@@ -86,6 +86,7 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var inventoryProducts = new List<SyncInventoryProductDto>();
         var inventoryProductLots = new List<SyncInventoryProductLotDto>();
         var inventorySuppliers = new List<SyncInventorySupplierDto>();
+        var inventoryStockMovements = new List<SyncInventoryStockMovementDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -106,6 +107,7 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             inventoryProducts.AddRange(modulePage.InventoryProducts);
             inventoryProductLots.AddRange(modulePage.InventoryProductLots);
             inventorySuppliers.AddRange(modulePage.InventorySuppliers);
+            inventoryStockMovements.AddRange(modulePage.InventoryStockMovements);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -133,6 +135,7 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             InventoryProducts = inventoryProducts,
             InventoryProductLots = inventoryProductLots,
             InventorySuppliers = inventorySuppliers,
+            InventoryStockMovements = inventoryStockMovements,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

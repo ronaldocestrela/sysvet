@@ -1,3 +1,5 @@
+using Inventory.Domain.Entities;
+
 namespace Clients.Infrastructure.Sync;
 
 /// <summary>
@@ -308,6 +310,46 @@ internal static class OutboxPayloadFactory
             UnitCost = unitCost,
             InitialQuantity = initialQuantity,
             LotId = lotId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string RegisterStockMovement(
+        Guid productId,
+        MovementType type,
+        decimal quantity,
+        string reason,
+        Guid? productLotId,
+        AdjustmentDirection? adjustmentDirection,
+        Guid movementId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            ProductId = productId,
+            Type = type,
+            Quantity = quantity,
+            Reason = reason,
+            ProductLotId = productLotId,
+            AdjustmentDirection = adjustmentDirection,
+            MovementId = movementId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string TransferStock(
+        Guid productId,
+        Guid sourceLotId,
+        Guid destinationLotId,
+        decimal quantity,
+        string reason,
+        Guid correlationId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            ProductId = productId,
+            SourceLotId = sourceLotId,
+            DestinationLotId = destinationLotId,
+            Quantity = quantity,
+            Reason = reason,
+            CorrelationId = correlationId,
             IdempotencyKey = idempotencyKey
         });
 

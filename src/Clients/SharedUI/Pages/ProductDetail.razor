@@ -52,6 +52,42 @@ else
             </table>
         }
     </div>
+
+    <div class="card p-3 mt-3">
+        <h2>Kardex</h2>
+        @if (!_kardex.Any())
+        {
+            <p class="empty-state">Sem movimentações registradas.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Qtd</th>
+                        <th>Saldo</th>
+                        <th>Motivo</th>
+                        <th>Lote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in _kardex)
+                    {
+                        <tr>
+                            <td>@line.Date.LocalDateTime.ToString("g")</td>
+                            <td>@line.Type</td>
+                            <td>@line.Quantity</td>
+                            <td>@line.RunningBalance</td>
+                            <td>@line.Reason</td>
+                            <td>@(line.LotNumber ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
 }
 
 <Modal @bind-IsVisible="_showLotModal" Title="Novo lote">
@@ -71,6 +107,7 @@ else
     [Parameter] public Guid ProductId { get; set; }
 
     private InventoryProductDetail? _product;
+    private List<InventoryKardexLine> _kardex = [];
     private bool _loading = true;
     private bool _showLotModal;
     private string _lotNumber = "";
@@ -85,6 +122,8 @@ else
         _loading = true;
         var result = await InventoryStore.GetProductByIdAsync(ProductId);
         _product = result.IsSuccess ? result.Value : null;
+        var kardex = await InventoryStore.GetProductKardexAsync(ProductId);
+        _kardex = kardex.IsSuccess ? kardex.Value.ToList() : [];
         _loading = false;
     }
 

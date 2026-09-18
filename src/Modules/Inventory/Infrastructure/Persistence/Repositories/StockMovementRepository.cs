@@ -27,4 +27,28 @@ public class StockMovementRepository : IStockMovementRepository
     public void Remove(StockMovement entity) => _dbContext.StockMovements.Remove(entity);
 
     public void Update(StockMovement entity) => _dbContext.StockMovements.Update(entity);
+
+    public async Task<IReadOnlyList<StockMovement>> ListByProductAsync(Guid productId, CancellationToken cancellationToken = default)
+        => await _dbContext.StockMovements
+            .AsNoTracking()
+            .Where(m => m.ProductId == productId)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Id)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<StockMovement>> ListRecentAsync(Guid? productId, int skip, int take, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.StockMovements.AsNoTracking().AsQueryable();
+        if (productId is Guid pid)
+        {
+            query = query.Where(m => m.ProductId == pid);
+        }
+
+        return await query
+            .OrderByDescending(m => m.Date)
+            .ThenByDescending(m => m.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
 }

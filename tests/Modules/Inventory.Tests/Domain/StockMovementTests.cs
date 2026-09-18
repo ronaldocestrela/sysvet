@@ -34,7 +34,7 @@ public class StockMovementTests
     public void Create_WithZeroQuantity_ReturnsFailure()
     {
         // Act
-        var result = StockMovement.Create(Guid.NewGuid(), MovementType.Adjustment, 0m, null, null, "Correção");
+        var result = StockMovement.Create(Guid.NewGuid(), MovementType.Adjustment, 0m, null, null, "Correção", adjustmentDirection: AdjustmentDirection.Increase);
 
         // Assert
         result.IsFailure.Should().BeTrue();

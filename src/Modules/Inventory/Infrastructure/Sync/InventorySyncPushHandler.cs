@@ -4,6 +4,7 @@ using Core.Application.Sync;
 using Core.Domain;
 using Inventory.Application.ProductLots.Commands;
 using Inventory.Application.Products.Commands;
+using Inventory.Application.StockMovements.Commands;
 using Inventory.Application.Suppliers.Commands;
 using MediatR;
 
@@ -34,6 +35,8 @@ public sealed class InventorySyncPushHandler : ISyncPushHandler
             nameof(RegisterProductLotCommand) => WithIdempotency(JsonSerializer.Deserialize<RegisterProductLotCommand>(message.Payload, JsonOptions), message.Id),
             nameof(UpdateProductLotCommand) => WithIdempotency(JsonSerializer.Deserialize<UpdateProductLotCommand>(message.Payload, JsonOptions), message.Id),
             nameof(SetProductLotActiveCommand) => WithIdempotency(JsonSerializer.Deserialize<SetProductLotActiveCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(RegisterStockMovementCommand) => WithIdempotency(JsonSerializer.Deserialize<RegisterStockMovementCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(TransferStockCommand) => WithIdempotency(JsonSerializer.Deserialize<TransferStockCommand>(message.Payload, JsonOptions), message.Id),
             _ => null
         };
 

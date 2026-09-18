@@ -48,11 +48,21 @@ public sealed class InventorySyncChangeFeedContributor : ISyncChangeFeedContribu
         hasMore |= suppliers.HasMore;
         maxUpdated = Max(maxUpdated, suppliers.Items.Select(s => s.UpdatedAt));
 
+        var movements = await ReadPageAsync(
+            _dbContext.StockMovements.AsNoTracking(),
+            since,
+            take,
+            m => m.UpdatedAt,
+            cancellationToken);
+        hasMore |= movements.HasMore;
+        maxUpdated = Max(maxUpdated, movements.Items.Select(m => m.UpdatedAt));
+
         return new SyncContributorChanges
         {
             InventoryProducts = products.Items.Select(MapProduct).ToList(),
             InventoryProductLots = lots.Items.Select(MapLot).ToList(),
             InventorySuppliers = suppliers.Items.Select(MapSupplier).ToList(),
+            InventoryStockMovements = movements.Items.Select(MapMovement).ToList(),
             MaxUpdatedAt = maxUpdated,
             HasMore = hasMore
         };
@@ -123,6 +133,24 @@ public sealed class InventorySyncChangeFeedContributor : ISyncChangeFeedContribu
             IsActive = l.IsActive,
             UpdatedAt = l.UpdatedAt,
             RowVersion = Convert.ToBase64String(l.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncInventoryStockMovementDto MapMovement(StockMovement m) =>
+        new()
+        {
+            Id = m.Id,
+            ProductId = m.ProductId,
+            ProductLotId = m.ProductLotId,
+            Type = m.Type.ToString(),
+            AdjustmentDirection = m.AdjustmentDirection?.ToString(),
+            Quantity = m.Quantity,
+            BatchNumber = m.BatchNumber,
+            ExpirationDate = m.ExpirationDate,
+            Reason = m.Reason,
+            Date = m.Date,
+            CorrelationId = m.CorrelationId,
+            UpdatedAt = m.UpdatedAt,
+            RowVersion = Convert.ToBase64String(m.RowVersion ?? Array.Empty<byte>())
         };
 
     private static SyncInventorySupplierDto MapSupplier(Supplier s) =>

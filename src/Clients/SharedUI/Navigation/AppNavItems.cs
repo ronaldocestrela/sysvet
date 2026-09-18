@@ -17,7 +17,8 @@ public static class AppNavItems
         new(AppRoutes.VaccineAlerts, "Alertas de vacina", "bi-exclamation-triangle"),
         new(AppRoutes.Hospitalizations, "Internação", "bi-hospital"),
         new(AppRoutes.Products, "Produtos", "bi-box-seam"),
-        new(AppRoutes.StockMovements, "Estoque", "bi-arrow-left-right"),
+        new(AppRoutes.StockMovements, "Movimentações", "bi-arrow-left-right"),
+        new(AppRoutes.StockAlerts, "Alertas de estoque", "bi-exclamation-diamond"),
     ];
 }
 

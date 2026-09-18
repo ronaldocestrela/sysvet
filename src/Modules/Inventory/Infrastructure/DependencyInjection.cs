@@ -1,5 +1,6 @@
 using Core.Domain;
 using Core.Infrastructure.Configuration;
+using Inventory.Application.Common;
 using Inventory.Application.Products.Commands;
 using Inventory.Domain.Repositories;
 using Inventory.Infrastructure.Configuration;
@@ -38,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IStockMovementRepository, StockMovementRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<IProductLotRepository, ProductLotRepository>();
+        services.AddScoped<StockCatalogReconciler>();
         services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.InventorySyncChangeFeedContributor>();
         services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.InventorySyncPushHandler>();
 

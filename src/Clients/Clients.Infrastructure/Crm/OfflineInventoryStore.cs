@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Clients.Infrastructure.Crm;
 
 /// <summary>SQLite-backed inventory catalog with sync outbox.</summary>
-public sealed class OfflineInventoryStore : IInventoryStore
+public sealed partial class OfflineInventoryStore : IInventoryStore
 {
     private readonly OfflineDbContext _dbContext;
 

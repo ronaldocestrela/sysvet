@@ -22,7 +22,7 @@ A Fase 5.1 exige catálogo de produtos com SKU, código de barras, fornecedor, c
 - Fiscais básicos no produto: NCM (8 dígitos), CEST opcional, origem da mercadoria (0–8). CFOP/CST/alíquotas permanecem no Fiscal (Fase 7).
 - Sem preço de venda no catálogo (ADR-017).
 - Sync: plugin Inventory (`ISyncChangeFeedContributor` / `ISyncPushHandler`) para Products, ProductLots, Suppliers.
-- `RegisterStockMovement` na 5.1 continua no saldo de produto; 5.2 exigirá `ProductLotId` quando `RequiresLot`.
+- `RegisterStockMovement` na 5.1 continua no saldo de produto; **5.2** unificou movimentações lot-aware (ver [`ADR-020`](./ADR-020-movimentacoes-estoque-alertas.md)).
 
 ## Consequências
 - Migration `AddProductLotsAndCatalog` altera schema de `Products` e adiciona tabelas.

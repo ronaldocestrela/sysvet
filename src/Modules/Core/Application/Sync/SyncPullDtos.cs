@@ -337,6 +337,24 @@ public sealed class SyncInventoryProductLotDto
     public string RowVersion { get; init; } = string.Empty;
 }
 
+/// <summary>Inventory stock movement row for sync pull.</summary>
+public sealed class SyncInventoryStockMovementDto
+{
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public Guid? ProductLotId { get; init; }
+    public string Type { get; init; } = string.Empty;
+    public string? AdjustmentDirection { get; init; }
+    public decimal Quantity { get; init; }
+    public string? BatchNumber { get; init; }
+    public DateTimeOffset? ExpirationDate { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public DateTimeOffset Date { get; init; }
+    public Guid? CorrelationId { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
 /// <summary>Inventory supplier row for sync pull.</summary>
 public sealed class SyncInventorySupplierDto
 {
@@ -370,6 +388,7 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncInventoryProductDto> InventoryProducts { get; init; } = Array.Empty<SyncInventoryProductDto>();
     public IReadOnlyList<SyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<SyncInventoryProductLotDto>();
     public IReadOnlyList<SyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<SyncInventorySupplierDto>();
+    public IReadOnlyList<SyncInventoryStockMovementDto> InventoryStockMovements { get; init; } = Array.Empty<SyncInventoryStockMovementDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

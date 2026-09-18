@@ -3,19 +3,15 @@ using Core.Application.Behaviors;
 using Core.Application.Common;
 using Core.Application.Messaging;
 using Core.Domain.Authorization;
-using Inventory.Domain.Entities;
 
 namespace Inventory.Application.StockMovements.Commands;
 
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.StockWrite)]
-public sealed record RegisterStockMovementCommand(
+public sealed record TransferStockCommand(
     Guid ProductId,
-    MovementType Type,
+    Guid SourceLotId,
+    Guid DestinationLotId,
     decimal Quantity,
     string Reason,
-    Guid? ProductLotId = null,
-    AdjustmentDirection? AdjustmentDirection = null,
-    string? BatchNumber = null,
-    DateTimeOffset? ExpirationDate = null,
-    Guid MovementId = default,
+    Guid CorrelationId = default,
     Guid IdempotencyKey = default) : IIdempotentCommand<Guid>;

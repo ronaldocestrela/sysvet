@@ -16,6 +16,8 @@ public static class MenuCatalog
         ["hospitalizations"] = Permissions.HospitalizationsRead,
         ["quotes"] = Permissions.ClinicalQuotesRead,
         ["inventory"] = Permissions.ProductsRead,
+        ["stock"] = Permissions.StockRead,
+        ["stock-alerts"] = Permissions.StockRead,
         ["sales"] = Permissions.SalesRead,
         ["cash"] = Permissions.CashRegisterRead,
         ["audit"] = Permissions.AuditRead

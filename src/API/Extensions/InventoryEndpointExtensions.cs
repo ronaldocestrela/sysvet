@@ -1,5 +1,8 @@
 using Inventory.Application.ProductLots.Commands;
 using Inventory.Application.StockMovements.Commands;
+using Inventory.Application.StockMovements.Queries;
+using Inventory.Domain.Entities;
+using Inventory.Domain.Services;
 using Inventory.Application.Products.Commands;
 using Inventory.Application.Products.Queries;
 using Inventory.Application.Suppliers.Commands;
@@ -121,8 +124,48 @@ public static class InventoryEndpointExtensions
             return (await mediator.Send(new SetSupplierActiveCommand(id, body.IsActive, key))).ToHttpResult();
         });
 
-        group.MapPost("/stock/movements", async ([FromBody] RegisterStockMovementCommand command, IMediator mediator) =>
-            (await mediator.Send(command)).ToHttpResult());
+        group.MapGet("/stock/movements", async ([FromQuery] Guid? productId, [FromQuery] int page, [FromQuery] int pageSize, IMediator mediator) =>
+            (await mediator.Send(new ListStockMovementsQuery(productId, page <= 0 ? 1 : page, pageSize <= 0 ? 50 : pageSize))).ToHttpResult());
+
+        group.MapPost("/stock/movements", async (HttpContext httpContext, [FromBody] RegisterStockMovementBody body, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            var command = new RegisterStockMovementCommand(
+                body.ProductId,
+                body.Type,
+                body.Quantity,
+                body.Reason,
+                body.ProductLotId,
+                body.AdjustmentDirection,
+                body.BatchNumber,
+                body.ExpirationDate,
+                body.MovementId,
+                key);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        group.MapPost("/stock/transfers", async (HttpContext httpContext, [FromBody] TransferStockBody body, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            var command = new TransferStockCommand(
+                body.ProductId,
+                body.SourceLotId,
+                body.DestinationLotId,
+                body.Quantity,
+                body.Reason,
+                body.CorrelationId,
+                key);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        group.MapGet("/products/{id:guid}/kardex", async (Guid id, [FromQuery] DateTimeOffset? from, [FromQuery] DateTimeOffset? to, [FromQuery] Guid? lotId, IMediator mediator) =>
+            (await mediator.Send(new GetProductKardexQuery(id, from, to, lotId))).ToHttpResult());
+
+        group.MapGet("/stock/alerts", async ([FromQuery] string? kind, [FromQuery] int horizonDays, [FromQuery] int page, [FromQuery] int pageSize, IMediator mediator) =>
+        {
+            StockAlertKind? parsedKind = Enum.TryParse<StockAlertKind>(kind, true, out var k) ? k : null;
+            return (await mediator.Send(new ListStockAlertsQuery(parsedKind, horizonDays <= 0 ? 30 : horizonDays, page <= 0 ? 1 : page, pageSize <= 0 ? 50 : pageSize))).ToHttpResult();
+        });
 
         return app;
     }
@@ -153,4 +196,23 @@ public static class InventoryEndpointExtensions
     private sealed record UpdateProductLotBody(DateTimeOffset? ExpirationDate, decimal UnitCost);
 
     private sealed record UpdateSupplierBody(string LegalName, string TradeName, string? ContactEmail, string? ContactPhone);
+
+    private sealed record RegisterStockMovementBody(
+        Guid ProductId,
+        MovementType Type,
+        decimal Quantity,
+        string Reason,
+        Guid? ProductLotId = null,
+        AdjustmentDirection? AdjustmentDirection = null,
+        string? BatchNumber = null,
+        DateTimeOffset? ExpirationDate = null,
+        Guid MovementId = default);
+
+    private sealed record TransferStockBody(
+        Guid ProductId,
+        Guid SourceLotId,
+        Guid DestinationLotId,
+        decimal Quantity,
+        string Reason,
+        Guid CorrelationId = default);
 }

@@ -4,29 +4,32 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 
 ## Status
 
-> **Fase 5.1 concluída:** catálogo de produtos, fornecedores, lotes com validade/custo e saldo por lote. Movimentações avançadas, alertas e compras permanecem nas tarefas 5.2+.
+> **Fase 5.2 concluída:** movimentações lot-aware, transferência lote a lote, kardex, alertas de estoque mínimo/validade, sync e UI offline.
 
 ## Escopo de Negócio
 
 - **Cadastro de produtos**: SKU, código de barras, categoria, fornecedor, NCM/CEST, custo médio ponderado
 - **Lotes**: validade, custo unitário, quantidade on-hand por lote
 - **Fornecedores**: CNPJ, contato, vínculo opcional no produto
-- **Movimentações** (parcial): entrada/saída legacy + opening balance ao criar lote
+- **Movimentações**: entrada, saída, ajuste (direção explícita), transferência entre lotes
+- **Alertas**: estoque abaixo de `ReorderLevel`, validade próxima/vencida (horizonte configurável)
+- **Kardex**: histórico imutável por produto com saldo corrido
 - **Saldo**: projeção por produto (`ProductBalance`) derivada dos lotes ativos
 
 ## Estrutura de Camadas
 
 | Pasta | Responsabilidade |
 |---|---|
-| [`Domain/`](./Domain/) | `Product`, `ProductLot`, `Supplier`, `StockMovement`, `ProductBalance`; VOs; `InventoryCostCalculator` |
-| [`Application/`](./Application/) | CQRS produtos/fornecedores/lotes; integração `OrderPaidEvent` |
+| [`Domain/`](./Domain/) | Entidades, VOs, `StockQuantityApplier`, `LotAllocationService`, `StockAlertClassifier` |
+| [`Application/`](./Application/) | CQRS catálogo, movimentações, alertas, integração `OrderPaidEvent` |
 | [`Infrastructure/`](./Infrastructure/) | `InventoryDbContext`, repositórios, sync plugin (`InventorySync*`) |
 
 ## Dependências
 
-- Integra-se ao `Sales` (baixa via `OrderPaidEvent`; evolução lot-aware na 5.2)
+- Integra-se ao `Sales` (baixa FEFO via `OrderPaidEvent`)
 - Integra-se ao `Fiscal` (dados fiscais básicos no produto para NF-e futura)
 
 ## Referências
 
 - [ADR-019](../../../docs/arquitetura/ADR-019-produtos-lotes-estoque.md)
+- [ADR-020](../../../docs/arquitetura/ADR-020-movimentacoes-estoque-alertas.md)

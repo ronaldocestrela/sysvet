@@ -34,6 +34,7 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncInventoryProductDto> InventoryProducts { get; init; } = Array.Empty<ClientSyncInventoryProductDto>();
     public IReadOnlyList<ClientSyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<ClientSyncInventoryProductLotDto>();
     public IReadOnlyList<ClientSyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<ClientSyncInventorySupplierDto>();
+    public IReadOnlyList<ClientSyncInventoryStockMovementDto> InventoryStockMovements { get; init; } = Array.Empty<ClientSyncInventoryStockMovementDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -322,6 +323,22 @@ public sealed class ClientSyncInventoryProductLotDto
     public decimal UnitCost { get; init; }
     public decimal Quantity { get; init; }
     public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncInventoryStockMovementDto
+{
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public Guid? ProductLotId { get; init; }
+    public string Type { get; init; } = string.Empty;
+    public string? AdjustmentDirection { get; init; }
+    public decimal Quantity { get; init; }
+    public string? BatchNumber { get; init; }
+    public DateTimeOffset? ExpirationDate { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public DateTimeOffset Date { get; init; }
+    public Guid? CorrelationId { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
 }
 

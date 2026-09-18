@@ -39,12 +39,19 @@ public static class ErrorCodes
         public static readonly Error InsufficientQuantity = new("ProductLot.InsufficientQuantity", "Insufficient lot quantity.");
         public static readonly Error NotFound = new("ProductLot.NotFound", "The specified lot was not found.");
         public static readonly Error LotNumberConflict = new("ProductLot.LotNumberConflict", "This lot number already exists for the product.");
+        public static readonly Error Inactive = new("ProductLot.Inactive", "The lot is inactive.");
     }
 
     public static class StockMovement
     {
         public static readonly Error InvalidQuantity = new("StockMovement.InvalidQuantity", "Quantity must be greater than zero.");
         public static readonly Error InvalidReason = new("StockMovement.InvalidReason", "Reason cannot be empty.");
+        public static readonly Error InvalidType = new("StockMovement.InvalidType", "Movement type is not supported.");
+        public static readonly Error LotRequired = new("StockMovement.LotRequired", "Product lot is required for this product.");
+        public static readonly Error LotProductMismatch = new("StockMovement.LotProductMismatch", "Lot does not belong to the product.");
+        public static readonly Error TransferSameLot = new("StockMovement.TransferSameLot", "Source and destination lots must differ.");
+        public static readonly Error TransferProductMismatch = new("StockMovement.TransferProductMismatch", "Lots must belong to the same product.");
+        public static readonly Error InvalidAdjustmentDirection = new("StockMovement.InvalidAdjustmentDirection", "Adjustment direction is required for adjustment movements.");
     }
 
     public static class ProductBalance

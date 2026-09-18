@@ -56,6 +56,9 @@ public static class AppRoutes
     /// <summary>Stock movements.</summary>
     public const string StockMovements = "/stock-movements";
 
+    /// <summary>Inventory low-stock and expiry alerts.</summary>
+    public const string StockAlerts = "/stock-alerts";
+
     /// <summary>Point of sale terminal.</summary>
     public const string SalesPos = "/sales/pos";
 

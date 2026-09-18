@@ -31,7 +31,7 @@ public sealed class ListProductsQueryHandler : IRequestHandler<ListProductsQuery
             var lots = await _lotRepository.ListByProductIdAsync(product.Id, cancellationToken);
             var totalFromLots = lots.Where(l => l.IsActive).Sum(l => l.Quantity);
             var balance = await _productRepository.GetBalanceAsync(product.Id, cancellationToken);
-            var total = totalFromLots > 0 ? totalFromLots : balance?.TotalQuantity ?? 0m;
+            var total = lots.Count > 0 ? totalFromLots : balance?.TotalQuantity ?? 0m;
             items.Add(new ProductListItemDto(
                 product.Id,
                 product.Name,
@@ -81,7 +81,7 @@ public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQ
         var lots = await lotRepository.ListByProductIdAsync(product.Id, cancellationToken);
         var lotDtos = lots.Select(l => new ProductLotDto(l.Id, l.LotNumber, l.ExpirationDate, l.UnitCost, l.Quantity, l.IsActive)).ToList();
         var totalFromLots = lots.Where(l => l.IsActive).Sum(l => l.Quantity);
-        var total = totalFromLots > 0 ? totalFromLots : balance?.TotalQuantity ?? 0m;
+        var total = lots.Count > 0 ? totalFromLots : balance?.TotalQuantity ?? 0m;
 
         return new ProductDetailDto(
             product.Id,

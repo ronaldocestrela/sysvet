@@ -18,6 +18,8 @@ public static class MenuNavigation
             ["quotes"] = new(AppRoutes.PendingQuoteConversions, "Orçamentos pendentes", "bi-receipt"),
             ["inventory"] = new(AppRoutes.Products, "Produtos", "bi-box-seam"),
             ["suppliers"] = new(AppRoutes.Suppliers, "Fornecedores", "bi-truck"),
+            ["stock"] = new(AppRoutes.StockMovements, "Movimentações", "bi-arrow-left-right"),
+            ["stock-alerts"] = new(AppRoutes.StockAlerts, "Alertas de estoque", "bi-exclamation-diamond"),
             ["audit"] = new(AppRoutes.Home, "Auditoria", "bi-journal-text")
         };
 
