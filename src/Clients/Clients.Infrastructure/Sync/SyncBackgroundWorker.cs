@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -69,8 +70,12 @@ public class SyncBackgroundWorker : BackgroundService
         }
     }
 
-    private async Task ProcessSyncCycleAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Runs one push/pull cycle (outbox then pull). Exposed for PoC integration tests (roadmap 3.6).
+    /// </summary>
+    internal async Task ProcessSyncCycleAsync(CancellationToken cancellationToken)
     {
+        var stopwatch = Stopwatch.StartNew();
         using var scope = _serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<OfflineDbContext>();
         var syncClient = scope.ServiceProvider.GetRequiredService<ISyncHttpClient>();
@@ -78,15 +83,26 @@ public class SyncBackgroundWorker : BackgroundService
 
         await PushOutboxAsync(dbContext, syncClient, cancellationToken);
         await PullRemoteChangesAsync(dbContext, syncClient, pullApplier, cancellationToken);
+
+        stopwatch.Stop();
+        var pendingCount = await dbContext.OutboxMessages
+            .CountAsync(m => m.ProcessedAt == null && m.Error == null, cancellationToken);
+        var errorCount = await dbContext.OutboxMessages.CountAsync(m => m.Error != null, cancellationToken);
+        _logger.LogInformation(
+            "Sync cycle completed in {ElapsedMs}ms. Pending={PendingCount} Errors={ErrorCount}",
+            stopwatch.ElapsedMilliseconds,
+            pendingCount,
+            errorCount);
     }
 
     private async Task PushOutboxAsync(OfflineDbContext dbContext, ISyncHttpClient syncClient, CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
+        // SQLite (client) does not translate all DateTimeOffset comparisons; filter retry window in memory.
         var pendingMessages = (await dbContext.OutboxMessages
-            .Where(m => m.ProcessedAt == null && m.Error == null)
+                .Where(m => m.ProcessedAt == null && m.Error == null)
+                .ToListAsync(cancellationToken))
             .Where(m => m.NextRetryAt == null || m.NextRetryAt <= now)
-            .ToListAsync(cancellationToken))
             .OrderBy(m => m.CreatedAt)
             .Take(50)
             .ToList();

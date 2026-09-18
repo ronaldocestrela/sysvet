@@ -45,7 +45,7 @@ Diagrama de sequência: [`docs/diagramas/sync-sequence.mmd`](../diagramas/sync-s
 
 - **Positivas:** alinhamento com TDD e repositório offline único; sem tabelas de tracking de terceiros no SQL Server.
 - **Negativas:** worker WASM depende da aba aberta; snapshot IndexedDB copia o `.db` inteiro.
-- **Pendências:** PoC E2E documentada na Fase 3.6 (`sync-poc.md`).
+- **PoC E2E (3.6):** [`sync-poc.md`](./sync-poc.md) + `OfflineToCloudPocTests`.
 
 ## Confirmação no código
 
@@ -54,7 +54,7 @@ Diagrama de sequência: [`docs/diagramas/sync-sequence.mmd`](../diagramas/sync-s
 - [`SyncBackgroundWorker`](../../src/Clients/Clients.Infrastructure/Sync/SyncBackgroundWorker.cs) — push/pull, backoff, `ISyncConnectivity`.
 - [`PushSyncBatchCommand`](../../src/Modules/Core/Application/Sync/PushSyncBatchCommand.cs) / [`PullChangesQuery`](../../src/Modules/Core/Application/Sync/PullChangesQuery.cs) — ingestão CQRS.
 - [`SyncEndpointExtensions`](../../src/API/Extensions/SyncEndpointExtensions.cs) — `/api/v1/sync/push|pull`.
-- PoC histórica: [`tests/PoC.SyncTests/`](../../tests/PoC.SyncTests/); E2E: [`tests/API.IntegrationTests/EndToEndSyncTests.cs`](../../tests/API.IntegrationTests/EndToEndSyncTests.cs).
+- PoC histórica: [`tests/PoC.SyncTests/`](../../tests/PoC.SyncTests/); E2E HTTP: [`EndToEndSyncTests.cs`](../../tests/API.IntegrationTests/EndToEndSyncTests.cs); PoC 3.6: [`OfflineToCloudPocTests.cs`](../../tests/API.IntegrationTests/Sync/OfflineToCloudPocTests.cs).
 
 ## Relacionados
 

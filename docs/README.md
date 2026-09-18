@@ -31,6 +31,7 @@ Pasta de **Documentação Viva** do projeto SysVet. Contém a documentação de 
 | [`ADR-005-result-http.md`](./arquitetura/ADR-005-result-http.md) | `Result<T>` → HTTP |
 | [`ADR-014-sqlite-local-clients.md`](./arquitetura/ADR-014-sqlite-local-clients.md) | SQLite CRM offline nos clients |
 | [`configuracao.md`](./arquitetura/configuracao.md) | Options, health, correlation id |
+| [`sync-poc.md`](./arquitetura/sync-poc.md) | PoC E2E sync offline → nuvem (Fase 3.6) |
 
 ### `diagramas/`
 Diagramas técnicos em `.mmd` (Mermaid), alinhados a `src/`:

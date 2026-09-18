@@ -65,9 +65,14 @@ Iniciado o módulo de estoque.
 - `ITutorStore`/`IPetStore` offline; SharedUI tutor/pet sem dependência de rede para CRUD.
 - WASM: IndexedDB snapshot; MAUI: `AppDataDirectory/sysvet.db`; testes `Clients.Tests` (61+).
 
-### 👉 **Próxima Ação: Fase 3.6 — PoC E2E offline → nuvem**
+### Fase 3.6 (PoC E2E offline → nuvem) — Concluída
 
-Documentar cenário reproduzível, métricas e limitações em `docs/arquitetura/sync-poc.md`.
+- Cenário automatizado: `tests/API.IntegrationTests/Sync/OfflineToCloudPocTests.cs` (worker real + métricas).
+- Documentação: [`docs/arquitetura/sync-poc.md`](arquitetura/sync-poc.md).
+
+### 👉 **Próxima Ação: Fase 4.1 — Agenda clínica unificada**
+
+Ver [`roadmap.md`](roadmap.md) § Fase 4.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

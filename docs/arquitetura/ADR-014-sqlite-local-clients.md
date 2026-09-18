@@ -43,7 +43,7 @@ WASM: **`WebIndexedDbSqlitePersistence`** + `wwwroot/js/sqlite-db-storage.js`; *
 
 - **Positivas:** aceite 3.4 (CRUD offline); mesmo DTO/`Result` que a API; 61+ testes em `Clients.Tests`.
 - **Negativas:** listas vazias até cadastro local; snapshot IndexedDB copia o arquivo inteiro (aceitável para CRM MVP).
-- **Pendências:** PoC 3.6 (`sync-poc.md`, métricas E2E).
+- **PoC E2E (3.6):** [`sync-poc.md`](./sync-poc.md), testes `OfflineToCloudPocTests`.
 
 ## Confirmação no código
 

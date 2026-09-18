@@ -21,7 +21,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-013](./ADR-013-maui-blazor-hybrid.md) | MAUI Blazor Hybrid, JWT compartilhado, CI Windows | Accepted |
 | [ADR-014](./ADR-014-sqlite-local-clients.md) | SQLite local CRM nos clients (EF, IndexedDB WASM) | Accepted |
 
-Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id.
+Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 
 Diagramas: [`docs/diagramas/`](../diagramas/) — C4 e sequência de sync.
 

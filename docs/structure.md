@@ -13,6 +13,7 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   ├── arquitetura/
 │   │   ├── README.md                   # Índice de ADRs e template MADR.
 │   │   ├── configuracao.md             # Options, health, correlation id (Fase 1.4–1.5).
+│   │   ├── sync-poc.md                 # PoC E2E offline → nuvem (Fase 3.6).
 │   │   ├── ADR-001-monolito-modular.md
 │   │   ├── ADR-002-estrategia-de-sync.md
 │   │   ├── ADR-003-multi-tenancy.md

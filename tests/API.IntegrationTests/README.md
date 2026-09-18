@@ -1,34 +1,33 @@
 # `tests/API.IntegrationTests/` — Testes de Integração da API
 
-Projeto de **testes de integração** que testa os endpoints HTTP da API de ponta a ponta, incluindo o pipeline completo do ASP.NET Core (middlewares, roteamento, serialização JSON, validações).
-
-## Status
-
-> ⚠️ **Em estruturação.** Contém apenas `UnitTest1.cs` de placeholder.
-
-## O que virá aqui
-
-```
-API.IntegrationTests/
-├── Fixtures/
-│   └── ApiFactory.cs          ← WebApplicationFactory customizada com banco em memória
-├── Endpoints/
-│   ├── TutorEndpointsTests.cs ← Testa CRUD de tutores via HTTP
-│   └── PetEndpointsTests.cs   ← Testa cadastro de pets via HTTP
-└── Helpers/
-    └── HttpClientExtensions.cs ← Helpers para requisições (GetAsync<T>, PostAsync<T>, etc.)
-```
+Projeto de **testes de integração** que exercita endpoints HTTP da API de ponta a ponta (middlewares, auth, serialização, sync).
 
 ## Abordagem
 
-- Usa `WebApplicationFactory<Program>` para subir a API em memória durante os testes
-- Banco de dados substituído por **SQLite in-memory** ou **EF Core In-Memory Provider** via override de DI
-- Cada teste é **isolado**: banco resetado entre suites
-- Testa o contrato HTTP: status codes, headers, corpo da resposta e mensagens de erro
+- `WebApplicationFactory<Program>` sobe a API in-process
+- `CoreDbContext` substituído por SQLite em arquivo temporário (por fixture de teste)
+- Coleção xUnit `[Collection("IntegrationTests")]` para isolar estado compartilhado sensível
+
+## PoC E2E sync (Fase 3.6)
+
+| Arquivo | Descrição |
+|---------|-----------|
+| [`Sync/OfflineToCloudPocTests.cs`](Sync/OfflineToCloudPocTests.cs) | Worker real (`SyncBackgroundWorker`), métricas PoC |
+| [`Sync/SyncPocHarness.cs`](Sync/SyncPocHarness.cs) | DI de teste: SQLite `:memory:` + HTTP autenticado |
+| [`EndToEndSyncTests.cs`](EndToEndSyncTests.cs) | Push/pull HTTP direto (idempotência, FIFO tutor→pet) |
+
+Documentação reproduzível: [`docs/arquitetura/sync-poc.md`](../../docs/arquitetura/sync-poc.md).
+
+```bash
+dotnet test tests/API.IntegrationTests/API.IntegrationTests.csproj --filter OfflineToCloudPocTests
+```
 
 ## Dependências
 
 | Pacote | Propósito |
 |---|---|
 | `Microsoft.AspNetCore.Mvc.Testing` | `WebApplicationFactory` |
+| `FluentAssertions` | Asserções |
 | `xUnit` | Framework de testes |
+
+Referência de projeto: `Clients.Infrastructure` (outbox/worker nos testes PoC).

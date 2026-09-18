@@ -39,7 +39,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | Blazor WASM | **Concluído (3.2)** | PWA publish + manifest/ícones; JWT/refresh; CRM tutor/pet via API; CORS; ADR-012 |
 | SharedUI | **Concluído (3.1)** | Layout, tokens, DataGrid/FormField/Modal/Toast/LoadingState, `IAuthState`/`INavigationService`/`IToastService`, testes bUnit |
 | MAUI | **Concluído (3.3)** | Blazor Hybrid Android + Windows; JWT/CRM SharedUI; VetNexus branding; job `maui-publish` (Windows CI); ADR-013 |
-| SQLite / Sync offline | **Parcial (3.5 motor CRM)** | SQLite + outbox push/pull tutor/pet; PoC E2E 3.6 pendente |
+| SQLite / Sync offline | **Concluído (3.5–3.6 CRM)** | SQLite + outbox push/pull tutor/pet; PoC E2E em [`sync-poc.md`](arquitetura/sync-poc.md) |
 | CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test Linux, cobertura, artefato API, Dockerfile, publish MAUI (Windows runner) |
 | Módulos ausentes | **Pendente** | `Finance`, `Automations`, `Intelligence`, `TutorPortal`, `Platform` |
 
@@ -338,7 +338,7 @@ flowchart TD
 | **3.3 MAUI Blazor Hybrid** | 13 | Concluído |
 | **3.4 SQLite local nos clients** | 8 | Concluído |
 | **3.5 Motor de sincronização** | 21 | Concluído |
-| **3.6 PoC E2E offline → nuvem** | 5 | Pendente |
+| **3.6 PoC E2E offline → nuvem** | 5 | Concluído |
 | **Total Fase 3** | **63 SP** | |
 
 ### 3.1 SharedUI — design system base (8 SP) — Concluído
@@ -395,13 +395,13 @@ flowchart TD
 
 **Aceite:** Sync bidirecional tutor/pet; fila drena após reconexão. ADR-002 atualizado.
 
-### 3.6 PoC E2E offline → nuvem (5 SP)
+### 3.6 PoC E2E offline → nuvem (5 SP) — Concluído
 
-- [ ] Cenário automatizado ou script manual documentado
-- [ ] Métricas: tempo de sync, registros pendentes, erros
-- [ ] Documentar limitações conhecidas da PoC
+- [x] Cenário automatizado (`OfflineToCloudPocTests` + harness `SyncPocHarness`; apêndice manual Blazor/MAUI)
+- [x] Métricas: tempo de sync, registros pendentes, erros (`SyncPocMetrics`, logs do worker)
+- [x] Limitações conhecidas documentadas
 
-**Aceite:** PoC reproduzível descrita em `docs/arquitetura/sync-poc.md`.
+**Aceite:** PoC reproduzível em [`docs/arquitetura/sync-poc.md`](arquitetura/sync-poc.md).
 
 ---
 
