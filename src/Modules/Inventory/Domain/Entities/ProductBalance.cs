@@ -3,6 +3,9 @@ using Inventory.Domain;
 
 namespace Inventory.Domain.Entities;
 
+/// <summary>
+/// Projected total on-hand quantity for a product (sum of active lots).
+/// </summary>
 public class ProductBalance : Entity
 {
     public Guid ProductId { get; private set; }
@@ -10,32 +13,57 @@ public class ProductBalance : Entity
 
     private ProductBalance() { }
 
+    /// <summary>
+    /// Creates balance row for a new product.
+    /// </summary>
     public ProductBalance(Guid productId, decimal initialQuantity = 0)
+        : base(Guid.NewGuid())
     {
-        Id = Guid.NewGuid();
         ProductId = productId;
         TotalQuantity = initialQuantity;
     }
 
+    /// <summary>
+    /// Sets total from lot aggregation.
+    /// </summary>
+    public void SyncFromLots(decimal totalFromLots)
+    {
+        if (totalFromLots < 0)
+        {
+            throw new InvalidOperationException("Total quantity cannot be negative.");
+        }
+
+        TotalQuantity = totalFromLots;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Applies movement delta (legacy path until 5.2 lot-aware movements).
+    /// </summary>
     public Result UpdateBalance(decimal amount, MovementType type)
     {
         var newBalance = TotalQuantity;
 
         if (type == MovementType.In)
+        {
             newBalance += amount;
+        }
         else if (type == MovementType.Out)
+        {
             newBalance -= amount;
+        }
         else if (type == MovementType.Adjustment)
-            newBalance += amount; // Can be positive or negative adjustment conceptually, but let's assume Adjustment in our system is handled by sending positive amount for Add, negative for Remove. Wait, StockMovement says quantity > 0. If it's a negative adjustment, we would need to know the sign or separate adjustments. Let's simplify: Adjustment is always treated as an absolute set, OR we use In/Out exclusively. Actually, if type == Adjustment, we need to know if it's adding or removing. Let's just say Adjustment In / Adjustment Out. Let's stick to In/Out. If MovementType.Adjustment, we could just say it sets the balance? No, we need an adjustment to be added/subtracted. For now, let's treat Adjustment as In, but wait...
-        
-        // Let's refine Adjustment later, for now just Out checks
-        if (type == MovementType.Out && newBalance < 0)
-            return Result.Failure(ErrorCodes.ProductBalance.InsufficientFunds);
+        {
+            newBalance += amount;
+        }
 
-        if (type == MovementType.Adjustment) 
-            newBalance += amount; // Assuming positive adjustment adds to stock for now.
+        if (type == MovementType.Out && newBalance < 0)
+        {
+            return Result.Failure(ErrorCodes.ProductBalance.InsufficientFunds);
+        }
 
         TotalQuantity = newBalance;
+        UpdatedAt = DateTimeOffset.UtcNow;
         return Result.Success();
     }
 }

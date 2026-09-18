@@ -258,4 +258,75 @@ internal static class OutboxPayloadFactory
             OrderId = orderId,
             IdempotencyKey = idempotencyKey
         });
+
+    public static string RegisterProduct(
+        Guid productId,
+        string name,
+        string description,
+        string sku,
+        string barcode,
+        string unitOfMeasure,
+        decimal reorderLevel,
+        Inventory.Domain.Enums.ProductCategory category,
+        string ncm,
+        string? cest,
+        int merchandiseOrigin,
+        Guid? supplierId,
+        bool? requiresLot,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Name = name,
+            Description = description,
+            Sku = sku,
+            Barcode = barcode,
+            UnitOfMeasure = unitOfMeasure,
+            ReorderLevel = reorderLevel,
+            Category = category,
+            Ncm = ncm,
+            Cest = cest,
+            MerchandiseOrigin = merchandiseOrigin,
+            SupplierId = supplierId,
+            RequiresLot = requiresLot,
+            ProductId = productId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string RegisterProductLot(
+        Guid productId,
+        string lotNumber,
+        DateTimeOffset? expirationDate,
+        decimal unitCost,
+        decimal initialQuantity,
+        Guid lotId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            ProductId = productId,
+            LotNumber = lotNumber,
+            ExpirationDate = expirationDate,
+            UnitCost = unitCost,
+            InitialQuantity = initialQuantity,
+            LotId = lotId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string RegisterSupplier(
+        Guid supplierId,
+        string legalName,
+        string tradeName,
+        string document,
+        string? contactEmail,
+        string? contactPhone,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            LegalName = legalName,
+            TradeName = tradeName,
+            Document = document,
+            ContactEmail = contactEmail,
+            ContactPhone = contactPhone,
+            SupplierId = supplierId,
+            IdempotencyKey = idempotencyKey
+        });
 }

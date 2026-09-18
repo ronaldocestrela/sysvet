@@ -14,6 +14,8 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
     public DbSet<Product> Products => Set<Product>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<ProductBalance> ProductBalances => Set<ProductBalance>();
+    public DbSet<ProductLot> ProductLots => Set<ProductLot>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
 
     public InventoryDbContext(DbContextOptions<InventoryDbContext> options, ITenantContext tenantContext) : base(options)
     {
@@ -28,6 +30,8 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
         modelBuilder.Entity<Product>().HasQueryFilter(p => EF.Property<Guid>(p, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<StockMovement>().HasQueryFilter(s => EF.Property<Guid>(s, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<ProductBalance>().HasQueryFilter(b => EF.Property<Guid>(b, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<ProductLot>().HasQueryFilter(l => EF.Property<Guid>(l, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<Supplier>().HasQueryFilter(s => EF.Property<Guid>(s, "TenantId") == TenantContext.TenantId);
         
         base.OnModelCreating(modelBuilder);
     }

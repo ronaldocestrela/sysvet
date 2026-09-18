@@ -1,6 +1,6 @@
-using System;
 using FluentAssertions;
 using Inventory.Domain.Entities;
+using Inventory.Domain.Enums;
 using Xunit;
 
 namespace Inventory.Tests.Domain;
@@ -10,28 +10,57 @@ public class ProductTests
     [Fact]
     public void Create_WithValidData_ReturnsSuccess()
     {
-        // Arrange
         var name = "Ração Royal Canin 10kg";
         var barcode = "1234567890123";
+        var sku = "RC-10KG";
         var unit = "Pacote";
         var reorderLevel = 5m;
 
-        // Act
-        var result = Product.Create(name, "Ração seca", barcode, unit, reorderLevel);
+        var result = Product.Create(
+            name,
+            "Ração seca",
+            sku,
+            barcode,
+            unit,
+            reorderLevel,
+            ProductCategory.Food,
+            "23091000",
+            null,
+            0,
+            null);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be(name);
         result.Value.Barcode.Should().Be(barcode);
+        result.Value.Sku.Should().Be(sku);
+        result.Value.RequiresLot.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Create_Medication_DefaultsRequiresLotTrue()
+    {
+        var result = Product.Create(
+            "Dipirona",
+            "",
+            "DIP-50",
+            "7891234567890",
+            "UN",
+            0,
+            ProductCategory.Medication,
+            "30049099",
+            null,
+            0,
+            null);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.RequiresLot.Should().BeTrue();
     }
 
     [Fact]
     public void Create_WithEmptyName_ReturnsFailure()
     {
-        // Act
-        var result = Product.Create("", "Desc", "123", "UN", 0);
+        var result = Product.Create("", "Desc", "SKU1", "1234567890123", "UN", 0, ProductCategory.Other, "23091000", null, 0, null);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Product.InvalidName");
     }

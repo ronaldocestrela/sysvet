@@ -15,6 +15,7 @@ public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement
 
         builder.Property(s => s.Type).HasConversion<string>().HasMaxLength(20);
         builder.Property(s => s.Quantity).HasPrecision(18, 4);
+        builder.Property(s => s.ProductLotId);
         builder.Property(s => s.BatchNumber).HasMaxLength(50);
         builder.Property(s => s.Reason).IsRequired().HasMaxLength(200);
 

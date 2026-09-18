@@ -5,7 +5,7 @@ using Inventory.Domain.Entities;
 
 namespace Inventory.Application.StockMovements.Commands;
 
-[AuthorizeRequest(AuthorizationPolicies.Authenticated)]
+[AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Core.Domain.Authorization.Permissions.StockWrite)]
 public record RegisterStockMovementCommand(
     Guid ProductId,
     MovementType Type,

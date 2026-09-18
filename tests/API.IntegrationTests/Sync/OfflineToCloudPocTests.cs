@@ -144,8 +144,7 @@ public class OfflineToCloudPocTests
         var context = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
         await context.Database.EnsureCreatedAsync();
 
-        var vetContext = scope.ServiceProvider.GetRequiredService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>();
-        await vetContext.Database.MigrateAsync();
+        await IntegrationTestDatabaseHelper.MigrateModuleDatabasesAsync(scope);
 
         var userManager = scope.ServiceProvider.GetRequiredService<
             Microsoft.AspNetCore.Identity.UserManager<Core.Infrastructure.Identity.AppUser>>();

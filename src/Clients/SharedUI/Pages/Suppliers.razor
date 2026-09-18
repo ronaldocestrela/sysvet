@@ -1,0 +1,80 @@
+@page "/suppliers"
+@using Clients.Infrastructure.Crm
+@using SharedUI.Components
+@inject IInventoryStore InventoryStore
+
+<div class="header-section">
+    <h1>Fornecedores</h1>
+    <button class="btn btn-primary" @onclick="() => _showModal = true">Novo fornecedor</button>
+</div>
+
+<div class="card p-3">
+    @if (_suppliers is null)
+    {
+        <LoadingState Message="Carregando..." />
+    }
+    else if (!_suppliers.Any())
+    {
+        <p class="empty-state">Nenhum fornecedor cadastrado.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome fantasia</th>
+                    <th>Razão social</th>
+                    <th>CNPJ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in _suppliers)
+                {
+                    <tr>
+                        <td>@s.TradeName</td>
+                        <td>@s.LegalName</td>
+                        <td>@s.Document</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<Modal @bind-IsVisible="_showModal" Title="Novo fornecedor">
+    <ChildContent>
+        <FormField Label="Razão social"><input type="text" @bind="_legalName" /></FormField>
+        <FormField Label="Nome fantasia"><input type="text" @bind="_tradeName" /></FormField>
+        <FormField Label="CNPJ"><input type="text" @bind="_document" /></FormField>
+        <FormField Label="E-mail"><input type="email" @bind="_email" /></FormField>
+        <FormField Label="Telefone"><input type="text" @bind="_phone" /></FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
+        <button class="btn btn-primary" @onclick="Save">Salvar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private IReadOnlyList<InventorySupplierItem>? _suppliers;
+    private bool _showModal;
+    private string _legalName = "";
+    private string _tradeName = "";
+    private string _document = "";
+    private string _email = "";
+    private string _phone = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await InventoryStore.ListSuppliersAsync();
+        _suppliers = result.IsSuccess ? result.Value : Array.Empty<InventorySupplierItem>();
+    }
+
+    private async Task Save()
+    {
+        await InventoryStore.RegisterSupplierAsync(_legalName, _tradeName, _document, _email, _phone);
+        _showModal = false;
+        var result = await InventoryStore.ListSuppliersAsync();
+        _suppliers = result.IsSuccess ? result.Value : Array.Empty<InventorySupplierItem>();
+    }
+}

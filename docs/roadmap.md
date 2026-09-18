@@ -563,7 +563,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **5.1 Cadastro de produtos e lotes** | 8 | Pendente |
+| **5.1 Cadastro de produtos e lotes** | 8 | Concluído |
 | **5.2 Movimentações e alertas** | 8 | Pendente |
 | **5.3 Entrada via XML (NF compra)** | 8 | Pendente |
 | **5.4 Perdas, fracionamento e devoluções** | 5 | Pendente |
@@ -571,11 +571,25 @@ flowchart TD
 | **5.6 Etiquetas e sugestão de compras** | 8 | Pendente |
 | **Total Fase 5** | **45 SP** | |
 
-### 5.1 Cadastro de produtos e lotes (8 SP)
+### 5.1 Cadastro de produtos e lotes (8 SP) — Concluído
 
-- [ ] Produto, SKU, código de barras, unidade, fornecedor
-- [ ] Lote, validade, custo médio
-- [ ] Categorias e campos fiscais básicos
+**Domain**
+- [x] `Product` (SKU, barcode, categoria, NCM/CEST/origem, fornecedor, custo médio, `RequiresLot`)
+- [x] `Supplier`, `ProductLot`, VOs `Sku`/`Barcode`/`Ncm`; saldo por lote + projeção `ProductBalance`
+- [x] ADR-019
+
+**Application**
+- [x] CQRS idempotente; permissões `Products.Read/Write`; opening balance em lote → `StockMovement`
+- [x] Queries lista/detalhe com saldo por lote e custo médio ponderado
+
+**API**
+- [x] `/api/v1/inventory/products`, `/suppliers`, `/products/{id}/lots`, `/lots/{id}`
+
+**Sync**
+- [x] `InventorySyncChangeFeedContributor` + `InventorySyncPushHandler`; pull/push Products/Lots/Suppliers
+
+**Clients**
+- [x] `IInventoryStore` offline; `Products`, `ProductDetail`, `Suppliers` SharedUI
 
 **Aceite:** Produto com múltiplos lotes; saldo calculado por lote.
 

@@ -5,6 +5,7 @@ using Core.Domain;
 using Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Inventory.Domain.Entities;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
 
@@ -109,6 +110,18 @@ public class OfflineDbContext : DbContext
     /// <summary>Local inpatient procedures.</summary>
     public DbSet<HospitalProcedure> HospitalProcedures => Set<HospitalProcedure>();
 
+    /// <summary>Local inventory products (Fase 5.1).</summary>
+    public DbSet<Product> Products => Set<Product>();
+
+    /// <summary>Local product lots.</summary>
+    public DbSet<ProductLot> ProductLots => Set<ProductLot>();
+
+    /// <summary>Local product balance projection.</summary>
+    public DbSet<ProductBalance> ProductBalances => Set<ProductBalance>();
+
+    /// <summary>Local suppliers.</summary>
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -140,6 +153,10 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OfflineMedicationAdministrationConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineHospitalizationProgressNoteConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineHospitalProcedureConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineInventoryProductConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineProductLotConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineProductBalanceConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSupplierConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

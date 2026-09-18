@@ -1,30 +1,32 @@
 # `src/Modules/Inventory/` — Módulo de Estoque
 
-Módulo responsável pelo **controle de estoque** de produtos comercializados e insumos utilizados nos serviços veterinários e de petshop (medicamentos, rações, acessórios, produtos de banho, etc.).
+Módulo responsável pelo **controle de estoque** de produtos comercializados e insumos utilizados nos serviços veterinários e de petshop.
 
 ## Status
 
-> 🔴 **Não iniciado.** As subpastas de camada existem mas estão vazias (apenas `.gitkeep` e arquivos de projeto).
+> **Fase 5.1 concluída:** catálogo de produtos, fornecedores, lotes com validade/custo e saldo por lote. Movimentações avançadas, alertas e compras permanecem nas tarefas 5.2+.
 
 ## Escopo de Negócio
 
-Este módulo gerenciará:
-- **Cadastro de produtos**: nome, SKU, código de barras, categoria, fornecedor, preço de custo e venda
-- **Movimentações**: entrada (compra/devolução) e saída (venda/uso interno) com rastreabilidade
-- **Saldo em estoque**: quantidade atual por produto e por unidade/filial
-- **Alertas de estoque mínimo**: notificação quando o saldo atingir o ponto de pedido
-- **Lotes e validade**: controle de validade para medicamentos e produtos perecíveis
-- **Inventário**: contagem física e ajuste de estoque
+- **Cadastro de produtos**: SKU, código de barras, categoria, fornecedor, NCM/CEST, custo médio ponderado
+- **Lotes**: validade, custo unitário, quantidade on-hand por lote
+- **Fornecedores**: CNPJ, contato, vínculo opcional no produto
+- **Movimentações** (parcial): entrada/saída legacy + opening balance ao criar lote
+- **Saldo**: projeção por produto (`ProductBalance`) derivada dos lotes ativos
 
 ## Estrutura de Camadas
 
 | Pasta | Responsabilidade |
 |---|---|
-| [`Domain/`](./Domain/) | Entidades: `Product`, `StockMovement`, `Supplier`, `ProductLot`. Value Objects: `Sku`, `Barcode`, `Money`. Enums: `MovementType`, `ProductCategory`. |
-| [`Application/`](./Application/) | Commands: `RegisterProduct`, `RegisterStockEntry`, `DeductStock`. Queries: `GetStockBalance`, `GetLowStockAlerts`, `GetProductById`. |
-| [`Infrastructure/`](./Infrastructure/) | `InventoryDbContext`, repositórios, integração com leitores de código de barras (futuro). |
+| [`Domain/`](./Domain/) | `Product`, `ProductLot`, `Supplier`, `StockMovement`, `ProductBalance`; VOs; `InventoryCostCalculator` |
+| [`Application/`](./Application/) | CQRS produtos/fornecedores/lotes; integração `OrderPaidEvent` |
+| [`Infrastructure/`](./Infrastructure/) | `InventoryDbContext`, repositórios, sync plugin (`InventorySync*`) |
 
 ## Dependências
 
-- Integra-se ao `Sales` (baixa de estoque automática ao confirmar venda)
-- Integra-se ao `Fiscal` (dados do produto para emissão de NF)
+- Integra-se ao `Sales` (baixa via `OrderPaidEvent`; evolução lot-aware na 5.2)
+- Integra-se ao `Fiscal` (dados fiscais básicos no produto para NF-e futura)
+
+## Referências
+
+- [ADR-019](../../../docs/arquitetura/ADR-019-produtos-lotes-estoque.md)

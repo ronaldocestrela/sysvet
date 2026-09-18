@@ -83,6 +83,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var clinicalQuotes = new List<SyncClinicalQuoteDto>();
         var wardUnits = new List<SyncWardUnitDto>();
         var hospitalizations = new List<SyncHospitalizationDto>();
+        var inventoryProducts = new List<SyncInventoryProductDto>();
+        var inventoryProductLots = new List<SyncInventoryProductLotDto>();
+        var inventorySuppliers = new List<SyncInventorySupplierDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -100,6 +103,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             clinicalQuotes.AddRange(modulePage.ClinicalQuotes);
             wardUnits.AddRange(modulePage.WardUnits);
             hospitalizations.AddRange(modulePage.Hospitalizations);
+            inventoryProducts.AddRange(modulePage.InventoryProducts);
+            inventoryProductLots.AddRange(modulePage.InventoryProductLots);
+            inventorySuppliers.AddRange(modulePage.InventorySuppliers);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -124,6 +130,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             ClinicalQuotes = clinicalQuotes,
             WardUnits = wardUnits,
             Hospitalizations = hospitalizations,
+            InventoryProducts = inventoryProducts,
+            InventoryProductLots = inventoryProductLots,
+            InventorySuppliers = inventorySuppliers,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

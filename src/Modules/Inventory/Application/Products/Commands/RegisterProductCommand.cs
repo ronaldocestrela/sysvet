@@ -1,14 +1,26 @@
 using Core.Application.Authorization;
 using Core.Application.Behaviors;
+using Core.Application.Common;
 using Core.Application.Messaging;
+using Core.Domain.Authorization;
+using Inventory.Domain.Enums;
 
 namespace Inventory.Application.Products.Commands;
 
-[AuthorizeRequest(AuthorizationPolicies.Authenticated)]
-public record RegisterProductCommand(
+/// <summary>Registers a new catalog product.</summary>
+[AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.ProductsWrite)]
+public sealed record RegisterProductCommand(
     string Name,
     string Description,
+    string Sku,
     string Barcode,
     string UnitOfMeasure,
-    decimal ReorderLevel
-) : ICommand<Guid>;
+    decimal ReorderLevel,
+    ProductCategory Category,
+    string Ncm,
+    string? Cest,
+    int MerchandiseOrigin,
+    Guid? SupplierId,
+    bool? RequiresLot,
+    Guid ProductId = default,
+    Guid IdempotencyKey = default) : IIdempotentCommand<Guid>;

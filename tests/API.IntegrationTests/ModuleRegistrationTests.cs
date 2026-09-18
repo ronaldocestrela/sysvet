@@ -69,6 +69,7 @@ public class ModuleRegistrationTests
         provider.GetService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>().Should().NotBeNull();
         provider.GetService<global::Sales.Infrastructure.Persistence.SalesDbContext>().Should().NotBeNull();
         provider.GetService<global::Inventory.Domain.Repositories.IProductRepository>().Should().NotBeNull();
+        provider.GetService<IRequestHandler<global::Inventory.Application.Products.Commands.RegisterProductCommand, Result<Guid>>>().Should().NotBeNull();
         provider.GetService<global::Sales.Domain.Repositories.IOrderRepository>().Should().NotBeNull();
     }
 

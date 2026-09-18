@@ -25,9 +25,22 @@ namespace Inventory.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("AverageCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Barcode")
                         .IsRequired()
                         .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Cest")
+                        .HasMaxLength(7)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -35,19 +48,41 @@ namespace Inventory.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MerchandiseOrigin")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Ncm")
+                        .IsRequired()
+                        .HasMaxLength(8)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("ReorderLevel")
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("RequiresLot")
+                        .HasColumnType("INTEGER");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("TEXT");
@@ -63,6 +98,9 @@ namespace Inventory.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId", "Barcode")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "Sku")
                         .IsUnique();
 
                     b.ToTable("Products", "dbo");
@@ -103,6 +141,55 @@ namespace Inventory.Infrastructure.Migrations
                     b.ToTable("ProductBalances", "dbo");
                 });
 
+            modelBuilder.Entity("Inventory.Domain.Entities.ProductLot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("ExpirationDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LotNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("TenantId", "ProductId", "LotNumber")
+                        .IsUnique();
+
+                    b.ToTable("ProductLots", "dbo");
+                });
+
             modelBuilder.Entity("Inventory.Domain.Entities.StockMovement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -120,6 +207,9 @@ namespace Inventory.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ProductLotId")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Quantity")
@@ -154,11 +244,71 @@ namespace Inventory.Infrastructure.Migrations
                     b.ToTable("StockMovements", "dbo");
                 });
 
+            modelBuilder.Entity("Inventory.Domain.Entities.Supplier", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TradeName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Document")
+                        .IsUnique();
+
+                    b.ToTable("Suppliers", "dbo");
+                });
+
             modelBuilder.Entity("Inventory.Domain.Entities.ProductBalance", b =>
                 {
                     b.HasOne("Inventory.Domain.Entities.Product", null)
                         .WithOne()
                         .HasForeignKey("Inventory.Domain.Entities.ProductBalance", "ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Inventory.Domain.Entities.ProductLot", b =>
+                {
+                    b.HasOne("Inventory.Domain.Entities.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

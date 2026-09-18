@@ -91,7 +91,8 @@ public static class Permissions
         MedicalRecordsRead, MedicalRecordsWrite,
         HospitalizationsRead, HospitalizationsWrite,
         VaccinesRead, VaccinesWrite,
-        ClinicalQuotesRead, ClinicalQuotesWrite
+        ClinicalQuotesRead, ClinicalQuotesWrite,
+        ProductsRead
     ];
 
     /// <summary>
@@ -104,7 +105,9 @@ public static class Permissions
         AppointmentsRead, AppointmentsWrite,
         HospitalizationsRead,
         VaccinesRead,
-        ClinicalQuotesRead, ClinicalQuotesWrite
+        ClinicalQuotesRead, ClinicalQuotesWrite,
+        ProductsRead, ProductsWrite,
+        StockRead
     ];
 
     /// <summary>

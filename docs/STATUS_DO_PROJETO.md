@@ -110,7 +110,14 @@ Iniciado o módulo de estoque.
 - Sync: pull ward/hospitalizations; outbox client; SQLite offline.
 - UI: mapa por leito, detalhe, configuração de recintos (API online); testes bUnit.
 
-### 👉 **Próxima Ação: Fase 5 — Estoque e Compras**
+### Fase 5.1 (Cadastro de produtos e lotes) — Concluída
+
+- Domínio: `Supplier`, `ProductLot`, produto expandido (SKU, fiscais, custo médio).
+- API/CQRS: CRUD catálogo + lotes; testes de aceite (dois lotes, saldo por lote).
+- Sync: plugin Inventory no push/pull; SQLite offline + `IInventoryStore`.
+- UI: `/products`, `/products/{id}`, `/suppliers` (SharedUI).
+
+### 👉 **Próxima Ação: Fase 5.2 — Movimentações e alertas**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 5.
 

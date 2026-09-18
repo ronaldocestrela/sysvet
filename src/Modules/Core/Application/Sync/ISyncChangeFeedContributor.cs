@@ -24,6 +24,9 @@ public sealed class SyncContributorChanges
     public IReadOnlyList<SyncClinicalQuoteDto> ClinicalQuotes { get; init; } = Array.Empty<SyncClinicalQuoteDto>();
     public IReadOnlyList<SyncWardUnitDto> WardUnits { get; init; } = Array.Empty<SyncWardUnitDto>();
     public IReadOnlyList<SyncHospitalizationDto> Hospitalizations { get; init; } = Array.Empty<SyncHospitalizationDto>();
+    public IReadOnlyList<SyncInventoryProductDto> InventoryProducts { get; init; } = Array.Empty<SyncInventoryProductDto>();
+    public IReadOnlyList<SyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<SyncInventoryProductLotDto>();
+    public IReadOnlyList<SyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<SyncInventorySupplierDto>();
     public DateTimeOffset MaxUpdatedAt { get; init; }
     public bool HasMore { get; init; }
 }

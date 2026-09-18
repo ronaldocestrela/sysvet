@@ -1,0 +1,100 @@
+@page "/products/{ProductId:guid}"
+@using Clients.Infrastructure.Crm
+@using SharedUI.Components
+@inject IInventoryStore InventoryStore
+
+@if (_loading)
+{
+    <LoadingState Message="Carregando produto..." />
+}
+else if (_product is null)
+{
+    <p class="empty-state">Produto não encontrado.</p>
+}
+else
+{
+    <div class="header-section">
+        <h1>@_product.Name</h1>
+        <p>SKU: @_product.Sku | Barras: @_product.Barcode | Saldo total: @_product.TotalQuantity | Custo médio: @_product.AverageCost.ToString("N2")</p>
+    </div>
+
+    <div class="card p-3">
+        <div class="header-section">
+            <h2>Lotes</h2>
+            <button class="btn btn-primary" @onclick="() => _showLotModal = true">Novo lote</button>
+        </div>
+        @if (!_product.Lots.Any())
+        {
+            <p class="empty-state">Nenhum lote cadastrado.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Lote</th>
+                        <th>Validade</th>
+                        <th>Custo unit.</th>
+                        <th>Quantidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var lot in _product.Lots)
+                    {
+                        <tr>
+                            <td>@lot.LotNumber</td>
+                            <td>@(lot.ExpirationDate?.ToString("d") ?? "—")</td>
+                            <td>@lot.UnitCost.ToString("N2")</td>
+                            <td>@lot.Quantity</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+<Modal @bind-IsVisible="_showLotModal" Title="Novo lote">
+    <ChildContent>
+        <FormField Label="Número do lote"><input type="text" @bind="_lotNumber" /></FormField>
+        <FormField Label="Validade"><input type="date" @bind="_expirationDate" /></FormField>
+        <FormField Label="Custo unitário"><input type="number" step="0.01" @bind="_unitCost" /></FormField>
+        <FormField Label="Quantidade inicial"><input type="number" step="0.01" @bind="_initialQty" /></FormField>
+    </ChildContent>
+    <FooterTemplate>
+        <button class="btn" @onclick="() => _showLotModal = false">Cancelar</button>
+        <button class="btn btn-primary" @onclick="SaveLot">Salvar</button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    [Parameter] public Guid ProductId { get; set; }
+
+    private InventoryProductDetail? _product;
+    private bool _loading = true;
+    private bool _showLotModal;
+    private string _lotNumber = "";
+    private DateTime? _expirationDate;
+    private decimal _unitCost;
+    private decimal _initialQty;
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await InventoryStore.GetProductByIdAsync(ProductId);
+        _product = result.IsSuccess ? result.Value : null;
+        _loading = false;
+    }
+
+    private async Task SaveLot()
+    {
+        DateTimeOffset? exp = _expirationDate.HasValue
+            ? new DateTimeOffset(_expirationDate.Value.ToUniversalTime())
+            : null;
+        await InventoryStore.RegisterProductLotAsync(ProductId, _lotNumber, exp, _unitCost, _initialQty);
+        _showLotModal = false;
+        await LoadAsync();
+    }
+}

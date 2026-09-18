@@ -2,6 +2,8 @@ using Core.Domain;
 using Core.Domain.Entities;
 using Core.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Inventory.Domain.Entities;
+using Inventory.Domain.Enums;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
 using Veterinary.Domain.ValueObjects;
@@ -97,6 +99,21 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.Hospitalizations)
             {
                 await UpsertHospitalizationAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.InventorySuppliers)
+            {
+                await UpsertInventorySupplierAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.InventoryProducts)
+            {
+                await UpsertInventoryProductAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.InventoryProductLots)
+            {
+                await UpsertInventoryProductLotAsync(dto, cancellationToken);
             }
 
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
@@ -633,5 +650,119 @@ public sealed class OfflineSyncPullApplier
             admins,
             Array.Empty<(Guid, Guid, string, DateTimeOffset, DateTimeOffset)>(),
             Array.Empty<(Guid, string, Guid, DateTimeOffset, string, DateTimeOffset)>());
+    }
+
+    private async Task UpsertInventorySupplierAsync(ClientSyncInventorySupplierDto dto, CancellationToken cancellationToken)
+    {
+        var supplier = await _dbContext.Suppliers.FirstOrDefaultAsync(s => s.Id == dto.Id, cancellationToken);
+        if (supplier is null)
+        {
+            var created = Supplier.Create(dto.LegalName, dto.TradeName, dto.Document, dto.ContactEmail, dto.ContactPhone, dto.Id);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            supplier = created.Value;
+            supplier.SetActive(dto.IsActive);
+            supplier.UpdatedAt = dto.UpdatedAt;
+            _dbContext.Suppliers.Add(supplier);
+            return;
+        }
+
+        if (dto.UpdatedAt <= supplier.UpdatedAt)
+        {
+            return;
+        }
+
+        supplier.Update(dto.LegalName, dto.TradeName, dto.ContactEmail, dto.ContactPhone);
+        supplier.SetActive(dto.IsActive);
+        supplier.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertInventoryProductAsync(ClientSyncInventoryProductDto dto, CancellationToken cancellationToken)
+    {
+        Enum.TryParse<ProductCategory>(dto.Category, true, out var category);
+        var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == dto.Id, cancellationToken);
+        if (product is null)
+        {
+            var created = Product.Create(
+                dto.Name,
+                dto.Description,
+                dto.Sku,
+                dto.Barcode,
+                dto.UnitOfMeasure,
+                dto.ReorderLevel,
+                category,
+                dto.Ncm,
+                dto.Cest,
+                dto.MerchandiseOrigin,
+                dto.SupplierId,
+                dto.RequiresLot,
+                dto.Id);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            product = created.Value;
+            product.SetActive(dto.IsActive);
+            product.RecalculateAverageCost(dto.AverageCost);
+            product.UpdatedAt = dto.UpdatedAt;
+            _dbContext.Products.Add(product);
+            await _dbContext.ProductBalances.AddAsync(new ProductBalance(dto.Id, 0m), cancellationToken);
+            return;
+        }
+
+        if (dto.UpdatedAt <= product.UpdatedAt)
+        {
+            return;
+        }
+
+        product.UpdateDetails(
+            dto.Name,
+            dto.Description,
+            dto.Sku,
+            dto.Barcode,
+            dto.UnitOfMeasure,
+            dto.ReorderLevel,
+            category,
+            dto.Ncm,
+            dto.Cest,
+            dto.MerchandiseOrigin,
+            dto.SupplierId,
+            dto.RequiresLot);
+        product.SetActive(dto.IsActive);
+        product.RecalculateAverageCost(dto.AverageCost);
+        product.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertInventoryProductLotAsync(ClientSyncInventoryProductLotDto dto, CancellationToken cancellationToken)
+    {
+        var lot = await _dbContext.ProductLots.FirstOrDefaultAsync(l => l.Id == dto.Id, cancellationToken);
+        if (lot is null)
+        {
+            var created = ProductLot.Create(dto.ProductId, dto.LotNumber, dto.ExpirationDate, dto.UnitCost, dto.Quantity, dto.Id);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            lot = created.Value;
+            lot.SetActive(dto.IsActive);
+            lot.UpdatedAt = dto.UpdatedAt;
+            _dbContext.ProductLots.Add(lot);
+            return;
+        }
+
+        if (dto.UpdatedAt <= lot.UpdatedAt)
+        {
+            return;
+        }
+
+        lot.UpdateMetadata(dto.ExpirationDate, dto.UnitCost);
+        lot.SetQuantity(dto.Quantity);
+        lot.SetActive(dto.IsActive);
+        lot.UpdatedAt = dto.UpdatedAt;
     }
 }

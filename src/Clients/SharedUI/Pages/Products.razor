@@ -1,7 +1,10 @@
 @page "/products"
+@using Clients.Infrastructure.Crm
+@using Inventory.Domain.Enums
 @using SharedUI.Components
-@using SharedUI.Services
-@inject IInventoryApiService InventoryApi
+@using SharedUI.Navigation
+@inject IInventoryStore InventoryStore
+@inject INavigationService Navigation
 
 <div class="header-section">
     <h1>Catálogo de Produtos</h1>
@@ -23,31 +26,26 @@
             <thead>
                 <tr>
                     <th>Nome</th>
+                    <th>SKU</th>
                     <th>Código de Barras</th>
-                    <th>Estoque Atual</th>
-                    <th>Nível Reabastecimento</th>
-                    <th>Unidade</th>
+                    <th>Estoque</th>
+                    <th>Custo médio</th>
+                    <th>NCM</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var prod in _products)
                 {
-                    <tr class="@(prod.CurrentStock <= prod.ReorderLevel ? "low-stock" : "")">
-                        <td>
-                            <strong>@prod.Name</strong><br/>
-                            <small class="text-muted">@prod.Description</small>
-                        </td>
+                    <tr class="@(prod.TotalQuantity <= prod.ReorderLevel ? "low-stock" : "")">
+                        <td><strong>@prod.Name</strong></td>
+                        <td>@prod.Sku</td>
                         <td>@prod.Barcode</td>
+                        <td>@prod.TotalQuantity</td>
+                        <td>@prod.AverageCost.ToString("N2")</td>
+                        <td>—</td>
                         <td>
-                            <span class="stock-badge @(prod.CurrentStock <= prod.ReorderLevel ? "danger" : "success")">
-                                @prod.CurrentStock
-                            </span>
-                        </td>
-                        <td>@prod.ReorderLevel</td>
-                        <td>@prod.UnitOfMeasure</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline">Editar</button>
+                            <button class="btn btn-sm btn-outline" @onclick="() => GoToDetail(prod.Id)">Detalhes</button>
                         </td>
                     </tr>
                 }
@@ -58,21 +56,21 @@
 
 <Modal @bind-IsVisible="_showModal" Title="Novo Produto">
     <ChildContent>
-        <FormField Label="Nome">
-            <input type="text" @bind="_newProduct.Name" />
+        <FormField Label="Nome"><input type="text" @bind="_name" /></FormField>
+        <FormField Label="Descrição"><input type="text" @bind="_description" /></FormField>
+        <FormField Label="SKU"><input type="text" @bind="_sku" /></FormField>
+        <FormField Label="Código de Barras"><input type="text" @bind="_barcode" /></FormField>
+        <FormField Label="NCM (8 dígitos)"><input type="text" @bind="_ncm" maxlength="8" /></FormField>
+        <FormField Label="Unidade"><input type="text" @bind="_unit" /></FormField>
+        <FormField Label="Categoria">
+            <select @bind="_category">
+                @foreach (var cat in Enum.GetValues<ProductCategory>())
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
         </FormField>
-        <FormField Label="Descrição">
-            <input type="text" @bind="_newProduct.Description" />
-        </FormField>
-        <FormField Label="Código de Barras">
-            <input type="text" @bind="_newProduct.Barcode" />
-        </FormField>
-        <FormField Label="Unidade (ex: Un, Kg, Cx)">
-            <input type="text" @bind="_newProduct.UnitOfMeasure" />
-        </FormField>
-        <FormField Label="Nível Reabastecimento">
-            <input type="number" step="0.01" @bind="_newProduct.ReorderLevel" />
-        </FormField>
+        <FormField Label="Nível Reabastecimento"><input type="number" step="0.01" @bind="_reorderLevel" /></FormField>
     </ChildContent>
     <FooterTemplate>
         <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
@@ -81,34 +79,44 @@
 </Modal>
 
 @code {
-    private List<ProductDto>? _products;
+    private List<InventoryProductListItem>? _products;
     private bool _isLoading;
     private bool _showModal;
-    
-    private ProductDto _newProduct = new();
+    private string _name = "";
+    private string _description = "";
+    private string _sku = "";
+    private string _barcode = "";
+    private string _ncm = "23091000";
+    private string _unit = "UN";
+    private ProductCategory _category = ProductCategory.Other;
+    private decimal _reorderLevel;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadProductsAsync();
-    }
+    protected override async Task OnInitializedAsync() => await LoadProductsAsync();
 
     private async Task LoadProductsAsync()
     {
         _isLoading = true;
-        _products = await InventoryApi.GetProductsAsync();
+        var result = await InventoryStore.ListProductsAsync();
+        _products = result.IsSuccess ? result.Value.ToList() : new List<InventoryProductListItem>();
         _isLoading = false;
     }
 
     private void OpenAddModal()
     {
-        _newProduct = new ProductDto();
+        _name = _description = _sku = _barcode = "";
+        _ncm = "23091000";
+        _unit = "UN";
+        _category = ProductCategory.Other;
+        _reorderLevel = 0;
         _showModal = true;
     }
 
     private async Task SaveProduct()
     {
-        await InventoryApi.RegisterProductAsync(_newProduct.Name, _newProduct.Description, _newProduct.Barcode, _newProduct.UnitOfMeasure, _newProduct.ReorderLevel);
+        await InventoryStore.RegisterProductAsync(_name, _description, _sku, _barcode, _unit, _reorderLevel, _category, _ncm, null, 0, null, null);
         _showModal = false;
         await LoadProductsAsync();
     }
+
+    private void GoToDetail(Guid id) => Navigation.NavigateTo($"{AppRoutes.Products}/{id}");
 }

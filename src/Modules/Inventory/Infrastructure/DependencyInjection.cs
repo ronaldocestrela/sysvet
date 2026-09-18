@@ -36,6 +36,10 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<InventoryDbContext>());
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IStockMovementRepository, StockMovementRepository>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<IProductLotRepository, ProductLotRepository>();
+        services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.InventorySyncChangeFeedContributor>();
+        services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.InventorySyncPushHandler>();
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(RegisterProductCommand).Assembly));

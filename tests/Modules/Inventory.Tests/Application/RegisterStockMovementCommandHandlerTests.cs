@@ -3,6 +3,7 @@ using Core.Domain.Auditing;
 using FluentAssertions;
 using Inventory.Application.StockMovements.Commands;
 using Inventory.Domain.Entities;
+using Inventory.Domain.Enums;
 using Inventory.Domain.Repositories;
 using NSubstitute;
 
@@ -22,7 +23,7 @@ public class RegisterStockMovementCommandHandlerTests
         tenantContext.UserId.Returns(Guid.NewGuid());
 
         var productId = Guid.NewGuid();
-        var product = Product.Create("P", "D", "B", "U", 0).Value;
+        var product = Product.Create("P", "D", "SKU-P", "7891234567890", "U", 0, ProductCategory.Other, "23091000", null, 0, null).Value;
 
         productRepository.GetByIdAsync(productId, Arg.Any<CancellationToken>()).Returns(product);
 
@@ -48,7 +49,7 @@ public class RegisterStockMovementCommandHandlerTests
         var auditLogger = Substitute.For<IAuditLogger>();
 
         var productId = Guid.NewGuid();
-        var product = Product.Create("P", "D", "B", "U", 0).Value;
+        var product = Product.Create("P", "D", "SKU-P", "7891234567890", "U", 0, ProductCategory.Other, "23091000", null, 0, null).Value;
 
         productRepository.GetByIdAsync(productId, Arg.Any<CancellationToken>()).Returns(product);
 

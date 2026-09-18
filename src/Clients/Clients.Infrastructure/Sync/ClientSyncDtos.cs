@@ -31,6 +31,9 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncClinicalQuoteDto> ClinicalQuotes { get; init; } = Array.Empty<ClientSyncClinicalQuoteDto>();
     public IReadOnlyList<ClientSyncWardUnitDto> WardUnits { get; init; } = Array.Empty<ClientSyncWardUnitDto>();
     public IReadOnlyList<ClientSyncHospitalizationDto> Hospitalizations { get; init; } = Array.Empty<ClientSyncHospitalizationDto>();
+    public IReadOnlyList<ClientSyncInventoryProductDto> InventoryProducts { get; init; } = Array.Empty<ClientSyncInventoryProductDto>();
+    public IReadOnlyList<ClientSyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<ClientSyncInventoryProductLotDto>();
+    public IReadOnlyList<ClientSyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<ClientSyncInventorySupplierDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -287,6 +290,50 @@ public sealed class ClientSyncMedicationAdministrationDto
     public Guid? ActorId { get; init; }
     public DateTimeOffset? ActedAt { get; init; }
     public string Notes { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncInventoryProductDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public string Sku { get; init; } = string.Empty;
+    public string Barcode { get; init; } = string.Empty;
+    public string UnitOfMeasure { get; init; } = string.Empty;
+    public decimal ReorderLevel { get; init; }
+    public string Category { get; init; } = string.Empty;
+    public Guid? SupplierId { get; init; }
+    public string Ncm { get; init; } = string.Empty;
+    public string? Cest { get; init; }
+    public int MerchandiseOrigin { get; init; }
+    public decimal AverageCost { get; init; }
+    public bool RequiresLot { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncInventoryProductLotDto
+{
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public string LotNumber { get; init; } = string.Empty;
+    public DateTimeOffset? ExpirationDate { get; init; }
+    public decimal UnitCost { get; init; }
+    public decimal Quantity { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncInventorySupplierDto
+{
+    public Guid Id { get; init; }
+    public string LegalName { get; init; } = string.Empty;
+    public string TradeName { get; init; } = string.Empty;
+    public string Document { get; init; } = string.Empty;
+    public string? ContactEmail { get; init; }
+    public string? ContactPhone { get; init; }
+    public bool IsActive { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
 }
 

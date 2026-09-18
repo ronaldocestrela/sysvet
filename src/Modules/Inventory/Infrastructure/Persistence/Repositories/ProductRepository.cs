@@ -28,9 +28,15 @@ public class ProductRepository : IProductRepository
 
     public void Update(Product entity) => _dbContext.Products.Update(entity);
 
+    public async Task<Product?> GetBySkuAsync(string sku, CancellationToken cancellationToken = default)
+    {
+        var normalized = sku.Trim().ToUpperInvariant();
+        return await _dbContext.Products.FirstOrDefaultAsync(p => p.Sku == normalized, cancellationToken);
+    }
+
     public async Task<Product?> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Products.FirstOrDefaultAsync(p => p.Barcode == barcode, cancellationToken);
+        return await _dbContext.Products.FirstOrDefaultAsync(p => p.Barcode == barcode.Trim(), cancellationToken);
     }
 
     public async Task<ProductBalance?> GetBalanceAsync(Guid productId, CancellationToken cancellationToken = default)

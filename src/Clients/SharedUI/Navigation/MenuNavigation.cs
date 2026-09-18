@@ -17,6 +17,7 @@ public static class MenuNavigation
             ["hospitalizations"] = new(AppRoutes.Hospitalizations, "Internação", "bi-hospital"),
             ["quotes"] = new(AppRoutes.PendingQuoteConversions, "Orçamentos pendentes", "bi-receipt"),
             ["inventory"] = new(AppRoutes.Products, "Produtos", "bi-box-seam"),
+            ["suppliers"] = new(AppRoutes.Suppliers, "Fornecedores", "bi-truck"),
             ["audit"] = new(AppRoutes.Home, "Auditoria", "bi-journal-text")
         };
 

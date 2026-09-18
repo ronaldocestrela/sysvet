@@ -50,6 +50,9 @@ public static class AppRoutes
     /// <summary>Inventory products.</summary>
     public const string Products = "/products";
 
+    /// <summary>Inventory suppliers.</summary>
+    public const string Suppliers = "/suppliers";
+
     /// <summary>Stock movements.</summary>
     public const string StockMovements = "/stock-movements";
 

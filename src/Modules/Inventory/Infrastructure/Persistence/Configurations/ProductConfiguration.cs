@@ -14,14 +14,18 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // Shadow property for TenantId mapping
         builder.Property<Guid>("TenantId").IsRequired();
         builder.HasIndex("TenantId", "Barcode").IsUnique();
-        
-        // Multi-tenant Query Filter is handled in DbContext
+        builder.HasIndex("TenantId", "Sku").IsUnique();
 
         builder.Property(p => p.Name).IsRequired().HasMaxLength(150);
         builder.Property(p => p.Description).HasMaxLength(500);
+        builder.Property(p => p.Sku).IsRequired().HasMaxLength(40);
         builder.Property(p => p.Barcode).IsRequired().HasMaxLength(50);
         builder.Property(p => p.UnitOfMeasure).IsRequired().HasMaxLength(20);
         builder.Property(p => p.ReorderLevel).HasPrecision(18, 2);
+        builder.Property(p => p.Category).HasConversion<string>().HasMaxLength(30);
+        builder.Property(p => p.Ncm).IsRequired().HasMaxLength(8);
+        builder.Property(p => p.Cest).HasMaxLength(7);
+        builder.Property(p => p.AverageCost).HasPrecision(18, 4);
 
         builder.Property(e => e.RowVersion).IsConcurrencyToken();
     }

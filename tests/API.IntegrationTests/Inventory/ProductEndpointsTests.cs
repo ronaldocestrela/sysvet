@@ -10,9 +10,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Core.Infrastructure.Identity;
 using System.Net.Http.Headers;
+using Inventory.Application.ProductLots.Commands;
 using Inventory.Application.Products.Commands;
+using Inventory.Application.Products.Dtos;
+using Inventory.Application.Products.Queries;
 using Inventory.Application.StockMovements.Commands;
 using Inventory.Domain.Entities;
+using Inventory.Domain.Enums;
 
 namespace API.IntegrationTests.Inventory;
 
@@ -33,7 +37,7 @@ public class ProductEndpointsTests : IClassFixture<WebApplicationFactory<Program
         var coreContext = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
         await coreContext.Database.EnsureDeletedAsync();
         await coreContext.Database.EnsureCreatedAsync();
-        
+
         var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
         await inventoryContext.Database.MigrateAsync();
 
@@ -68,13 +72,20 @@ public class ProductEndpointsTests : IClassFixture<WebApplicationFactory<Program
     {
         // Arrange
         var client = await CreateAuthenticatedClientAsync();
+        var suffix = Guid.NewGuid().ToString()[..8];
         var command = new RegisterProductCommand(
-            "Test Product " + Guid.NewGuid().ToString().Substring(0, 8),
+            "Test Product " + suffix,
             "A test product",
-            "BARCODE-" + Guid.NewGuid().ToString().Substring(0, 8),
+            "SKU-" + suffix,
+            "7891234" + suffix,
             "KG",
-            10m
-        );
+            10m,
+            ProductCategory.Food,
+            "23091000",
+            null,
+            0,
+            null,
+            null);
 
         // Act
         var response = await client.PostAsJsonAsync("/api/v1/inventory/products", command);
@@ -94,13 +105,20 @@ public class ProductEndpointsTests : IClassFixture<WebApplicationFactory<Program
     {
         // Arrange
         var client = await CreateAuthenticatedClientAsync();
+        var suffix = Guid.NewGuid().ToString()[..8];
         var productCommand = new RegisterProductCommand(
-            "Test Product Move " + Guid.NewGuid().ToString().Substring(0, 8),
+            "Test Product Move " + suffix,
             "To move",
-            "BARCODE-MOVE-" + Guid.NewGuid().ToString().Substring(0, 8),
+            "SKU-M-" + suffix,
+            "7891234" + suffix,
             "UN",
-            5m
-        );
+            5m,
+            ProductCategory.Other,
+            "23091000",
+            null,
+            0,
+            null,
+            null);
         var productResponse = await client.PostAsJsonAsync("/api/v1/inventory/products", productCommand);
         var productContent = await productResponse.Content.ReadAsStringAsync();
         if (!productResponse.IsSuccessStatusCode)
@@ -129,6 +147,44 @@ public class ProductEndpointsTests : IClassFixture<WebApplicationFactory<Program
         }
         var movementId = System.Text.Json.JsonSerializer.Deserialize<Guid>(movementContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         movementId.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task ProductWithTwoLots_ReturnsBalancePerLot()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var suffix = Guid.NewGuid().ToString()[..8];
+        var register = new RegisterProductCommand(
+            "Lot Product " + suffix,
+            "",
+            "SKU-L-" + suffix,
+            "7895555" + suffix,
+            "UN",
+            0m,
+            ProductCategory.Medication,
+            "30049099",
+            null,
+            0,
+            null,
+            null);
+
+        var registerResponse = await client.PostAsJsonAsync("/api/v1/inventory/products", register);
+        registerResponse.EnsureSuccessStatusCode();
+        var productId = await registerResponse.Content.ReadFromJsonAsync<Guid>();
+
+        var lot1 = new RegisterProductLotCommand(productId, "LOT-A", DateTimeOffset.UtcNow.AddMonths(6), 10m, 5m);
+        var lot2 = new RegisterProductLotCommand(productId, "LOT-B", DateTimeOffset.UtcNow.AddMonths(12), 12m, 3m);
+        (await client.PostAsJsonAsync($"/api/v1/inventory/products/{productId}/lots", lot1)).EnsureSuccessStatusCode();
+        (await client.PostAsJsonAsync($"/api/v1/inventory/products/{productId}/lots", lot2)).EnsureSuccessStatusCode();
+
+        var detailResponse = await client.GetAsync($"/api/v1/inventory/products/{productId}");
+        detailResponse.EnsureSuccessStatusCode();
+        var detail = await detailResponse.Content.ReadFromJsonAsync<ProductDetailDto>();
+
+        detail!.Lots.Should().HaveCount(2);
+        detail.Lots.Single(l => l.LotNumber == "LOT-A").Quantity.Should().Be(5m);
+        detail.Lots.Single(l => l.LotNumber == "LOT-B").Quantity.Should().Be(3m);
+        detail.TotalQuantity.Should().Be(8m);
     }
 }
 

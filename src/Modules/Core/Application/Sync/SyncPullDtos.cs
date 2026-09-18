@@ -301,6 +301,56 @@ public sealed class SyncHospitalizationDto
     public string RowVersion { get; init; } = string.Empty;
 }
 
+/// <summary>Inventory product row for sync pull.</summary>
+public sealed class SyncInventoryProductDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public string Sku { get; init; } = string.Empty;
+    public string Barcode { get; init; } = string.Empty;
+    public string UnitOfMeasure { get; init; } = string.Empty;
+    public decimal ReorderLevel { get; init; }
+    public string Category { get; init; } = string.Empty;
+    public Guid? SupplierId { get; init; }
+    public string Ncm { get; init; } = string.Empty;
+    public string? Cest { get; init; }
+    public int MerchandiseOrigin { get; init; }
+    public decimal AverageCost { get; init; }
+    public bool RequiresLot { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Inventory product lot row for sync pull.</summary>
+public sealed class SyncInventoryProductLotDto
+{
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public string LotNumber { get; init; } = string.Empty;
+    public DateTimeOffset? ExpirationDate { get; init; }
+    public decimal UnitCost { get; init; }
+    public decimal Quantity { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Inventory supplier row for sync pull.</summary>
+public sealed class SyncInventorySupplierDto
+{
+    public Guid Id { get; init; }
+    public string LegalName { get; init; } = string.Empty;
+    public string TradeName { get; init; } = string.Empty;
+    public string Document { get; init; } = string.Empty;
+    public string? ContactEmail { get; init; }
+    public string? ContactPhone { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
 public sealed class PullChangesResult
 {
     public IReadOnlyList<SyncTutorDto> Tutors { get; init; } = Array.Empty<SyncTutorDto>();
@@ -317,6 +367,9 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncClinicalQuoteDto> ClinicalQuotes { get; init; } = Array.Empty<SyncClinicalQuoteDto>();
     public IReadOnlyList<SyncWardUnitDto> WardUnits { get; init; } = Array.Empty<SyncWardUnitDto>();
     public IReadOnlyList<SyncHospitalizationDto> Hospitalizations { get; init; } = Array.Empty<SyncHospitalizationDto>();
+    public IReadOnlyList<SyncInventoryProductDto> InventoryProducts { get; init; } = Array.Empty<SyncInventoryProductDto>();
+    public IReadOnlyList<SyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<SyncInventoryProductLotDto>();
+    public IReadOnlyList<SyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<SyncInventorySupplierDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
