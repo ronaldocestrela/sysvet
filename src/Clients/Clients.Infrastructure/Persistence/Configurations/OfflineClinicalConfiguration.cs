@@ -59,6 +59,30 @@ internal sealed class OfflinePrescriptionTemplateItemConfiguration : IEntityType
     }
 }
 
+internal sealed class OfflineClinicalQuoteConfiguration : IEntityTypeConfiguration<ClinicalQuote>
+{
+    public void Configure(EntityTypeBuilder<ClinicalQuote> builder)
+    {
+        builder.ToTable("ClinicalQuotes");
+        builder.HasKey(q => q.Id);
+        builder.Property(q => q.Notes).HasMaxLength(2000);
+        builder.HasMany(q => q.Items).WithOne().HasForeignKey(i => i.ClinicalQuoteId);
+        builder.Metadata.FindNavigation(nameof(ClinicalQuote.Items))!.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.HasIndex(q => q.AppointmentId);
+        builder.HasIndex(q => q.PetId);
+    }
+}
+
+internal sealed class OfflineClinicalQuoteItemConfiguration : IEntityTypeConfiguration<ClinicalQuoteItem>
+{
+    public void Configure(EntityTypeBuilder<ClinicalQuoteItem> builder)
+    {
+        builder.ToTable("ClinicalQuoteItems");
+        builder.HasKey(i => i.Id);
+        builder.Property(i => i.Description).HasMaxLength(500);
+    }
+}
+
 internal sealed class OfflineClinicalAttachmentConfiguration : IEntityTypeConfiguration<ClinicalAttachment>
 {
     public void Configure(EntityTypeBuilder<ClinicalAttachment> builder)

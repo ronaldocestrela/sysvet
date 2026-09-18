@@ -28,6 +28,7 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncClinicalAttachmentDto> ClinicalAttachments { get; init; } = Array.Empty<ClientSyncClinicalAttachmentDto>();
     public IReadOnlyList<ClientSyncVaccineProtocolDto> VaccineProtocols { get; init; } = Array.Empty<ClientSyncVaccineProtocolDto>();
     public IReadOnlyList<ClientSyncVaccineDoseDto> VaccineDoses { get; init; } = Array.Empty<ClientSyncVaccineDoseDto>();
+    public IReadOnlyList<ClientSyncClinicalQuoteDto> ClinicalQuotes { get; init; } = Array.Empty<ClientSyncClinicalQuoteDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -214,5 +215,33 @@ public sealed class ClientSyncVaccineDoseDto
     public DateTimeOffset? NextDueDate { get; init; }
     public Guid? ProtocolId { get; init; }
     public Guid? ProtocolDoseId { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncClinicalQuoteItemDto
+{
+    public Guid Id { get; init; }
+    public string Description { get; init; } = string.Empty;
+    public decimal Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public Guid? ProductId { get; init; }
+    public int SortOrder { get; init; }
+}
+
+public sealed class ClientSyncClinicalQuoteDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid PetId { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid CreatedByUserId { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public string ConversionStatus { get; init; } = string.Empty;
+    public Guid? ConvertedOrderId { get; init; }
+    public string Notes { get; init; } = string.Empty;
+    public DateTimeOffset? SentAt { get; init; }
+    public DateTimeOffset? DecidedAt { get; init; }
+    public IReadOnlyList<ClientSyncClinicalQuoteItemDto> Items { get; init; } = Array.Empty<ClientSyncClinicalQuoteItemDto>();
     public DateTimeOffset UpdatedAt { get; init; }
 }

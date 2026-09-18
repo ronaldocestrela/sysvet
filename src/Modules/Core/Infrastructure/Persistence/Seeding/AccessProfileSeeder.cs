@@ -42,9 +42,21 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
         var existing = await _accessProfileRepository.GetSystemProfileByBaseRoleAsync(baseRole, cancellationToken);
         if (existing is not null)
         {
+            var changed = false;
             if (baseRole == ApplicationRoles.Admin && !existing.PermissionCodes.Contains(Permissions.AuditRead))
             {
                 existing.Grant(Permissions.AuditRead);
+                changed = true;
+            }
+
+            foreach (var permission in GetMissingPermissions(baseRole, existing.PermissionCodes))
+            {
+                existing.Grant(permission);
+                changed = true;
+            }
+
+            if (changed)
+            {
                 _accessProfileRepository.Update(existing);
             }
 
@@ -56,5 +68,19 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
         {
             _accessProfileRepository.Add(created.Value);
         }
+    }
+
+    private static IEnumerable<string> GetMissingPermissions(string baseRole, IReadOnlyCollection<string> granted)
+    {
+        var required = baseRole switch
+        {
+            ApplicationRoles.Veterinarian => Permissions.VeterinarianDefaults(),
+            ApplicationRoles.Receptionist => Permissions.ReceptionistDefaults(),
+            ApplicationRoles.Cashier => Permissions.CashierDefaults(),
+            ApplicationRoles.Admin => Permissions.AdminDefaults(),
+            _ => Array.Empty<string>()
+        };
+
+        return required.Where(p => !granted.Contains(p));
     }
 }

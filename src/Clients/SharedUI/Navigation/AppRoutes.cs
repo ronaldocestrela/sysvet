@@ -29,6 +29,12 @@ public static class AppRoutes
     /// <summary>Clinic vaccine alerts backoffice list.</summary>
     public const string VaccineAlerts = "/vaccine-alerts";
 
+    /// <summary>Approved quotes pending PDV conversion.</summary>
+    public const string PendingQuoteConversions = "/clinical-quotes/pending";
+
+    /// <summary>Printable clinical quote.</summary>
+    public static string PetClinicalQuotePrint(Guid petId, Guid quoteId) => $"/pets/{petId}/quotes/{quoteId}";
+
     /// <summary>Clinical appointments.</summary>
     public const string Appointments = "/appointments";
 

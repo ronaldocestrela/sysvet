@@ -6,7 +6,7 @@ using Veterinary.Domain.Repositories;
 
 namespace Veterinary.Infrastructure.Persistence;
 
-public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
+public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork, IDomainEventSource
 {
     public ITenantContext TenantContext { get; set; } = null!;
 
@@ -30,6 +30,15 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
     public DbSet<ClinicalExam> ClinicalExams => Set<ClinicalExam>();
     public DbSet<ClinicalAttachment> ClinicalAttachments => Set<ClinicalAttachment>();
+    public DbSet<ClinicalQuote> ClinicalQuotes => Set<ClinicalQuote>();
+    public DbSet<ClinicalQuoteItem> ClinicalQuoteItems => Set<ClinicalQuoteItem>();
+
+    /// <inheritdoc />
+    public IReadOnlyCollection<AggregateRoot> GetAggregateRootsWithPendingEvents() =>
+        ChangeTracker.Entries<AggregateRoot>()
+            .Select(e => e.Entity)
+            .Where(a => a.DomainEvents.Count > 0)
+            .ToList();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

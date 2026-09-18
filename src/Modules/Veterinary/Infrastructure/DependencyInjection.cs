@@ -45,8 +45,10 @@ public static class DependencyInjection
         services.AddScoped<IIssuedPrescriptionRepository, IssuedPrescriptionRepository>();
         services.AddScoped<IClinicalExamRepository, ClinicalExamRepository>();
         services.AddScoped<IClinicalAttachmentRepository, ClinicalAttachmentRepository>();
+        services.AddScoped<IClinicalQuoteRepository, ClinicalQuoteRepository>();
         services.AddScoped<IVeterinaryUnitOfWork>(provider => provider.GetRequiredService<VeterinaryDbContext>());
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<VeterinaryDbContext>());
+        services.AddScoped<IDomainEventSource>(provider => provider.GetRequiredService<VeterinaryDbContext>());
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(ScheduleAppointmentCommand).Assembly));

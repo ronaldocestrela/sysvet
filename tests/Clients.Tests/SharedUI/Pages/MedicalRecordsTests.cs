@@ -14,6 +14,7 @@ public class MedicalRecordsTests : BunitContext
     {
         Services.AddSingleton<IMedicalRecordStore, FakeMedicalRecordStore>();
         Services.AddSingleton<IClinicalStore, FakeClinicalStore>();
+        Services.AddSingleton<IClinicalQuoteStore, FakeClinicalQuoteStore>();
         Services.AddSingleton<IClinicalAttachmentService, FakeClinicalAttachmentService>();
         Services.AddSingleton<IToastService, ToastService>();
         Services.AddSingleton<INavigationService, FakeNavigationService>();
@@ -38,6 +39,33 @@ public class MedicalRecordsTests : BunitContext
 
         public Task<Result<string>> GetDownloadUrlAsync(Guid attachmentId)
             => Task.FromResult(Result.Success($"/api/v1/attachments/{attachmentId}/content"));
+    }
+
+    private sealed class FakeClinicalQuoteStore : IClinicalQuoteStore
+    {
+        public Task<Result<IReadOnlyList<ClinicalQuoteListItemDto>>> GetByAppointmentAsync(Guid appointmentId, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success<IReadOnlyList<ClinicalQuoteListItemDto>>(Array.Empty<ClinicalQuoteListItemDto>()));
+
+        public Task<Result<ClinicalQuoteDetailDto>> GetByIdAsync(Guid quoteId, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Failure<ClinicalQuoteDetailDto>(new Error("ClinicalQuote.NotFound", "Not found")));
+
+        public Task<Result<Guid>> CreateDraftAsync(Guid appointmentId, string? notes, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success(Guid.NewGuid()));
+
+        public Task<Result> ReplaceItemsAsync(Guid quoteId, IReadOnlyList<ClinicalQuoteLineDto> items, string? notes, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+
+        public Task<Result> SendAsync(Guid quoteId, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+
+        public Task<Result> ApproveAsync(Guid quoteId, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+
+        public Task<Result> RejectAsync(Guid quoteId, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+
+        public Task<Result<IReadOnlyList<PendingQuoteConversionListItemDto>>> ListPendingConversionsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success<IReadOnlyList<PendingQuoteConversionListItemDto>>(Array.Empty<PendingQuoteConversionListItemDto>()));
     }
 
     private sealed class FakeClinicalStore : IClinicalStore

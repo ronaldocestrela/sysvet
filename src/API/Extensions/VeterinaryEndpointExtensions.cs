@@ -208,6 +208,9 @@ public static class VeterinaryEndpointExtensions
         petsGroup.MapGet("/{petId:guid}/exams", async (Guid petId, IMediator mediator) =>
             (await mediator.Send(new Veterinary.Application.Clinical.Commands.ListClinicalExamsByPetQuery(petId))).ToHttpResult());
 
+        petsGroup.MapGet("/{petId:guid}/quotes", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.ListClinicalQuotesByPetQuery(petId))).ToHttpResult());
+
         var attachmentsGroup = builder.MapGroup("/api/v1/attachments").RequireAuthorization().WithTags("Veterinary", "ClinicalAttachments");
         attachmentsGroup.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
             (await mediator.Send(new Veterinary.Application.Clinical.Commands.GetClinicalAttachmentQuery(id))).ToHttpResult());
@@ -229,6 +232,25 @@ public static class VeterinaryEndpointExtensions
 
         group.MapGet("/{id:guid}/attachments", async (Guid id, IMediator mediator) =>
             (await mediator.Send(new Veterinary.Application.Clinical.Commands.ListClinicalAttachmentsByAppointmentQuery(id))).ToHttpResult());
+        group.MapGet("/{id:guid}/quotes", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.ListClinicalQuotesByAppointmentQuery(id))).ToHttpResult());
+        group.MapPost("/{id:guid}/quotes", async (Guid id, HttpContext httpContext, [FromBody] CreateClinicalQuoteRequest? body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.CreateClinicalQuoteCommand(id, body?.Notes, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        var quotesGroup = builder.MapGroup("/api/v1/clinical-quotes").RequireAuthorization().WithTags("Veterinary", "ClinicalQuotes");
+        quotesGroup.MapGet("/pending-conversions", async (IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.ListPendingQuoteConversionsQuery())).ToHttpResult());
+        quotesGroup.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.GetClinicalQuoteByIdQuery(id))).ToHttpResult());
+        quotesGroup.MapPut("/{id:guid}/items", async (Guid id, HttpContext httpContext, [FromBody] ReplaceClinicalQuoteItemsRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.ReplaceClinicalQuoteItemsCommand(id, body.Items, body.Notes, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        quotesGroup.MapPost("/{id:guid}/send", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.SendClinicalQuoteCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        quotesGroup.MapPost("/{id:guid}/approve", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.ApproveClinicalQuoteCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+        quotesGroup.MapPost("/{id:guid}/reject", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.Quotes.Commands.RejectClinicalQuoteCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
         group.MapPost("/{id:guid}/attachments", async (Guid id, HttpContext httpContext, IMediator mediator) =>
         {
             if (!httpContext.Request.HasFormContentType)
@@ -330,4 +352,12 @@ public static class VeterinaryEndpointExtensions
         string Name,
         PetSpecies Species,
         IReadOnlyList<Veterinary.Application.Vaccines.Dtos.VaccineProtocolDoseInput> Doses);
+
+    /// <summary>Clinical quote create body.</summary>
+    public record CreateClinicalQuoteRequest(string? Notes);
+
+    /// <summary>Replace clinical quote lines body.</summary>
+    public record ReplaceClinicalQuoteItemsRequest(
+        IReadOnlyList<Veterinary.Application.Quotes.Commands.ClinicalQuoteLineInput> Items,
+        string? Notes);
 }

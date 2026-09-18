@@ -1,0 +1,14 @@
+flowchart TB
+  Appointment[Appointment]
+  Quote[ClinicalQuote]
+  Items[ClinicalQuoteItem]
+  Event[ClinicalQuoteApprovedEvent]
+  Inbox[pending-conversions API]
+  Pdv[Fase6_Sales]
+
+  Appointment --> Quote
+  Quote --> Items
+  Quote -->|"Approve"| Event
+  Event -.-> Pdv
+  Quote -->|"ConversionStatus Pending"| Inbox
+  Inbox -.-> Pdv

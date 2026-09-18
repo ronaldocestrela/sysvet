@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject IMedicalRecordStore MedicalRecordStore
 @inject IClinicalStore ClinicalStore
+@inject IClinicalQuoteStore ClinicalQuoteStore
 @inject IClinicalAttachmentService? AttachmentService
 @inject INavigationService Navigation
 @inject IToastService Toast
@@ -103,6 +104,51 @@
                 </ul>
             }
 
+            <h4 class="mt-3">Orçamentos clínicos</h4>
+            @if (_quotes?.Count > 0)
+            {
+                <ul>
+                    @foreach (var quote in _quotes)
+                    {
+                        <li>
+                            @quote.Id.ToString()[..8] — @quote.Status (@quote.TotalAmount.ToString("C")) (@quote.ItemCount itens)
+                            @if (_activeQuoteId == quote.Id)
+                            {
+                                <span class="text-muted"> (selecionado)</span>
+                            }
+                            else
+                            {
+                                <button class="btn btn-link btn-sm" @onclick="() => SelectQuoteAsync(quote.Id)">Editar</button>
+                            }
+                            @if (quote.Status == "Sent")
+                            {
+                                <button class="btn btn-link btn-sm" @onclick="() => ApproveQuoteAsync(quote.Id)">Aprovar</button>
+                                <button class="btn btn-link btn-sm" @onclick="() => RejectQuoteAsync(quote.Id)">Recusar</button>
+                            }
+                            <a href="@AppRoutes.PetClinicalQuotePrint(PetId, quote.Id)">Imprimir</a>
+                        </li>
+                    }
+                </ul>
+            }
+            @if (_selected.Status == "Draft")
+            {
+                <div class="d-flex flex-column gap-2 mb-2">
+                    <input class="form-control" @bind="_quoteLineDescription" placeholder="Descrição do item" />
+                    <div class="d-flex gap-2">
+                        <input class="form-control" type="number" step="0.01" @bind="_quoteLineQty" placeholder="Qtd" />
+                        <input class="form-control" type="number" step="0.01" @bind="_quoteLinePrice" placeholder="Preço unit." />
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline" @onclick="CreateQuoteAsync">Novo orçamento</button>
+                        @if (_activeQuoteId is Guid qid)
+                        {
+                            <button class="btn btn-outline" @onclick="AddQuoteLineAsync">Adicionar linha</button>
+                            <button class="btn btn-primary" @onclick="() => SendQuoteAsync(qid)">Enviar orçamento</button>
+                        }
+                    </div>
+                </div>
+            }
+
             <h4 class="mt-3">Receitas emitidas</h4>
             @if (_prescriptions?.Count > 0)
             {
@@ -166,6 +212,12 @@
     private IReadOnlyList<ClinicalExamListItemDto>? _exams;
     private IReadOnlyList<IssuedPrescriptionListItemDto>? _prescriptions;
     private IReadOnlyList<ClinicalAttachmentListItemDto>? _attachments;
+    private IReadOnlyList<ClinicalQuoteListItemDto>? _quotes;
+    private Guid? _activeQuoteId;
+    private string _quoteLineDescription = string.Empty;
+    private decimal _quoteLineQty = 1m;
+    private decimal _quoteLinePrice;
+    private readonly List<ClinicalQuoteLineDto> _draftQuoteLines = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -227,6 +279,97 @@
         _prescriptions = prescriptions.IsSuccess ? prescriptions.Value : Array.Empty<IssuedPrescriptionListItemDto>();
         var attachments = await ClinicalStore.GetAttachmentsByAppointmentAsync(appointmentId);
         _attachments = attachments.IsSuccess ? attachments.Value : Array.Empty<ClinicalAttachmentListItemDto>();
+        var quotes = await ClinicalQuoteStore.GetByAppointmentAsync(appointmentId);
+        _quotes = quotes.IsSuccess ? quotes.Value : Array.Empty<ClinicalQuoteListItemDto>();
+    }
+
+    private async Task CreateQuoteAsync()
+    {
+        if (_selected is null)
+        {
+            return;
+        }
+
+        var result = await ClinicalQuoteStore.CreateDraftAsync(_selected.AppointmentId, null);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _activeQuoteId = result.Value;
+        _draftQuoteLines.Clear();
+        Toast.Show("Orçamento criado.", ToastType.Success);
+        await LoadClinicalArtifactsAsync(_selected.AppointmentId);
+    }
+
+    private async Task AddQuoteLineAsync()
+    {
+        if (_activeQuoteId is not Guid quoteId || string.IsNullOrWhiteSpace(_quoteLineDescription))
+        {
+            return;
+        }
+
+        _draftQuoteLines.Add(new ClinicalQuoteLineDto
+        {
+            Id = Guid.NewGuid(),
+            Description = _quoteLineDescription,
+            Quantity = _quoteLineQty,
+            UnitPrice = _quoteLinePrice,
+            Kind = "Service",
+            SortOrder = _draftQuoteLines.Count
+        });
+
+        var replace = await ClinicalQuoteStore.ReplaceItemsAsync(quoteId, _draftQuoteLines, null);
+        if (replace.IsFailure)
+        {
+            Toast.Show(replace.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _quoteLineDescription = string.Empty;
+        _quoteLineQty = 1m;
+        _quoteLinePrice = 0m;
+        if (_selected is not null)
+        {
+            await LoadClinicalArtifactsAsync(_selected.AppointmentId);
+        }
+    }
+
+    private async Task SendQuoteAsync(Guid quoteId)
+    {
+        var result = await ClinicalQuoteStore.SendAsync(quoteId);
+        Toast.Show(result.IsSuccess ? "Orçamento enviado." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+        if (_selected is not null)
+        {
+            await LoadClinicalArtifactsAsync(_selected.AppointmentId);
+        }
+    }
+
+    private Task SelectQuoteAsync(Guid quoteId)
+    {
+        _activeQuoteId = quoteId;
+        return Task.CompletedTask;
+    }
+
+    private async Task ApproveQuoteAsync(Guid quoteId)
+    {
+        var result = await ClinicalQuoteStore.ApproveAsync(quoteId);
+        Toast.Show(result.IsSuccess ? "Orçamento aprovado." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+        if (_selected is not null)
+        {
+            await LoadClinicalArtifactsAsync(_selected.AppointmentId);
+        }
+    }
+
+    private async Task RejectQuoteAsync(Guid quoteId)
+    {
+        var result = await ClinicalQuoteStore.RejectAsync(quoteId);
+        Toast.Show(result.IsSuccess ? "Orçamento recusado." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+        if (_selected is not null)
+        {
+            await LoadClinicalArtifactsAsync(_selected.AppointmentId);
+        }
     }
 
     private async Task RequestExamAsync()

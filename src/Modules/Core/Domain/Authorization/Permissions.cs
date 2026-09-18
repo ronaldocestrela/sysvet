@@ -32,6 +32,9 @@ public static class Permissions
     public const string VaccinesRead = "Vaccines.Read";
     public const string VaccinesWrite = "Vaccines.Write";
 
+    public const string ClinicalQuotesRead = "ClinicalQuotes.Read";
+    public const string ClinicalQuotesWrite = "ClinicalQuotes.Write";
+
     public const string ProductsRead = "Products.Read";
     public const string ProductsWrite = "Products.Write";
 
@@ -59,6 +62,7 @@ public static class Permissions
         MedicalRecordsRead, MedicalRecordsWrite,
         HospitalizationsRead, HospitalizationsWrite,
         VaccinesRead, VaccinesWrite,
+        ClinicalQuotesRead, ClinicalQuotesWrite,
         ProductsRead, ProductsWrite,
         StockRead, StockWrite,
         SalesRead, SalesWrite,
@@ -86,7 +90,8 @@ public static class Permissions
         AppointmentsRead, AppointmentsWrite,
         MedicalRecordsRead, MedicalRecordsWrite,
         HospitalizationsRead, HospitalizationsWrite,
-        VaccinesRead, VaccinesWrite
+        VaccinesRead, VaccinesWrite,
+        ClinicalQuotesRead, ClinicalQuotesWrite
     ];
 
     /// <summary>
@@ -97,7 +102,8 @@ public static class Permissions
         TutorsRead, TutorsWrite,
         PetsRead, PetsWrite,
         AppointmentsRead, AppointmentsWrite,
-        VaccinesRead
+        VaccinesRead,
+        ClinicalQuotesRead, ClinicalQuotesWrite
     ];
 
     /// <summary>
@@ -108,6 +114,7 @@ public static class Permissions
         SalesRead, SalesWrite,
         CashRegisterRead, CashRegisterWrite,
         ProductsRead,
-        StockRead
+        StockRead,
+        ClinicalQuotesRead
     ];
 }

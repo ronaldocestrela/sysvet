@@ -191,6 +191,37 @@ public sealed class SyncVaccineProtocolDoseDto
     public int? NextDoseIntervalInDays { get; init; }
 }
 
+/// <summary>Clinical quote line in sync payloads.</summary>
+public sealed class SyncClinicalQuoteItemDto
+{
+    public Guid Id { get; init; }
+    public string Description { get; init; } = string.Empty;
+    public decimal Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public Guid? ProductId { get; init; }
+    public int SortOrder { get; init; }
+}
+
+/// <summary>Clinical quote returned by sync pull.</summary>
+public sealed class SyncClinicalQuoteDto
+{
+    public Guid Id { get; init; }
+    public Guid AppointmentId { get; init; }
+    public Guid PetId { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid CreatedByUserId { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public string ConversionStatus { get; init; } = string.Empty;
+    public Guid? ConvertedOrderId { get; init; }
+    public string Notes { get; init; } = string.Empty;
+    public DateTimeOffset? SentAt { get; init; }
+    public DateTimeOffset? DecidedAt { get; init; }
+    public IReadOnlyList<SyncClinicalQuoteItemDto> Items { get; init; } = Array.Empty<SyncClinicalQuoteItemDto>();
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
 /// <summary>Applied vaccine dose returned by sync pull.</summary>
 public sealed class SyncVaccineDoseDto
 {
@@ -219,6 +250,7 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncClinicalAttachmentDto> ClinicalAttachments { get; init; } = Array.Empty<SyncClinicalAttachmentDto>();
     public IReadOnlyList<SyncVaccineProtocolDto> VaccineProtocols { get; init; } = Array.Empty<SyncVaccineProtocolDto>();
     public IReadOnlyList<SyncVaccineDoseDto> VaccineDoses { get; init; } = Array.Empty<SyncVaccineDoseDto>();
+    public IReadOnlyList<SyncClinicalQuoteDto> ClinicalQuotes { get; init; } = Array.Empty<SyncClinicalQuoteDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

@@ -143,6 +143,46 @@ internal static class OutboxPayloadFactory
     public static string RequestClinicalExam(Guid appointmentId, string name, string category, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { AppointmentId = appointmentId, Name = name, Category = category, IdempotencyKey = idempotencyKey });
 
+    public static string CreateClinicalQuote(Guid appointmentId, string? notes, Guid quoteId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            AppointmentId = appointmentId,
+            Notes = notes,
+            QuoteId = quoteId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string ReplaceClinicalQuoteItems(
+        Guid quoteId,
+        IReadOnlyList<Crm.ClinicalQuoteLineDto> items,
+        string? notes,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            QuoteId = quoteId,
+            Items = items.Select(i => new
+            {
+                i.Id,
+                i.Description,
+                i.Quantity,
+                i.UnitPrice,
+                i.Kind,
+                ProductId = (Guid?)null,
+                i.SortOrder
+            }),
+            Notes = notes,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string SendClinicalQuote(Guid quoteId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { QuoteId = quoteId, IdempotencyKey = idempotencyKey });
+
+    public static string ApproveClinicalQuote(Guid quoteId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { QuoteId = quoteId, IdempotencyKey = idempotencyKey });
+
+    public static string RejectClinicalQuote(Guid quoteId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { QuoteId = quoteId, IdempotencyKey = idempotencyKey });
+
     public static string RegisterVaccineDose(
         Guid id,
         Guid petId,

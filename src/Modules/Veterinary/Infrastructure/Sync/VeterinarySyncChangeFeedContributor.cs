@@ -133,12 +133,21 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             doseCandidates = doseCandidates.Take(take).ToList();
         }
 
+        var quotes = await _dbContext.ClinicalQuotes.AsNoTracking().Include(q => q.Items).ToListAsync(cancellationToken);
+        var quoteCandidates = quotes.Where(q => q.UpdatedAt > since).OrderBy(q => q.UpdatedAt).Take(take + 1).ToList();
+        var hasMoreQuotes = quoteCandidates.Count > take;
+        if (hasMoreQuotes)
+        {
+            quoteCandidates = quoteCandidates.Take(take).ToList();
+        }
+
         foreach (var updatedAt in templateCandidates.Select(t => t.UpdatedAt)
                      .Concat(prescriptionCandidates.Select(p => p.UpdatedAt))
                      .Concat(examCandidates.Select(e => e.UpdatedAt))
                      .Concat(attachmentCandidates.Select(a => a.UpdatedAt))
                      .Concat(protocolCandidates.Select(p => p.UpdatedAt))
-                     .Concat(doseCandidates.Select(d => d.UpdatedAt)))
+                     .Concat(doseCandidates.Select(d => d.UpdatedAt))
+                     .Concat(quoteCandidates.Select(q => q.UpdatedAt)))
         {
             if (updatedAt > maxUpdated)
             {
@@ -157,8 +166,9 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             ClinicalAttachments = attachmentCandidates.Select(MapAttachment).ToList(),
             VaccineProtocols = protocolCandidates.Select(MapVaccineProtocol).ToList(),
             VaccineDoses = doseCandidates.Select(MapVaccineDose).ToList(),
+            ClinicalQuotes = quoteCandidates.Select(MapClinicalQuote).ToList(),
             MaxUpdatedAt = maxUpdated,
-            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords || hasMoreTemplates || hasMorePrescriptions || hasMoreExams || hasMoreAttachments || hasMoreProtocols || hasMoreDoses
+            HasMore = hasMoreAppointments || hasMoreSlots || hasMoreRecords || hasMoreTemplates || hasMorePrescriptions || hasMoreExams || hasMoreAttachments || hasMoreProtocols || hasMoreDoses || hasMoreQuotes
         };
     }
 
@@ -316,6 +326,34 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             ResultSummary = exam.ResultSummary,
             UpdatedAt = exam.UpdatedAt,
             RowVersion = Convert.ToBase64String(exam.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncClinicalQuoteDto MapClinicalQuote(ClinicalQuote quote) =>
+        new()
+        {
+            Id = quote.Id,
+            AppointmentId = quote.AppointmentId,
+            PetId = quote.PetId,
+            TutorId = quote.TutorId,
+            CreatedByUserId = quote.CreatedByUserId,
+            Status = quote.Status.ToString(),
+            ConversionStatus = quote.ConversionStatus.ToString(),
+            ConvertedOrderId = quote.ConvertedOrderId,
+            Notes = quote.Notes,
+            SentAt = quote.SentAt,
+            DecidedAt = quote.DecidedAt,
+            Items = quote.Items.OrderBy(i => i.SortOrder).Select(i => new SyncClinicalQuoteItemDto
+            {
+                Id = i.Id,
+                Description = i.Description,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice,
+                Kind = i.Kind.ToString(),
+                ProductId = i.ProductId,
+                SortOrder = i.SortOrder
+            }).ToList(),
+            UpdatedAt = quote.UpdatedAt,
+            RowVersion = Convert.ToBase64String(quote.RowVersion ?? Array.Empty<byte>())
         };
 
     private static SyncClinicalAttachmentDto MapAttachment(ClinicalAttachment attachment) =>

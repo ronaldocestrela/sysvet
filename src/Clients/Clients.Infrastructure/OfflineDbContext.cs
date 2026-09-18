@@ -82,6 +82,12 @@ public class OfflineDbContext : DbContext
     /// <summary>Local applied vaccine doses.</summary>
     public DbSet<VaccineDose> VaccineDoses => Set<VaccineDose>();
 
+    /// <summary>Local clinical quotes (Fase 4.5).</summary>
+    public DbSet<ClinicalQuote> ClinicalQuotes => Set<ClinicalQuote>();
+
+    /// <summary>Local clinical quote lines.</summary>
+    public DbSet<ClinicalQuoteItem> ClinicalQuoteItems => Set<ClinicalQuoteItem>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -104,6 +110,8 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OfflineVaccineProtocolConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineVaccineProtocolDoseConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineVaccineDoseConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineClinicalQuoteConfiguration());
+        modelBuilder.ApplyConfiguration(new OfflineClinicalQuoteItemConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

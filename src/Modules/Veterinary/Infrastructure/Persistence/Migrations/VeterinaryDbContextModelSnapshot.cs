@@ -160,6 +160,108 @@ namespace Veterinary.Infrastructure.Persistence.Migrations
                     b.ToTable("ClinicalExams", "dbo");
                 });
 
+            modelBuilder.Entity("Veterinary.Domain.Entities.ClinicalQuote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ConversionStatus")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("ConvertedOrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("ConversionStatus");
+
+                    b.HasIndex("PetId");
+
+                    b.ToTable("ClinicalQuotes", "dbo");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.ClinicalQuoteItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ClinicalQuoteId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicalQuoteId");
+
+                    b.ToTable("ClinicalQuoteItems", "dbo");
+                });
+
             modelBuilder.Entity("Veterinary.Domain.Entities.EvolutionNote", b =>
                 {
                     b.Property<Guid>("Id")
@@ -755,6 +857,15 @@ namespace Veterinary.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Veterinary.Domain.Entities.ClinicalQuoteItem", b =>
+                {
+                    b.HasOne("Veterinary.Domain.Entities.ClinicalQuote", null)
+                        .WithMany("Items")
+                        .HasForeignKey("ClinicalQuoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Veterinary.Domain.Entities.PrescriptionTemplateItem", b =>
                 {
                     b.HasOne("Veterinary.Domain.Entities.PrescriptionTemplate", null)
@@ -779,6 +890,11 @@ namespace Veterinary.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Veterinary.Domain.Entities.IssuedPrescription", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Veterinary.Domain.Entities.ClinicalQuote", b =>
                 {
                     b.Navigation("Items");
                 });

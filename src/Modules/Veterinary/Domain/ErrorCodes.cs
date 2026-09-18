@@ -96,6 +96,20 @@ public static class ErrorCodes
         public static readonly Error AppointmentNotEligible = new("ClinicalExam.AppointmentNotEligible", "Exams can only be registered for in-progress or completed appointments.");
     }
 
+    public static class ClinicalQuote
+    {
+        public static readonly Error NotFound = new("ClinicalQuote.NotFound", "The specified clinical quote was not found.");
+        public static readonly Error InvalidIdentifiers = new("ClinicalQuote.InvalidIdentifiers", "Quote requires valid appointment, pet, tutor, and creator identifiers.");
+        public static readonly Error AppointmentNotEligible = new("ClinicalQuote.AppointmentNotEligible", "Quotes can only be created for in-progress or completed appointments.");
+        public static readonly Error EmptyItems = new("ClinicalQuote.EmptyItems", "At least one line item is required to send a quote.");
+        public static readonly Error InvalidTransition = new("ClinicalQuote.InvalidTransition", "The quote cannot transition to the requested status.");
+        public static readonly Error InvalidPrice = new("ClinicalQuote.InvalidPrice", "Unit price cannot be negative.");
+        public static readonly Error InvalidQuantity = new("ClinicalQuote.InvalidQuantity", "Quantity must be greater than zero.");
+        public static readonly Error InvalidDescription = new("ClinicalQuote.InvalidDescription", "Line description is required and must be at most 500 characters.");
+        public static readonly Error AlreadyConverted = new("ClinicalQuote.AlreadyConverted", "The quote has already been converted to a sale.");
+        public static readonly Error InvalidNotes = new("ClinicalQuote.InvalidNotes", "Notes exceed maximum length.");
+    }
+
     public static class ClinicalAttachment
     {
         public static readonly Error NotFound = new("ClinicalAttachment.NotFound", "The specified clinical attachment was not found.");

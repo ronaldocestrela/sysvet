@@ -84,6 +84,11 @@ public sealed class OfflineSyncPullApplier
                 await UpsertVaccineDoseAsync(dto, cancellationToken);
             }
 
+            foreach (var dto in page.ClinicalQuotes)
+            {
+                await UpsertClinicalQuoteAsync(dto, cancellationToken);
+            }
+
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
                         ?? _dbContext.SyncState.Add(new SyncState()).Entity;
             state.LastPullAt = page.NextSince;
@@ -427,6 +432,60 @@ public sealed class OfflineSyncPullApplier
             dto.BlobKey,
             dto.IsDeleted,
             dto.UpdatedAt);
+    }
+
+    private async Task UpsertClinicalQuoteAsync(ClientSyncClinicalQuoteDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<ClinicalQuoteStatus>(dto.Status, out var status) ||
+            !Enum.TryParse<QuoteConversionStatus>(dto.ConversionStatus, out var conversionStatus))
+        {
+            return;
+        }
+
+        var items = dto.Items.Select(i =>
+        {
+            Enum.TryParse<ClinicalQuoteItemKind>(i.Kind, out var kind);
+            return (i.Id, i.Description, i.Quantity, i.UnitPrice, kind, i.ProductId, i.SortOrder);
+        });
+
+        var quote = await _dbContext.ClinicalQuotes.Include(q => q.Items).FirstOrDefaultAsync(q => q.Id == dto.Id, cancellationToken);
+        if (quote is null)
+        {
+            _dbContext.ClinicalQuotes.Add(ClinicalQuote.RestoreFromSync(
+                dto.Id,
+                dto.AppointmentId,
+                dto.PetId,
+                dto.TutorId,
+                dto.CreatedByUserId,
+                status,
+                conversionStatus,
+                dto.ConvertedOrderId,
+                dto.Notes,
+                dto.SentAt,
+                dto.DecidedAt,
+                dto.UpdatedAt,
+                items));
+            return;
+        }
+
+        if (dto.UpdatedAt <= quote.UpdatedAt)
+        {
+            return;
+        }
+
+        quote.ApplySyncSnapshot(
+            dto.AppointmentId,
+            dto.PetId,
+            dto.TutorId,
+            dto.CreatedByUserId,
+            status,
+            conversionStatus,
+            dto.ConvertedOrderId,
+            dto.Notes,
+            dto.SentAt,
+            dto.DecidedAt,
+            dto.UpdatedAt,
+            items);
     }
 
     private async Task UpsertVaccineProtocolAsync(ClientSyncVaccineProtocolDto dto, CancellationToken cancellationToken)

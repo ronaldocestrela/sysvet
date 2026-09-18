@@ -7,6 +7,7 @@ using MediatR;
 using Veterinary.Application.Appointments.Commands;
 using Veterinary.Application.Clinical.Commands;
 using Veterinary.Application.MedicalRecords.Commands;
+using Veterinary.Application.Quotes.Commands;
 using Veterinary.Application.Vaccines.Commands;
 
 namespace Veterinary.Infrastructure.Sync;
@@ -89,6 +90,21 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
             nameof(RegisterVaccineDoseCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<RegisterVaccineDoseCommand>(message.Payload, JsonOptions),
                 message.Id),
+            nameof(CreateClinicalQuoteCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<CreateClinicalQuoteCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(ReplaceClinicalQuoteItemsCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<ReplaceClinicalQuoteItemsCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(SendClinicalQuoteCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<SendClinicalQuoteCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(ApproveClinicalQuoteCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<ApproveClinicalQuoteCommand>(message.Payload, JsonOptions),
+                message.Id),
+            nameof(RejectClinicalQuoteCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<RejectClinicalQuoteCommand>(message.Payload, JsonOptions),
+                message.Id),
             _ => null
         };
     }
@@ -154,6 +170,19 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
                 var vaccineResult = await _mediator.Send(registerVaccine, cancellationToken);
                 return vaccineResult.IsSuccess ? Result.Success() : Result.Failure(vaccineResult.Error);
             }
+            case CreateClinicalQuoteCommand createQuote:
+            {
+                var quoteResult = await _mediator.Send(createQuote, cancellationToken);
+                return quoteResult.IsSuccess ? Result.Success() : Result.Failure(quoteResult.Error);
+            }
+            case ReplaceClinicalQuoteItemsCommand replaceQuoteItems:
+                return await _mediator.Send(replaceQuoteItems, cancellationToken);
+            case SendClinicalQuoteCommand sendQuote:
+                return await _mediator.Send(sendQuote, cancellationToken);
+            case ApproveClinicalQuoteCommand approveQuote:
+                return await _mediator.Send(approveQuote, cancellationToken);
+            case RejectClinicalQuoteCommand rejectQuote:
+                return await _mediator.Send(rejectQuote, cancellationToken);
             default:
                 return Result.Failure(new Error("Sync.HandlerMismatch", "Not a veterinary sync command."));
         }
@@ -215,4 +244,19 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
 
     private static RegisterVaccineDoseCommand? WithIdempotency(RegisterVaccineDoseCommand? command, Guid idempotencyKey) =>
         command is null ? null : command with { IdempotencyKey = idempotencyKey, Id = idempotencyKey };
+
+    private static CreateClinicalQuoteCommand? WithIdempotency(CreateClinicalQuoteCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey, QuoteId = command.QuoteId == Guid.Empty ? idempotencyKey : command.QuoteId };
+
+    private static ReplaceClinicalQuoteItemsCommand? WithIdempotency(ReplaceClinicalQuoteItemsCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static SendClinicalQuoteCommand? WithIdempotency(SendClinicalQuoteCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static ApproveClinicalQuoteCommand? WithIdempotency(ApproveClinicalQuoteCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static RejectClinicalQuoteCommand? WithIdempotency(RejectClinicalQuoteCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
 }

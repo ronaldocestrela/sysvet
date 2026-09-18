@@ -97,7 +97,13 @@ Iniciado o módulo de estoque.
 - Sync: protocolos + doses no plugin Veterinary; outbox client para dose.
 - UI: `/pets/{id}/vaccination-card`, `/vaccine-alerts`, menu `vaccines`; ADR-016.
 
-### 👉 **Próxima Ação: Fase 4.5 — Orçamentos clínicos**
+### Fase 4.5 (Orçamentos clínicos) — Concluída
+
+- Domínio: `ClinicalQuote`, máquina de estados, fila `ConversionStatus.Pending`, evento de integração.
+- API/CQRS: CRUD de fluxo, inbox pending-conversions; ADR-017.
+- Sync: pull + outbox client; SharedUI prontuário, print e `/clinical-quotes/pending`.
+
+### 👉 **Próxima Ação: Fase 4.6 — Internação e mapa de execução**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 4.
 

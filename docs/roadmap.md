@@ -419,7 +419,7 @@ flowchart TD
 | **4.2 Prontuário veterinário** | 13 | Concluído |
 | **4.3 Exames, receitas e anexos** | 8 | Concluído |
 | **4.4 Carteira de vacinação e alertas** | 8 | Concluído |
-| **4.5 Orçamentos clínicos** | 5 | Pendente |
+| **4.5 Orçamentos clínicos** | 5 | Concluído |
 | **4.6 Internação e mapa de execução** | 13 | Pendente |
 | **Total Fase 4** | **55 SP** | |
 
@@ -511,13 +511,25 @@ flowchart TD
 
 **Aceite:** Carteira digital exportável (print CSS); alertas atrasadas/previstas no backoffice SharedUI (contrato para Automações Fase 8).
 
-### 4.5 Orçamentos clínicos (5 SP)
+### 4.5 Orçamentos clínicos (5 SP) — Concluído
 
-- [ ] Orçamento vinculado a atendimento/pet
-- [ ] Status: rascunho, enviado, aprovado, recusado
-- [ ] Integração futura com PDV (Fase 6)
+**Domain**
+- [x] `ClinicalQuote` + `ClinicalQuoteItem`; status Draft/Sent/Approved/Rejected; `ConversionStatus` Pending/Converted
+- [x] `ClinicalQuoteApprovedDomainEvent` → `ClinicalQuoteApprovedEvent` (Core)
 
-**Aceite:** Orçamento aprovado gera item pendente para conversão em venda.
+**Application**
+- [x] CQRS + validators; `ListPendingQuoteConversions`; permissões `ClinicalQuotes.Read/Write`
+
+**API**
+- [x] `/api/v1/appointments/{id}/quotes`, `/api/v1/clinical-quotes/*`, `/api/v1/pets/{petId}/quotes`, `/api/v1/clinical-quotes/pending-conversions`
+
+**Sync**
+- [x] Pull/push orçamentos no plugin Veterinary; outbox client para mutações
+
+**Clients**
+- [x] `IClinicalQuoteStore`, seção no prontuário, print e inbox pending; menu `quotes`
+
+**Aceite:** Orçamento aprovado gera item pendente para conversão em venda (`pending-conversions`).
 
 ### 4.6 Internação e mapa de execução (13 SP)
 

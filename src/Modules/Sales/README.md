@@ -29,3 +29,4 @@ Este módulo gerenciará:
 - Referencia `Core.Domain` para `Tutor` (cliente da venda)
 - Integra-se ao `Inventory` para baixar estoque ao confirmar uma venda
 - Integra-se ao `Fiscal` para emissão de NF após pagamento
+- **Fase 6 (planejado):** consumir `ClinicalQuoteApprovedEvent` / `GET .../pending-conversions` (Veterinary 4.5) para converter orçamentos aprovados em itens de venda

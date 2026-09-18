@@ -1,0 +1,58 @@
+@page "/clinical-quotes/pending"
+@using SharedUI.Components
+@using Clients.Infrastructure.Crm
+@inject IClinicalQuoteStore QuoteStore
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Orçamentos aprovados — conversão PDV</h1>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando fila...">
+    @if (_items?.Count > 0)
+    {
+        <table class="data-table card">
+            <thead>
+                <tr><th>Pet</th><th>Total</th><th>Decidido em</th><th>Ação</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in _items)
+                {
+                    <tr>
+                        <td>@item.PetName</td>
+                        <td>@item.TotalAmount.ToString("C")</td>
+                        <td>@(item.DecidedAt?.LocalDateTime.ToString("g") ?? "—")</td>
+                        <td><button class="btn btn-outline" disabled title="Disponível na Fase 6 (PDV)">Converter venda</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">Nenhum orçamento pendente de conversão.</p>
+    }
+</LoadingState>
+
+<style>
+    .header-section { margin-bottom: var(--spacing-lg); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { border: 1px solid var(--color-border); padding: var(--spacing-sm); text-align: left; }
+</style>
+
+@code {
+    private IReadOnlyList<PendingQuoteConversionListItemDto>? _items;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await QuoteStore.ListPendingConversionsAsync();
+        _items = result.IsSuccess ? result.Value : Array.Empty<PendingQuoteConversionListItemDto>();
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+}

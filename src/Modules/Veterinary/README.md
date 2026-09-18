@@ -13,6 +13,7 @@ Módulo responsável por operações **clínicas**: agenda unificada, prontuári
 | **Agenda** (`Appointment`, `ScheduleSlot`) | Concluído (4.1) |
 | **Prontuário** (`MedicalRecord`) | Concluído (4.2 — anamnese, vitais, evolução, timeline, sync) |
 | **Vacinas** (`VaccineProtocol`, `VaccineDose`, alertas) | Concluído (4.4) |
+| **Orçamentos** (`ClinicalQuote`, pending PDV) | Concluído (4.5) |
 | **Internação** (`Hospitalization`) | Parcial |
 
 ## Estrutura de Camadas
