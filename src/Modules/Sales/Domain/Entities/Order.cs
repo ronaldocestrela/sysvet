@@ -28,7 +28,8 @@ public class Order : AggregateRoot
 
     private Order() { }
 
-    private Order(Guid cashRegisterId, Guid? tutorId, Guid? petId, Guid? sourceQuoteId)
+    private Order(Guid id, Guid cashRegisterId, Guid? tutorId, Guid? petId, Guid? sourceQuoteId)
+        : base(id)
     {
         CashRegisterId = cashRegisterId;
         TutorId = tutorId;
@@ -38,14 +39,30 @@ public class Order : AggregateRoot
     }
 
     /// <summary>
-    /// Starts a draft order for an open cash register session.
+    /// Starts a draft order for an open cash register session (server-generated id).
     /// </summary>
     public static Result<Order> Create(
         Guid cashRegisterId,
         Guid? tutorId = null,
         Guid? petId = null,
         Guid? sourceQuoteId = null)
+        => Create(Guid.NewGuid(), cashRegisterId, tutorId, petId, sourceQuoteId);
+
+    /// <summary>
+    /// Starts a draft order with a client-assigned id for offline sync (ADR-026).
+    /// </summary>
+    public static Result<Order> Create(
+        Guid id,
+        Guid cashRegisterId,
+        Guid? tutorId = null,
+        Guid? petId = null,
+        Guid? sourceQuoteId = null)
     {
+        if (id == Guid.Empty)
+        {
+            return Result.Failure<Order>(ErrorCodes.Order.InvalidId);
+        }
+
         if (cashRegisterId == Guid.Empty)
         {
             return Result.Failure<Order>(ErrorCodes.Order.InvalidCashRegister);
@@ -56,7 +73,7 @@ public class Order : AggregateRoot
             return Result.Failure<Order>(ErrorCodes.Order.PetRequiresTutor);
         }
 
-        return Result.Success(new Order(cashRegisterId, tutorId, petId, sourceQuoteId));
+        return Result.Success(new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId));
     }
 
     /// <summary>
@@ -152,7 +169,46 @@ public class Order : AggregateRoot
         Status = OrderStatus.Paid;
         PaidAt = DateTimeOffset.UtcNow;
         FinanceIntegrationStatus = FinanceIntegrationStatus.Pending;
+        UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success(true);
     }
+
+    /// <summary>Rehydrates an order from sync pull (client mirror).</summary>
+    public static Order RestoreFromSync(
+        Guid id,
+        Guid cashRegisterId,
+        OrderStatus status,
+        Guid? tutorId,
+        Guid? petId,
+        Guid? sourceQuoteId,
+        FinanceIntegrationStatus financeIntegrationStatus,
+        DateTimeOffset createdAt,
+        DateTimeOffset? paidAt,
+        DateTimeOffset updatedAt,
+        IEnumerable<(Guid ItemId, OrderItemKind Kind, Guid? ProductId, string ProductName, decimal Quantity, decimal UnitPrice)> items,
+        IEnumerable<(Guid PaymentId, PaymentMethod Method, decimal Amount)> payments)
+    {
+        var order = new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId)
+        {
+            Status = status,
+            FinanceIntegrationStatus = financeIntegrationStatus,
+            CreatedAt = createdAt,
+            PaidAt = paidAt,
+            UpdatedAt = updatedAt
+        };
+
+        foreach (var item in items)
+        {
+            order._items.Add(OrderItem.Restore(item.ItemId, id, item.Kind, item.ProductId, item.ProductName, item.Quantity, item.UnitPrice));
+        }
+
+        foreach (var payment in payments)
+        {
+            order._payments.Add(Payment.Restore(payment.PaymentId, id, payment.Method, payment.Amount));
+        }
+
+        return order;
+    }
+
 }

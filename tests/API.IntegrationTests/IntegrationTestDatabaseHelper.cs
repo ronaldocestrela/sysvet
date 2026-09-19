@@ -9,7 +9,7 @@ namespace API.IntegrationTests;
 internal static class IntegrationTestDatabaseHelper
 {
     /// <summary>
-    /// Migrates Veterinary and Inventory schemas (sync pull reads both feeds).
+    /// Migrates module schemas used by sync pull/push (Veterinary, Inventory, Sales).
     /// </summary>
     public static async Task MigrateModuleDatabasesAsync(IServiceScope scope)
     {
@@ -18,5 +18,8 @@ internal static class IntegrationTestDatabaseHelper
 
         var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
         await inventoryContext.Database.MigrateAsync();
+
+        var salesContext = scope.ServiceProvider.GetRequiredService<global::Sales.Infrastructure.Persistence.SalesDbContext>();
+        await salesContext.Database.MigrateAsync();
     }
 }

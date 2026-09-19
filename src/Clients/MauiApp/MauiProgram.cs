@@ -49,8 +49,6 @@ public static class MauiProgram
 
 		builder.Services.AddScoped<IVeterinaryApiService, MockVeterinaryApiService>();
 		builder.Services.AddScoped<IInventoryApiService, MockInventoryApiService>();
-		builder.Services.AddScoped<Clients.Infrastructure.Http.ISalesApiService, Clients.Infrastructure.Http.SalesApiService>();
-
 		var dbPath = Path.Combine(FileSystem.AppDataDirectory, "sysvet.db");
 		builder.Services.AddClientPersistence($"Data Source={dbPath}");
 

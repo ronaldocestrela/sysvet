@@ -3,7 +3,8 @@
 @using SharedUI.Services
 @using Clients.Infrastructure.Crm
 @using Clients.Infrastructure.Http
-@inject ISalesApiService SalesService
+@using Clients.Infrastructure.Sales
+@inject ISalesStore SalesStore
 @inject IInventoryStore InventoryStore
 @inject ITutorStore TutorStore
 @inject IPetStore PetStore
@@ -17,7 +18,7 @@
         <h2>Frente de Caixa (PDV)</h2>
         @if (!Connectivity.IsOnline)
         {
-            <p class="text-warning">Checkout online — conecte-se à internet para finalizar vendas.</p>
+            <p class="text-muted">Modo offline — vendas serão sincronizadas quando houver conexão.</p>
         }
     </div>
 
@@ -105,7 +106,7 @@
                     }
                     <button type="button" class="btn btn-outline btn-sm" @onclick="AddPaymentRow">+ Forma de pagamento</button>
                     <p class="text-muted">Soma pagamentos: R$ @_payments.Sum(p => p.Amount).ToString("N2")</p>
-                    <button class="btn btn-success btn-lg" @onclick="FinishSale" disabled="@(_isLoading || !Connectivity.IsOnline)">
+                    <button class="btn btn-success btn-lg" @onclick="FinishSale" disabled="@_isLoading">
                         @(_isLoading ? "Processando..." : "Finalizar Venda")
                     </button>
                 }
@@ -154,7 +155,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var register = await SalesService.GetOpenCashRegisterAsync();
+        var register = await SalesStore.GetOpenCashRegisterAsync();
         if (register.IsSuccess)
         {
             _openRegister = register.Value;
@@ -261,7 +262,7 @@
 
     private async Task FinishSale()
     {
-        if (_openRegister == null || !_cart.Any() || !Connectivity.IsOnline)
+        if (_openRegister == null || !_cart.Any())
         {
             return;
         }
@@ -270,32 +271,24 @@
         Guid? petId = Guid.TryParse(_selectedPetIdString, out var p) ? p : null;
 
         _isLoading = true;
-        var create = await SalesService.CreateOrderAsync(new CreateSalesOrderClientRequest
+        var sale = await SalesStore.CreateAndPayOrderAsync(new CreateSalesOrderClientRequest
         {
             CashRegisterId = _openRegister.Id,
             TutorId = tutorId,
             PetId = petId,
             SourceQuoteId = QuoteId,
             Items = _cart
-        });
+        }, _payments);
 
-        if (create.IsFailure)
+        if (sale.IsFailure)
         {
-            Toast.Show(create.Error.Message, ToastType.Error);
-            _isLoading = false;
-            return;
-        }
-
-        var pay = await SalesService.PayOrderAsync(create.Value, _payments);
-        if (pay.IsFailure)
-        {
-            Toast.Show(pay.Error.Message, ToastType.Error);
+            Toast.Show(sale.Error.Message, ToastType.Error);
             _isLoading = false;
             return;
         }
 
         Toast.Show("Venda concluída!", ToastType.Success);
-        Navigation.NavigateTo($"/sales/orders/{create.Value}/receipt");
+        Navigation.NavigateTo($"/sales/orders/{sale.Value}/receipt");
         _isLoading = false;
     }
 }

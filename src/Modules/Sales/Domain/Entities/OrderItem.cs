@@ -27,6 +27,19 @@ public class OrderItem : Entity
         string productName,
         decimal quantity,
         decimal unitPrice)
+        : this(Guid.NewGuid(), orderId, kind, productId, productName, quantity, unitPrice)
+    {
+    }
+
+    private OrderItem(
+        Guid id,
+        Guid orderId,
+        OrderItemKind kind,
+        Guid? productId,
+        string productName,
+        decimal quantity,
+        decimal unitPrice)
+        : base(id)
     {
         OrderId = orderId;
         Kind = kind;
@@ -35,4 +48,15 @@ public class OrderItem : Entity
         Quantity = quantity;
         UnitPrice = Money.CreateUnsafe(unitPrice);
     }
+
+    /// <summary>Rehydrates a line from sync pull.</summary>
+    public static OrderItem Restore(
+        Guid id,
+        Guid orderId,
+        OrderItemKind kind,
+        Guid? productId,
+        string productName,
+        decimal quantity,
+        decimal unitPrice)
+        => new(id, orderId, kind, productId, productName, quantity, unitPrice);
 }

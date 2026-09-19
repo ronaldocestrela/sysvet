@@ -44,6 +44,9 @@ public static class DependencyInjection
 
         FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(CreateOrderCommand).Assembly);
 
+        services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.SalesSyncPushHandler>();
+        services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.SalesSyncChangeFeedContributor>();
+
         return services;
     }
 }

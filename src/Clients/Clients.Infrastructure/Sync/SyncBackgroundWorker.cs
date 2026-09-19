@@ -16,29 +16,24 @@ public class SyncBackgroundWorker : BackgroundService
     private readonly ISyncConnectivity _connectivity;
     private readonly ILogger<SyncBackgroundWorker> _logger;
     private readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(30);
-    private readonly SemaphoreSlim _wakeSignal = new(0, 1);
+    private readonly SyncWakeSignal _wakeSignal;
 
     /// <summary>Creates the worker.</summary>
     public SyncBackgroundWorker(
         IServiceProvider serviceProvider,
         ISyncConnectivity connectivity,
+        SyncWakeSignal wakeSignal,
         ILogger<SyncBackgroundWorker> logger)
     {
         _serviceProvider = serviceProvider;
         _connectivity = connectivity;
+        _wakeSignal = wakeSignal;
         _logger = logger;
-        _connectivity.OnlineStateChanged += (_, _) =>
-        {
-            try
-            {
-                _wakeSignal.Release();
-            }
-            catch (SemaphoreFullException)
-            {
-                // Already signaled.
-            }
-        };
+        _connectivity.OnlineStateChanged += (_, _) => _wakeSignal.RequestSync();
     }
+
+    /// <summary>Requests an immediate sync cycle when online.</summary>
+    public void RequestSync() => _wakeSignal.RequestSync();
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -65,7 +60,7 @@ public class SyncBackgroundWorker : BackgroundService
             }
 
             var delayTask = Task.Delay(_pollingInterval, stoppingToken);
-            var wakeTask = _wakeSignal.WaitAsync(stoppingToken);
+            var wakeTask = _wakeSignal.WakeSemaphore.WaitAsync(stoppingToken);
             await Task.WhenAny(delayTask, wakeTask);
         }
     }
@@ -104,6 +99,7 @@ public class SyncBackgroundWorker : BackgroundService
                 .ToListAsync(cancellationToken))
             .Where(m => m.NextRetryAt == null || m.NextRetryAt <= now)
             .OrderBy(m => m.CreatedAt)
+            .ThenBy(m => m.Id)
             .Take(50)
             .ToList();
 
@@ -182,7 +178,7 @@ public class SyncBackgroundWorker : BackgroundService
                 break;
             }
 
-            if (page.Tutors.Count == 0 && page.Pets.Count == 0 && page.Appointments.Count == 0 && page.ScheduleSlots.Count == 0)
+            if (IsEmptyPullPage(page))
             {
                 break;
             }
@@ -192,4 +188,26 @@ public class SyncBackgroundWorker : BackgroundService
             hasMore = page.HasMore;
         }
     }
+
+    private static bool IsEmptyPullPage(ClientPullChangesResult page) =>
+        page.Tutors.Count == 0
+        && page.Pets.Count == 0
+        && page.Appointments.Count == 0
+        && page.ScheduleSlots.Count == 0
+        && page.MedicalRecords.Count == 0
+        && page.PrescriptionTemplates.Count == 0
+        && page.IssuedPrescriptions.Count == 0
+        && page.ClinicalExams.Count == 0
+        && page.ClinicalAttachments.Count == 0
+        && page.VaccineProtocols.Count == 0
+        && page.VaccineDoses.Count == 0
+        && page.ClinicalQuotes.Count == 0
+        && page.WardUnits.Count == 0
+        && page.Hospitalizations.Count == 0
+        && page.InventoryProducts.Count == 0
+        && page.InventoryProductLots.Count == 0
+        && page.InventorySuppliers.Count == 0
+        && page.InventoryStockMovements.Count == 0
+        && page.SalesCashRegisters.Count == 0
+        && page.SalesOrders.Count == 0;
 }

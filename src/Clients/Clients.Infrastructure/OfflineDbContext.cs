@@ -6,6 +6,7 @@ using Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Inventory.Domain.Entities;
+using Sales.Domain.Entities;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
 
@@ -125,6 +126,18 @@ public class OfflineDbContext : DbContext
     /// <summary>Local stock movement ledger.</summary>
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
 
+    /// <summary>Local POS orders (Fase 6.2).</summary>
+    public DbSet<Order> Orders => Set<Order>();
+
+    /// <summary>Local order lines.</summary>
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
+    /// <summary>Local order payments.</summary>
+    public DbSet<Payment> Payments => Set<Payment>();
+
+    /// <summary>Local cash register sessions.</summary>
+    public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -161,6 +174,10 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineProductBalanceConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSupplierConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineStockMovementConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesOrderConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesOrderItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesPaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCashRegisterConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

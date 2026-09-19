@@ -137,8 +137,7 @@ namespace Core.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId", "Name")
-                        .IsUnique();
+                    b.HasIndex("TenantId", "Name");
 
                     b.ToTable("IdempotencyRecords", "dbo");
                 });

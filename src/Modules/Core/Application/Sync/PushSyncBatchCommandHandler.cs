@@ -32,7 +32,8 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
 
         var processed = new List<Guid>();
 
-        foreach (var message in request.Messages.OrderBy(m => m.CreatedAt))
+        // Preserve client FIFO order; do not re-sort by CreatedAt (Create+Pay often share the same tick).
+        foreach (var message in request.Messages)
         {
             var command = SyncOutboxCommandMapper.MapToCommand(message);
             if (command is null)

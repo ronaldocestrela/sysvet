@@ -1,7 +1,8 @@
 @page "/sales/cash-register"
 @using Clients.Infrastructure.Http
+@using Clients.Infrastructure.Sales
 @using SharedUI.Services
-@inject ISalesApiService SalesService
+@inject ISalesStore SalesStore
 @inject IToastService Toast
 @inject IConnectivityService Connectivity
 
@@ -9,7 +10,7 @@
     <h2>Gerenciamento de Caixa</h2>
     @if (!Connectivity.IsOnline)
     {
-        <p class="text-warning">Operações de caixa requerem conexão.</p>
+        <p class="text-muted">Caixa offline — sincroniza ao reconectar.</p>
     }
 </div>
 
@@ -28,7 +29,7 @@
             <label>Valor real em caixa (para conferência):</label>
             <input type="number" step="0.01" class="form-control" @bind="_actualClosingBalance" />
         </div>
-        <button class="btn btn-danger" @onclick="CloseRegister" disabled="@(_isLoading || !Connectivity.IsOnline)">
+        <button class="btn btn-danger" @onclick="CloseRegister" disabled="@_isLoading">
             @(_isLoading ? "Fechando..." : "Fechar Caixa")
         </button>
     </div>
@@ -41,7 +42,7 @@ else
             <label>Saldo Inicial (Troco):</label>
             <input type="number" step="0.01" class="form-control" @bind="_openingBalance" />
         </div>
-        <button class="btn btn-primary" @onclick="OpenRegister" disabled="@(_isLoading || !Connectivity.IsOnline)">
+        <button class="btn btn-primary" @onclick="OpenRegister" disabled="@_isLoading">
             @(_isLoading ? "Abrindo..." : "Abrir Caixa")
         </button>
     </div>
@@ -60,7 +61,7 @@ else
 
     private async Task RefreshRegisterAsync()
     {
-        var result = await SalesService.GetOpenCashRegisterAsync();
+        var result = await SalesStore.GetOpenCashRegisterAsync();
         if (result.IsSuccess)
         {
             _openRegister = result.Value;
@@ -74,7 +75,7 @@ else
     private async Task OpenRegister()
     {
         _isLoading = true;
-        var result = await SalesService.OpenCashRegisterAsync(_openingBalance);
+        var result = await SalesStore.OpenCashRegisterAsync(_openingBalance);
         if (result.IsFailure)
         {
             Toast.Show(result.Error.Message, ToastType.Error);
@@ -95,7 +96,7 @@ else
         }
 
         _isLoading = true;
-        var result = await SalesService.CloseCashRegisterAsync(_openRegister.Id, _actualClosingBalance);
+        var result = await SalesStore.CloseCashRegisterAsync(_openRegister.Id, _actualClosingBalance);
         if (result.IsFailure)
         {
             Toast.Show(result.Error.Message, ToastType.Error);

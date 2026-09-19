@@ -27,6 +27,15 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
     public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
+        if (request.OrderId is Guid orderId && orderId != Guid.Empty)
+        {
+            var existing = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+            if (existing is not null)
+            {
+                return Result.Success(existing.Id);
+            }
+        }
+
         var cashRegister = await _cashRegisterRepository.GetByIdAsync(request.CashRegisterId, cancellationToken);
         if (cashRegister == null || cashRegister.Status != CashRegisterStatus.Open)
         {
@@ -56,11 +65,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
             }
         }
 
-        var orderResult = Order.Create(
-            request.CashRegisterId,
-            request.TutorId,
-            request.PetId,
-            request.SourceQuoteId);
+        var orderResult = request.OrderId is Guid clientOrderId && clientOrderId != Guid.Empty
+            ? Order.Create(clientOrderId, request.CashRegisterId, request.TutorId, request.PetId, request.SourceQuoteId)
+            : Order.Create(request.CashRegisterId, request.TutorId, request.PetId, request.SourceQuoteId);
         if (!orderResult.IsSuccess)
         {
             return Result.Failure<Guid>(orderResult.Error);

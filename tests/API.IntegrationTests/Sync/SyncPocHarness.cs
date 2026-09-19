@@ -42,11 +42,12 @@ public sealed class SyncPocHarness : IAsyncDisposable
     {
         var offlineDbOptions = new DbContextOptionsBuilder<OfflineDbContext>()
             .UseSqlite("DataSource=:memory:")
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         var offlineDb = new OfflineDbContext(offlineDbOptions, new NoOpSqliteFilePersistence());
         await offlineDb.Database.OpenConnectionAsync();
-        await offlineDb.Database.MigrateAsync();
+        await offlineDb.Database.EnsureCreatedAsync();
 
         var connectivity = new FakeSyncConnectivity();
         connectivity.SetOnline(true);
@@ -59,6 +60,7 @@ public sealed class SyncPocHarness : IAsyncDisposable
         services.AddSingleton(offlineDb);
         services.AddSingleton(new OfflineSyncPullApplier(offlineDb));
         services.AddSingleton<ISyncHttpClient>(_ => new SyncHttpClient(apiClient));
+        services.AddSingleton<SyncWakeSignal>();
         services.AddSingleton<SyncBackgroundWorker>();
         services.AddSingleton<IServiceProvider>(sp => sp);
 

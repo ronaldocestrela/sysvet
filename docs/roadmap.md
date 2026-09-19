@@ -709,7 +709,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **6.1 Motor de vendas (PDV)** | 13 | Concluído |
-| **6.2 PDV 100% offline** | 8 | Pendente |
+| **6.2 PDV 100% offline** | 8 | Concluído |
 | **6.3 Pagamentos e TEF** | 13 | Pendente |
 | **6.4 Comissões, descontos, devoluções** | 8 | Pendente |
 | **6.5 Pacotes, kits e pré-pagos** | 5 | Pendente |
@@ -739,12 +739,23 @@ flowchart TD
 
 **Aceite:** Produto com saldo + serviço + split + pay → movimento `Sale`, pedido `Paid`/`FinanceIntegrationStatus.Pending` (`SalesEndpointsTests`).
 
-### 6.2 PDV 100% offline (8 SP)
+### 6.2 PDV 100% offline (8 SP) — Concluído
 
-- [ ] Fila local de vendas; sync com resolução de conflito de estoque
-- [ ] Numeração offline segura (sequência reservada ou UUID)
+**Domain**
+- [x] `Order.Create(id, …)`, `CashRegister.Open(id, …)`; `RestoreFromSync` para pull; ADR-026
 
-**Aceite:** 10 vendas offline sincronizam sem duplicidade.
+**Application**
+- [x] `CreateOrder`/`PayOrder`/`OpenCashRegister`/`CloseCashRegister` com id do cliente e replay idempotente
+- [x] `IsPermanentFailure` para `Order.InsufficientStock` / `ProductBalance.InsufficientFunds`
+
+**Sync**
+- [x] `SalesSyncPushHandler`, `SalesSyncChangeFeedContributor`; DTOs/applier no client; pull vazio corrigido; `RequestSync()`
+
+**Clients**
+- [x] SQLite `Order`/`CashRegister`; `ISalesStore`/`OfflineSalesStore`; outbox Create+Pay FIFO; débito local de estoque (sem movimento local)
+- [x] POS/caixa/comprovante via store; badge pendente/sincronizado/conflito
+
+**Aceite:** 10 vendas offline sincronizam sem duplicidade (`PdvOfflineTenSalesSyncTests`).
 
 ### 6.3 Pagamentos e TEF (13 SP)
 

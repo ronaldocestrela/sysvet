@@ -48,9 +48,21 @@ public sealed class InventorySyncPushHandler : ISyncPushHandler
     {
         return command switch
         {
-            ICommand<Guid> cmdGuid => Map(await _mediator.Send(cmdGuid, cancellationToken)),
-            ICommand cmd => await _mediator.Send(cmd, cancellationToken),
-            _ => Result.Failure(new Error("Sync.InvalidCommand", "Unsupported inventory sync command."))
+            RegisterProductCommand registerProduct => Map(await _mediator.Send(registerProduct, cancellationToken)),
+            UpdateProductCommand updateProduct => await _mediator.Send(updateProduct, cancellationToken),
+            SetProductActiveCommand setProductActive => await _mediator.Send(setProductActive, cancellationToken),
+            RegisterSupplierCommand registerSupplier => Map(await _mediator.Send(registerSupplier, cancellationToken)),
+            UpdateSupplierCommand updateSupplier => await _mediator.Send(updateSupplier, cancellationToken),
+            SetSupplierActiveCommand setSupplierActive => await _mediator.Send(setSupplierActive, cancellationToken),
+            RegisterProductLotCommand registerLot => Map(await _mediator.Send(registerLot, cancellationToken)),
+            UpdateProductLotCommand updateLot => await _mediator.Send(updateLot, cancellationToken),
+            SetProductLotActiveCommand setLotActive => await _mediator.Send(setLotActive, cancellationToken),
+            RegisterStockMovementCommand registerMovement => Map(await _mediator.Send(registerMovement, cancellationToken)),
+            TransferStockCommand transfer => await _mediator.Send(transfer, cancellationToken),
+            RegisterStockLossCommand loss => await _mediator.Send(loss, cancellationToken),
+            FractionatePackageCommand fractionate => await _mediator.Send(fractionate, cancellationToken),
+            RegisterSupplierReturnCommand supplierReturn => await _mediator.Send(supplierReturn, cancellationToken),
+            _ => Result.Failure(new Error("Sync.HandlerMismatch", "Not an inventory sync command."))
         };
     }
 

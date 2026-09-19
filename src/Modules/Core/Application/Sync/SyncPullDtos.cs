@@ -374,6 +374,57 @@ public sealed class SyncInventorySupplierDto
     public string RowVersion { get; init; } = string.Empty;
 }
 
+/// <summary>Cash register session row for sync pull.</summary>
+public sealed class SyncSalesCashRegisterDto
+{
+    public Guid Id { get; init; }
+    public Guid OpenedByUserId { get; init; }
+    public DateTimeOffset OpenedAt { get; init; }
+    public DateTimeOffset? ClosedAt { get; init; }
+    public decimal OpeningBalance { get; init; }
+    public decimal ClosingBalance { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>POS order row for sync pull.</summary>
+public sealed class SyncSalesOrderDto
+{
+    public Guid Id { get; init; }
+    public Guid CashRegisterId { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public Guid? TutorId { get; init; }
+    public Guid? PetId { get; init; }
+    public Guid? SourceQuoteId { get; init; }
+    public string FinanceIntegrationStatus { get; init; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset? PaidAt { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+    public IReadOnlyList<SyncSalesOrderItemDto> Items { get; init; } = Array.Empty<SyncSalesOrderItemDto>();
+    public IReadOnlyList<SyncSalesOrderPaymentDto> Payments { get; init; } = Array.Empty<SyncSalesOrderPaymentDto>();
+}
+
+/// <summary>Order line on sync pull.</summary>
+public sealed class SyncSalesOrderItemDto
+{
+    public Guid Id { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public Guid? ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public decimal Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+}
+
+/// <summary>Payment line on sync pull.</summary>
+public sealed class SyncSalesOrderPaymentDto
+{
+    public Guid Id { get; init; }
+    public string Method { get; init; } = string.Empty;
+    public decimal Amount { get; init; }
+}
+
 public sealed class PullChangesResult
 {
     public IReadOnlyList<SyncTutorDto> Tutors { get; init; } = Array.Empty<SyncTutorDto>();
@@ -394,6 +445,8 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<SyncInventoryProductLotDto>();
     public IReadOnlyList<SyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<SyncInventorySupplierDto>();
     public IReadOnlyList<SyncInventoryStockMovementDto> InventoryStockMovements { get; init; } = Array.Empty<SyncInventoryStockMovementDto>();
+    public IReadOnlyList<SyncSalesCashRegisterDto> SalesCashRegisters { get; init; } = Array.Empty<SyncSalesCashRegisterDto>();
+    public IReadOnlyList<SyncSalesOrderDto> SalesOrders { get; init; } = Array.Empty<SyncSalesOrderDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

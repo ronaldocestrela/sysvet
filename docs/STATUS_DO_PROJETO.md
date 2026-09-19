@@ -146,9 +146,15 @@ Iniciado o módulo de estoque.
 
 - Carrinho produto/serviço, split de pagamentos, tutor/pet, comprovante; caixa aberto/fechado + saldo derivado.
 - Pay atômico com `ConsumeStockForSaleRequest`; orçamento aprovado → `ClinicalQuoteConvertedEvent`.
-- Clients: `SalesApiService`, POS/caixa/comprovante online-only; conversão de orçamento na fila PDV.
+- Clients: checkout via HTTP na 6.1; catálogo local via `IInventoryStore`.
 
-### 👉 **Próxima Ação: Fase 6.2 — PDV 100% offline**
+### Fase 6.2 — PDV 100% offline — Concluída (ADR-026)
+
+- `ISalesStore`/`OfflineSalesStore`: SQLite + outbox Create+Pay; UUID de pedido/caixa no cliente; débito otimista de estoque local.
+- Plugin Sales no push/pull; conflito permanente quando o servidor recusa estoque; `RequestSync()` após mutações.
+- SharedUI POS/caixa/comprovante sem gate de rede; aceite `PdvOfflineTenSalesSyncTests` (10 vendas, replay idempotente).
+
+### 👉 **Próxima Ação: Fase 6.3 — Pagamentos e TEF**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 6.
 

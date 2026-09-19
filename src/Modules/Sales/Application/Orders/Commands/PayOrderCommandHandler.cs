@@ -31,6 +31,11 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
             return Result.Failure<bool>(Sales.Domain.ErrorCodes.Order.NotFound);
         }
 
+        if (order.Status == OrderStatus.Paid)
+        {
+            return Result.Success(true);
+        }
+
         var paymentEntities = new List<Payment>();
         foreach (var dto in request.Payments)
         {

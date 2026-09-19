@@ -45,4 +45,16 @@ public class Payment : Entity
     {
         return new Payment(orderId, method, amount);
     }
+
+    /// <summary>Rehydrates a payment from sync pull.</summary>
+    public static Payment Restore(Guid id, Guid orderId, PaymentMethod method, decimal amount)
+        => new(id, orderId, method, Money.CreateUnsafe(amount));
+
+    private Payment(Guid id, Guid orderId, PaymentMethod method, Money amount)
+        : base(id)
+    {
+        OrderId = orderId;
+        Method = method;
+        Amount = amount;
+    }
 }

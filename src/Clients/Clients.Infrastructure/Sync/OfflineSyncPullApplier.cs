@@ -6,6 +6,7 @@ using Inventory.Domain.Entities;
 using Inventory.Domain.Enums;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
+using Sales.Domain.Entities;
 using Veterinary.Domain.ValueObjects;
 
 namespace Clients.Infrastructure.Sync;
@@ -119,6 +120,16 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.InventoryStockMovements)
             {
                 await UpsertInventoryStockMovementAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.SalesCashRegisters)
+            {
+                await UpsertSalesCashRegisterAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.SalesOrders)
+            {
+                await UpsertSalesOrderAsync(dto, cancellationToken);
             }
 
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
@@ -817,5 +828,110 @@ public sealed class OfflineSyncPullApplier
 
         movement.Value.UpdatedAt = dto.UpdatedAt;
         _dbContext.StockMovements.Add(movement.Value);
+    }
+
+    private async Task UpsertSalesCashRegisterAsync(ClientSyncSalesCashRegisterDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<global::Sales.Domain.Enums.CashRegisterStatus>(dto.Status, true, out var status))
+        {
+            return;
+        }
+
+        var register = await _dbContext.CashRegisters.FirstOrDefaultAsync(c => c.Id == dto.Id, cancellationToken);
+        if (register is null)
+        {
+            _dbContext.CashRegisters.Add(CashRegister.RestoreFromSync(
+                dto.Id,
+                dto.OpenedByUserId,
+                dto.OpenedAt,
+                dto.ClosedAt,
+                dto.OpeningBalance,
+                dto.ClosingBalance,
+                status,
+                dto.UpdatedAt));
+            return;
+        }
+
+        if (dto.UpdatedAt <= register.UpdatedAt)
+        {
+            return;
+        }
+
+        _dbContext.CashRegisters.Remove(register);
+        _dbContext.CashRegisters.Add(CashRegister.RestoreFromSync(
+            dto.Id,
+            dto.OpenedByUserId,
+            dto.OpenedAt,
+            dto.ClosedAt,
+            dto.OpeningBalance,
+            dto.ClosingBalance,
+            status,
+            dto.UpdatedAt));
+    }
+
+    private async Task UpsertSalesOrderAsync(ClientSyncSalesOrderDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<global::Sales.Domain.Enums.OrderStatus>(dto.Status, true, out var status) ||
+            !Enum.TryParse<global::Sales.Domain.Enums.FinanceIntegrationStatus>(dto.FinanceIntegrationStatus, true, out var financeStatus))
+        {
+            return;
+        }
+
+        var items = dto.Items.Select(i =>
+        {
+            Enum.TryParse<global::Sales.Domain.Enums.OrderItemKind>(i.Kind, true, out var kind);
+            return (i.Id, kind, i.ProductId, i.ProductName, i.Quantity, i.UnitPrice);
+        }).ToList();
+
+        var payments = dto.Payments.Select(p =>
+        {
+            Enum.TryParse<global::Sales.Domain.Enums.PaymentMethod>(p.Method, true, out var method);
+            return (p.Id, method, p.Amount);
+        }).ToList();
+
+        var order = await _dbContext.Orders
+            .Include(o => o.Items)
+            .Include(o => o.Payments)
+            .FirstOrDefaultAsync(o => o.Id == dto.Id, cancellationToken);
+
+        if (order is null)
+        {
+            _dbContext.Orders.Add(Order.RestoreFromSync(
+                dto.Id,
+                dto.CashRegisterId,
+                status,
+                dto.TutorId,
+                dto.PetId,
+                dto.SourceQuoteId,
+                financeStatus,
+                dto.CreatedAt,
+                dto.PaidAt,
+                dto.UpdatedAt,
+                items,
+                payments));
+            return;
+        }
+
+        if (dto.UpdatedAt <= order.UpdatedAt)
+        {
+            return;
+        }
+
+        _dbContext.OrderItems.RemoveRange(_dbContext.OrderItems.Where(i => i.OrderId == dto.Id));
+        _dbContext.Payments.RemoveRange(_dbContext.Payments.Where(p => p.OrderId == dto.Id));
+        _dbContext.Orders.Remove(order);
+        _dbContext.Orders.Add(Order.RestoreFromSync(
+            dto.Id,
+            dto.CashRegisterId,
+            status,
+            dto.TutorId,
+            dto.PetId,
+            dto.SourceQuoteId,
+            financeStatus,
+            dto.CreatedAt,
+            dto.PaidAt,
+            dto.UpdatedAt,
+            items,
+            payments));
     }
 }

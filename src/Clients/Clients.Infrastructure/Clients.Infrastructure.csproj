@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\Modules\Core\Domain\Core.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Veterinary\Domain\Veterinary.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Inventory\Domain\Inventory.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Sales\Domain\Sales.Domain.csproj" />
   </ItemGroup>
 
 </Project>

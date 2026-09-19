@@ -35,6 +35,8 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<ClientSyncInventoryProductLotDto>();
     public IReadOnlyList<ClientSyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<ClientSyncInventorySupplierDto>();
     public IReadOnlyList<ClientSyncInventoryStockMovementDto> InventoryStockMovements { get; init; } = Array.Empty<ClientSyncInventoryStockMovementDto>();
+    public IReadOnlyList<ClientSyncSalesCashRegisterDto> SalesCashRegisters { get; init; } = Array.Empty<ClientSyncSalesCashRegisterDto>();
+    public IReadOnlyList<ClientSyncSalesOrderDto> SalesOrders { get; init; } = Array.Empty<ClientSyncSalesOrderDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -372,4 +374,49 @@ public sealed class ClientSyncHospitalizationDto
     public IReadOnlyList<ClientSyncHospitalMedicationOrderDto> MedicationOrders { get; init; } = Array.Empty<ClientSyncHospitalMedicationOrderDto>();
     public IReadOnlyList<ClientSyncMedicationAdministrationDto> Administrations { get; init; } = Array.Empty<ClientSyncMedicationAdministrationDto>();
     public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncSalesCashRegisterDto
+{
+    public Guid Id { get; init; }
+    public Guid OpenedByUserId { get; init; }
+    public DateTimeOffset OpenedAt { get; init; }
+    public DateTimeOffset? ClosedAt { get; init; }
+    public decimal OpeningBalance { get; init; }
+    public decimal ClosingBalance { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncSalesOrderDto
+{
+    public Guid Id { get; init; }
+    public Guid CashRegisterId { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public Guid? TutorId { get; init; }
+    public Guid? PetId { get; init; }
+    public Guid? SourceQuoteId { get; init; }
+    public string FinanceIntegrationStatus { get; init; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset? PaidAt { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<ClientSyncSalesOrderItemDto> Items { get; init; } = Array.Empty<ClientSyncSalesOrderItemDto>();
+    public IReadOnlyList<ClientSyncSalesOrderPaymentDto> Payments { get; init; } = Array.Empty<ClientSyncSalesOrderPaymentDto>();
+}
+
+public sealed class ClientSyncSalesOrderItemDto
+{
+    public Guid Id { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public Guid? ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public decimal Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+}
+
+public sealed class ClientSyncSalesOrderPaymentDto
+{
+    public Guid Id { get; init; }
+    public string Method { get; init; } = string.Empty;
+    public decimal Amount { get; init; }
 }

@@ -12,6 +12,7 @@ public static class ErrorCodes
         public static readonly Error NotFound = new("Order.NotFound", "Pedido não encontrado.");
         public static readonly Error CashRegisterNotOpen = new("Order.CashRegisterNotOpen", "O caixa informado não existe ou não está aberto.");
         public static readonly Error InvalidCashRegister = new("Order.InvalidCashRegister", "Caixa inválido.");
+        public static readonly Error InvalidId = new("Order.InvalidId", "Identificador do pedido inválido.");
         public static readonly Error PetRequiresTutor = new("Order.PetRequiresTutor", "Informe o tutor ao vincular um pet.");
         public static readonly Error NotDraft = new("Order.NotDraft", "Não é possível adicionar itens a um pedido que não está em rascunho.");
         public static readonly Error InvalidQuantity = new("Order.InvalidQuantity", "A quantidade deve ser maior que zero.");
@@ -41,6 +42,7 @@ public static class ErrorCodes
         public static readonly Error NotFound = new("CashRegister.NotFound", "Caixa não encontrado.");
         public static readonly Error AlreadyClosed = new("CashRegister.AlreadyClosed", "O caixa já está fechado.");
         public static readonly Error AlreadyOpen = new("CashRegister.AlreadyOpen", "O usuário já possui um caixa aberto.");
+        public static readonly Error InvalidId = new("CashRegister.InvalidId", "Identificador do caixa inválido.");
     }
 
     public static class Money

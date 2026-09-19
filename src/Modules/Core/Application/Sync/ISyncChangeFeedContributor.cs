@@ -28,6 +28,8 @@ public sealed class SyncContributorChanges
     public IReadOnlyList<SyncInventoryProductLotDto> InventoryProductLots { get; init; } = Array.Empty<SyncInventoryProductLotDto>();
     public IReadOnlyList<SyncInventorySupplierDto> InventorySuppliers { get; init; } = Array.Empty<SyncInventorySupplierDto>();
     public IReadOnlyList<SyncInventoryStockMovementDto> InventoryStockMovements { get; init; } = Array.Empty<SyncInventoryStockMovementDto>();
+    public IReadOnlyList<SyncSalesCashRegisterDto> SalesCashRegisters { get; init; } = Array.Empty<SyncSalesCashRegisterDto>();
+    public IReadOnlyList<SyncSalesOrderDto> SalesOrders { get; init; } = Array.Empty<SyncSalesOrderDto>();
     public DateTimeOffset MaxUpdatedAt { get; init; }
     public bool HasMore { get; init; }
 }

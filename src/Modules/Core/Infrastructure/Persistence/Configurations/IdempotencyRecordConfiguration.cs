@@ -20,6 +20,6 @@ public class IdempotencyRecordConfiguration : IEntityTypeConfiguration<Idempoten
             .IsRequired()
             .HasMaxLength(256);
 
-        builder.HasIndex("TenantId", nameof(IdempotencyRecord.Name)).IsUnique();
+        builder.HasIndex("TenantId", nameof(IdempotencyRecord.Name));
     }
 }

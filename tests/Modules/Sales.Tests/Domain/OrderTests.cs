@@ -8,7 +8,7 @@ public class OrderTests
 {
     private static Order CreateDraftOrder()
     {
-        var result = Order.Create(Guid.NewGuid());
+        var result = Order.Create(cashRegisterId: Guid.NewGuid());
         result.IsSuccess.Should().BeTrue();
         return result.Value;
     }
@@ -16,7 +16,7 @@ public class OrderTests
     [Fact]
     public void Create_WithPetWithoutTutor_ReturnsFailure()
     {
-        var result = Order.Create(Guid.NewGuid(), tutorId: null, petId: Guid.NewGuid());
+        var result = Order.Create(cashRegisterId: Guid.NewGuid(), tutorId: null, petId: Guid.NewGuid());
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Order.PetRequiresTutor");
@@ -28,12 +28,33 @@ public class OrderTests
         var tutorId = Guid.NewGuid();
         var petId = Guid.NewGuid();
 
-        var result = Order.Create(Guid.NewGuid(), tutorId, petId);
+        var result = Order.Create(cashRegisterId: Guid.NewGuid(), tutorId, petId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.TutorId.Should().Be(tutorId);
         result.Value.PetId.Should().Be(petId);
         result.Value.Status.Should().Be(OrderStatus.Draft);
+    }
+
+    [Fact]
+    public void Create_WithClientId_UsesProvidedId()
+    {
+        var orderId = Guid.NewGuid();
+        var cashRegisterId = Guid.NewGuid();
+
+        var result = Order.Create(orderId, cashRegisterId);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Id.Should().Be(orderId);
+        result.Value.CashRegisterId.Should().Be(cashRegisterId);
+    }
+
+    [Fact]
+    public void Create_WithEmptyClientId_ReturnsFailure()
+    {
+        var result = Order.Create(Guid.Empty, Guid.NewGuid());
+
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]

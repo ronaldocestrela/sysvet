@@ -8,6 +8,7 @@ public sealed class CreateOrderCommandValidator : AbstractValidator<CreateOrderC
 {
     public CreateOrderCommandValidator()
     {
+        When(x => x.OrderId.HasValue, () => RuleFor(x => x.OrderId!.Value).NotEmpty());
         RuleFor(x => x.CashRegisterId).NotEmpty();
         RuleFor(x => x.Items).NotEmpty();
         RuleForEach(x => x.Items).ChildRules(item =>

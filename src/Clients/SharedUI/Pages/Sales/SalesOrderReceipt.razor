@@ -2,8 +2,9 @@
 @using Microsoft.JSInterop
 @using SharedUI.Components
 @using Clients.Infrastructure.Http
+@using Clients.Infrastructure.Sales
 @using SharedUI.Services
-@inject ISalesApiService SalesService
+@inject ISalesStore SalesStore
 @inject IToastService Toast
 @inject IJSRuntime Js
 
@@ -18,7 +19,7 @@
     {
         <div class="card print-area">
             <p><strong>Pedido:</strong> @_order.Id</p>
-            <p><strong>Status:</strong> @_order.Status</p>
+            <p><strong>Status:</strong> @_order.Status · Sync: @_syncState</p>
             <p><strong>Financeiro:</strong> @_order.FinanceIntegrationStatus</p>
             <p><strong>Data:</strong> @(_order.PaidAt?.LocalDateTime.ToString("g") ?? _order.CreatedAt.LocalDateTime.ToString("g"))</p>
             <table class="data-table">
@@ -63,11 +64,13 @@
     [Parameter] public Guid OrderId { get; set; }
 
     private SalesOrderDetailClientDto? _order;
+    private SalesOrderSyncState _syncState;
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await SalesService.GetOrderByIdAsync(OrderId);
+        _syncState = await SalesStore.GetOrderSyncStateAsync(OrderId);
+        var result = await SalesStore.GetOrderByIdAsync(OrderId);
         if (result.IsSuccess)
         {
             _order = result.Value;

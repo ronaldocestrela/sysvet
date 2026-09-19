@@ -18,7 +18,8 @@ public class CashRegister : AggregateRoot
 
     private CashRegister() { }
 
-    private CashRegister(Guid openedByUserId, Money openingBalance)
+    private CashRegister(Guid id, Guid openedByUserId, Money openingBalance)
+        : base(id)
     {
         OpenedByUserId = openedByUserId;
         OpeningBalance = openingBalance;
@@ -27,17 +28,28 @@ public class CashRegister : AggregateRoot
     }
 
     /// <summary>
-    /// Opens a new register session for the operator.
+    /// Opens a new register session for the operator (server-generated id).
     /// </summary>
     public static Result<CashRegister> Open(Guid userId, decimal openingBalance)
+        => Open(Guid.NewGuid(), userId, openingBalance);
+
+    /// <summary>
+    /// Opens a register session with a client-assigned id for offline sync (ADR-026).
+    /// </summary>
+    public static Result<CashRegister> Open(Guid id, Guid userId, decimal openingBalance)
     {
+        if (id == Guid.Empty)
+        {
+            return Result.Failure<CashRegister>(ErrorCodes.CashRegister.InvalidId);
+        }
+
         var moneyResult = Money.Create(openingBalance);
         if (!moneyResult.IsSuccess)
         {
             return Result.Failure<CashRegister>(moneyResult.Error);
         }
 
-        return Result.Success(new CashRegister(userId, moneyResult.Value));
+        return Result.Success(new CashRegister(id, userId, moneyResult.Value));
     }
 
     /// <summary>
@@ -59,7 +71,31 @@ public class CashRegister : AggregateRoot
         ClosingBalance = moneyResult.Value;
         ClosedAt = DateTimeOffset.UtcNow;
         Status = CashRegisterStatus.Closed;
+        UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success(true);
+    }
+
+    /// <summary>Rehydrates a cash register from sync pull.</summary>
+    public static CashRegister RestoreFromSync(
+        Guid id,
+        Guid openedByUserId,
+        DateTimeOffset openedAt,
+        DateTimeOffset? closedAt,
+        decimal openingBalance,
+        decimal closingBalance,
+        CashRegisterStatus status,
+        DateTimeOffset updatedAt)
+    {
+        var opening = Money.CreateUnsafe(openingBalance);
+        var register = new CashRegister(id, openedByUserId, opening)
+        {
+            OpenedAt = openedAt,
+            ClosedAt = closedAt,
+            ClosingBalance = Money.CreateUnsafe(closingBalance),
+            Status = status,
+            UpdatedAt = updatedAt
+        };
+        return register;
     }
 }

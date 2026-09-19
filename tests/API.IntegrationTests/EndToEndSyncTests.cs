@@ -70,11 +70,12 @@ public class EndToEndSyncTests
         // 1. Arrange - Setup Offline Client Database
         var offlineDbOptions = new DbContextOptionsBuilder<OfflineDbContext>()
             .UseSqlite("DataSource=:memory:")
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         using var offlineDb = new OfflineDbContext(offlineDbOptions, new Clients.Infrastructure.Persistence.NoOpSqliteFilePersistence());
         await offlineDb.Database.OpenConnectionAsync(); // keep connection open for in-memory sqlite
-        await offlineDb.Database.MigrateAsync();
+        await offlineDb.Database.EnsureCreatedAsync();
 
         // 2. Act - User creates a Tutor while Offline
         var cpfStr = "12345678909";
@@ -178,11 +179,12 @@ public class EndToEndSyncTests
     {
         var offlineDbOptions = new DbContextOptionsBuilder<OfflineDbContext>()
             .UseSqlite("DataSource=:memory:")
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         using var offlineDb = new OfflineDbContext(offlineDbOptions, new Clients.Infrastructure.Persistence.NoOpSqliteFilePersistence());
         await offlineDb.Database.OpenConnectionAsync();
-        await offlineDb.Database.MigrateAsync();
+        await offlineDb.Database.EnsureCreatedAsync();
 
         var tutorId = Guid.NewGuid();
         var tutor = Tutor.Create(

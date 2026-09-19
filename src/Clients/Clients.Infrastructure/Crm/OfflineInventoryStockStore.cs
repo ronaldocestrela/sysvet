@@ -537,7 +537,7 @@ public sealed partial class OfflineInventoryStore
     {
         var products = await _dbContext.Products.AsNoTracking().Where(p => p.IsActive).ToListAsync(cancellationToken);
         var suppliers = await _dbContext.Suppliers.AsNoTracking().ToDictionaryAsync(s => s.Id, cancellationToken);
-        var linesBySupplier = new Dictionary<Guid?, List<InventoryPurchaseSuggestionLine>>();
+        var linesBySupplier = new Dictionary<Guid, List<InventoryPurchaseSuggestionLine>>();
 
         foreach (var product in products)
         {
@@ -558,10 +558,11 @@ public sealed partial class OfflineInventoryStore
                 continue;
             }
 
-            if (!linesBySupplier.TryGetValue(product.SupplierId, out var list))
+            var supplierKey = product.SupplierId ?? Guid.Empty;
+            if (!linesBySupplier.TryGetValue(supplierKey, out var list))
             {
                 list = [];
-                linesBySupplier[product.SupplierId] = list;
+                linesBySupplier[supplierKey] = list;
             }
 
             list.Add(new InventoryPurchaseSuggestionLine
@@ -580,15 +581,16 @@ public sealed partial class OfflineInventoryStore
         }
 
         var groups = linesBySupplier
-            .OrderBy(k => k.Key ?? Guid.Empty)
+            .OrderBy(k => k.Key)
             .Select(kvp =>
             {
-                Supplier? supplier = kvp.Key is Guid sid && suppliers.TryGetValue(sid, out var s) ? s : null;
+                Guid? groupedSupplierId = kvp.Key == Guid.Empty ? null : kvp.Key;
+                Supplier? supplier = groupedSupplierId is Guid sid && suppliers.TryGetValue(sid, out var s) ? s : null;
                 var name = supplier?.TradeName ?? supplier?.LegalName ?? "Sem fornecedor";
                 var lines = kvp.Value.OrderBy(l => l.ProductName).ToList();
                 return new InventoryPurchaseSuggestionGroup
                 {
-                    SupplierId = kvp.Key,
+                    SupplierId = groupedSupplierId,
                     SupplierName = name,
                     SupplierDocument = supplier?.Document,
                     Lines = lines,

@@ -44,8 +44,6 @@ builder.Services.AddSingleton<Clients.Infrastructure.Sync.ISyncConnectivity, Sha
 
 builder.Services.AddScoped<SharedUI.Services.IVeterinaryApiService, SharedUI.Services.MockVeterinaryApiService>();
 builder.Services.AddScoped<SharedUI.Services.IInventoryApiService, SharedUI.Services.MockInventoryApiService>();
-builder.Services.AddScoped<Clients.Infrastructure.Http.ISalesApiService, Clients.Infrastructure.Http.SalesApiService>();
-
 Batteries_V2.Init();
 
 builder.Services.AddSingleton<ISqliteFilePersistence, WebIndexedDbSqlitePersistence>();

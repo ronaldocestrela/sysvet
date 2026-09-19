@@ -33,8 +33,11 @@ public static class SalesEndpointExtensions
             return (await mediator.Send(command)).ToHttpResult();
         });
 
-        group.MapPost("/cash-registers/close", async (CloseCashRegisterCommand command, IMediator mediator) =>
-            (await mediator.Send(command)).ToHttpResult());
+        group.MapPost("/cash-registers/close", async (HttpContext httpContext, CloseCashRegisterCommand command, IMediator mediator) =>
+        {
+            command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
 
         group.MapPost("/orders", async (HttpContext httpContext, CreateOrderCommand command, IMediator mediator) =>
         {

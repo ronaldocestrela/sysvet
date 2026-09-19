@@ -428,4 +428,50 @@ internal static class OutboxPayloadFactory
             SupplierId = supplierId,
             IdempotencyKey = idempotencyKey
         });
+
+    public static string OpenCashRegister(Guid? cashRegisterId, decimal openingBalance, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            CashRegisterId = cashRegisterId,
+            OpeningBalance = openingBalance,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string CloseCashRegister(Guid cashRegisterId, decimal actualClosingBalance, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            CashRegisterId = cashRegisterId,
+            ActualClosingBalance = actualClosingBalance,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string CreateOrder(
+        Guid orderId,
+        Guid cashRegisterId,
+        Guid? tutorId,
+        Guid? petId,
+        Guid? sourceQuoteId,
+        IReadOnlyList<object> items,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            OrderId = orderId,
+            CashRegisterId = cashRegisterId,
+            TutorId = tutorId,
+            PetId = petId,
+            SourceQuoteId = sourceQuoteId,
+            Items = items,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string PayOrder(
+        Guid orderId,
+        IReadOnlyList<object> payments,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            OrderId = orderId,
+            Payments = payments,
+            IdempotencyKey = idempotencyKey
+        });
 }

@@ -1,5 +1,6 @@
 using Core.Domain;
 using MediatR;
+using Sales.Domain.Enums;
 using Sales.Domain.Repositories;
 
 namespace Sales.Application.CashRegisters.Commands;
@@ -19,6 +20,11 @@ public class CloseCashRegisterCommandHandler : IRequestHandler<CloseCashRegister
         if (cashRegister == null)
         {
             return Result.Failure<bool>(Sales.Domain.ErrorCodes.CashRegister.NotFound);
+        }
+
+        if (cashRegister.Status == CashRegisterStatus.Closed)
+        {
+            return Result.Success(true);
         }
 
         var result = cashRegister.Close(request.ActualClosingBalance);

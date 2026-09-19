@@ -20,12 +20,12 @@ A Fase 6.1 exige PDV online com carrinho (produto e serviço), split de pagament
 - **Estoque:** `ConsumeStockForSaleRequest` em Core; handler em Inventory com **falha** em saldo/FEFO insuficiente; removido `INotificationHandler<OrderPaidEvent>` de estoque para evitar dupla baixa.
 - **Pay pipeline:** `PayOrderCommandHandler` → domínio `Pay` → `Send(ConsumeStockForSaleRequest)` → persistência → `OrderPaidEvent` enriquecido (`TutorId`, pagamentos, `FinanceIntegrationStatus.Pending`) e, se `SourceQuoteId`, `ClinicalQuoteConvertedEvent` → Veterinary `MarkConverted`.
 - **Caixa:** saldo atual calculado na query (abertura + pagamentos `Cash` de pedidos pagos da sessão); sangria em 7.3.
-- **Clients:** checkout **online-only** (`SalesApiService`); catálogo local via `IInventoryStore`; sem outbox de vendas (6.2).
+- **Clients (6.1):** checkout via HTTP (`SalesApiService`); catálogo local via `IInventoryStore`. A fila offline de vendas foi entregue na **6.2** ([ADR-026](./ADR-026-pdv-offline-sync.md)).
 - **Finance:** `FinanceIntegrationStatus.Pending` no pedido pago; AR materializado na 7.2 ao consumir `OrderPaidEvent`.
 
 ## Consequências
 - Migration Sales: `Payments`, `TutorId`/`PetId`/`SourceQuoteId`, `OrderItem.Kind`, `ProductId` nullable.
-- TEF/NSU, fila offline PDV, comissões e devoluções permanecem nas fases 6.2–6.4.
+- TEF/NSU, comissões e devoluções permanecem nas fases 6.3–6.4; PDV offline na 6.2 (ADR-026).
 - Repositório Sales anexa pagamentos explicitamente na atualização (coleção com backing field EF).
 
 ## Confirmação no código

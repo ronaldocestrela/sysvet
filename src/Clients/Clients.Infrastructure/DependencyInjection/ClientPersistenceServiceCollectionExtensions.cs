@@ -1,9 +1,11 @@
 using System.Linq;
 using Clients.Infrastructure.Crm;
+using Clients.Infrastructure.Sales;
 using Clients.Infrastructure.Persistence;
 using Clients.Infrastructure.Persistence.Repositories;
 using Core.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Clients.Infrastructure.Sync;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,7 +40,11 @@ public static class ClientPersistenceServiceCollectionExtensions
             services.AddSingleton<ISqliteFilePersistence, NoOpSqliteFilePersistence>();
         }
 
-        services.AddDbContext<OfflineDbContext>((_, options) => configureSqlite(options));
+        services.AddDbContext<OfflineDbContext>((_, options) =>
+        {
+            configureSqlite(options);
+            options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+        });
 
         services.AddScoped<ITutorRepository, OfflineTutorRepository>();
         services.AddScoped<IPetRepository, OfflinePetRepository>();
@@ -55,6 +61,8 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<IClinicalQuoteStore, OfflineClinicalQuoteStore>();
         services.AddScoped<IHospitalizationStore, OfflineHospitalizationStore>();
         services.AddScoped<IInventoryStore, OfflineInventoryStore>();
+        services.AddScoped<ISalesStore, OfflineSalesStore>();
+        services.AddSingleton<SyncWakeSignal>();
         services.AddScoped<OfflineSyncPullApplier>();
 
         return services;

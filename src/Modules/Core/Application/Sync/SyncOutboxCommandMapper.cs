@@ -87,6 +87,8 @@ internal static class SyncOutboxCommandMapper
             var code when code.Contains("Invalid", StringComparison.Ordinal) => true,
             var code when code.Contains("Forbidden", StringComparison.Ordinal) => true,
             var code when code.Contains("AlreadyDeleted", StringComparison.Ordinal) => true,
+            "Order.InsufficientStock" => true,
+            "ProductBalance.InsufficientFunds" => true,
             _ => false
         };
     }

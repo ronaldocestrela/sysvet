@@ -10,6 +10,9 @@ namespace Sales.Application.Orders.Commands;
 [AuthorizeRequest(AuthorizationPolicies.Cashier, Permissions.SalesWrite)]
 public class CreateOrderCommand : ICommand<Guid>, IIdempotentCommand<Guid>
 {
+    /// <summary>Client-assigned order id for offline sync; optional on REST create.</summary>
+    public Guid? OrderId { get; set; }
+
     public Guid CashRegisterId { get; set; }
     public Guid? TutorId { get; set; }
     public Guid? PetId { get; set; }
