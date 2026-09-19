@@ -45,8 +45,21 @@ public sealed class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery
             }).ToList(),
             Payments = order.Payments.Select(p => new OrderPaymentDetailDto
             {
+                Id = p.Id,
                 Method = p.Method,
-                Amount = p.Amount.Amount
+                Amount = p.Amount.Amount,
+                Nsu = p.Nsu,
+                AuthorizationCode = p.AuthorizationCode,
+                Provider = p.Provider,
+                Installments = p.Installments,
+                RemainingRefundable = p.RemainingRefundable,
+                Refunds = p.Refunds.Select(r => new OrderPaymentRefundDetailDto
+                {
+                    Id = r.Id,
+                    Amount = r.Amount.Amount,
+                    RefundNsu = r.RefundNsu,
+                    CreatedAt = r.CreatedAt
+                }).ToList()
             }).ToList()
         };
 

@@ -886,12 +886,24 @@ public sealed class OfflineSyncPullApplier
         var payments = dto.Payments.Select(p =>
         {
             Enum.TryParse<global::Sales.Domain.Enums.PaymentMethod>(p.Method, true, out var method);
-            return (p.Id, method, p.Amount);
+            var refunds = p.Refunds.Select(r => (r.Id, r.Amount, r.RefundNsu, r.CreatedAt));
+            return (
+                p.Id,
+                method,
+                p.Amount,
+                p.Nsu,
+                p.AuthorizationCode,
+                p.Provider,
+                p.TerminalId,
+                p.Brand,
+                p.Installments,
+                refunds);
         }).ToList();
 
         var order = await _dbContext.Orders
             .Include(o => o.Items)
             .Include(o => o.Payments)
+            .ThenInclude(p => p.Refunds)
             .FirstOrDefaultAsync(o => o.Id == dto.Id, cancellationToken);
 
         if (order is null)
@@ -918,6 +930,9 @@ public sealed class OfflineSyncPullApplier
         }
 
         _dbContext.OrderItems.RemoveRange(_dbContext.OrderItems.Where(i => i.OrderId == dto.Id));
+        var paymentIds = _dbContext.Payments.Where(p => p.OrderId == dto.Id).Select(p => p.Id);
+        _dbContext.Set<global::Sales.Domain.Entities.PaymentRefund>()
+            .RemoveRange(_dbContext.Set<global::Sales.Domain.Entities.PaymentRefund>().Where(r => paymentIds.Contains(r.PaymentId)));
         _dbContext.Payments.RemoveRange(_dbContext.Payments.Where(p => p.OrderId == dto.Id));
         _dbContext.Orders.Remove(order);
         _dbContext.Orders.Add(Order.RestoreFromSync(

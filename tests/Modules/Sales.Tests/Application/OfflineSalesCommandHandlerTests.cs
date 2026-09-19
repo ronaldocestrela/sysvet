@@ -8,6 +8,7 @@ using Sales.Application.CashRegisters.Commands;
 using Sales.Application.Orders.Commands;
 using Sales.Domain.Entities;
 using Sales.Domain.Enums;
+using Sales.Domain.Payments;
 using Sales.Infrastructure.Persistence;
 
 namespace Sales.Tests.Application;
@@ -54,7 +55,7 @@ public class OfflineSalesCommandHandlerTests
         var orderRepo = new Sales.Infrastructure.Persistence.Repositories.OrderRepository(context);
         var mediator = Substitute.For<IMediator>();
         var publisher = Substitute.For<IPublisher>();
-        var handler = new PayOrderCommandHandler(orderRepo, publisher, mediator);
+        var handler = new PayOrderCommandHandler(orderRepo, new SimulatedPaymentTerminal(), publisher, mediator);
 
         var result = await handler.Handle(new PayOrderCommand
         {

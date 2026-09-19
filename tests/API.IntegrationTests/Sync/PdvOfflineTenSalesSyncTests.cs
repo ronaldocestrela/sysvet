@@ -63,7 +63,7 @@ public class PdvOfflineTenSalesSyncTests : IClassFixture<WebApplicationFactory<P
         var wake = new SyncWakeSignal();
         var connectivity = new FakeSyncConnectivity();
         connectivity.SetOnline(true);
-        var salesStore = new OfflineSalesStore(harness.OfflineDb, wake, connectivity);
+        var salesStore = new OfflineSalesStore(harness.OfflineDb, wake, connectivity, new global::Sales.Domain.Payments.SimulatedPaymentTerminal());
 
         var register = await salesStore.OpenCashRegisterAsync(50m);
         register.IsSuccess.Should().BeTrue();

@@ -31,6 +31,8 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-023](./ADR-023-inventario-mobile-barcode.md) | Inventário mobile (barcode) | Accepted |
 | [ADR-024](./ADR-024-etiquetas-sugestao-compras.md) | Etiquetas PDF/ZPL e sugestão de compras | Accepted |
 | [ADR-025](./ADR-025-motor-pdv-vendas.md) | Motor PDV online (pay, estoque, receita pendente) | Accepted |
+| [ADR-026](./ADR-026-pdv-offline-sync.md) | PDV 100% offline — fila local e sync | Accepted |
+| [ADR-027](./ADR-027-pagamentos-tef.md) | Pagamentos TEF (PoC), NSU e estorno | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

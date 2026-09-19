@@ -154,7 +154,12 @@ Iniciado o módulo de estoque.
 - Plugin Sales no push/pull; conflito permanente quando o servidor recusa estoque; `RequestSync()` após mutações.
 - SharedUI POS/caixa/comprovante sem gate de rede; aceite `PdvOfflineTenSalesSyncTests` (10 vendas, replay idempotente).
 
-### 👉 **Próxima Ação: Fase 6.3 — Pagamentos e TEF**
+### Fase 6.3 — Pagamentos e TEF — Concluída (ADR-027)
+
+- Porta `IPaymentTerminal` + simulador offline; NSU em débito/crédito/Pix; estorno parcial/total; caixa líquido por forma.
+- API `POST .../payments/{id}/refund`; sync outbox/pull; POS/comprovante/caixa SharedUI.
+
+### 👉 **Próxima Ação: Fase 6.4 — Comissões, descontos, devoluções**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 6.
 

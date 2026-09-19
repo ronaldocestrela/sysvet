@@ -163,7 +163,16 @@ public class Order : AggregateRoot
         _payments.Clear();
         foreach (var payment in payments)
         {
-            _payments.Add(Payment.Attach(Id, payment.Method, payment.Amount));
+            _payments.Add(Payment.Attach(
+                Id,
+                payment.Method,
+                payment.Amount,
+                payment.Nsu,
+                payment.AuthorizationCode,
+                payment.Provider,
+                payment.TerminalId,
+                payment.Brand,
+                payment.Installments));
         }
 
         Status = OrderStatus.Paid;
@@ -172,6 +181,36 @@ public class Order : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success(true);
+    }
+
+    /// <summary>
+    /// Records a partial or full refund against a payment line (estorno — does not restore stock).
+    /// </summary>
+    public Result<PaymentRefund> RefundPayment(Guid paymentId, decimal amount, string? refundNsu = null)
+    {
+        if (Status is not (OrderStatus.Paid or OrderStatus.PartiallyRefunded))
+        {
+            return Result.Failure<PaymentRefund>(ErrorCodes.Payment.RefundNotAllowed);
+        }
+
+        var payment = _payments.FirstOrDefault(p => p.Id == paymentId);
+        if (payment is null)
+        {
+            return Result.Failure<PaymentRefund>(ErrorCodes.Payment.NotFound);
+        }
+
+        var refundResult = payment.ApplyRefund(amount, refundNsu);
+        if (refundResult.IsFailure)
+        {
+            return refundResult;
+        }
+
+        UpdatedAt = DateTimeOffset.UtcNow;
+        Status = _payments.All(p => p.RemainingRefundable == 0)
+            ? OrderStatus.Refunded
+            : OrderStatus.PartiallyRefunded;
+
+        return refundResult;
     }
 
     /// <summary>Rehydrates an order from sync pull (client mirror).</summary>
@@ -187,7 +226,17 @@ public class Order : AggregateRoot
         DateTimeOffset? paidAt,
         DateTimeOffset updatedAt,
         IEnumerable<(Guid ItemId, OrderItemKind Kind, Guid? ProductId, string ProductName, decimal Quantity, decimal UnitPrice)> items,
-        IEnumerable<(Guid PaymentId, PaymentMethod Method, decimal Amount)> payments)
+        IEnumerable<(
+            Guid PaymentId,
+            PaymentMethod Method,
+            decimal Amount,
+            string? Nsu,
+            string? AuthorizationCode,
+            string? Provider,
+            string? TerminalId,
+            string? Brand,
+            int Installments,
+            IEnumerable<(Guid RefundId, decimal RefundAmount, string? RefundNsu, DateTimeOffset CreatedAt)> Refunds)> payments)
     {
         var order = new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId)
         {
@@ -205,7 +254,18 @@ public class Order : AggregateRoot
 
         foreach (var payment in payments)
         {
-            order._payments.Add(Payment.Restore(payment.PaymentId, id, payment.Method, payment.Amount));
+            order._payments.Add(Payment.Restore(
+                payment.PaymentId,
+                id,
+                payment.Method,
+                payment.Amount,
+                payment.Nsu,
+                payment.AuthorizationCode,
+                payment.Provider,
+                payment.TerminalId,
+                payment.Brand,
+                payment.Installments,
+                payment.Refunds));
         }
 
         return order;

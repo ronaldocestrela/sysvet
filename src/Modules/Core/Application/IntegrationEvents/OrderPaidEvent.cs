@@ -51,10 +51,12 @@ public class OrderPaidPayment
 {
     public string Method { get; }
     public decimal Amount { get; }
+    public string? Nsu { get; }
 
-    public OrderPaidPayment(string method, decimal amount)
+    public OrderPaidPayment(string method, decimal amount, string? nsu = null)
     {
         Method = method;
         Amount = amount;
+        Nsu = nsu;
     }
 }

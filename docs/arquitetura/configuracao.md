@@ -64,6 +64,12 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 
 Petshop e Fiscal ainda não possuem persistência; não registram options de banco.
 
+### Sales — terminal de pagamento (ADR-027)
+
+| Chave | Default | Descrição |
+|-------|---------|-----------|
+| `Sales:PaymentTerminalProvider` | `Simulator` | Adapter TEF ativo (`Simulator` até integrar acquirer real) |
+
 ### BlobStorage (anexos clínicos — ADR-015)
 
 | Chave | Default (Development) | Descrição |

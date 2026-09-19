@@ -43,7 +43,32 @@ internal sealed class OfflineSalesPaymentConfiguration : IEntityTypeConfiguratio
         builder.ToTable("SalesPayments");
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Method).HasConversion<string>();
+        builder.Property(p => p.Nsu).HasMaxLength(32);
+        builder.Property(p => p.AuthorizationCode).HasMaxLength(32);
+        builder.Property(p => p.Provider).HasMaxLength(64);
+        builder.Property(p => p.TerminalId).HasMaxLength(64);
+        builder.Property(p => p.Brand).HasMaxLength(32);
+        builder.Property(p => p.Installments).HasDefaultValue(1);
+        builder.HasMany(p => p.Refunds)
+            .WithOne()
+            .HasForeignKey(r => r.PaymentId)
+            .OnDelete(DeleteBehavior.Cascade);
         builder.OwnsOne(p => p.Amount, money =>
+        {
+            money.Property(m => m.Amount).HasColumnName("Amount");
+            money.Property(m => m.Currency).HasColumnName("Currency");
+        });
+    }
+}
+
+internal sealed class OfflineSalesPaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund>
+{
+    public void Configure(EntityTypeBuilder<PaymentRefund> builder)
+    {
+        builder.ToTable("SalesPaymentRefunds");
+        builder.HasKey(r => r.Id);
+        builder.Property(r => r.RefundNsu).HasMaxLength(32);
+        builder.OwnsOne(r => r.Amount, money =>
         {
             money.Property(m => m.Amount).HasColumnName("Amount");
             money.Property(m => m.Currency).HasColumnName("Currency");

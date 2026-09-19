@@ -40,3 +40,13 @@ public sealed class PayOrderCommandValidator : AbstractValidator<PayOrderCommand
         });
     }
 }
+
+public sealed class RefundOrderPaymentCommandValidator : AbstractValidator<RefundOrderPaymentCommand>
+{
+    public RefundOrderPaymentCommandValidator()
+    {
+        RuleFor(x => x.OrderId).NotEmpty();
+        RuleFor(x => x.PaymentId).NotEmpty();
+        RuleFor(x => x.Amount).GreaterThan(0);
+    }
+}

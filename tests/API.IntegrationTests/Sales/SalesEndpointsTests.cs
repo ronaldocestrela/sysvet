@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Sales.Application.CashRegisters.Dtos;
 using Sales.Application.Orders.Commands;
 using Sales.Application.Orders.Dtos;
 using Sales.Domain.Enums;
@@ -156,6 +157,7 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         order!.Status.Should().Be(OrderStatus.Paid);
         order.FinanceIntegrationStatus.Should().Be(FinanceIntegrationStatus.Pending);
         order.Payments.Should().HaveCount(2);
+        order.Payments.Should().Contain(p => p.Method == PaymentMethod.Pix && !string.IsNullOrWhiteSpace(p.Nsu));
 
         using var scope = _factory.Services.CreateScope();
         var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
@@ -165,6 +167,83 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
             .ToListAsync();
         saleMovements.Should().NotBeEmpty();
         saleMovements.Sum(m => m.Quantity).Should().Be(2m);
+    }
+
+    [Fact]
+    public async Task RefundCashPayment_ShouldReduceOpenRegisterBalance()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var suffix = Guid.NewGuid().ToString()[..8];
+
+        var productResponse = await client.PostAsJsonAsync("/api/v1/inventory/products", new RegisterProductCommand(
+            "Refund Prod " + suffix,
+            "",
+            "RF-" + suffix,
+            "789" + suffix,
+            "UN",
+            0m,
+            ProductCategory.Food,
+            "23091000",
+            null,
+            0,
+            null,
+            null));
+        productResponse.EnsureSuccessStatusCode();
+        var productId = await productResponse.Content.ReadFromJsonAsync<Guid>();
+
+        await client.PostAsJsonAsync("/api/v1/inventory/stock/movements", new
+        {
+            productId,
+            type = MovementType.In,
+            quantity = 5m,
+            reason = "Opening"
+        });
+
+        var openRegister = await client.PostAsJsonAsync("/api/v1/sales/cash-registers/open", new { openingBalance = 100m });
+        var registerId = await openRegister.Content.ReadFromJsonAsync<Guid>();
+
+        var createOrder = await client.PostAsJsonAsync("/api/v1/sales/orders", new CreateOrderCommand
+        {
+            CashRegisterId = registerId,
+            Items =
+            [
+                new CreateOrderItemDto
+                {
+                    Kind = OrderItemKind.Product,
+                    ProductId = productId,
+                    ProductName = "Refund Prod",
+                    Quantity = 1m,
+                    UnitPrice = 40m
+                }
+            ]
+        });
+        var orderId = await createOrder.Content.ReadFromJsonAsync<Guid>();
+
+        await client.PostAsJsonAsync($"/api/v1/sales/orders/{orderId}/pay", new PayOrderCommand
+        {
+            OrderId = orderId,
+            Payments = [new PayOrderPaymentDto { Method = PaymentMethod.Cash, Amount = 40m }]
+        });
+
+        var caixaAfterPay = await client.GetAsync("/api/v1/sales/cash-registers/open");
+        var registerAfterPay = await caixaAfterPay.Content.ReadFromJsonAsync<OpenCashRegisterDto>();
+        registerAfterPay!.CurrentBalance.Should().Be(140m);
+
+        var orderDetail = await (await client.GetAsync($"/api/v1/sales/orders/{orderId}")).Content.ReadFromJsonAsync<OrderDetailDto>();
+        var cashPaymentId = orderDetail!.Payments.Single(p => p.Method == PaymentMethod.Cash).Id;
+
+        var refundResponse = await client.PostAsJsonAsync(
+            $"/api/v1/sales/orders/{orderId}/payments/{cashPaymentId}/refund",
+            new { amount = 40m });
+        if (!refundResponse.IsSuccessStatusCode)
+        {
+            var body = await refundResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Refund failed: {refundResponse.StatusCode} {body}");
+        }
+
+        var caixaAfterRefund = await client.GetAsync("/api/v1/sales/cash-registers/open");
+        var registerAfterRefund = await caixaAfterRefund.Content.ReadFromJsonAsync<OpenCashRegisterDto>();
+        registerAfterRefund!.CurrentBalance.Should().Be(100m);
     }
 }
 

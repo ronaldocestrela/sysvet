@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Pos as PosTerminal
+    participant Store as OfflineSalesStore
+    participant Tef as IPaymentTerminal
+    participant Outbox as OutboxFIFO
+    participant Api as PayOrderHandler
+
+    Pos->>Store: CreateAndPayOrder
+    Store->>Tef: Authorize card_pix
+    Tef-->>Store: NSU
+    Store->>Store: Debit local stock
+    Store->>Store: Order.Pay with NSU
+    Store->>Outbox: CreateOrder then PayOrder
+    Outbox->>Api: PayOrder with NSU
+    Note over Api: Skip terminal when NSU present
+    Api->>Api: ConsumeStock then persist

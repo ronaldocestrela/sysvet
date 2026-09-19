@@ -10,6 +10,7 @@ public interface ISalesApiService
     Task<Result<CashRegisterClientDto?>> GetOpenCashRegisterAsync(CancellationToken cancellationToken = default);
     Task<Result<Guid>> CreateOrderAsync(CreateSalesOrderClientRequest request, CancellationToken cancellationToken = default);
     Task<Result<bool>> PayOrderAsync(Guid orderId, IReadOnlyList<PayOrderPaymentClientDto> payments, CancellationToken cancellationToken = default);
+    Task<Result<Guid>> RefundOrderPaymentAsync(Guid orderId, Guid paymentId, decimal amount, string? refundNsu = null, CancellationToken cancellationToken = default);
     Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default);
 }
 
@@ -28,6 +29,16 @@ public sealed class CashRegisterClientDto
     public string Status { get; set; } = string.Empty;
     public decimal OpeningBalance { get; set; }
     public decimal CurrentBalance { get; set; }
+    public IReadOnlyList<CashRegisterMethodTotalsClientDto> MethodTotals { get; set; } =
+        Array.Empty<CashRegisterMethodTotalsClientDto>();
+}
+
+public sealed class CashRegisterMethodTotalsClientDto
+{
+    public string Method { get; set; } = string.Empty;
+    public decimal Gross { get; set; }
+    public decimal Refunded { get; set; }
+    public decimal Net => Gross - Refunded;
 }
 
 public sealed class SalesOrderItemClientDto
@@ -41,8 +52,24 @@ public sealed class SalesOrderItemClientDto
 
 public sealed class PayOrderPaymentClientDto
 {
+    public Guid? Id { get; set; }
     public string Method { get; set; } = "Cash";
     public decimal Amount { get; set; }
+    public string? Nsu { get; set; }
+    public string? AuthorizationCode { get; set; }
+    public string? Provider { get; set; }
+    public int Installments { get; set; } = 1;
+    public decimal RemainingRefundable { get; set; }
+    public IReadOnlyList<SalesOrderPaymentRefundClientDto> Refunds { get; set; } =
+        Array.Empty<SalesOrderPaymentRefundClientDto>();
+}
+
+public sealed class SalesOrderPaymentRefundClientDto
+{
+    public Guid Id { get; init; }
+    public decimal Amount { get; init; }
+    public string? RefundNsu { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
 }
 
 public sealed class SalesOrderDetailClientDto

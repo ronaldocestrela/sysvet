@@ -31,6 +31,22 @@ public sealed class OrderItemDetailDto
 
 public sealed class OrderPaymentDetailDto
 {
+    public Guid Id { get; init; }
     public PaymentMethod Method { get; init; }
     public decimal Amount { get; init; }
+    public string? Nsu { get; init; }
+    public string? AuthorizationCode { get; init; }
+    public string? Provider { get; init; }
+    public int Installments { get; init; }
+    public decimal RemainingRefundable { get; init; }
+    public IReadOnlyList<OrderPaymentRefundDetailDto> Refunds { get; init; } =
+        Array.Empty<OrderPaymentRefundDetailDto>();
+}
+
+public sealed class OrderPaymentRefundDetailDto
+{
+    public Guid Id { get; init; }
+    public decimal Amount { get; init; }
+    public string? RefundNsu { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
 }

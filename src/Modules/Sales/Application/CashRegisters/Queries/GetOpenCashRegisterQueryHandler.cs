@@ -30,15 +30,26 @@ public sealed class GetOpenCashRegisterQueryHandler : IRequestHandler<GetOpenCas
             return Result.Success<OpenCashRegisterDto?>(null);
         }
 
-        var cashSales = await _orderRepository.SumCashPaymentsForCashRegisterAsync(register.Id, cancellationToken);
-        var current = register.OpeningBalance.Amount + cashSales;
+        var totals = await _orderRepository.GetPaymentTotalsForCashRegisterAsync(register.Id, cancellationToken);
+        var methodTotals = totals
+            .Select(t => new CashRegisterMethodTotalsDto
+            {
+                Method = t.Method,
+                Gross = t.Gross,
+                Refunded = t.Refunded
+            })
+            .ToList();
+
+        var cashNet = methodTotals.FirstOrDefault(m => m.Method == PaymentMethod.Cash)?.Net ?? 0m;
+        var current = register.OpeningBalance.Amount + cashNet;
 
         return Result.Success<OpenCashRegisterDto?>(new OpenCashRegisterDto
         {
             Id = register.Id,
             Status = register.Status.ToString(),
             OpeningBalance = register.OpeningBalance.Amount,
-            CurrentBalance = current
+            CurrentBalance = current,
+            MethodTotals = methodTotals
         });
     }
 }

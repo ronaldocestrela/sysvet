@@ -3,6 +3,7 @@ using FluentAssertions;
 using NSubstitute;
 using Sales.Application.CashRegisters.Queries;
 using Sales.Domain.Entities;
+using Sales.Domain.Enums;
 using Sales.Domain.Repositories;
 
 namespace Sales.Tests.Application;
@@ -35,7 +36,11 @@ public class GetOpenCashRegisterQueryHandlerTests
         var tenant = Substitute.For<ITenantContext>();
         tenant.UserId.Returns(userId);
         cashRepo.GetOpenCashRegisterByUserAsync(userId, Arg.Any<CancellationToken>()).Returns(register);
-        orderRepo.SumCashPaymentsForCashRegisterAsync(register.Id, Arg.Any<CancellationToken>()).Returns(25m);
+        orderRepo.GetPaymentTotalsForCashRegisterAsync(register.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<Sales.Domain.Queries.CashRegisterPaymentTotals>
+            {
+                new() { Method = PaymentMethod.Cash, Gross = 25m, Refunded = 0m }
+            });
 
         var handler = new GetOpenCashRegisterQueryHandler(cashRepo, orderRepo, tenant);
         var result = await handler.Handle(new GetOpenCashRegisterQuery(), CancellationToken.None);

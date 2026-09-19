@@ -20,7 +20,26 @@
         <h3>Sessão Ativa</h3>
         <p><strong>Caixa ID:</strong> @_openRegister.Id</p>
         <p><strong>Saldo Inicial:</strong> R$ @_openRegister.OpeningBalance.ToString("N2")</p>
-        <p><strong>Saldo Atual:</strong> R$ @_openRegister.CurrentBalance.ToString("N2")</p>
+        <p><strong>Saldo Atual (gaveta):</strong> R$ @_openRegister.CurrentBalance.ToString("N2")</p>
+        @if (_openRegister.MethodTotals.Any())
+        {
+            <table class="totals-table">
+                <thead>
+                    <tr><th>Forma</th><th>Bruto</th><th>Estornado</th><th>Líquido</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in _openRegister.MethodTotals)
+                    {
+                        <tr>
+                            <td>@row.Method</td>
+                            <td>R$ @row.Gross.ToString("N2")</td>
+                            <td>R$ @row.Refunded.ToString("N2")</td>
+                            <td>R$ @row.Net.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
 
         <hr />
 
@@ -47,6 +66,11 @@ else
         </button>
     </div>
 }
+
+<style>
+    .totals-table { width: 100%; border-collapse: collapse; margin-top: var(--spacing-md); }
+    .totals-table th, .totals-table td { border: 1px solid var(--color-border); padding: var(--spacing-xs); text-align: left; }
+</style>
 
 @code {
     private CashRegisterClientDto? _openRegister;

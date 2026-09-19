@@ -9,6 +9,7 @@ using Sales.Application.Orders.Commands;
 using Sales.Domain.Repositories;
 using Sales.Infrastructure.Configuration;
 using Sales.Infrastructure.Persistence;
+using Sales.Domain.Payments;
 using Sales.Infrastructure.Persistence.Repositories;
 
 namespace Sales.Infrastructure;
@@ -38,6 +39,8 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SalesDbContext>());
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICashRegisterRepository, CashRegisterRepository>();
+
+        services.AddSingleton<IPaymentTerminal, SimulatedPaymentTerminal>();
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(CreateOrderCommand).Assembly));

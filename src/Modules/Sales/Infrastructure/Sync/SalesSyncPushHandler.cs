@@ -33,6 +33,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
             nameof(CloseCashRegisterCommand) => WithIdempotency(JsonSerializer.Deserialize<CloseCashRegisterCommand>(message.Payload, JsonOptions), message.Id),
             nameof(CreateOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<CreateOrderCommand>(message.Payload, JsonOptions), message.Id),
             nameof(PayOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<PayOrderCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(RefundOrderPaymentCommand) => WithIdempotency(JsonSerializer.Deserialize<RefundOrderPaymentCommand>(message.Payload, JsonOptions), message.Id),
             _ => null
         };
 
@@ -45,6 +46,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
             CloseCashRegisterCommand close => await _mediator.Send(close, cancellationToken),
             CreateOrderCommand create => Map(await _mediator.Send(create, cancellationToken)),
             PayOrderCommand pay => Map(await _mediator.Send(pay, cancellationToken)),
+            RefundOrderPaymentCommand refund => MapGuid(await _mediator.Send(refund, cancellationToken)),
             _ => Result.Failure(new Error("Sync.HandlerMismatch", "Not a sales sync command."))
         };
     }
@@ -53,6 +55,9 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
         result.IsSuccess ? Result.Success() : Result.Failure(result.Error);
 
     private static Result Map(Result<bool> result) =>
+        result.IsSuccess ? Result.Success() : Result.Failure(result.Error);
+
+    private static Result MapGuid(Result<Guid> result) =>
         result.IsSuccess ? Result.Success() : Result.Failure(result.Error);
 
     private static T? WithIdempotency<T>(T? command, Guid idempotencyKey) where T : class

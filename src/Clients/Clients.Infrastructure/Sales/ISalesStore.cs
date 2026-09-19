@@ -11,6 +11,7 @@ public interface ISalesStore
     Task<Result<CashRegisterClientDto?>> GetOpenCashRegisterAsync(CancellationToken cancellationToken = default);
     Task<Result<Guid>> CreateAndPayOrderAsync(CreateSalesOrderClientRequest request, IReadOnlyList<PayOrderPaymentClientDto> payments, CancellationToken cancellationToken = default);
     Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default);
+    Task<Result<Guid>> RefundOrderPaymentAsync(Guid orderId, Guid paymentId, decimal amount, string? refundNsu = null, CancellationToken cancellationToken = default);
     Task<SalesOrderSyncState> GetOrderSyncStateAsync(Guid orderId, CancellationToken cancellationToken = default);
 }
 

@@ -40,6 +40,9 @@ public class MockSalesApiService : ISalesApiService
     public Task<Result<bool>> PayOrderAsync(Guid orderId, IReadOnlyList<PayOrderPaymentClientDto> payments, CancellationToken cancellationToken = default)
         => Task.FromResult(Result.Success(true));
 
+    public Task<Result<Guid>> RefundOrderPaymentAsync(Guid orderId, Guid paymentId, decimal amount, string? refundNsu = null, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(Guid.NewGuid()));
+
     public Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
         => Task.FromResult(Result.Success(new SalesOrderDetailClientDto { Id = orderId, Status = "Paid", TotalAmount = 0 }));
 }

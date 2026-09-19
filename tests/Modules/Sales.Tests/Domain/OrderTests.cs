@@ -124,7 +124,7 @@ public class OrderTests
         var payments = new[]
         {
             Payment.Create(PaymentMethod.Cash, 50m).Value,
-            Payment.Create(PaymentMethod.Pix, 50m).Value
+            Payment.Create(PaymentMethod.Pix, 50m, nsu: "000000000099", provider: "Simulator").Value
         };
 
         var result = order.Pay(payments);
@@ -147,6 +147,64 @@ public class OrderTests
         var result = order.AddProductItem(Guid.NewGuid(), "X", 1m, 1m);
 
         result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void RefundPayment_Cash_Partial_UpdatesStatus()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "P", 1m, 100m);
+        order.Pay(new[] { Payment.Create(PaymentMethod.Cash, 100m).Value });
+
+        var paymentId = order.Payments.Single().Id;
+        var refund = order.RefundPayment(paymentId, 30m);
+
+        refund.IsSuccess.Should().BeTrue();
+        order.Status.Should().Be(OrderStatus.PartiallyRefunded);
+        order.Payments.Single().RemainingRefundable.Should().Be(70m);
+    }
+
+    [Fact]
+    public void RefundPayment_Full_SetsRefunded()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "P", 1m, 50m);
+        order.Pay(new[]
+        {
+            Payment.Create(PaymentMethod.DebitCard, 50m, nsu: "222222222222", provider: "Simulator").Value
+        });
+
+        var paymentId = order.Payments.Single().Id;
+        var refund = order.RefundPayment(paymentId, 50m, refundNsu: "333333333333");
+
+        refund.IsSuccess.Should().BeTrue();
+        order.Status.Should().Be(OrderStatus.Refunded);
+    }
+
+    [Fact]
+    public void RefundPayment_ExceedsRemaining_ReturnsFailure()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "P", 1m, 50m);
+        order.Pay(new[] { Payment.Create(PaymentMethod.Cash, 50m).Value });
+
+        var paymentId = order.Payments.Single().Id;
+        var result = order.RefundPayment(paymentId, 51m);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Payment.RefundExceedsRemaining");
+    }
+
+    [Fact]
+    public void RefundPayment_WhenDraft_ReturnsFailure()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "P", 1m, 10m);
+
+        var result = order.RefundPayment(Guid.NewGuid(), 10m);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Payment.RefundNotAllowed");
     }
 }
 

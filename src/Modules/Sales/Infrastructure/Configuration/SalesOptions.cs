@@ -14,4 +14,7 @@ public class SalesOptions
     /// When set, used instead of <c>ConnectionStrings:DefaultConnection</c> for <see cref="Persistence.SalesDbContext"/>.
     /// </summary>
     public string? ConnectionString { get; set; }
+
+    /// <summary>Payment terminal adapter name (PoC: <c>Simulator</c>).</summary>
+    public string PaymentTerminalProvider { get; set; } = "Simulator";
 }

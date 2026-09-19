@@ -101,7 +101,11 @@
                                 <option value="DebitCard">Débito</option>
                                 <option value="CreditCard">Crédito</option>
                             </select>
-                            <input type="number" step="0.01" @bind="pay.Amount" />
+                            <input type="number" step="0.01" @bind="pay.Amount" placeholder="Valor" />
+                            @if (string.Equals(pay.Method, "CreditCard", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <input type="number" min="1" max="12" @bind="pay.Installments" title="Parcelas" />
+                            }
                         </div>
                     }
                     <button type="button" class="btn btn-outline btn-sm" @onclick="AddPaymentRow">+ Forma de pagamento</button>

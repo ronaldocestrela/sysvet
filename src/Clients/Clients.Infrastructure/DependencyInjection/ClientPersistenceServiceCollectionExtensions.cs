@@ -61,6 +61,7 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<IClinicalQuoteStore, OfflineClinicalQuoteStore>();
         services.AddScoped<IHospitalizationStore, OfflineHospitalizationStore>();
         services.AddScoped<IInventoryStore, OfflineInventoryStore>();
+        services.AddSingleton<global::Sales.Domain.Payments.IPaymentTerminal, global::Sales.Domain.Payments.SimulatedPaymentTerminal>();
         services.AddScoped<ISalesStore, OfflineSalesStore>();
         services.AddSingleton<SyncWakeSignal>();
         services.AddScoped<OfflineSyncPullApplier>();

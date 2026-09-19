@@ -177,6 +177,7 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesOrderConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesOrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesPaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesPaymentRefundConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCashRegisterConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);

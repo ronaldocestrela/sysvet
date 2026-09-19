@@ -474,4 +474,19 @@ internal static class OutboxPayloadFactory
             Payments = payments,
             IdempotencyKey = idempotencyKey
         });
+
+    public static string RefundOrderPayment(
+        Guid orderId,
+        Guid paymentId,
+        decimal amount,
+        string? refundNsu,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            OrderId = orderId,
+            PaymentId = paymentId,
+            Amount = amount,
+            RefundNsu = refundNsu,
+            IdempotencyKey = idempotencyKey
+        });
 }

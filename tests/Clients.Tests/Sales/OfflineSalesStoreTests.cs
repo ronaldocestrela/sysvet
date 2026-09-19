@@ -4,6 +4,7 @@ using Clients.Infrastructure.Persistence;
 using Clients.Infrastructure.Sales;
 using Clients.Infrastructure.Sync;
 using FluentAssertions;
+using Sales.Domain.Payments;
 using Inventory.Domain.Entities;
 using Inventory.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +21,9 @@ public class OfflineSalesStoreTests
             .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
         var db = new OfflineDbContext(options, new NoOpSqliteFilePersistence());
-        db.Database.EnsureCreatedAsync().GetAwaiter().GetResult();
+        db.Database.MigrateAsync().GetAwaiter().GetResult();
         var connectivity = new FakeOfflineConnectivity();
-        var store = new OfflineSalesStore(db, new SyncWakeSignal(), connectivity);
+        var store = new OfflineSalesStore(db, new SyncWakeSignal(), connectivity, new SimulatedPaymentTerminal());
         return (db, store);
     }
 

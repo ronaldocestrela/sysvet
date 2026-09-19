@@ -33,7 +33,8 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
         var orders = await ReadPageAsync(
             _dbContext.Orders.AsNoTracking()
                 .Include(o => o.Items)
-                .Include(o => o.Payments),
+                .Include(o => o.Payments)
+                .ThenInclude(p => p.Refunds),
             since,
             take,
             o => o.UpdatedAt,
@@ -122,7 +123,20 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
             {
                 Id = p.Id,
                 Method = p.Method.ToString(),
-                Amount = p.Amount.Amount
+                Amount = p.Amount.Amount,
+                Nsu = p.Nsu,
+                AuthorizationCode = p.AuthorizationCode,
+                Provider = p.Provider,
+                TerminalId = p.TerminalId,
+                Brand = p.Brand,
+                Installments = p.Installments,
+                Refunds = p.Refunds.Select(r => new SyncSalesOrderPaymentRefundDto
+                {
+                    Id = r.Id,
+                    Amount = r.Amount.Amount,
+                    RefundNsu = r.RefundNsu,
+                    CreatedAt = r.CreatedAt
+                }).ToList()
             }).ToList()
         };
 }

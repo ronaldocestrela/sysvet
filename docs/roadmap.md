@@ -710,7 +710,7 @@ flowchart TD
 |--------|-----|--------|
 | **6.1 Motor de vendas (PDV)** | 13 | Concluído |
 | **6.2 PDV 100% offline** | 8 | Concluído |
-| **6.3 Pagamentos e TEF** | 13 | Pendente |
+| **6.3 Pagamentos e TEF** | 13 | Concluído |
 | **6.4 Comissões, descontos, devoluções** | 8 | Pendente |
 | **6.5 Pacotes, kits e pré-pagos** | 5 | Pendente |
 | **6.6 Estética — banho e tosa** | 13 | Pendente |
@@ -757,13 +757,26 @@ flowchart TD
 
 **Aceite:** 10 vendas offline sincronizam sem duplicidade (`PdvOfflineTenSalesSyncTests`).
 
-### 6.3 Pagamentos e TEF (13 SP)
+### 6.3 Pagamentos e TEF (13 SP) — Concluído
 
-- [ ] Integração maquininha (TEF/API — PoC com provedor escolhido)
-- [ ] Registro transação cartão débito/crédito/pix
-- [ ] Estorno parcial/total
+**Domain**
+- [x] `IPaymentTerminal` + `SimulatedPaymentTerminal` (PoC offline); `Payment` com NSU/TEF; `PaymentRefund`; `Order.RefundPayment`; status `PartiallyRefunded`/`Refunded`
+- [x] ADR-027
 
-**Aceite:** Pagamento cartão registrado com NSU; estorno reflete no caixa.
+**Application**
+- [x] `PayOrderCommand` autoriza terminal quando falta NSU; replay offline com NSU; compensação se estoque falhar
+- [x] `RefundOrderPaymentCommand` + `OrderPaymentRefundedEvent`; caixa líquido (`MethodTotals` + `CurrentBalance` dinheiro)
+
+**API**
+- [x] Migration `PaymentsTef`; `POST /orders/{id}/payments/{paymentId}/refund`; DTOs com NSU/refunds
+
+**Sync**
+- [x] Pay outbox com metadados TEF; push `RefundOrderPaymentCommand`; pull pagamentos/refunds
+
+**Clients**
+- [x] Terminal simulado no DI; `OfflineSalesStore` autoriza offline; estorno local + outbox; POS (parcelas crédito), comprovante (NSU/estornar), caixa (breakdown)
+
+**Aceite:** Pix/cartão com NSU no pay (`SalesEndpointsTests`); estorno cash reduz saldo da gaveta; offline Pix com NSU (`PdvOfflineTenSalesSyncTests`).
 
 ### 6.4 Comissões, descontos, devoluções (8 SP)
 

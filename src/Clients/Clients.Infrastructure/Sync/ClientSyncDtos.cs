@@ -419,4 +419,20 @@ public sealed class ClientSyncSalesOrderPaymentDto
     public Guid Id { get; init; }
     public string Method { get; init; } = string.Empty;
     public decimal Amount { get; init; }
+    public string? Nsu { get; init; }
+    public string? AuthorizationCode { get; init; }
+    public string? Provider { get; init; }
+    public string? TerminalId { get; init; }
+    public string? Brand { get; init; }
+    public int Installments { get; init; } = 1;
+    public IReadOnlyList<ClientSyncSalesOrderPaymentRefundDto> Refunds { get; init; } =
+        Array.Empty<ClientSyncSalesOrderPaymentRefundDto>();
+}
+
+public sealed class ClientSyncSalesOrderPaymentRefundDto
+{
+    public Guid Id { get; init; }
+    public decimal Amount { get; init; }
+    public string? RefundNsu { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
 }

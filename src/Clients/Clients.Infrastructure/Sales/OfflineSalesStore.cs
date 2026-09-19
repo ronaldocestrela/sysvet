@@ -4,22 +4,29 @@ using Core.Domain;
 using Microsoft.EntityFrameworkCore;
 using Sales.Domain.Entities;
 using Sales.Domain.Enums;
+using Sales.Domain.Payments;
 using SalesErrorCodes = Sales.Domain.ErrorCodes;
 
 namespace Clients.Infrastructure.Sales;
 
 /// <summary>SQLite-backed PDV with transactional outbox (ADR-026).</summary>
-public sealed class OfflineSalesStore : ISalesStore
+public sealed partial class OfflineSalesStore : ISalesStore
 {
     private readonly OfflineDbContext _dbContext;
     private readonly SyncWakeSignal _wakeSignal;
     private readonly ISyncConnectivity _connectivity;
+    private readonly IPaymentTerminal _paymentTerminal;
 
-    public OfflineSalesStore(OfflineDbContext dbContext, SyncWakeSignal wakeSignal, ISyncConnectivity connectivity)
+    public OfflineSalesStore(
+        OfflineDbContext dbContext,
+        SyncWakeSignal wakeSignal,
+        ISyncConnectivity connectivity,
+        IPaymentTerminal paymentTerminal)
     {
         _dbContext = dbContext;
         _wakeSignal = wakeSignal;
         _connectivity = connectivity;
+        _paymentTerminal = paymentTerminal;
     }
 
     /// <inheritdoc />
@@ -86,13 +93,22 @@ public sealed class OfflineSalesStore : ISalesStore
             return Result.Success<CashRegisterClientDto?>(null);
         }
 
-        var cashSales = await SumCashPaymentsForRegisterAsync(register.Id, cancellationToken);
+        var totals = await GetPaymentTotalsForRegisterAsync(register.Id, cancellationToken);
+        var cashRow = totals.FirstOrDefault(t => t.Method == PaymentMethod.Cash);
+        var cashNet = cashRow is null ? 0m : cashRow.Gross - cashRow.Refunded;
+
         return Result.Success<CashRegisterClientDto?>(new CashRegisterClientDto
         {
             Id = register.Id,
             Status = register.Status.ToString(),
             OpeningBalance = register.OpeningBalance.Amount,
-            CurrentBalance = register.OpeningBalance.Amount + cashSales
+            CurrentBalance = register.OpeningBalance.Amount + cashNet,
+            MethodTotals = totals.Select(t => new CashRegisterMethodTotalsClientDto
+            {
+                Method = t.Method.ToString(),
+                Gross = t.Gross,
+                Refunded = t.Refunded
+            }).ToList()
         });
     }
 
@@ -132,22 +148,17 @@ public sealed class OfflineSalesStore : ISalesStore
             }
         }
 
-        var paymentEntities = new List<Payment>();
-        foreach (var p in payments)
+        var buildPayments = await BuildPaymentsAsync(payments, cancellationToken);
+        if (buildPayments.IsFailure)
         {
-            if (!Enum.TryParse<PaymentMethod>(p.Method, true, out var method))
-            {
-                method = PaymentMethod.Cash;
-            }
-
-            var created = Payment.Create(method, p.Amount);
-            if (created.IsFailure)
-            {
-                return Result.Failure<Guid>(created.Error);
-            }
-
-            paymentEntities.Add(created.Value);
+            return Result.Failure<Guid>(buildPayments.Error);
         }
+
+        var paymentEntities = buildPayments.Value;
+        var authorizedForCompensation = paymentEntities
+            .Where(p => Payment.RequiresTefNsu(p.Method) && !string.IsNullOrWhiteSpace(p.Nsu))
+            .Select(p => new PaymentTerminalRefundRequest(p.Method, p.Amount.Amount, p.Nsu!))
+            .ToList();
 
         var stockLines = order.Items
             .Where(i => i.Kind == OrderItemKind.Product && i.ProductId.HasValue)
@@ -159,6 +170,7 @@ public sealed class OfflineSalesStore : ISalesStore
             var debit = await OfflineLocalStockSaleDebiter.DebitAsync(_dbContext, stockLines, cancellationToken);
             if (debit.IsFailure)
             {
+                await CompensateAsync(authorizedForCompensation, cancellationToken);
                 return Result.Failure<Guid>(SalesErrorCodes.Order.InsufficientStock);
             }
         }
@@ -193,11 +205,7 @@ public sealed class OfflineSalesStore : ISalesStore
                 createOutboxId),
             createOutboxId);
 
-        var paymentPayloads = payments.Select(p => (object)new
-        {
-            Method = Enum.TryParse<PaymentMethod>(p.Method, true, out var m) ? m : PaymentMethod.Cash,
-            p.Amount
-        }).ToList();
+        var paymentPayloads = paymentEntities.Select(p => (object)ToPayOutboxPayment(p)).ToList();
 
         var payOutboxId = Guid.NewGuid();
         EnqueueOutbox(
@@ -211,11 +219,70 @@ public sealed class OfflineSalesStore : ISalesStore
     }
 
     /// <inheritdoc />
+    public async Task<Result<Guid>> RefundOrderPaymentAsync(
+        Guid orderId,
+        Guid paymentId,
+        decimal amount,
+        string? refundNsu = null,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _dbContext.Orders
+            .Include(o => o.Payments)
+            .ThenInclude(p => p.Refunds)
+            .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+        if (order is null)
+        {
+            return Result.Failure<Guid>(SalesErrorCodes.Order.NotFound);
+        }
+
+        var payment = order.Payments.FirstOrDefault(p => p.Id == paymentId);
+        if (payment is null)
+        {
+            return Result.Failure<Guid>(SalesErrorCodes.Payment.NotFound);
+        }
+
+        if (Payment.RequiresTefNsu(payment.Method) && string.IsNullOrWhiteSpace(refundNsu))
+        {
+            if (string.IsNullOrWhiteSpace(payment.Nsu))
+            {
+                return Result.Failure<Guid>(SalesErrorCodes.Payment.NsuRequired);
+            }
+
+            var terminalResult = await _paymentTerminal.RefundAsync(
+                new PaymentTerminalRefundRequest(payment.Method, amount, payment.Nsu),
+                cancellationToken);
+            if (terminalResult.IsFailure)
+            {
+                return Result.Failure<Guid>(terminalResult.Error);
+            }
+
+            refundNsu = terminalResult.Value.RefundNsu;
+        }
+
+        var refundResult = order.RefundPayment(paymentId, amount, refundNsu);
+        if (refundResult.IsFailure)
+        {
+            return Result.Failure<Guid>(refundResult.Error);
+        }
+
+        var outboxId = Guid.NewGuid();
+        EnqueueOutbox(
+            "RefundOrderPaymentCommand",
+            OutboxPayloadFactory.RefundOrderPayment(orderId, paymentId, amount, refundNsu, outboxId),
+            outboxId);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        RequestSyncIfOnline();
+        return Result.Success(refundResult.Value.Id);
+    }
+
+    /// <inheritdoc />
     public async Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
         var order = await _dbContext.Orders.AsNoTracking()
             .Include(o => o.Items)
             .Include(o => o.Payments)
+            .ThenInclude(p => p.Refunds)
             .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
 
         if (order is null)
@@ -231,7 +298,7 @@ public sealed class OfflineSalesStore : ISalesStore
     {
         var orderIdText = orderId.ToString();
         var messages = await _dbContext.OutboxMessages
-            .Where(m => m.Type == "CreateOrderCommand" || m.Type == "PayOrderCommand")
+            .Where(m => m.Type == "CreateOrderCommand" || m.Type == "PayOrderCommand" || m.Type == "RefundOrderPaymentCommand")
             .ToListAsync(cancellationToken);
 
         var related = messages.Where(m => m.Payload.Contains(orderIdText, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -246,23 +313,6 @@ public sealed class OfflineSalesStore : ISalesStore
         }
 
         return related.Count == 0 ? SalesOrderSyncState.Synced : SalesOrderSyncState.Synced;
-    }
-
-    private async Task<decimal> SumCashPaymentsForRegisterAsync(Guid cashRegisterId, CancellationToken cancellationToken)
-    {
-        var paidOrderIds = await _dbContext.Orders
-            .Where(o => o.CashRegisterId == cashRegisterId && o.Status == OrderStatus.Paid)
-            .Select(o => o.Id)
-            .ToListAsync(cancellationToken);
-
-        if (paidOrderIds.Count == 0)
-        {
-            return 0m;
-        }
-
-        return await _dbContext.Payments
-            .Where(p => paidOrderIds.Contains(p.OrderId) && p.Method == PaymentMethod.Cash)
-            .SumAsync(p => p.Amount.Amount, cancellationToken);
     }
 
     private static SalesOrderDetailClientDto MapDetail(Order order) =>
@@ -286,8 +336,21 @@ public sealed class OfflineSalesStore : ISalesStore
             }).ToList(),
             Payments = order.Payments.Select(p => new PayOrderPaymentClientDto
             {
+                Id = p.Id,
                 Method = p.Method.ToString(),
-                Amount = p.Amount.Amount
+                Amount = p.Amount.Amount,
+                Nsu = p.Nsu,
+                AuthorizationCode = p.AuthorizationCode,
+                Provider = p.Provider,
+                Installments = p.Installments,
+                RemainingRefundable = p.RemainingRefundable,
+                Refunds = p.Refunds.Select(r => new SalesOrderPaymentRefundClientDto
+                {
+                    Id = r.Id,
+                    Amount = r.Amount.Amount,
+                    RefundNsu = r.RefundNsu,
+                    CreatedAt = r.CreatedAt
+                }).ToList()
             }).ToList()
         };
 

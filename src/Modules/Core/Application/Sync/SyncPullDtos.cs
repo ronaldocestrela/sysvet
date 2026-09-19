@@ -423,6 +423,23 @@ public sealed class SyncSalesOrderPaymentDto
     public Guid Id { get; init; }
     public string Method { get; init; } = string.Empty;
     public decimal Amount { get; init; }
+    public string? Nsu { get; init; }
+    public string? AuthorizationCode { get; init; }
+    public string? Provider { get; init; }
+    public string? TerminalId { get; init; }
+    public string? Brand { get; init; }
+    public int Installments { get; init; } = 1;
+    public IReadOnlyList<SyncSalesOrderPaymentRefundDto> Refunds { get; init; } =
+        Array.Empty<SyncSalesOrderPaymentRefundDto>();
+}
+
+/// <summary>Refund line on sync pull.</summary>
+public sealed class SyncSalesOrderPaymentRefundDto
+{
+    public Guid Id { get; init; }
+    public decimal Amount { get; init; }
+    public string? RefundNsu { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
 }
 
 public sealed class PullChangesResult

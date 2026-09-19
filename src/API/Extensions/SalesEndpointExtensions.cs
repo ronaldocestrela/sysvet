@@ -55,6 +55,19 @@ public static class SalesEndpointExtensions
             return (await mediator.Send(command)).ToHttpResult();
         });
 
+        group.MapPost("/orders/{orderId:guid}/payments/{paymentId:guid}/refund", async (
+            HttpContext httpContext,
+            Guid orderId,
+            Guid paymentId,
+            RefundOrderPaymentCommand command,
+            IMediator mediator) =>
+        {
+            command.OrderId = orderId;
+            command.PaymentId = paymentId;
+            command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
         return endpoints;
     }
 }

@@ -19,4 +19,10 @@ public class PayOrderPaymentDto
 {
     public PaymentMethod Method { get; set; }
     public decimal Amount { get; set; }
+    public string? Nsu { get; set; }
+    public string? AuthorizationCode { get; set; }
+    public string? Provider { get; set; }
+    public string? TerminalId { get; set; }
+    public string? Brand { get; set; }
+    public int Installments { get; set; } = 1;
 }

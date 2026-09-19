@@ -80,6 +80,25 @@ public sealed class SalesApiService : ISalesApiService
             cancellationToken: cancellationToken);
     }
 
+    public Task<Result<Guid>> RefundOrderPaymentAsync(
+        Guid orderId,
+        Guid paymentId,
+        decimal amount,
+        string? refundNsu = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return Task.FromResult(Result.Failure<Guid>(OfflineError()));
+        }
+
+        return _apiClient.PostAsync<object, Guid>(
+            $"/api/v1/sales/orders/{orderId}/payments/{paymentId}/refund",
+            new { amount, refundNsu },
+            idempotencyKey: Guid.NewGuid(),
+            cancellationToken: cancellationToken);
+    }
+
     public Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
         if (!_connectivity.IsOnline)

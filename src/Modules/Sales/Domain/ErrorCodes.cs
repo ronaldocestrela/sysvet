@@ -35,6 +35,12 @@ public static class ErrorCodes
     {
         public static readonly Error Required = new("Payment.Required", "Informe ao menos uma forma de pagamento.");
         public static readonly Error ZeroAmount = new("Payment.ZeroAmount", "Valor do pagamento deve ser maior que zero.");
+        public static readonly Error NsuRequired = new("Payment.NsuRequired", "NSU é obrigatório para pagamentos eletrônicos.");
+        public static readonly Error NsuNotAllowed = new("Payment.NsuNotAllowed", "Pagamento em dinheiro não deve informar NSU.");
+        public static readonly Error RefundExceedsRemaining = new("Payment.RefundExceedsRemaining", "Valor do estorno excede o saldo do pagamento.");
+        public static readonly Error RefundNotAllowed = new("Payment.RefundNotAllowed", "Estorno não permitido para o status atual do pedido.");
+        public static readonly Error NotFound = new("Payment.NotFound", "Pagamento não encontrado.");
+        public static readonly Error TerminalFailed = new("Payment.TerminalFailed", "Falha na comunicação com a maquininha.");
     }
 
     public static class CashRegister
