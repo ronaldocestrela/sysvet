@@ -6,7 +6,7 @@ namespace MauiApp;
 
 class Program : MauiApplication
 {
-	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+	protected override Microsoft.Maui.Hosting.MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
 	static void Main(string[] args)
 	{

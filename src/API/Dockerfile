@@ -2,13 +2,10 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY global.json ./
-COPY SaaS_Veterinario.ci.slnf ./
-COPY SaaS_Veterinario.slnx ./
-COPY coverage.runsettings ./
 COPY src/ ./src/
 
-RUN dotnet restore SaaS_Veterinario.ci.slnf
-RUN dotnet publish src/API/API.csproj -c Release -o /app/publish
+RUN dotnet restore src/API/API.csproj
+RUN dotnet publish src/API/API.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app

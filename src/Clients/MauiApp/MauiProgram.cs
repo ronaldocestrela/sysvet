@@ -9,9 +9,9 @@ namespace MauiApp;
 
 public static class MauiProgram
 {
-	public static MauiApp CreateMauiApp()
+	public static Microsoft.Maui.Hosting.MauiApp CreateMauiApp()
 	{
-		var builder = MauiApp.CreateBuilder();
+		var builder = Microsoft.Maui.Hosting.MauiApp.CreateBuilder();
 		builder.UseMauiApp<App>();
 		TryAddAppSettings(builder);
 
