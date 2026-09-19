@@ -32,6 +32,11 @@ public sealed class AccessProfile : AggregateRoot, IAuditable
     public string BaseRole { get; private set; } = string.Empty;
 
     /// <summary>
+    /// Maximum order discount percent operators with this profile may apply at POS (0–100).
+    /// </summary>
+    public decimal MaxDiscountPercent { get; private set; }
+
+    /// <summary>
     /// Granted permission codes from the static catalog.
     /// </summary>
     public IReadOnlyCollection<string> PermissionCodes => _permissionCodes;
@@ -54,7 +59,7 @@ public sealed class AccessProfile : AggregateRoot, IAuditable
     /// <summary>
     /// Creates a system profile seeded for each tenant.
     /// </summary>
-    public static Result<AccessProfile> CreateSystem(string name, string baseRole, IEnumerable<string> permissionCodes)
+    public static Result<AccessProfile> CreateSystem(string name, string baseRole, IEnumerable<string> permissionCodes, decimal maxDiscountPercent = 0)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -66,11 +71,17 @@ public sealed class AccessProfile : AggregateRoot, IAuditable
             return Result.Failure<AccessProfile>(ErrorCodes.AccessProfile.InvalidBaseRole);
         }
 
+        if (maxDiscountPercent is < 0 or > 100)
+        {
+            return Result.Failure<AccessProfile>(ErrorCodes.AccessProfile.InvalidMaxDiscountPercent);
+        }
+
         var profile = new AccessProfile(Guid.NewGuid())
         {
             Name = name.Trim(),
             IsSystem = true,
-            BaseRole = baseRole.Trim()
+            BaseRole = baseRole.Trim(),
+            MaxDiscountPercent = maxDiscountPercent
         };
 
         foreach (var code in permissionCodes)
@@ -88,7 +99,7 @@ public sealed class AccessProfile : AggregateRoot, IAuditable
     /// <summary>
     /// Creates a custom profile cloned from permissions of another profile.
     /// </summary>
-    public static Result<AccessProfile> CreateCustom(string name, string? description, string baseRole, IEnumerable<string> permissionCodes)
+    public static Result<AccessProfile> CreateCustom(string name, string? description, string baseRole, IEnumerable<string> permissionCodes, decimal maxDiscountPercent = 0)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -100,12 +111,18 @@ public sealed class AccessProfile : AggregateRoot, IAuditable
             return Result.Failure<AccessProfile>(ErrorCodes.AccessProfile.InvalidBaseRole);
         }
 
+        if (maxDiscountPercent is < 0 or > 100)
+        {
+            return Result.Failure<AccessProfile>(ErrorCodes.AccessProfile.InvalidMaxDiscountPercent);
+        }
+
         var profile = new AccessProfile(Guid.NewGuid())
         {
             Name = name.Trim(),
             Description = description?.Trim(),
             IsSystem = false,
-            BaseRole = baseRole.Trim()
+            BaseRole = baseRole.Trim(),
+            MaxDiscountPercent = maxDiscountPercent
         };
 
         foreach (var code in permissionCodes)
@@ -125,7 +142,19 @@ public sealed class AccessProfile : AggregateRoot, IAuditable
     /// </summary>
     public Result<AccessProfile> Clone(string newName)
     {
-        return CreateCustom(newName, Description, BaseRole, _permissionCodes.ToList());
+        return CreateCustom(newName, Description, BaseRole, _permissionCodes.ToList(), MaxDiscountPercent);
+    }
+
+    /// <summary>Sets the POS discount ceiling for this profile.</summary>
+    public Result SetMaxDiscountPercent(decimal maxDiscountPercent)
+    {
+        if (maxDiscountPercent is < 0 or > 100)
+        {
+            return Result.Failure(ErrorCodes.AccessProfile.InvalidMaxDiscountPercent);
+        }
+
+        MaxDiscountPercent = maxDiscountPercent;
+        return Result.Success();
     }
 
     /// <summary>

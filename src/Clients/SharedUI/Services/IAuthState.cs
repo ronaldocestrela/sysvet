@@ -11,6 +11,9 @@ public interface IAuthState
     /// <summary>Menu keys from the last <c>/auth/me</c> response.</summary>
     IReadOnlyList<string> Menus { get; }
 
+    /// <summary>POS discount ceiling from the last <c>/auth/me</c> response.</summary>
+    decimal MaxDiscountPercent { get; }
+
     /// <summary>Raised when tokens or menus change (login, logout, refresh).</summary>
     event EventHandler? SessionChanged;
 

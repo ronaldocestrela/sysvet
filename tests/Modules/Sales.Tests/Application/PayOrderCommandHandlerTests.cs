@@ -8,6 +8,7 @@ using Sales.Application.Orders.Commands;
 using Sales.Domain.Entities;
 using Sales.Domain.Enums;
 using Sales.Domain.Payments;
+using Sales.Domain.Repositories;
 using Sales.Infrastructure.Persistence;
 
 namespace Sales.Tests.Application;
@@ -27,7 +28,7 @@ public class PayOrderCommandHandlerTests
 
         var register = CashRegister.Open(Guid.NewGuid(), 0m).Value;
         context.CashRegisters.Add(register);
-        var order = Order.Create(register.Id).Value;
+        var order = Order.Create(register.Id, Guid.NewGuid()).Value;
         order.AddProductItem(Guid.NewGuid(), "P", 1m, 10m);
         context.Orders.Add(order);
         await context.SaveChangesAsync();
@@ -39,7 +40,9 @@ public class PayOrderCommandHandlerTests
 
         var publisher = Substitute.For<IPublisher>();
         var terminal = new SimulatedPaymentTerminal();
-        var handler = new PayOrderCommandHandler(orderRepo, terminal, publisher, mediator);
+        var commissionRules = Substitute.For<ICommissionRuleRepository>();
+        commissionRules.ListAllAsync(Arg.Any<CancellationToken>()).Returns(Array.Empty<CommissionRule>());
+        var handler = new PayOrderCommandHandler(orderRepo, commissionRules, terminal, publisher, mediator);
 
         var result = await handler.Handle(new PayOrderCommand
         {

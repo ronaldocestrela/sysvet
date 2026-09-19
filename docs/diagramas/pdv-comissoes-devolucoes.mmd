@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant Pos as PosTerminal
+    participant Store as OfflineSalesStore
+    participant Api as ReturnOrderHandler
+    participant Inv as Inventory
+    participant Tef as IPaymentTerminal
+
+    Pos->>Store: CreateAndPay with discount
+    Store->>Store: Validate MaxDiscountPercent
+    Store->>Store: Pay plus CommissionAccruals
+    Pos->>Store: ReturnOrder items
+    Store->>Store: Credit local stock
+    Store->>Store: RefundPayment net
+    Store->>Outbox: ReturnOrderCommand
+    Outbox->>Api: ReturnOrder replay
+    Api->>Inv: RestoreStockForSaleReturn
+    Api->>Tef: Refund when electronic
+    Api->>Api: Reverse commissions

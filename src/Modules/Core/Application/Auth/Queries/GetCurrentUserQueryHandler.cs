@@ -15,17 +15,20 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
     private readonly ITenantContext _tenantContext;
     private readonly IIdentityService _identityService;
     private readonly IPermissionChecker _permissionChecker;
+    private readonly IAccessProfileRepository _accessProfileRepository;
 
     public GetCurrentUserQueryHandler(
         ICurrentUser currentUser,
         ITenantContext tenantContext,
         IIdentityService identityService,
-        IPermissionChecker permissionChecker)
+        IPermissionChecker permissionChecker,
+        IAccessProfileRepository accessProfileRepository)
     {
         _currentUser = currentUser;
         _tenantContext = tenantContext;
         _identityService = identityService;
         _permissionChecker = permissionChecker;
+        _accessProfileRepository = accessProfileRepository;
     }
 
     /// <inheritdoc />
@@ -46,6 +49,8 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
 
         var permissions = await _permissionChecker.GetGrantedPermissionsAsync(cancellationToken);
         var menus = MenuCatalog.ResolveMenus(permissions);
+        var profile = await _accessProfileRepository.GetByIdAsync(staff.Value.AccessProfileId, cancellationToken);
+        var maxDiscount = profile?.MaxDiscountPercent ?? 0m;
 
         var dto = new CurrentUserDto(
             _currentUser.UserId,
@@ -54,6 +59,7 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
             _currentUser.Roles,
             staff.Value.AccessProfileId,
             staff.Value.AccessProfileName,
+            maxDiscount,
             permissions,
             menus);
 

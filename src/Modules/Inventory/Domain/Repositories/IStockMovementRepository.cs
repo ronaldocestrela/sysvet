@@ -13,4 +13,7 @@ public interface IStockMovementRepository : IRepository<StockMovement>
 
     /// <summary>Lists recent movements optionally filtered by product.</summary>
     Task<IReadOnlyList<StockMovement>> ListRecentAsync(Guid? productId, string? reason, int skip, int take, CancellationToken cancellationToken = default);
+
+    /// <summary>Lists movements tied to a correlation id (sale pay or return).</summary>
+    Task<IReadOnlyList<StockMovement>> ListByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default);
 }

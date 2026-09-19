@@ -7,6 +7,7 @@ using Inventory.Domain.Enums;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
 using Sales.Domain.Entities;
+using Sales.Domain.Enums;
 using Veterinary.Domain.ValueObjects;
 
 namespace Clients.Infrastructure.Sync;
@@ -130,6 +131,11 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.SalesOrders)
             {
                 await UpsertSalesOrderAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.SalesCommissionRules)
+            {
+                await UpsertSalesCommissionRuleAsync(dto, cancellationToken);
             }
 
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
@@ -880,8 +886,28 @@ public sealed class OfflineSyncPullApplier
         var items = dto.Items.Select(i =>
         {
             Enum.TryParse<global::Sales.Domain.Enums.OrderItemKind>(i.Kind, true, out var kind);
-            return (i.Id, kind, i.ProductId, i.ProductName, i.Quantity, i.UnitPrice);
+            global::Sales.Domain.Enums.CommissionRole? performerRole = null;
+            if (!string.IsNullOrWhiteSpace(i.PerformerRole) &&
+                Enum.TryParse<global::Sales.Domain.Enums.CommissionRole>(i.PerformerRole, true, out var parsedRole))
+            {
+                performerRole = parsedRole;
+            }
+
+            return (i.Id, kind, i.ProductId, i.ProductName, i.Quantity, i.UnitPrice, i.PerformerUserId, performerRole, i.ReturnedQuantity);
         }).ToList();
+
+        var commissions = dto.Commissions.Select(c =>
+        {
+            Enum.TryParse<global::Sales.Domain.Enums.CommissionRole>(c.Role, true, out var role);
+            Enum.TryParse<global::Sales.Domain.Enums.CommissionAccrualStatus>(c.Status, true, out var status);
+            return (c.Id, c.OrderItemId, c.PayeeUserId, role, c.RatePercent, c.BaseAmount, c.CommissionAmount, status);
+        }).ToList();
+
+        var returns = dto.Returns.Select(r => (
+            r.Id,
+            r.RefundAmount,
+            r.CreatedAt,
+            r.Lines.Select(l => (l.Id, l.OrderItemId, l.Quantity)))).ToList();
 
         var payments = dto.Payments.Select(p =>
         {
@@ -904,6 +930,9 @@ public sealed class OfflineSyncPullApplier
             .Include(o => o.Items)
             .Include(o => o.Payments)
             .ThenInclude(p => p.Refunds)
+            .Include(o => o.Commissions)
+            .Include(o => o.Returns)
+            .ThenInclude(r => r.Lines)
             .FirstOrDefaultAsync(o => o.Id == dto.Id, cancellationToken);
 
         if (order is null)
@@ -915,12 +944,16 @@ public sealed class OfflineSyncPullApplier
                 dto.TutorId,
                 dto.PetId,
                 dto.SourceQuoteId,
+                dto.SellerUserId,
+                dto.DiscountPercent,
                 financeStatus,
                 dto.CreatedAt,
                 dto.PaidAt,
                 dto.UpdatedAt,
                 items,
-                payments));
+                payments,
+                commissions,
+                returns));
             return;
         }
 
@@ -942,11 +975,49 @@ public sealed class OfflineSyncPullApplier
             dto.TutorId,
             dto.PetId,
             dto.SourceQuoteId,
+            dto.SellerUserId,
+            dto.DiscountPercent,
             financeStatus,
             dto.CreatedAt,
             dto.PaidAt,
             dto.UpdatedAt,
             items,
-            payments));
+            payments,
+            commissions,
+            returns));
+    }
+
+    private async Task UpsertSalesCommissionRuleAsync(ClientSyncCommissionRuleDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<CommissionRole>(dto.Role, true, out var role) ||
+            !Enum.TryParse<CommissionAppliesTo>(dto.AppliesTo, true, out var appliesTo))
+        {
+            return;
+        }
+
+        var existing = await _dbContext.SalesCommissionRules.FirstOrDefaultAsync(
+            r => r.Role == role && r.AppliesTo == appliesTo,
+            cancellationToken);
+
+        if (existing is null)
+        {
+            var created = CommissionRule.Create(dto.Id, role, appliesTo, dto.RatePercent);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            created.Value.UpdatedAt = dto.UpdatedAt;
+            _dbContext.SalesCommissionRules.Add(created.Value);
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        existing.SetRate(dto.RatePercent);
+        existing.UpdatedAt = dto.UpdatedAt;
     }
 }

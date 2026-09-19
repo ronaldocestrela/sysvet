@@ -5,23 +5,27 @@ using Sales.Domain.Entities;
 using Sales.Domain.Enums;
 using Sales.Domain.Payments;
 using Sales.Domain.Repositories;
+using Sales.Domain.Services;
 
 namespace Sales.Application.Orders.Commands;
 
 public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bool>>
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly ICommissionRuleRepository _commissionRuleRepository;
     private readonly IPaymentTerminal _paymentTerminal;
     private readonly IPublisher _publisher;
     private readonly IMediator _mediator;
 
     public PayOrderCommandHandler(
         IOrderRepository orderRepository,
+        ICommissionRuleRepository commissionRuleRepository,
         IPaymentTerminal paymentTerminal,
         IPublisher publisher,
         IMediator mediator)
     {
         _orderRepository = orderRepository;
+        _commissionRuleRepository = commissionRuleRepository;
         _paymentTerminal = paymentTerminal;
         _publisher = publisher;
         _mediator = mediator;
@@ -35,7 +39,7 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
             return Result.Failure<bool>(Sales.Domain.ErrorCodes.Order.NotFound);
         }
 
-        if (order.Status == OrderStatus.Paid)
+        if (order.Status is OrderStatus.Paid or OrderStatus.PartiallyRefunded or OrderStatus.PartiallyReturned or OrderStatus.Returned or OrderStatus.Refunded)
         {
             return Result.Success(true);
         }
@@ -68,6 +72,13 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
                 await CompensateAuthorizationsAsync(authorizedForCompensation, cancellationToken);
                 return Result.Failure<bool>(Sales.Domain.ErrorCodes.Order.InsufficientStock);
             }
+        }
+
+        if (!order.Commissions.Any())
+        {
+            var rules = await _commissionRuleRepository.ListAllAsync(cancellationToken);
+            var accruals = CommissionCalculator.Calculate(order, order.SellerUserId, rules);
+            order.AttachCommissions(accruals);
         }
 
         _orderRepository.Update(order);

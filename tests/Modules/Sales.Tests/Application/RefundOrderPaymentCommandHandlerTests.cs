@@ -26,7 +26,7 @@ public class RefundOrderPaymentCommandHandlerTests
 
         var register = CashRegister.Open(Guid.NewGuid(), 0m).Value;
         context.CashRegisters.Add(register);
-        var order = Order.Create(register.Id).Value;
+        var order = Order.Create(register.Id, Guid.NewGuid()).Value;
         order.AddProductItem(Guid.NewGuid(), "P", 1m, 40m);
         order.Pay([Payment.Create(PaymentMethod.Cash, 40m).Value]);
         context.Orders.Add(order);

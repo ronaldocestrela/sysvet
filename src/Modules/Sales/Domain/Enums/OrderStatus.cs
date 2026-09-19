@@ -7,5 +7,7 @@ public enum OrderStatus
     PendingPayment = 1,
     Paid = 2,
     PartiallyRefunded = 3,
-    Refunded = 4
+    Refunded = 4,
+    PartiallyReturned = 5,
+    Returned = 6
 }

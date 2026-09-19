@@ -143,6 +143,7 @@ public static class ErrorCodes
         public static readonly Error CannotDeleteSystem = new("AccessProfile.CannotDeleteSystem", "System profiles cannot be deleted.");
         public static readonly Error CannotRenameSystem = new("AccessProfile.CannotRenameSystem", "System profiles cannot be renamed.");
         public static readonly Error InUse = new("AccessProfile.InUse", "The profile is assigned to users and cannot be deleted.");
+        public static readonly Error InvalidMaxDiscountPercent = new("AccessProfile.InvalidMaxDiscountPercent", "Max discount percent must be between 0 and 100.");
     }
 
     /// <summary>

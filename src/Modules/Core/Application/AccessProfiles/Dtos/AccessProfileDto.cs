@@ -9,4 +9,5 @@ public sealed record AccessProfileDto(
     string? Description,
     bool IsSystem,
     string BaseRole,
+    decimal MaxDiscountPercent,
     IReadOnlyList<string> PermissionCodes);

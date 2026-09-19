@@ -30,6 +30,5 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             money.Property(m => m.Currency).HasColumnName("Currency").HasMaxLength(3);
         });
 
-        builder.Property(p => p.RowVersion).IsConcurrencyToken();
     }
 }

@@ -431,6 +431,78 @@ namespace Clients.Infrastructure.Migrations
                     b.ToTable("SalesCashRegisters", (string)null);
                 });
 
+            modelBuilder.Entity("Sales.Domain.Entities.CommissionAccrual", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrderItemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PayeeUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("RatePercent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("SalesCommissionAccruals", (string)null);
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.CommissionRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AppliesTo")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("RatePercent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Role", "AppliesTo")
+                        .IsUnique();
+
+                    b.ToTable("SalesCommissionRules", (string)null);
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -441,6 +513,9 @@ namespace Clients.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DiscountPercent")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FinanceIntegrationStatus")
@@ -456,6 +531,9 @@ namespace Clients.Infrastructure.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<Guid>("SellerUserId")
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid?>("SourceQuoteId")
                         .HasColumnType("TEXT");
@@ -488,6 +566,12 @@ namespace Clients.Infrastructure.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PerformerRole")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("PerformerUserId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid?>("ProductId")
                         .HasColumnType("TEXT");
 
@@ -496,6 +580,9 @@ namespace Clients.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ReturnedQuantity")
                         .HasColumnType("TEXT");
 
                     b.Property<byte[]>("RowVersion")
@@ -592,6 +679,61 @@ namespace Clients.Infrastructure.Migrations
                     b.HasIndex("PaymentId");
 
                     b.ToTable("SalesPaymentRefunds", (string)null);
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.SaleReturn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("SalesSaleReturns", (string)null);
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.SaleReturnLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrderItemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<Guid>("SaleReturnId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SaleReturnId");
+
+                    b.ToTable("SalesSaleReturnLines", (string)null);
                 });
 
             modelBuilder.Entity("Veterinary.Domain.Entities.Appointment", b =>
@@ -1649,6 +1791,65 @@ namespace Clients.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sales.Domain.Entities.CommissionAccrual", b =>
+                {
+                    b.HasOne("Sales.Domain.Entities.Order", null)
+                        .WithMany("Commissions")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Sales.Domain.ValueObjects.Money", "BaseAmount", b1 =>
+                        {
+                            b1.Property<Guid>("CommissionAccrualId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("BaseAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("BaseCurrency");
+
+                            b1.HasKey("CommissionAccrualId");
+
+                            b1.ToTable("SalesCommissionAccruals");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommissionAccrualId");
+                        });
+
+                    b.OwnsOne("Sales.Domain.ValueObjects.Money", "CommissionAmount", b1 =>
+                        {
+                            b1.Property<Guid>("CommissionAccrualId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("CommissionAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("CommissionCurrency");
+
+                            b1.HasKey("CommissionAccrualId");
+
+                            b1.ToTable("SalesCommissionAccruals");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommissionAccrualId");
+                        });
+
+                    b.Navigation("BaseAmount")
+                        .IsRequired();
+
+                    b.Navigation("CommissionAmount")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("Sales.Domain.Entities.Order", null)
@@ -1748,6 +1949,49 @@ namespace Clients.Infrastructure.Migrations
                         });
 
                     b.Navigation("Amount")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.SaleReturn", b =>
+                {
+                    b.HasOne("Sales.Domain.Entities.Order", null)
+                        .WithMany("Returns")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Sales.Domain.ValueObjects.Money", "RefundAmount", b1 =>
+                        {
+                            b1.Property<Guid>("SaleReturnId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("RefundAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("RefundCurrency");
+
+                            b1.HasKey("SaleReturnId");
+
+                            b1.ToTable("SalesSaleReturns");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SaleReturnId");
+                        });
+
+                    b.Navigation("RefundAmount")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.SaleReturnLine", b =>
+                {
+                    b.HasOne("Sales.Domain.Entities.SaleReturn", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("SaleReturnId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -1898,14 +2142,23 @@ namespace Clients.Infrastructure.Migrations
 
             modelBuilder.Entity("Sales.Domain.Entities.Order", b =>
                 {
+                    b.Navigation("Commissions");
+
                     b.Navigation("Items");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("Returns");
                 });
 
             modelBuilder.Entity("Sales.Domain.Entities.Payment", b =>
                 {
                     b.Navigation("Refunds");
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.SaleReturn", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("Veterinary.Domain.Entities.ClinicalQuote", b =>

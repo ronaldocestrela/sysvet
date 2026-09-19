@@ -9,6 +9,7 @@ public sealed class ClientAuthState : IAuthState
     private string? _token;
     private string? _refreshToken;
     private IReadOnlyList<string> _menus = [];
+    private decimal _maxDiscountPercent;
 
     /// <summary>Creates state with the host token storage implementation.</summary>
     public ClientAuthState(ITokenStorage tokenStorage)
@@ -21,6 +22,9 @@ public sealed class ClientAuthState : IAuthState
 
     /// <inheritdoc />
     public IReadOnlyList<string> Menus => _menus;
+
+    /// <inheritdoc />
+    public decimal MaxDiscountPercent => _maxDiscountPercent;
 
     /// <inheritdoc />
     public event EventHandler? SessionChanged;
@@ -55,12 +59,21 @@ public sealed class ClientAuthState : IAuthState
         return Task.CompletedTask;
     }
 
+    /// <summary>Stores profile discount ceiling from <c>/auth/me</c>.</summary>
+    public Task SetMaxDiscountPercentAsync(decimal maxDiscountPercent)
+    {
+        _maxDiscountPercent = maxDiscountPercent;
+        SessionChanged?.Invoke(this, EventArgs.Empty);
+        return Task.CompletedTask;
+    }
+
     /// <inheritdoc />
     public async Task LogoutAsync()
     {
         _token = null;
         _refreshToken = null;
         _menus = [];
+        _maxDiscountPercent = 0;
         await _tokenStorage.ClearAsync();
         SessionChanged?.Invoke(this, EventArgs.Empty);
     }

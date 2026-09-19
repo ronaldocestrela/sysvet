@@ -35,10 +35,10 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 
 ## Módulo de Vendas e PDV Offline
 * Ponto de venda (PDV) integrado operando com funcionamento 100% offline.
-* Integração com maquininhas via porta TEF (`IPaymentTerminal`); PoC com simulador offline (NSU); registro de débito/crédito/Pix com NSU; estorno parcial/total no caixa (sem devolução de estoque — ver 6.4).
-* Controle e motor de cálculo de comissões para vendedores, tosadores e veterinários.
-* Gerenciamento de pacotes, kits de produtos e aplicação de limite de desconto.
-* Registro e controle de devoluções de venda.
+* Integração com maquininhas via porta TEF (`IPaymentTerminal`); PoC com simulador offline (NSU); registro de débito/crédito/Pix com NSU; estorno parcial/total no caixa (estorno de pagamento ≠ devolução de itens).
+* Controle e motor de cálculo de comissões para vendedores, tosadores e veterinários (regras por papel e snapshot no pagamento).
+* Limite de desconto por perfil de acesso; gerenciamento de pacotes e kits (fase 6.5).
+* Devolução de venda com recomposição de estoque e estorno financeiro proporcional ao líquido.
 
 ---
 

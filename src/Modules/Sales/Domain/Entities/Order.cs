@@ -1,5 +1,6 @@
 using Core.Domain;
 using Sales.Domain.Enums;
+using Sales.Domain.Services;
 using Sales.Domain.ValueObjects;
 
 namespace Sales.Domain.Entities;
@@ -14,6 +15,8 @@ public class Order : AggregateRoot
     public Guid? TutorId { get; private set; }
     public Guid? PetId { get; private set; }
     public Guid? SourceQuoteId { get; private set; }
+    public Guid SellerUserId { get; private set; }
+    public decimal DiscountPercent { get; private set; }
     public FinanceIntegrationStatus FinanceIntegrationStatus { get; private set; } = FinanceIntegrationStatus.None;
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? PaidAt { get; private set; }
@@ -24,17 +27,28 @@ public class Order : AggregateRoot
     private readonly List<Payment> _payments = new();
     public IReadOnlyCollection<Payment> Payments => _payments.AsReadOnly();
 
-    public Money TotalAmount => Money.CreateUnsafe(_items.Sum(i => i.TotalPrice.Amount));
+    private readonly List<SaleReturn> _returns = new();
+    public IReadOnlyCollection<SaleReturn> Returns => _returns.AsReadOnly();
+
+    private readonly List<CommissionAccrual> _commissions = new();
+    public IReadOnlyCollection<CommissionAccrual> Commissions => _commissions.AsReadOnly();
+
+    public decimal SubtotalAmount => _items.Sum(i => i.TotalPrice.Amount);
+
+    public decimal DiscountAmount => OrderPricing.ComputeDiscountAmount(SubtotalAmount, DiscountPercent);
+
+    public Money TotalAmount => Money.CreateUnsafe(SubtotalAmount - DiscountAmount);
 
     private Order() { }
 
-    private Order(Guid id, Guid cashRegisterId, Guid? tutorId, Guid? petId, Guid? sourceQuoteId)
+    private Order(Guid id, Guid cashRegisterId, Guid? tutorId, Guid? petId, Guid? sourceQuoteId, Guid sellerUserId)
         : base(id)
     {
         CashRegisterId = cashRegisterId;
         TutorId = tutorId;
         PetId = petId;
         SourceQuoteId = sourceQuoteId;
+        SellerUserId = sellerUserId;
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -43,10 +57,11 @@ public class Order : AggregateRoot
     /// </summary>
     public static Result<Order> Create(
         Guid cashRegisterId,
+        Guid sellerUserId,
         Guid? tutorId = null,
         Guid? petId = null,
         Guid? sourceQuoteId = null)
-        => Create(Guid.NewGuid(), cashRegisterId, tutorId, petId, sourceQuoteId);
+        => Create(Guid.NewGuid(), cashRegisterId, sellerUserId, tutorId, petId, sourceQuoteId);
 
     /// <summary>
     /// Starts a draft order with a client-assigned id for offline sync (ADR-026).
@@ -54,6 +69,7 @@ public class Order : AggregateRoot
     public static Result<Order> Create(
         Guid id,
         Guid cashRegisterId,
+        Guid sellerUserId,
         Guid? tutorId = null,
         Guid? petId = null,
         Guid? sourceQuoteId = null)
@@ -68,38 +84,84 @@ public class Order : AggregateRoot
             return Result.Failure<Order>(ErrorCodes.Order.InvalidCashRegister);
         }
 
+        if (sellerUserId == Guid.Empty)
+        {
+            return Result.Failure<Order>(ErrorCodes.Order.InvalidSeller);
+        }
+
         if (petId.HasValue && petId != Guid.Empty && (!tutorId.HasValue || tutorId == Guid.Empty))
         {
             return Result.Failure<Order>(ErrorCodes.Order.PetRequiresTutor);
         }
 
-        return Result.Success(new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId));
+        return Result.Success(new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId, sellerUserId));
+    }
+
+    /// <summary>Applies order-level discount percent while still in draft.</summary>
+    public Result<bool> ApplyDiscount(decimal discountPercent)
+    {
+        if (Status != OrderStatus.Draft)
+        {
+            return Result.Failure<bool>(ErrorCodes.Order.NotDraft);
+        }
+
+        if (discountPercent < 0 || discountPercent > 100)
+        {
+            return Result.Failure<bool>(ErrorCodes.Order.InvalidDiscountPercent);
+        }
+
+        DiscountPercent = discountPercent;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success(true);
     }
 
     /// <summary>
     /// Adds a product line that will consume inventory when paid.
     /// </summary>
     public Result<bool> AddProductItem(Guid productId, string productName, decimal quantity, decimal unitPrice)
+        => AddProductItem(productId, productName, quantity, unitPrice, null, null);
+
+    /// <summary>
+    /// Adds a product line with optional performer metadata.
+    /// </summary>
+    public Result<bool> AddProductItem(
+        Guid productId,
+        string productName,
+        decimal quantity,
+        decimal unitPrice,
+        Guid? performerUserId,
+        CommissionRole? performerRole)
     {
         if (productId == Guid.Empty)
         {
             return Result.Failure<bool>(ErrorCodes.OrderItem.ProductIdRequired);
         }
 
-        return AddItemCore(OrderItemKind.Product, productId, productName, quantity, unitPrice);
+        return AddItemCore(OrderItemKind.Product, productId, productName, quantity, unitPrice, performerUserId, performerRole);
     }
 
     /// <summary>
     /// Adds a service line (no stock movement).
     /// </summary>
     public Result<bool> AddServiceItem(string description, decimal quantity, decimal unitPrice)
+        => AddServiceItem(description, quantity, unitPrice, null, null);
+
+    /// <summary>
+    /// Adds a service line with optional performer (vet/groomer).
+    /// </summary>
+    public Result<bool> AddServiceItem(
+        string description,
+        decimal quantity,
+        decimal unitPrice,
+        Guid? performerUserId,
+        CommissionRole? performerRole)
     {
         if (string.IsNullOrWhiteSpace(description))
         {
             return Result.Failure<bool>(ErrorCodes.OrderItem.DescriptionRequired);
         }
 
-        return AddItemCore(OrderItemKind.Service, null, description.Trim(), quantity, unitPrice);
+        return AddItemCore(OrderItemKind.Service, null, description.Trim(), quantity, unitPrice, performerUserId, performerRole);
     }
 
     /// <summary>
@@ -113,7 +175,9 @@ public class Order : AggregateRoot
         Guid? productId,
         string productName,
         decimal quantity,
-        decimal unitPrice)
+        decimal unitPrice,
+        Guid? performerUserId,
+        CommissionRole? performerRole)
     {
         if (Status != OrderStatus.Draft)
         {
@@ -130,12 +194,21 @@ public class Order : AggregateRoot
             return Result.Failure<bool>(ErrorCodes.Money.InvalidAmount);
         }
 
-        _items.Add(new OrderItem(Id, kind, productId, productName, quantity, unitPrice));
+        _items.Add(new OrderItem(Id, kind, productId, productName, quantity, unitPrice, performerUserId, performerRole));
         return Result.Success(true);
     }
 
     /// <summary>
-    /// Completes payment when split amounts match order total.
+    /// Attaches commission snapshots calculated at pay time.
+    /// </summary>
+    public void AttachCommissions(IEnumerable<CommissionAccrual> accruals)
+    {
+        _commissions.Clear();
+        _commissions.AddRange(accruals);
+    }
+
+    /// <summary>
+    /// Completes payment when split amounts match order total (after discount).
     /// </summary>
     public Result<bool> Pay(IReadOnlyList<Payment> payments)
     {
@@ -188,7 +261,8 @@ public class Order : AggregateRoot
     /// </summary>
     public Result<PaymentRefund> RefundPayment(Guid paymentId, decimal amount, string? refundNsu = null)
     {
-        if (Status is not (OrderStatus.Paid or OrderStatus.PartiallyRefunded))
+        if (Status is not (OrderStatus.Paid or OrderStatus.PartiallyRefunded or OrderStatus.PartiallyReturned
+            or OrderStatus.Returned))
         {
             return Result.Failure<PaymentRefund>(ErrorCodes.Payment.RefundNotAllowed);
         }
@@ -206,11 +280,106 @@ public class Order : AggregateRoot
         }
 
         UpdatedAt = DateTimeOffset.UtcNow;
+        RefreshRefundStatus();
+
+        return refundResult;
+    }
+
+    /// <summary>
+    /// Returns sold items, computing net refund and reversing commissions proportionally.
+    /// </summary>
+    public Result<SaleReturn> ReturnItems(
+        Guid returnId,
+        IReadOnlyList<(Guid OrderItemId, decimal Quantity)> lines)
+    {
+        if (Status is not (OrderStatus.Paid or OrderStatus.PartiallyRefunded or OrderStatus.PartiallyReturned))
+        {
+            return Result.Failure<SaleReturn>(ErrorCodes.Order.ReturnNotAllowed);
+        }
+
+        if (lines.Count == 0)
+        {
+            return Result.Failure<SaleReturn>(ErrorCodes.Order.ReturnEmpty);
+        }
+
+        if (returnId == Guid.Empty)
+        {
+            return Result.Failure<SaleReturn>(ErrorCodes.Order.InvalidId);
+        }
+
+        if (_returns.Any(r => r.Id == returnId))
+        {
+            return Result.Success(_returns.First(r => r.Id == returnId));
+        }
+
+        var subtotal = SubtotalAmount;
+        var netTotal = TotalAmount.Amount;
+        decimal returnedGross = 0m;
+        var returnLines = new List<(Guid LineId, Guid OrderItemId, decimal Quantity)>();
+
+        foreach (var (orderItemId, quantity) in lines)
+        {
+            var item = _items.FirstOrDefault(i => i.Id == orderItemId);
+            if (item is null)
+            {
+                return Result.Failure<SaleReturn>(ErrorCodes.Order.ReturnItemNotFound);
+            }
+
+            var record = item.RecordReturn(quantity);
+            if (record.IsFailure)
+            {
+                return Result.Failure<SaleReturn>(record.Error);
+            }
+
+            returnedGross += item.UnitPrice.Amount * quantity;
+            returnLines.Add((Guid.NewGuid(), orderItemId, quantity));
+
+            ReverseCommissionsForItem(item, quantity);
+        }
+
+        var refundAmount = subtotal <= 0
+            ? 0m
+            : Math.Round(returnedGross / subtotal * netTotal, 2, MidpointRounding.AwayFromZero);
+
+        var saleReturn = SaleReturn.Create(returnId, Id, refundAmount, returnLines);
+        _returns.Add(saleReturn);
+        UpdatedAt = DateTimeOffset.UtcNow;
+        RefreshReturnStatus();
+
+        return Result.Success(saleReturn);
+    }
+
+    private void ReverseCommissionsForItem(OrderItem item, decimal returnedQuantity)
+    {
+        if (item.Quantity <= 0)
+        {
+            return;
+        }
+
+        var ratio = returnedQuantity / item.Quantity;
+        foreach (var accrual in _commissions.Where(c => c.OrderItemId == item.Id && c.Status == CommissionAccrualStatus.Accrued))
+        {
+            var reverseAmount = Math.Round(accrual.CommissionAmount.Amount * ratio, 2, MidpointRounding.AwayFromZero);
+            accrual.Reverse(reverseAmount);
+        }
+    }
+
+    private void RefreshReturnStatus()
+    {
+        var allReturned = _items.All(i => i.RemainingQuantity <= 0);
+        Status = allReturned ? OrderStatus.Returned : OrderStatus.PartiallyReturned;
+    }
+
+    private void RefreshRefundStatus()
+    {
+        if (Status is OrderStatus.PartiallyReturned or OrderStatus.Returned)
+        {
+            return;
+        }
+
         Status = _payments.All(p => p.RemainingRefundable == 0)
             ? OrderStatus.Refunded
             : OrderStatus.PartiallyRefunded;
-
-        return refundResult;
     }
 
     /// <summary>Rehydrates an order from sync pull (client mirror).</summary>
@@ -221,11 +390,13 @@ public class Order : AggregateRoot
         Guid? tutorId,
         Guid? petId,
         Guid? sourceQuoteId,
+        Guid sellerUserId,
+        decimal discountPercent,
         FinanceIntegrationStatus financeIntegrationStatus,
         DateTimeOffset createdAt,
         DateTimeOffset? paidAt,
         DateTimeOffset updatedAt,
-        IEnumerable<(Guid ItemId, OrderItemKind Kind, Guid? ProductId, string ProductName, decimal Quantity, decimal UnitPrice)> items,
+        IEnumerable<(Guid ItemId, OrderItemKind Kind, Guid? ProductId, string ProductName, decimal Quantity, decimal UnitPrice, Guid? PerformerUserId, CommissionRole? PerformerRole, decimal ReturnedQuantity)> items,
         IEnumerable<(
             Guid PaymentId,
             PaymentMethod Method,
@@ -236,11 +407,14 @@ public class Order : AggregateRoot
             string? TerminalId,
             string? Brand,
             int Installments,
-            IEnumerable<(Guid RefundId, decimal RefundAmount, string? RefundNsu, DateTimeOffset CreatedAt)> Refunds)> payments)
+            IEnumerable<(Guid RefundId, decimal RefundAmount, string? RefundNsu, DateTimeOffset CreatedAt)> Refunds)> payments,
+        IEnumerable<(Guid AccrualId, Guid OrderItemId, Guid PayeeUserId, CommissionRole Role, decimal RatePercent, decimal BaseAmount, decimal CommissionAmount, CommissionAccrualStatus Status)> commissions,
+        IEnumerable<(Guid ReturnId, decimal RefundAmount, DateTimeOffset CreatedAt, IEnumerable<(Guid LineId, Guid OrderItemId, decimal Quantity)> Lines)> returns)
     {
-        var order = new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId)
+        var order = new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId, sellerUserId)
         {
             Status = status,
+            DiscountPercent = discountPercent,
             FinanceIntegrationStatus = financeIntegrationStatus,
             CreatedAt = createdAt,
             PaidAt = paidAt,
@@ -249,7 +423,17 @@ public class Order : AggregateRoot
 
         foreach (var item in items)
         {
-            order._items.Add(OrderItem.Restore(item.ItemId, id, item.Kind, item.ProductId, item.ProductName, item.Quantity, item.UnitPrice));
+            order._items.Add(OrderItem.Restore(
+                item.ItemId,
+                id,
+                item.Kind,
+                item.ProductId,
+                item.ProductName,
+                item.Quantity,
+                item.UnitPrice,
+                item.PerformerUserId,
+                item.PerformerRole,
+                item.ReturnedQuantity));
         }
 
         foreach (var payment in payments)
@@ -268,7 +452,25 @@ public class Order : AggregateRoot
                 payment.Refunds));
         }
 
+        foreach (var accrual in commissions)
+        {
+            order._commissions.Add(CommissionAccrual.Restore(
+                accrual.AccrualId,
+                id,
+                accrual.OrderItemId,
+                accrual.PayeeUserId,
+                accrual.Role,
+                accrual.RatePercent,
+                accrual.BaseAmount,
+                accrual.CommissionAmount,
+                accrual.Status));
+        }
+
+        foreach (var ret in returns)
+        {
+            order._returns.Add(SaleReturn.Restore(ret.ReturnId, id, ret.RefundAmount, ret.CreatedAt, ret.Lines));
+        }
+
         return order;
     }
-
 }

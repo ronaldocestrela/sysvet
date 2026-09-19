@@ -9,6 +9,7 @@ public static class MenuNavigation
         new Dictionary<string, AppNavItem>(StringComparer.OrdinalIgnoreCase)
         {
             ["sales"] = new(AppRoutes.SalesPos, "PDV", "bi-cart"),
+            ["commission-rules"] = new(AppRoutes.SalesCommissionRules, "Comissões", "bi-percent"),
             ["cash"] = new(AppRoutes.SalesCashRegister, "Caixa", "bi-wallet2"),
             ["tutors"] = new(AppRoutes.Tutors, "Tutores", "bi-people"),
             ["pets"] = new(AppRoutes.Pets, "Pets", "bi-heart"),

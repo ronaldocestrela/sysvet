@@ -23,6 +23,7 @@ public static class MenuCatalog
         ["inventory-counts"] = Permissions.StockRead,
         ["purchase-suggestions"] = Permissions.StockRead,
         ["sales"] = Permissions.SalesRead,
+        ["commission-rules"] = Permissions.SalesRead,
         ["cash"] = Permissions.CashRegisterRead,
         ["audit"] = Permissions.AuditRead
     };

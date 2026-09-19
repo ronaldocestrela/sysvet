@@ -397,6 +397,8 @@ public sealed class SyncSalesOrderDto
     public Guid? TutorId { get; init; }
     public Guid? PetId { get; init; }
     public Guid? SourceQuoteId { get; init; }
+    public Guid SellerUserId { get; init; }
+    public decimal DiscountPercent { get; init; }
     public string FinanceIntegrationStatus { get; init; } = string.Empty;
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? PaidAt { get; init; }
@@ -404,6 +406,8 @@ public sealed class SyncSalesOrderDto
     public string RowVersion { get; init; } = string.Empty;
     public IReadOnlyList<SyncSalesOrderItemDto> Items { get; init; } = Array.Empty<SyncSalesOrderItemDto>();
     public IReadOnlyList<SyncSalesOrderPaymentDto> Payments { get; init; } = Array.Empty<SyncSalesOrderPaymentDto>();
+    public IReadOnlyList<SyncSalesCommissionAccrualDto> Commissions { get; init; } = Array.Empty<SyncSalesCommissionAccrualDto>();
+    public IReadOnlyList<SyncSalesReturnDto> Returns { get; init; } = Array.Empty<SyncSalesReturnDto>();
 }
 
 /// <summary>Order line on sync pull.</summary>
@@ -415,6 +419,50 @@ public sealed class SyncSalesOrderItemDto
     public string ProductName { get; init; } = string.Empty;
     public decimal Quantity { get; init; }
     public decimal UnitPrice { get; init; }
+    public Guid? PerformerUserId { get; init; }
+    public string? PerformerRole { get; init; }
+    public decimal ReturnedQuantity { get; init; }
+}
+
+/// <summary>Commission accrual on sync pull.</summary>
+public sealed class SyncSalesCommissionAccrualDto
+{
+    public Guid Id { get; init; }
+    public Guid OrderItemId { get; init; }
+    public Guid PayeeUserId { get; init; }
+    public string Role { get; init; } = string.Empty;
+    public decimal RatePercent { get; init; }
+    public decimal BaseAmount { get; init; }
+    public decimal CommissionAmount { get; init; }
+    public string Status { get; init; } = string.Empty;
+}
+
+/// <summary>Customer return on sync pull.</summary>
+public sealed class SyncSalesReturnDto
+{
+    public Guid Id { get; init; }
+    public decimal RefundAmount { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
+    public IReadOnlyList<SyncSalesReturnLineDto> Lines { get; init; } = Array.Empty<SyncSalesReturnLineDto>();
+}
+
+/// <summary>Return line on sync pull.</summary>
+public sealed class SyncSalesReturnLineDto
+{
+    public Guid Id { get; init; }
+    public Guid OrderItemId { get; init; }
+    public decimal Quantity { get; init; }
+}
+
+/// <summary>Commission rule for sync pull.</summary>
+public sealed class SyncCommissionRuleDto
+{
+    public Guid Id { get; init; }
+    public string Role { get; init; } = string.Empty;
+    public string AppliesTo { get; init; } = string.Empty;
+    public decimal RatePercent { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
 }
 
 /// <summary>Payment line on sync pull.</summary>
@@ -464,6 +512,7 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncInventoryStockMovementDto> InventoryStockMovements { get; init; } = Array.Empty<SyncInventoryStockMovementDto>();
     public IReadOnlyList<SyncSalesCashRegisterDto> SalesCashRegisters { get; init; } = Array.Empty<SyncSalesCashRegisterDto>();
     public IReadOnlyList<SyncSalesOrderDto> SalesOrders { get; init; } = Array.Empty<SyncSalesOrderDto>();
+    public IReadOnlyList<SyncCommissionRuleDto> SalesCommissionRules { get; init; } = Array.Empty<SyncCommissionRuleDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

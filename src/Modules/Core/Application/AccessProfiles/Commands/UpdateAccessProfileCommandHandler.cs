@@ -52,6 +52,15 @@ public sealed class UpdateAccessProfileCommandHandler : IRequestHandler<UpdateAc
             return setPermissions;
         }
 
+        if (request.MaxDiscountPercent is decimal maxDiscount)
+        {
+            var setMax = profile.SetMaxDiscountPercent(maxDiscount);
+            if (setMax.IsFailure)
+            {
+                return setMax;
+            }
+        }
+
         _accessProfileRepository.Update(profile);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();

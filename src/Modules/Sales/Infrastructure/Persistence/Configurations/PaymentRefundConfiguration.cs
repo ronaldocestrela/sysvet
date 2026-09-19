@@ -20,6 +20,5 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
             money.Property(m => m.Currency).HasColumnName("Currency").HasMaxLength(3);
         });
 
-        builder.Property(r => r.RowVersion).IsConcurrencyToken();
     }
 }

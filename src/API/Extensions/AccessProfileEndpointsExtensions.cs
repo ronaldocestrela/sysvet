@@ -66,7 +66,7 @@ public static class AccessProfileEndpointsExtensions
 
     private static async Task<IResult> UpdateProfile(Guid id, [FromBody] UpdateAccessProfileBody body, IMediator mediator)
     {
-        var result = await mediator.Send(new UpdateAccessProfileCommand(id, body.Name, body.Description, body.PermissionCodes));
+        var result = await mediator.Send(new UpdateAccessProfileCommand(id, body.Name, body.Description, body.MaxDiscountPercent, body.PermissionCodes));
         return result.ToHttpResult();
     }
 
@@ -76,5 +76,5 @@ public static class AccessProfileEndpointsExtensions
     private static async Task<IResult> ListPermissions(IMediator mediator) =>
         (await mediator.Send(new ListPermissionsQuery())).ToHttpResult();
 
-    private sealed record UpdateAccessProfileBody(string? Name, string? Description, IReadOnlyList<string> PermissionCodes);
+    private sealed record UpdateAccessProfileBody(string? Name, string? Description, decimal? MaxDiscountPercent, IReadOnlyList<string> PermissionCodes);
 }

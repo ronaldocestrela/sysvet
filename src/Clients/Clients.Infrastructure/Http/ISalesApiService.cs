@@ -12,6 +12,23 @@ public interface ISalesApiService
     Task<Result<bool>> PayOrderAsync(Guid orderId, IReadOnlyList<PayOrderPaymentClientDto> payments, CancellationToken cancellationToken = default);
     Task<Result<Guid>> RefundOrderPaymentAsync(Guid orderId, Guid paymentId, decimal amount, string? refundNsu = null, CancellationToken cancellationToken = default);
     Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<CommissionRuleClientDto>>> ListCommissionRulesAsync(CancellationToken cancellationToken = default);
+    Task<Result<Guid>> UpsertCommissionRuleAsync(CommissionRuleUpsertClientRequest request, CancellationToken cancellationToken = default);
+}
+
+public sealed class CommissionRuleClientDto
+{
+    public Guid Id { get; init; }
+    public string Role { get; init; } = string.Empty;
+    public string AppliesTo { get; init; } = string.Empty;
+    public decimal RatePercent { get; init; }
+}
+
+public sealed class CommissionRuleUpsertClientRequest
+{
+    public string Role { get; init; } = string.Empty;
+    public string AppliesTo { get; init; } = string.Empty;
+    public decimal RatePercent { get; init; }
 }
 
 public sealed class CreateSalesOrderClientRequest
@@ -20,6 +37,7 @@ public sealed class CreateSalesOrderClientRequest
     public Guid? TutorId { get; init; }
     public Guid? PetId { get; init; }
     public Guid? SourceQuoteId { get; init; }
+    public decimal DiscountPercent { get; init; }
     public List<SalesOrderItemClientDto> Items { get; init; } = new();
 }
 
@@ -43,11 +61,14 @@ public sealed class CashRegisterMethodTotalsClientDto
 
 public sealed class SalesOrderItemClientDto
 {
+    public Guid Id { get; set; }
     public string Kind { get; set; } = "Product";
     public Guid? ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
+    public decimal ReturnedQuantity { get; set; }
+    public decimal RemainingQuantity { get; set; }
 }
 
 public sealed class PayOrderPaymentClientDto

@@ -45,4 +45,10 @@ public class MockSalesApiService : ISalesApiService
 
     public Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
         => Task.FromResult(Result.Success(new SalesOrderDetailClientDto { Id = orderId, Status = "Paid", TotalAmount = 0 }));
+
+    public Task<Result<IReadOnlyList<CommissionRuleClientDto>>> ListCommissionRulesAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success<IReadOnlyList<CommissionRuleClientDto>>(Array.Empty<CommissionRuleClientDto>()));
+
+    public Task<Result<Guid>> UpsertCommissionRuleAsync(CommissionRuleUpsertClientRequest request, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(Guid.NewGuid()));
 }

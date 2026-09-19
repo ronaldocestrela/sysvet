@@ -67,6 +67,52 @@ internal static class OfflineLocalStockSaleDebiter
         return Result.Success();
     }
 
+    public static async Task<Result> CreditAsync(
+        OfflineDbContext dbContext,
+        IReadOnlyList<(Guid ProductId, decimal Quantity)> lines,
+        CancellationToken cancellationToken)
+    {
+        foreach (var (productId, quantity) in lines)
+        {
+            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
+            if (product is null || !product.IsActive)
+            {
+                return Result.Failure(InvErrorCodes.Product.NotFound);
+            }
+
+            var lots = await dbContext.ProductLots.Where(l => l.ProductId == productId && l.IsActive).ToListAsync(cancellationToken);
+            if (lots.Count == 0)
+            {
+                var balance = await dbContext.ProductBalances.FirstOrDefaultAsync(b => b.ProductId == productId, cancellationToken);
+                if (balance is null)
+                {
+                    return Result.Failure(InvErrorCodes.ProductBalance.InsufficientFunds);
+                }
+
+                var update = balance.ApplySignedDelta(quantity);
+                if (update.IsFailure)
+                {
+                    return Result.Failure(update.Error);
+                }
+
+                dbContext.ProductBalances.Update(balance);
+                continue;
+            }
+
+            var lot = lots.OrderByDescending(l => l.IsFractional).First();
+            var adjust = lot.AdjustQuantity(quantity);
+            if (adjust.IsFailure)
+            {
+                return Result.Failure(adjust.Error);
+            }
+
+            dbContext.ProductLots.Update(lot);
+            await ReconcileLocalBalanceAsync(dbContext, product, lots, cancellationToken);
+        }
+
+        return Result.Success();
+    }
+
     private static async Task ReconcileLocalBalanceAsync(
         OfflineDbContext dbContext,
         Product product,

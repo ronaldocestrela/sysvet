@@ -6,9 +6,11 @@ namespace Sales.Tests.Domain;
 
 public class OrderTests
 {
+    private static readonly Guid DefaultSellerId = Guid.NewGuid();
+
     private static Order CreateDraftOrder()
     {
-        var result = Order.Create(cashRegisterId: Guid.NewGuid());
+        var result = Order.Create(cashRegisterId: Guid.NewGuid(), sellerUserId: DefaultSellerId);
         result.IsSuccess.Should().BeTrue();
         return result.Value;
     }
@@ -16,7 +18,7 @@ public class OrderTests
     [Fact]
     public void Create_WithPetWithoutTutor_ReturnsFailure()
     {
-        var result = Order.Create(cashRegisterId: Guid.NewGuid(), tutorId: null, petId: Guid.NewGuid());
+        var result = Order.Create(cashRegisterId: Guid.NewGuid(), sellerUserId: DefaultSellerId, tutorId: null, petId: Guid.NewGuid());
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Order.PetRequiresTutor");
@@ -28,7 +30,7 @@ public class OrderTests
         var tutorId = Guid.NewGuid();
         var petId = Guid.NewGuid();
 
-        var result = Order.Create(cashRegisterId: Guid.NewGuid(), tutorId, petId);
+        var result = Order.Create(cashRegisterId: Guid.NewGuid(), sellerUserId: DefaultSellerId, tutorId, petId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.TutorId.Should().Be(tutorId);
@@ -42,7 +44,7 @@ public class OrderTests
         var orderId = Guid.NewGuid();
         var cashRegisterId = Guid.NewGuid();
 
-        var result = Order.Create(orderId, cashRegisterId);
+        var result = Order.Create(orderId, cashRegisterId, DefaultSellerId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Id.Should().Be(orderId);
@@ -52,7 +54,7 @@ public class OrderTests
     [Fact]
     public void Create_WithEmptyClientId_ReturnsFailure()
     {
-        var result = Order.Create(Guid.Empty, Guid.NewGuid());
+        var result = Order.Create(Guid.Empty, Guid.NewGuid(), DefaultSellerId);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -205,6 +207,57 @@ public class OrderTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Payment.RefundNotAllowed");
+    }
+
+    [Fact]
+    public void ApplyDiscount_ReducesTotalForPay()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "P", 1m, 100m);
+        order.ApplyDiscount(10m).IsSuccess.Should().BeTrue();
+
+        order.TotalAmount.Amount.Should().Be(90m);
+        order.Pay([Payment.Create(PaymentMethod.Cash, 90m).Value]).IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ApplyDiscount_WhenOver100_ReturnsFailure()
+    {
+        var order = CreateDraftOrder();
+        var result = order.ApplyDiscount(101m);
+        result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ReturnItems_Partial_ReversesCommissionAndSetsPartiallyReturned()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "P", 2m, 50m);
+        order.Pay([Payment.Create(PaymentMethod.Cash, 100m).Value]);
+
+        var itemId = order.Items.Single().Id;
+        order.AttachCommissions([
+            CommissionAccrual.Restore(Guid.NewGuid(), order.Id, itemId, DefaultSellerId, CommissionRole.Seller, 10m, 100m, 10m, CommissionAccrualStatus.Accrued)
+        ]);
+
+        var result = order.ReturnItems(Guid.NewGuid(), [(itemId, 1m)]);
+
+        result.IsSuccess.Should().BeTrue();
+        order.Status.Should().Be(OrderStatus.PartiallyReturned);
+        result.Value.RefundAmount.Amount.Should().Be(50m);
+        order.Commissions.Single().CommissionAmount.Amount.Should().Be(5m);
+    }
+
+    [Fact]
+    public void ReturnItems_WhenDraft_ReturnsFailure()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "P", 1m, 10m);
+
+        var result = order.ReturnItems(Guid.NewGuid(), [(order.Items.Single().Id, 1m)]);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Order.ReturnNotAllowed");
     }
 }
 

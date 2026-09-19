@@ -109,6 +109,29 @@ public sealed class SalesApiService : ISalesApiService
         return _apiClient.GetAsync<SalesOrderDetailClientDto>($"/api/v1/sales/orders/{orderId}", cancellationToken);
     }
 
+    public Task<Result<IReadOnlyList<CommissionRuleClientDto>>> ListCommissionRulesAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return Task.FromResult(Result.Failure<IReadOnlyList<CommissionRuleClientDto>>(OfflineError()));
+        }
+
+        return _apiClient.GetAsync<IReadOnlyList<CommissionRuleClientDto>>("/api/v1/sales/commission-rules", cancellationToken);
+    }
+
+    public Task<Result<Guid>> UpsertCommissionRuleAsync(CommissionRuleUpsertClientRequest request, CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return Task.FromResult(Result.Failure<Guid>(OfflineError()));
+        }
+
+        return _apiClient.PutAsync<CommissionRuleUpsertClientRequest, Guid>(
+            "/api/v1/sales/commission-rules",
+            request,
+            cancellationToken: cancellationToken);
+    }
+
     private static Error OfflineError() =>
         new("Sales.Offline", "PDV requer conexão com a internet nesta versão.");
 }

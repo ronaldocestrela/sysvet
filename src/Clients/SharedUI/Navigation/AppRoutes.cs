@@ -73,4 +73,7 @@ public static class AppRoutes
 
     /// <summary>Cash register.</summary>
     public const string SalesCashRegister = "/sales/cash-register";
+
+    /// <summary>Commission rule configuration (online).</summary>
+    public const string SalesCommissionRules = "/sales/commission-rules";
 }

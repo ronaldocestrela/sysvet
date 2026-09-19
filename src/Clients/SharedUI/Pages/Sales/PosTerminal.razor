@@ -12,6 +12,7 @@
 @inject IToastService Toast
 @inject INavigationService Navigation
 @inject IConnectivityService Connectivity
+@inject IAuthState AuthState
 
 <div class="pos-container">
     <div class="header-container">
@@ -87,9 +88,14 @@
                             </li>
                         }
                     </ul>
+                    <div class="form-group">
+                        <label>Desconto (%)</label>
+                        <input type="number" min="0" max="100" step="0.01" class="form-control" @bind="_discountPercent" />
+                        <small class="text-muted">Limite do perfil: @AuthState.MaxDiscountPercent%</small>
+                    </div>
                     <div class="cart-total">
                         <strong>Total:</strong>
-                        <span>R$ @Total.ToString("N2")</span>
+                        <span>R$ @NetTotal.ToString("N2")</span>
                     </div>
                     <h4>Pagamentos</h4>
                     @foreach (var pay in _payments)
@@ -145,8 +151,10 @@
     private bool _serviceModal;
     private string _serviceDescription = string.Empty;
     private decimal _servicePrice;
+    private decimal _discountPercent;
 
-    private decimal Total => _cart.Sum(i => i.Quantity * i.UnitPrice);
+    private decimal Subtotal => _cart.Sum(i => i.Quantity * i.UnitPrice);
+    private decimal NetTotal => Math.Round(Subtotal - Subtotal * Math.Clamp(_discountPercent, 0, 100) / 100m, 2);
 
     private IEnumerable<InventoryProductListItem> FilteredProducts =>
         _products.Where(p => string.IsNullOrWhiteSpace(_search) ||
@@ -216,7 +224,7 @@
             });
         }
 
-        _payments = new List<PayOrderPaymentClientDto> { new() { Method = "Cash", Amount = Total } };
+        _payments = new List<PayOrderPaymentClientDto> { new() { Method = "Cash", Amount = NetTotal } };
     }
 
     private void AddProduct(InventoryProductListItem product)
@@ -274,6 +282,12 @@
         Guid? tutorId = Guid.TryParse(_selectedTutorIdString, out var t) ? t : null;
         Guid? petId = Guid.TryParse(_selectedPetIdString, out var p) ? p : null;
 
+        if (_discountPercent > AuthState.MaxDiscountPercent)
+        {
+            Toast.Show($"Desconto acima do limite ({AuthState.MaxDiscountPercent}%).", ToastType.Error);
+            return;
+        }
+
         _isLoading = true;
         var sale = await SalesStore.CreateAndPayOrderAsync(new CreateSalesOrderClientRequest
         {
@@ -281,6 +295,7 @@
             TutorId = tutorId,
             PetId = petId,
             SourceQuoteId = QuoteId,
+            DiscountPercent = _discountPercent,
             Items = _cart
         }, _payments);
 

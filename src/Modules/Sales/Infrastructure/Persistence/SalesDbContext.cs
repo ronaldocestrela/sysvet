@@ -2,6 +2,7 @@ using Core.Domain;
 using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Sales.Domain.Entities;
+using Sales.Domain.Enums;
 using Sales.Domain.Repositories;
 using System;
 using System.Linq;
@@ -19,6 +20,10 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<PaymentRefund> PaymentRefunds => Set<PaymentRefund>();
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
+    public DbSet<CommissionRule> CommissionRules => Set<CommissionRule>();
+    public DbSet<CommissionAccrual> CommissionAccruals => Set<CommissionAccrual>();
+    public DbSet<SaleReturn> SaleReturns => Set<SaleReturn>();
+    public DbSet<SaleReturnLine> SaleReturnLines => Set<SaleReturnLine>();
 
     public SalesDbContext(DbContextOptions<SalesDbContext> options, ITenantContext tenantContext) : base(options)
     {
@@ -32,6 +37,7 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
         
         modelBuilder.Entity<Order>().HasQueryFilter(o => EF.Property<Guid>(o, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<CashRegister>().HasQueryFilter(c => EF.Property<Guid>(c, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<CommissionRule>().HasQueryFilter(r => EF.Property<Guid>(r, "TenantId") == TenantContext.TenantId);
         
         base.OnModelCreating(modelBuilder);
     }
@@ -41,12 +47,14 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         SetTenantIdOnSave();
+        PromoteNewEntitiesWithEmptyRowVersion();
         return await base.SaveChangesAsync(cancellationToken);
     }
 
     public override int SaveChanges()
     {
         SetTenantIdOnSave();
+        PromoteNewEntitiesWithEmptyRowVersion();
         return base.SaveChanges();
     }
 
@@ -61,6 +69,23 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
             if (tenantIdProp != null)
             {
                 entry.Property("TenantId").CurrentValue = TenantContext.TenantId;
+            }
+        }
+    }
+
+    private void PromoteNewEntitiesWithEmptyRowVersion()
+    {
+        foreach (var entry in ChangeTracker.Entries<Entity>()
+                     .Where(e => e.State == EntityState.Modified && e.Entity.RowVersion.Length == 0))
+        {
+            if (entry.Entity is CommissionAccrual { Status: not CommissionAccrualStatus.Accrued })
+            {
+                continue;
+            }
+
+            if (entry.Entity is Payment or PaymentRefund or SaleReturn or SaleReturnLine or CommissionAccrual)
+            {
+                entry.State = EntityState.Added;
             }
         }
     }

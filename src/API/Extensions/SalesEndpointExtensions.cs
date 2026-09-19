@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Sales.Application.CashRegisters.Commands;
 using Sales.Application.CashRegisters.Queries;
+using Sales.Application.Commissions;
 using Sales.Application.Orders.Commands;
 using Sales.Application.Orders.Queries;
 
@@ -54,6 +55,26 @@ public static class SalesEndpointExtensions
             command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);
             return (await mediator.Send(command)).ToHttpResult();
         });
+
+        group.MapPost("/orders/{orderId:guid}/returns", async (
+            HttpContext httpContext,
+            Guid orderId,
+            ReturnOrderCommand command,
+            IMediator mediator) =>
+        {
+            command.OrderId = orderId;
+            command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        group.MapGet("/commission-rules", async (IMediator mediator) =>
+            (await mediator.Send(new ListCommissionRulesQuery())).ToHttpResult());
+
+        group.MapPut("/commission-rules", async (UpsertCommissionRuleCommand command, IMediator mediator) =>
+            (await mediator.Send(command)).ToHttpResult());
+
+        group.MapGet("/commissions", async (Guid? orderId, IMediator mediator) =>
+            (await mediator.Send(new ListCommissionAccrualsQuery(orderId))).ToHttpResult());
 
         group.MapPost("/orders/{orderId:guid}/payments/{paymentId:guid}/refund", async (
             HttpContext httpContext,

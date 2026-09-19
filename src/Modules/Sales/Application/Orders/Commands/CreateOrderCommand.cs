@@ -17,6 +17,8 @@ public class CreateOrderCommand : ICommand<Guid>, IIdempotentCommand<Guid>
     public Guid? TutorId { get; set; }
     public Guid? PetId { get; set; }
     public Guid? SourceQuoteId { get; set; }
+    public Guid? SellerUserId { get; set; }
+    public decimal DiscountPercent { get; set; }
     public List<CreateOrderItemDto> Items { get; set; } = new();
     public Guid IdempotencyKey { get; set; }
 }
@@ -28,4 +30,6 @@ public class CreateOrderItemDto
     public string ProductName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
+    public Guid? PerformerUserId { get; set; }
+    public CommissionRole? PerformerRole { get; set; }
 }

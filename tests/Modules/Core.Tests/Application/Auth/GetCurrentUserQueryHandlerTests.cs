@@ -1,8 +1,10 @@
 using Core.Application.Auth.Queries;
+using Core.Application.Authorization;
 using Core.Application.Common.Interfaces;
 using Core.Application.Users.Dtos;
 using Core.Domain;
 using Core.Domain.Authorization;
+using Core.Domain.Entities;
 using FluentAssertions;
 using NSubstitute;
 using Xunit;
@@ -19,7 +21,8 @@ public class GetCurrentUserQueryHandlerTests
         var tenantContext = Substitute.For<ITenantContext>();
         var identity = Substitute.For<IIdentityService>();
         var permissionChecker = Substitute.For<IPermissionChecker>();
-        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker);
+        var accessProfiles = Substitute.For<IAccessProfileRepository>();
+        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker, accessProfiles);
 
         var result = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
 
@@ -53,7 +56,10 @@ public class GetCurrentUserQueryHandlerTests
         var permissionChecker = Substitute.For<IPermissionChecker>();
         permissionChecker.GetGrantedPermissionsAsync(Arg.Any<CancellationToken>())
             .Returns(Permissions.VeterinarianDefaults());
-        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker);
+        var accessProfiles = Substitute.For<IAccessProfileRepository>();
+        accessProfiles.GetByIdAsync(profileId, Arg.Any<CancellationToken>())
+            .Returns(AccessProfile.CreateSystem("Veterinarian", ApplicationRoles.Veterinarian, Permissions.VeterinarianDefaults()).Value);
+        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker, accessProfiles);
 
         var result = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
 

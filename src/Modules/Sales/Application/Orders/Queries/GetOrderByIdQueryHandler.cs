@@ -33,15 +33,31 @@ public sealed class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery
             FinanceIntegrationStatus = order.FinanceIntegrationStatus,
             CreatedAt = order.CreatedAt,
             PaidAt = order.PaidAt,
+            SubtotalAmount = order.SubtotalAmount,
+            DiscountPercent = order.DiscountPercent,
+            DiscountAmount = order.DiscountAmount,
             TotalAmount = order.TotalAmount.Amount,
             Items = order.Items.Select(i => new OrderItemDetailDto
             {
+                Id = i.Id,
                 Kind = i.Kind,
                 ProductId = i.ProductId,
                 ProductName = i.ProductName,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice.Amount,
-                LineTotal = i.TotalPrice.Amount
+                LineTotal = i.TotalPrice.Amount,
+                ReturnedQuantity = i.ReturnedQuantity,
+                RemainingQuantity = i.RemainingQuantity
+            }).ToList(),
+            Commissions = order.Commissions.Select(c => new OrderCommissionDetailDto
+            {
+                Id = c.Id,
+                OrderItemId = c.OrderItemId,
+                PayeeUserId = c.PayeeUserId,
+                Role = c.Role,
+                RatePercent = c.RatePercent,
+                CommissionAmount = c.CommissionAmount.Amount,
+                Status = c.Status
             }).ToList(),
             Payments = order.Payments.Select(p => new OrderPaymentDetailDto
             {

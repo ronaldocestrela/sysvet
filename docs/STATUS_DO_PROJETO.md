@@ -159,7 +159,12 @@ Iniciado o módulo de estoque.
 - Porta `IPaymentTerminal` + simulador offline; NSU em débito/crédito/Pix; estorno parcial/total; caixa líquido por forma.
 - API `POST .../payments/{id}/refund`; sync outbox/pull; POS/comprovante/caixa SharedUI.
 
-### 👉 **Próxima Ação: Fase 6.4 — Comissões, descontos, devoluções**
+### Fase 6.4 — Comissões, descontos, devoluções — Concluída (ADR-028)
+
+- Desconto no pedido com teto `AccessProfile.MaxDiscountPercent` (`/auth/me`); comissões snapshot no pay; devolução com estoque (`SaleReturn`) + estorno proporcional.
+- API returns/commission-rules/commissions; sync pull/push; PDV offline com regras locais e UI comprovante **Devolver**.
+
+### 👉 **Próxima Ação: Fase 6.5 — Pacotes, kits e pré-pagos**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 6.
 

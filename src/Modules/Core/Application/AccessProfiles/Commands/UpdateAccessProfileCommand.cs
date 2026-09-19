@@ -12,4 +12,5 @@ public sealed record UpdateAccessProfileCommand(
     Guid Id,
     string? Name,
     string? Description,
+    decimal? MaxDiscountPercent,
     IReadOnlyList<string> PermissionCodes) : ICommand;

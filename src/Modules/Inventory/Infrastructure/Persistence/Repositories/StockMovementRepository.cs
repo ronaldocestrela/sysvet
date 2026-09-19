@@ -56,4 +56,17 @@ public class StockMovementRepository : IStockMovementRepository
             .Take(take)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<StockMovement>> ListByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default)
+    {
+        var movements = await _dbContext.StockMovements
+            .AsNoTracking()
+            .Where(m => m.CorrelationId == correlationId)
+            .ToListAsync(cancellationToken);
+
+        return movements
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Id)
+            .ToList();
+    }
 }

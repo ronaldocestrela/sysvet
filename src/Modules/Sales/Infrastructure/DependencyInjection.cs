@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SalesDbContext>());
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICashRegisterRepository, CashRegisterRepository>();
+        services.AddScoped<ICommissionRuleRepository, CommissionRuleRepository>();
 
         services.AddSingleton<IPaymentTerminal, SimulatedPaymentTerminal>();
 

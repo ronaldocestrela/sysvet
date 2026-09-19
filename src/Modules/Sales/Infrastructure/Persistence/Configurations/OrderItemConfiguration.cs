@@ -15,6 +15,9 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(i => i.ProductId);
         builder.Property(i => i.ProductName).IsRequired().HasMaxLength(150);
         builder.Property(i => i.Quantity).HasPrecision(18, 2);
+        builder.Property(i => i.ReturnedQuantity).HasPrecision(18, 2);
+        builder.Property(i => i.PerformerUserId);
+        builder.Property(i => i.PerformerRole).HasConversion<string>().HasMaxLength(20);
 
         builder.OwnsOne(i => i.UnitPrice, money =>
         {

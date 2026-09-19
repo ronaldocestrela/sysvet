@@ -70,6 +70,10 @@
             if (meResult.IsSuccess)
             {
                 await AuthState.SetMenusAsync(meResult.Value.Menus);
+                if (AuthState is ClientAuthState clientAuth)
+                {
+                    await clientAuth.SetMaxDiscountPercentAsync(meResult.Value.MaxDiscountPercent);
+                }
             }
 
             Navigation.NavigateTo(AppRoutes.Home);

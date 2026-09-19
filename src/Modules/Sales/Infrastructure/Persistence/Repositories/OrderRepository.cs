@@ -13,7 +13,9 @@ public class OrderRepository : IOrderRepository
     [
         OrderStatus.Paid,
         OrderStatus.PartiallyRefunded,
-        OrderStatus.Refunded
+        OrderStatus.Refunded,
+        OrderStatus.PartiallyReturned,
+        OrderStatus.Returned
     ];
 
     private readonly SalesDbContext _dbContext;
@@ -29,6 +31,9 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.Items)
             .Include(o => o.Payments)
             .ThenInclude(p => p.Refunds)
+            .Include(o => o.Commissions)
+            .Include(o => o.Returns)
+            .ThenInclude(r => r.Lines)
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
@@ -72,23 +77,41 @@ public class OrderRepository : IOrderRepository
 
     public void Update(Order order)
     {
-        _dbContext.Orders.Update(order);
+        if (_dbContext.Entry(order).State == EntityState.Detached)
+        {
+            _dbContext.Orders.Attach(order);
+        }
+
         foreach (var payment in order.Payments)
         {
-            EntityEntry<Payment> entry = _dbContext.Entry(payment);
-            if (entry.State == EntityState.Detached)
-            {
-                _dbContext.Payments.Add(payment);
-            }
-
+            AddIfDetached(payment);
             foreach (var refund in payment.Refunds)
             {
-                EntityEntry<PaymentRefund> refundEntry = _dbContext.Entry(refund);
-                if (refundEntry.State == EntityState.Detached)
-                {
-                    _dbContext.PaymentRefunds.Add(refund);
-                }
+                AddIfDetached(refund);
             }
+        }
+
+        foreach (var commission in order.Commissions)
+        {
+            AddIfDetached(commission);
+        }
+
+        foreach (var saleReturn in order.Returns)
+        {
+            AddIfDetached(saleReturn);
+            foreach (var line in saleReturn.Lines)
+            {
+                AddIfDetached(line);
+            }
+        }
+    }
+
+    private void AddIfDetached<TEntity>(TEntity entity)
+        where TEntity : class
+    {
+        if (_dbContext.Entry(entity).State == EntityState.Detached)
+        {
+            _dbContext.Add(entity);
         }
     }
 

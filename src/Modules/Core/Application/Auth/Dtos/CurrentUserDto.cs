@@ -10,5 +10,6 @@ public sealed record CurrentUserDto(
     IReadOnlyList<string> Roles,
     Guid ProfileId,
     string ProfileName,
+    decimal MaxDiscountPercent,
     IReadOnlyList<string> Permissions,
     IReadOnlyList<string> Menus);

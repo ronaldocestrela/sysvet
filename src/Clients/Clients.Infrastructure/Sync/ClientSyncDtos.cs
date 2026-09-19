@@ -37,6 +37,7 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncInventoryStockMovementDto> InventoryStockMovements { get; init; } = Array.Empty<ClientSyncInventoryStockMovementDto>();
     public IReadOnlyList<ClientSyncSalesCashRegisterDto> SalesCashRegisters { get; init; } = Array.Empty<ClientSyncSalesCashRegisterDto>();
     public IReadOnlyList<ClientSyncSalesOrderDto> SalesOrders { get; init; } = Array.Empty<ClientSyncSalesOrderDto>();
+    public IReadOnlyList<ClientSyncCommissionRuleDto> SalesCommissionRules { get; init; } = Array.Empty<ClientSyncCommissionRuleDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -396,12 +397,16 @@ public sealed class ClientSyncSalesOrderDto
     public Guid? TutorId { get; init; }
     public Guid? PetId { get; init; }
     public Guid? SourceQuoteId { get; init; }
+    public Guid SellerUserId { get; init; }
+    public decimal DiscountPercent { get; init; }
     public string FinanceIntegrationStatus { get; init; } = string.Empty;
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? PaidAt { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
     public IReadOnlyList<ClientSyncSalesOrderItemDto> Items { get; init; } = Array.Empty<ClientSyncSalesOrderItemDto>();
     public IReadOnlyList<ClientSyncSalesOrderPaymentDto> Payments { get; init; } = Array.Empty<ClientSyncSalesOrderPaymentDto>();
+    public IReadOnlyList<ClientSyncSalesCommissionAccrualDto> Commissions { get; init; } = Array.Empty<ClientSyncSalesCommissionAccrualDto>();
+    public IReadOnlyList<ClientSyncSalesReturnDto> Returns { get; init; } = Array.Empty<ClientSyncSalesReturnDto>();
 }
 
 public sealed class ClientSyncSalesOrderItemDto
@@ -412,6 +417,45 @@ public sealed class ClientSyncSalesOrderItemDto
     public string ProductName { get; init; } = string.Empty;
     public decimal Quantity { get; init; }
     public decimal UnitPrice { get; init; }
+    public Guid? PerformerUserId { get; init; }
+    public string? PerformerRole { get; init; }
+    public decimal ReturnedQuantity { get; init; }
+}
+
+public sealed class ClientSyncSalesCommissionAccrualDto
+{
+    public Guid Id { get; init; }
+    public Guid OrderItemId { get; init; }
+    public Guid PayeeUserId { get; init; }
+    public string Role { get; init; } = string.Empty;
+    public decimal RatePercent { get; init; }
+    public decimal BaseAmount { get; init; }
+    public decimal CommissionAmount { get; init; }
+    public string Status { get; init; } = string.Empty;
+}
+
+public sealed class ClientSyncSalesReturnDto
+{
+    public Guid Id { get; init; }
+    public decimal RefundAmount { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
+    public IReadOnlyList<ClientSyncSalesReturnLineDto> Lines { get; init; } = Array.Empty<ClientSyncSalesReturnLineDto>();
+}
+
+public sealed class ClientSyncSalesReturnLineDto
+{
+    public Guid Id { get; init; }
+    public Guid OrderItemId { get; init; }
+    public decimal Quantity { get; init; }
+}
+
+public sealed class ClientSyncCommissionRuleDto
+{
+    public Guid Id { get; init; }
+    public string Role { get; init; } = string.Empty;
+    public string AppliesTo { get; init; } = string.Empty;
+    public decimal RatePercent { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
 }
 
 public sealed class ClientSyncSalesOrderPaymentDto

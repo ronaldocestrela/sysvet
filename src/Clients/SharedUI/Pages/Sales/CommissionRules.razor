@@ -1,0 +1,111 @@
+@page "/sales/commission-rules"
+@using Clients.Infrastructure.Http
+@using SharedUI.Components
+@using SharedUI.Services
+@inject ISalesApiService SalesApi
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Regras de comissão</h1>
+    <p class="text-muted">Percentual por papel (vendedor, veterinário, tosador) e tipo de item.</p>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando regras...">
+    <div class="card">
+        <table class="data-table">
+            <thead>
+                <tr><th>Papel</th><th>Aplica-se a</th><th>%</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var row in _rows)
+                {
+                    <tr>
+                        <td>@row.RoleLabel</td>
+                        <td>@row.AppliesToLabel</td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" min="0" max="100" step="0.01"
+                                   @bind="row.RatePercent" />
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-primary btn-sm" disabled="@_saving"
+                                    @onclick="() => SaveAsync(row)">
+                                Salvar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</LoadingState>
+
+@code {
+    private bool _loading = true;
+    private bool _saving;
+
+    private readonly List<RuleRow> _rows =
+    [
+        new("Seller", "Product", "Vendedor", "Produtos"),
+        new("Seller", "Service", "Vendedor", "Serviços"),
+        new("Seller", "All", "Vendedor", "Todos"),
+        new("Veterinarian", "Product", "Veterinário", "Produtos"),
+        new("Veterinarian", "Service", "Veterinário", "Serviços"),
+        new("Veterinarian", "All", "Veterinário", "Todos"),
+        new("Groomer", "Product", "Tosador", "Produtos"),
+        new("Groomer", "Service", "Tosador", "Serviços"),
+        new("Groomer", "All", "Tosador", "Todos")
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await SalesApi.ListCommissionRulesAsync();
+        if (result.IsSuccess && result.Value is not null)
+        {
+            foreach (var rule in result.Value)
+            {
+                var row = _rows.FirstOrDefault(r =>
+                    string.Equals(r.Role, rule.Role, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(r.AppliesTo, rule.AppliesTo, StringComparison.OrdinalIgnoreCase));
+                if (row is not null)
+                {
+                    row.RatePercent = rule.RatePercent;
+                }
+            }
+        }
+        else if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private async Task SaveAsync(RuleRow row)
+    {
+        _saving = true;
+        var result = await SalesApi.UpsertCommissionRuleAsync(new CommissionRuleUpsertClientRequest
+        {
+            Role = row.Role,
+            AppliesTo = row.AppliesTo,
+            RatePercent = row.RatePercent
+        });
+        _saving = false;
+        if (result.IsSuccess)
+        {
+            Toast.Show("Regra salva.", ToastType.Success);
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+
+    private sealed class RuleRow(string role, string appliesTo, string roleLabel, string appliesToLabel)
+    {
+        public string Role { get; } = role;
+        public string AppliesTo { get; } = appliesTo;
+        public string RoleLabel { get; } = roleLabel;
+        public string AppliesToLabel { get; } = appliesToLabel;
+        public decimal RatePercent { get; set; }
+    }
+}

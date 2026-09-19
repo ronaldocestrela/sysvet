@@ -32,6 +32,11 @@ public class AccessProfileConfiguration : IEntityTypeConfiguration<AccessProfile
         builder.Property(p => p.IsSystem)
             .IsRequired();
 
+        builder.Property(p => p.MaxDiscountPercent)
+            .HasPrecision(5, 2)
+            .HasDefaultValue(0m)
+            .IsRequired();
+
         builder.Property(p => p.PermissionCodesStorage)
             .HasColumnName("PermissionCodesJson")
             .IsRequired();

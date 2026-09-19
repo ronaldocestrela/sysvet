@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Sales.Application.CashRegisters.Dtos;
+using Sales.Application.Commissions;
 using Sales.Application.Orders.Commands;
 using Sales.Application.Orders.Dtos;
 using Sales.Domain.Enums;
@@ -33,7 +34,7 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 
         var coreContext = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
         await coreContext.Database.EnsureDeletedAsync();
-        await coreContext.Database.EnsureCreatedAsync();
+        await coreContext.Database.MigrateAsync();
 
         var salesContext = scope.ServiceProvider.GetRequiredService<global::Sales.Infrastructure.Persistence.SalesDbContext>();
         await salesContext.Database.MigrateAsync();
@@ -244,6 +245,98 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var caixaAfterRefund = await client.GetAsync("/api/v1/sales/cash-registers/open");
         var registerAfterRefund = await caixaAfterRefund.Content.ReadFromJsonAsync<OpenCashRegisterDto>();
         registerAfterRefund!.CurrentBalance.Should().Be(100m);
+    }
+
+    [Fact]
+    public async Task PayOrder_WithCommissionAndReturn_ShouldAccrueAndRestoreStock()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var suffix = Guid.NewGuid().ToString()[..8];
+
+        await client.PutAsJsonAsync("/api/v1/sales/commission-rules", new
+        {
+            role = CommissionRole.Seller,
+            appliesTo = CommissionAppliesTo.All,
+            ratePercent = 10m
+        });
+
+        var productResponse = await client.PostAsJsonAsync("/api/v1/inventory/products", new RegisterProductCommand(
+            "Comm Prod " + suffix,
+            "",
+            "CP-" + suffix,
+            "789" + suffix,
+            "UN",
+            0m,
+            ProductCategory.Food,
+            "23091000",
+            null,
+            0,
+            null,
+            null));
+        var productId = await productResponse.Content.ReadFromJsonAsync<Guid>();
+
+        await client.PostAsJsonAsync("/api/v1/inventory/stock/movements", new
+        {
+            productId,
+            type = MovementType.In,
+            quantity = 5m,
+            reason = "Opening"
+        });
+
+        var registerId = await (await client.PostAsJsonAsync("/api/v1/sales/cash-registers/open", new { openingBalance = 0m }))
+            .Content.ReadFromJsonAsync<Guid>();
+
+        var createOrderResponse = await client.PostAsJsonAsync("/api/v1/sales/orders", new CreateOrderCommand
+        {
+            CashRegisterId = registerId,
+            DiscountPercent = 0m,
+            Items =
+            [
+                new CreateOrderItemDto
+                {
+                    Kind = OrderItemKind.Product,
+                    ProductId = productId,
+                    ProductName = "Comm Prod",
+                    Quantity = 2m,
+                    UnitPrice = 50m
+                }
+            ]
+        });
+        createOrderResponse.EnsureSuccessStatusCode();
+        var orderId = await createOrderResponse.Content.ReadFromJsonAsync<Guid>();
+
+        (await client.PostAsJsonAsync($"/api/v1/sales/orders/{orderId}/pay", new PayOrderCommand
+        {
+            OrderId = orderId,
+            Payments = [new PayOrderPaymentDto { Method = PaymentMethod.Cash, Amount = 100m }]
+        })).EnsureSuccessStatusCode();
+
+        var paidOrder = await (await client.GetAsync($"/api/v1/sales/orders/{orderId}")).Content.ReadFromJsonAsync<OrderDetailDto>();
+        paidOrder!.Commissions.Should().ContainSingle(c => c.CommissionAmount == 10m);
+
+        var itemId = paidOrder.Items.Single().Id;
+        var returnResponse = await client.PostAsJsonAsync($"/api/v1/sales/orders/{orderId}/returns", new ReturnOrderCommand
+        {
+            OrderId = orderId,
+            ReturnId = Guid.NewGuid(),
+            Lines = [new ReturnOrderLineDto { OrderItemId = itemId, Quantity = 1m }]
+        });
+        if (!returnResponse.IsSuccessStatusCode)
+        {
+            var body = await returnResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Return failed: {returnResponse.StatusCode} {body}");
+        }
+
+        using var scope = _factory.Services.CreateScope();
+        var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
+        var returnMovements = await inventoryContext.StockMovements
+            .IgnoreQueryFilters()
+            .Where(m => m.ProductId == productId && m.Reason.Contains("SaleReturn"))
+            .ToListAsync();
+        returnMovements.Sum(m => m.Quantity).Should().Be(1m);
+
+        var caixa = await (await client.GetAsync("/api/v1/sales/cash-registers/open")).Content.ReadFromJsonAsync<OpenCashRegisterDto>();
+        caixa!.CurrentBalance.Should().Be(50m);
     }
 }
 

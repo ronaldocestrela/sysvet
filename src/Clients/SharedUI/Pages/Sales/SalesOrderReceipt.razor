@@ -30,8 +30,16 @@
                     @foreach (var line in _order.Items)
                     {
                         <tr>
-                            <td>@line.ProductName</td>
-                            <td>@line.Quantity</td>
+                            <td>
+                                @line.ProductName
+                                @if (line.RemainingQuantity > 0 && string.Equals(line.Kind, "Product", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <button type="button" class="btn btn-outline btn-sm no-print" @onclick="() => ReturnItemAsync(line)">
+                                        Devolver 1
+                                    </button>
+                                }
+                            </td>
+                            <td>@line.Quantity @(line.ReturnedQuantity > 0 ? $"(dev. {line.ReturnedQuantity})" : "")</td>
                             <td>@line.UnitPrice.ToString("C")</td>
                             <td>@((line.Quantity * line.UnitPrice).ToString("C"))</td>
                         </tr>
@@ -128,6 +136,26 @@
         }
 
         Toast.Show("Estorno registrado.", ToastType.Success);
+        await ReloadAsync();
+    }
+
+    private async Task ReturnItemAsync(SalesOrderItemClientDto line)
+    {
+        if (line.Id == Guid.Empty || line.RemainingQuantity <= 0)
+        {
+            return;
+        }
+
+        var result = await SalesStore.ReturnOrderAsync(OrderId, Guid.NewGuid(), [
+            new ReturnOrderLineClientDto { OrderItemId = line.Id, Quantity = 1m }
+        ]);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Devolução registrada.", ToastType.Success);
         await ReloadAsync();
     }
 

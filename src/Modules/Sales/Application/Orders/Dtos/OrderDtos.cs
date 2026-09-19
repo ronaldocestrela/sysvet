@@ -14,19 +14,37 @@ public sealed class OrderDetailDto
     public FinanceIntegrationStatus FinanceIntegrationStatus { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? PaidAt { get; init; }
+    public decimal SubtotalAmount { get; init; }
+    public decimal DiscountPercent { get; init; }
+    public decimal DiscountAmount { get; init; }
     public decimal TotalAmount { get; init; }
     public IReadOnlyList<OrderItemDetailDto> Items { get; init; } = Array.Empty<OrderItemDetailDto>();
+    public IReadOnlyList<OrderCommissionDetailDto> Commissions { get; init; } = Array.Empty<OrderCommissionDetailDto>();
     public IReadOnlyList<OrderPaymentDetailDto> Payments { get; init; } = Array.Empty<OrderPaymentDetailDto>();
 }
 
 public sealed class OrderItemDetailDto
 {
+    public Guid Id { get; init; }
     public OrderItemKind Kind { get; init; }
     public Guid? ProductId { get; init; }
     public string ProductName { get; init; } = string.Empty;
     public decimal Quantity { get; init; }
     public decimal UnitPrice { get; init; }
     public decimal LineTotal { get; init; }
+    public decimal ReturnedQuantity { get; init; }
+    public decimal RemainingQuantity { get; init; }
+}
+
+public sealed class OrderCommissionDetailDto
+{
+    public Guid Id { get; init; }
+    public Guid OrderItemId { get; init; }
+    public Guid PayeeUserId { get; init; }
+    public CommissionRole Role { get; init; }
+    public decimal RatePercent { get; init; }
+    public decimal CommissionAmount { get; init; }
+    public CommissionAccrualStatus Status { get; init; }
 }
 
 public sealed class OrderPaymentDetailDto

@@ -34,7 +34,10 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
             _dbContext.Orders.AsNoTracking()
                 .Include(o => o.Items)
                 .Include(o => o.Payments)
-                .ThenInclude(p => p.Refunds),
+                .ThenInclude(p => p.Refunds)
+                .Include(o => o.Commissions)
+                .Include(o => o.Returns)
+                .ThenInclude(r => r.Lines),
             since,
             take,
             o => o.UpdatedAt,
@@ -42,10 +45,20 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
         hasMore |= orders.HasMore;
         maxUpdated = Max(maxUpdated, orders.Items.Select(o => o.UpdatedAt));
 
+        var rules = await ReadPageAsync(
+            _dbContext.CommissionRules.AsNoTracking(),
+            since,
+            take,
+            r => r.UpdatedAt,
+            cancellationToken);
+        hasMore |= rules.HasMore;
+        maxUpdated = Max(maxUpdated, rules.Items.Select(r => r.UpdatedAt));
+
         return new SyncContributorChanges
         {
             SalesCashRegisters = registers.Items.Select(MapRegister).ToList(),
             SalesOrders = orders.Items.Select(MapOrder).ToList(),
+            SalesCommissionRules = rules.Items.Select(MapRule).ToList(),
             MaxUpdatedAt = maxUpdated,
             HasMore = hasMore
         };
@@ -105,6 +118,8 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
             TutorId = o.TutorId,
             PetId = o.PetId,
             SourceQuoteId = o.SourceQuoteId,
+            SellerUserId = o.SellerUserId,
+            DiscountPercent = o.DiscountPercent,
             FinanceIntegrationStatus = o.FinanceIntegrationStatus.ToString(),
             CreatedAt = o.CreatedAt,
             PaidAt = o.PaidAt,
@@ -117,7 +132,33 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
                 ProductId = i.ProductId,
                 ProductName = i.ProductName,
                 Quantity = i.Quantity,
-                UnitPrice = i.UnitPrice.Amount
+                UnitPrice = i.UnitPrice.Amount,
+                PerformerUserId = i.PerformerUserId,
+                PerformerRole = i.PerformerRole?.ToString(),
+                ReturnedQuantity = i.ReturnedQuantity
+            }).ToList(),
+            Commissions = o.Commissions.Select(c => new SyncSalesCommissionAccrualDto
+            {
+                Id = c.Id,
+                OrderItemId = c.OrderItemId,
+                PayeeUserId = c.PayeeUserId,
+                Role = c.Role.ToString(),
+                RatePercent = c.RatePercent,
+                BaseAmount = c.BaseAmount.Amount,
+                CommissionAmount = c.CommissionAmount.Amount,
+                Status = c.Status.ToString()
+            }).ToList(),
+            Returns = o.Returns.Select(r => new SyncSalesReturnDto
+            {
+                Id = r.Id,
+                RefundAmount = r.RefundAmount.Amount,
+                CreatedAt = r.CreatedAt,
+                Lines = r.Lines.Select(l => new SyncSalesReturnLineDto
+                {
+                    Id = l.Id,
+                    OrderItemId = l.OrderItemId,
+                    Quantity = l.Quantity
+                }).ToList()
             }).ToList(),
             Payments = o.Payments.Select(p => new SyncSalesOrderPaymentDto
             {
@@ -138,5 +179,16 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
                     CreatedAt = r.CreatedAt
                 }).ToList()
             }).ToList()
+        };
+
+    private static SyncCommissionRuleDto MapRule(CommissionRule r) =>
+        new()
+        {
+            Id = r.Id,
+            Role = r.Role.ToString(),
+            AppliesTo = r.AppliesTo.ToString(),
+            RatePercent = r.RatePercent,
+            UpdatedAt = r.UpdatedAt,
+            RowVersion = Convert.ToBase64String(r.RowVersion ?? Array.Empty<byte>())
         };
 }

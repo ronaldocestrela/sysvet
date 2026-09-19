@@ -711,7 +711,7 @@ flowchart TD
 | **6.1 Motor de vendas (PDV)** | 13 | Concluído |
 | **6.2 PDV 100% offline** | 8 | Concluído |
 | **6.3 Pagamentos e TEF** | 13 | Concluído |
-| **6.4 Comissões, descontos, devoluções** | 8 | Pendente |
+| **6.4 Comissões, descontos, devoluções** | 8 | Concluído |
 | **6.5 Pacotes, kits e pré-pagos** | 5 | Pendente |
 | **6.6 Estética — banho e tosa** | 13 | Pendente |
 | **6.7 Notificações de status (banho)** | 5 | Pendente |
@@ -778,13 +778,26 @@ flowchart TD
 
 **Aceite:** Pix/cartão com NSU no pay (`SalesEndpointsTests`); estorno cash reduz saldo da gaveta; offline Pix com NSU (`PdvOfflineTenSalesSyncTests`).
 
-### 6.4 Comissões, descontos, devoluções (8 SP)
+### 6.4 Comissões, descontos, devoluções (8 SP) — Concluído
 
-- [ ] Regras por vendedor, veterinário, tosador
-- [ ] Limite de desconto por perfil
-- [ ] Devolução de venda com estorno estoque/financeiro
+**Domain**
+- [x] `Order.DiscountPercent`, `SellerUserId`, `ReturnItems` / `SaleReturn`; `CommissionRule`, `CommissionAccrual`, `CommissionCalculator`
+- [x] `AccessProfile.MaxDiscountPercent`; ADR-028
 
-**Aceite:** Comissão calculada na venda; devolução reverte saldos.
+**Application**
+- [x] Teto de desconto no `CreateOrder`; comissões no `PayOrder`; `ReturnOrderCommand` (estoque + estorno + reversão de comissão)
+- [x] CRUD/listagem de regras e accruals; `RestoreStockForSaleReturnRequest` (idempotente)
+
+**API**
+- [x] Migrations Core/Sales; `POST /orders/{id}/returns`; `GET/PUT /commission-rules`; `GET /commissions`; `/auth/me` com teto
+
+**Sync**
+- [x] Push `ReturnOrderCommand`; pull pedidos (desconto/comissões/devoluções) e regras de comissão; falhas permanentes de desconto/devolução
+
+**Clients**
+- [x] SQLite + `OfflineSalesStore` (desconto, comissão local, devolução); POS/comprovante; `/sales/commission-rules`; cache `MaxDiscountPercent`
+
+**Aceite:** Comissão na venda e devolução com `SaleReturn` + caixa/estoque (`SalesEndpointsTests`).
 
 ### 6.5 Pacotes, kits e pré-pagos (5 SP)
 

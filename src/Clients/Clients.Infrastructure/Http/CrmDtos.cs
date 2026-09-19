@@ -195,6 +195,9 @@ public sealed class CurrentUserDto
     /// <summary>Access profile display name.</summary>
     public string ProfileName { get; set; } = string.Empty;
 
+    /// <summary>Maximum POS discount percent allowed for this profile.</summary>
+    public decimal MaxDiscountPercent { get; set; }
+
     /// <summary>Granted permission codes.</summary>
     public IReadOnlyList<string> Permissions { get; set; } = [];
 

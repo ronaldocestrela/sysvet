@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Sales.Domain.Entities;
 using Sales.Domain.Enums;
 using Sales.Domain.Payments;
+using Sales.Domain.Services;
 using SalesErrorCodes = Sales.Domain.ErrorCodes;
 
 namespace Clients.Infrastructure.Sales;
@@ -41,7 +42,7 @@ public sealed partial class OfflineSalesStore : ISalesStore
         }
 
         var registerId = Guid.NewGuid();
-        var opened = CashRegister.Open(registerId, Guid.Empty, openingBalance);
+        var opened = CashRegister.Open(registerId, OfflineSalesDefaults.OperatorUserId, openingBalance);
         if (opened.IsFailure)
         {
             return Result.Failure<Guid>(opened.Error);
@@ -127,13 +128,25 @@ public sealed partial class OfflineSalesStore : ISalesStore
         }
 
         var orderId = Guid.NewGuid();
-        var orderResult = Order.Create(orderId, request.CashRegisterId, request.TutorId, request.PetId, request.SourceQuoteId);
+        var sellerUserId = register.OpenedByUserId != Guid.Empty
+            ? register.OpenedByUserId
+            : OfflineSalesDefaults.OperatorUserId;
+        var orderResult = Order.Create(orderId, request.CashRegisterId, sellerUserId, request.TutorId, request.PetId, request.SourceQuoteId);
         if (orderResult.IsFailure)
         {
             return Result.Failure<Guid>(orderResult.Error);
         }
 
         var order = orderResult.Value;
+        if (request.DiscountPercent > 0)
+        {
+            var discount = order.ApplyDiscount(request.DiscountPercent);
+            if (discount.IsFailure)
+            {
+                return Result.Failure<Guid>(discount.Error);
+            }
+        }
+
         foreach (var item in request.Items)
         {
             var kind = string.Equals(item.Kind, "Service", StringComparison.OrdinalIgnoreCase)
@@ -181,6 +194,10 @@ public sealed partial class OfflineSalesStore : ISalesStore
             return Result.Failure<Guid>(payResult.Error);
         }
 
+        var rules = await _dbContext.SalesCommissionRules.AsNoTracking().ToListAsync(cancellationToken);
+        var accruals = CommissionCalculator.Calculate(order, order.SellerUserId, rules);
+        order.AttachCommissions(accruals);
+
         _dbContext.Orders.Add(order);
 
         var itemPayloads = request.Items.Select(i => (object)new
@@ -201,6 +218,7 @@ public sealed partial class OfflineSalesStore : ISalesStore
                 request.TutorId,
                 request.PetId,
                 request.SourceQuoteId,
+                request.DiscountPercent,
                 itemPayloads,
                 createOutboxId),
             createOutboxId);
@@ -328,11 +346,14 @@ public sealed partial class OfflineSalesStore : ISalesStore
             TotalAmount = order.TotalAmount.Amount,
             Items = order.Items.Select(i => new SalesOrderItemClientDto
             {
+                Id = i.Id,
                 Kind = i.Kind.ToString(),
                 ProductId = i.ProductId,
                 ProductName = i.ProductName,
                 Quantity = i.Quantity,
-                UnitPrice = i.UnitPrice.Amount
+                UnitPrice = i.UnitPrice.Amount,
+                ReturnedQuantity = i.ReturnedQuantity,
+                RemainingQuantity = i.RemainingQuantity
             }).ToList(),
             Payments = order.Payments.Select(p => new PayOrderPaymentClientDto
             {

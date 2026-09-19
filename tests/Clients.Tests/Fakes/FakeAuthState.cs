@@ -9,15 +9,18 @@ public sealed class FakeAuthState : IAuthState
 {
     private readonly IReadOnlyList<string> _menus;
 
-    public FakeAuthState(IReadOnlyList<string>? menus = null, bool isAuthenticated = true)
+    public FakeAuthState(IReadOnlyList<string>? menus = null, bool isAuthenticated = true, decimal maxDiscountPercent = 100m)
     {
         _menus = menus ?? [];
         IsAuthenticated = isAuthenticated;
+        MaxDiscountPercent = maxDiscountPercent;
     }
 
     public bool IsAuthenticated { get; private set; }
 
     public IReadOnlyList<string> Menus => _menus;
+
+    public decimal MaxDiscountPercent { get; private set; }
 
     public event EventHandler? SessionChanged;
 

@@ -13,6 +13,7 @@ public static class ErrorCodes
         public static readonly Error CashRegisterNotOpen = new("Order.CashRegisterNotOpen", "O caixa informado não existe ou não está aberto.");
         public static readonly Error InvalidCashRegister = new("Order.InvalidCashRegister", "Caixa inválido.");
         public static readonly Error InvalidId = new("Order.InvalidId", "Identificador do pedido inválido.");
+        public static readonly Error InvalidSeller = new("Order.InvalidSeller", "Vendedor inválido.");
         public static readonly Error PetRequiresTutor = new("Order.PetRequiresTutor", "Informe o tutor ao vincular um pet.");
         public static readonly Error NotDraft = new("Order.NotDraft", "Não é possível adicionar itens a um pedido que não está em rascunho.");
         public static readonly Error InvalidQuantity = new("Order.InvalidQuantity", "A quantidade deve ser maior que zero.");
@@ -23,6 +24,12 @@ public static class ErrorCodes
         public static readonly Error TutorNotFound = new("Order.TutorNotFound", "Tutor não encontrado.");
         public static readonly Error PetNotFound = new("Order.PetNotFound", "Pet não encontrado.");
         public static readonly Error PetTutorMismatch = new("Order.PetTutorMismatch", "O pet não pertence ao tutor informado.");
+        public static readonly Error InvalidDiscountPercent = new("Order.InvalidDiscountPercent", "Desconto deve estar entre 0 e 100.");
+        public static readonly Error DiscountExceedsProfileLimit = new("Order.DiscountExceedsProfileLimit", "Desconto excede o limite do perfil de acesso.");
+        public static readonly Error ReturnNotAllowed = new("Order.ReturnNotAllowed", "Devolução não permitida para o status atual do pedido.");
+        public static readonly Error ReturnExceedsRemainingQuantity = new("Order.ReturnExceedsRemainingQuantity", "Quantidade devolvida excede o saldo da linha.");
+        public static readonly Error ReturnEmpty = new("Order.ReturnEmpty", "Informe ao menos uma linha para devolução.");
+        public static readonly Error ReturnItemNotFound = new("Order.ReturnItemNotFound", "Linha do pedido não encontrada.");
     }
 
     public static class OrderItem
@@ -54,5 +61,17 @@ public static class ErrorCodes
     public static class Money
     {
         public static readonly Error InvalidAmount = new("Money.InvalidAmount", "O valor não pode ser negativo.");
+    }
+
+    public static class CommissionRule
+    {
+        public static readonly Error InvalidId = new("CommissionRule.InvalidId", "Identificador da regra inválido.");
+        public static readonly Error InvalidRate = new("CommissionRule.InvalidRate", "Percentual de comissão deve estar entre 0 e 100.");
+        public static readonly Error NotFound = new("CommissionRule.NotFound", "Regra de comissão não encontrada.");
+    }
+
+    public static class Commission
+    {
+        public static readonly Error InvalidReverseAmount = new("Commission.InvalidReverseAmount", "Valor de estorno de comissão inválido.");
     }
 }

@@ -1,3 +1,4 @@
+using Core.Application.Common.Interfaces;
 using Core.Domain;
 using MediatR;
 using Sales.Domain.Entities;
@@ -12,17 +13,23 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
     private readonly ICashRegisterRepository _cashRegisterRepository;
     private readonly ITutorRepository _tutorRepository;
     private readonly IPetRepository _petRepository;
+    private readonly IAccessProfileRepository _accessProfileRepository;
+    private readonly ICurrentUser _currentUser;
 
     public CreateOrderCommandHandler(
         IOrderRepository orderRepository,
         ICashRegisterRepository cashRegisterRepository,
         ITutorRepository tutorRepository,
-        IPetRepository petRepository)
+        IPetRepository petRepository,
+        IAccessProfileRepository accessProfileRepository,
+        ICurrentUser currentUser)
     {
         _orderRepository = orderRepository;
         _cashRegisterRepository = cashRegisterRepository;
         _tutorRepository = tutorRepository;
         _petRepository = petRepository;
+        _accessProfileRepository = accessProfileRepository;
+        _currentUser = currentUser;
     }
 
     public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -34,6 +41,18 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
             {
                 return Result.Success(existing.Id);
             }
+        }
+
+        var discountValidation = await ValidateDiscountAsync(request.DiscountPercent, cancellationToken);
+        if (discountValidation.IsFailure)
+        {
+            return Result.Failure<Guid>(discountValidation.Error);
+        }
+
+        var sellerResult = ResolveSellerUserId(request.SellerUserId);
+        if (sellerResult.IsFailure)
+        {
+            return Result.Failure<Guid>(sellerResult.Error);
         }
 
         var cashRegister = await _cashRegisterRepository.GetByIdAsync(request.CashRegisterId, cancellationToken);
@@ -65,22 +84,47 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
             }
         }
 
+        var sellerUserId = request.SellerUserId ?? sellerResult.Value;
+        if (sellerUserId == Guid.Empty)
+        {
+            sellerUserId = cashRegister.OpenedByUserId;
+        }
+
         var orderResult = request.OrderId is Guid clientOrderId && clientOrderId != Guid.Empty
-            ? Order.Create(clientOrderId, request.CashRegisterId, request.TutorId, request.PetId, request.SourceQuoteId)
-            : Order.Create(request.CashRegisterId, request.TutorId, request.PetId, request.SourceQuoteId);
+            ? Order.Create(clientOrderId, request.CashRegisterId, sellerUserId, request.TutorId, request.PetId, request.SourceQuoteId)
+            : Order.Create(request.CashRegisterId, sellerUserId, request.TutorId, request.PetId, request.SourceQuoteId);
         if (!orderResult.IsSuccess)
         {
             return Result.Failure<Guid>(orderResult.Error);
         }
 
         var order = orderResult.Value;
+        if (request.DiscountPercent > 0)
+        {
+            var discount = order.ApplyDiscount(request.DiscountPercent);
+            if (!discount.IsSuccess)
+            {
+                return Result.Failure<Guid>(discount.Error);
+            }
+        }
 
         foreach (var item in request.Items)
         {
             Result<bool> addResult = item.Kind switch
             {
-                OrderItemKind.Service => order.AddServiceItem(item.ProductName, item.Quantity, item.UnitPrice),
-                _ => order.AddProductItem(item.ProductId ?? Guid.Empty, item.ProductName, item.Quantity, item.UnitPrice)
+                OrderItemKind.Service => order.AddServiceItem(
+                    item.ProductName,
+                    item.Quantity,
+                    item.UnitPrice,
+                    item.PerformerUserId,
+                    item.PerformerRole),
+                _ => order.AddProductItem(
+                    item.ProductId ?? Guid.Empty,
+                    item.ProductName,
+                    item.Quantity,
+                    item.UnitPrice,
+                    item.PerformerUserId,
+                    item.PerformerRole)
             };
 
             if (!addResult.IsSuccess)
@@ -92,5 +136,46 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         _orderRepository.Add(order);
 
         return Result.Success(order.Id);
+    }
+
+    private Result<Guid> ResolveSellerUserId(Guid? requestedSellerId)
+    {
+        if (requestedSellerId is Guid id && id != Guid.Empty)
+        {
+            return Result.Success(id);
+        }
+
+        if (_currentUser.IsAuthenticated && Guid.TryParse(_currentUser.UserId, out var userId))
+        {
+            return Result.Success(userId);
+        }
+
+        return Result.Success(Guid.Empty);
+    }
+
+    private async Task<Result> ValidateDiscountAsync(decimal discountPercent, CancellationToken cancellationToken)
+    {
+        if (discountPercent <= 0)
+        {
+            return Result.Success();
+        }
+
+        if (!_currentUser.IsAuthenticated || _currentUser.AccessProfileId == Guid.Empty)
+        {
+            return Result.Failure(Sales.Domain.ErrorCodes.Order.DiscountExceedsProfileLimit);
+        }
+
+        var profile = await _accessProfileRepository.GetByIdAsync(_currentUser.AccessProfileId, cancellationToken);
+        if (profile is null)
+        {
+            return Result.Failure(Sales.Domain.ErrorCodes.Order.DiscountExceedsProfileLimit);
+        }
+
+        if (discountPercent > profile.MaxDiscountPercent)
+        {
+            return Result.Failure(Sales.Domain.ErrorCodes.Order.DiscountExceedsProfileLimit);
+        }
+
+        return Result.Success();
     }
 }

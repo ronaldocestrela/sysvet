@@ -1,5 +1,7 @@
+using Core.Application.Common.Interfaces;
 using Core.Application.IntegrationEvents;
 using Core.Domain;
+using Core.Domain.Entities;
 using FluentAssertions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,7 @@ using Sales.Application.Orders.Commands;
 using Sales.Domain.Entities;
 using Sales.Domain.Enums;
 using Sales.Domain.Payments;
+using Sales.Domain.Repositories;
 using Sales.Infrastructure.Persistence;
 
 namespace Sales.Tests.Application;
@@ -22,7 +25,7 @@ public class OfflineSalesCommandHandlerTests
         var register = CashRegister.Open(Guid.NewGuid(), Guid.NewGuid(), 0m).Value;
         context.CashRegisters.Add(register);
         var orderId = Guid.NewGuid();
-        var existing = Order.Create(orderId, register.Id).Value;
+        var existing = Order.Create(orderId, register.Id, Guid.NewGuid()).Value;
         existing.AddProductItem(Guid.NewGuid(), "P", 1m, 5m);
         context.Orders.Add(existing);
         await context.SaveChangesAsync();
@@ -46,7 +49,7 @@ public class OfflineSalesCommandHandlerTests
         await using var context = await CreateContextAsync();
         var register = CashRegister.Open(Guid.NewGuid(), 0m).Value;
         context.CashRegisters.Add(register);
-        var order = Order.Create(register.Id).Value;
+        var order = Order.Create(register.Id, Guid.NewGuid()).Value;
         order.AddProductItem(Guid.NewGuid(), "P", 1m, 10m);
         order.Pay([Payment.Create(PaymentMethod.Cash, 10m).Value]);
         context.Orders.Add(order);
@@ -55,7 +58,9 @@ public class OfflineSalesCommandHandlerTests
         var orderRepo = new Sales.Infrastructure.Persistence.Repositories.OrderRepository(context);
         var mediator = Substitute.For<IMediator>();
         var publisher = Substitute.For<IPublisher>();
-        var handler = new PayOrderCommandHandler(orderRepo, new SimulatedPaymentTerminal(), publisher, mediator);
+        var commissionRules = Substitute.For<ICommissionRuleRepository>();
+        commissionRules.ListAllAsync(Arg.Any<CancellationToken>()).Returns(Array.Empty<CommissionRule>());
+        var handler = new PayOrderCommandHandler(orderRepo, commissionRules, new SimulatedPaymentTerminal(), publisher, mediator);
 
         var result = await handler.Handle(new PayOrderCommand
         {
@@ -99,7 +104,14 @@ public class OfflineSalesCommandHandlerTests
         var cashRepo = new Sales.Infrastructure.Persistence.Repositories.CashRegisterRepository(context);
         var tutorRepo = Substitute.For<ITutorRepository>();
         var petRepo = Substitute.For<IPetRepository>();
-        return new CreateOrderCommandHandler(orderRepo, cashRepo, tutorRepo, petRepo);
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.IsAuthenticated.Returns(true);
+        currentUser.UserId.Returns(Guid.NewGuid().ToString());
+        currentUser.AccessProfileId.Returns(Guid.NewGuid());
+        var accessProfiles = Substitute.For<IAccessProfileRepository>();
+        accessProfiles.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(AccessProfile.CreateSystem("Admin", "Admin", Core.Domain.Authorization.Permissions.AdminDefaults(), 100m).Value);
+        return new CreateOrderCommandHandler(orderRepo, cashRepo, tutorRepo, petRepo, accessProfiles, currentUser);
     }
 
     private static async Task<SalesDbContext> CreateContextAsync()

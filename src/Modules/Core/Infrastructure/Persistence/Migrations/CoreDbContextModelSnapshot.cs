@@ -85,6 +85,11 @@ namespace Core.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsSystem")
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("MaxDiscountPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue(0m);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)

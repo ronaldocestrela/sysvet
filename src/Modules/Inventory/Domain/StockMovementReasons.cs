@@ -14,6 +14,9 @@ public static class StockMovementReasons
     /// <summary>Point-of-sale or clinical consumption.</summary>
     public const string Sale = "Sale";
 
+    /// <summary>Customer return crediting inventory after a sale.</summary>
+    public const string SaleReturn = "SaleReturn";
+
     /// <summary>Lot-to-lot transfer within the same product.</summary>
     public const string Transfer = "Transfer";
 

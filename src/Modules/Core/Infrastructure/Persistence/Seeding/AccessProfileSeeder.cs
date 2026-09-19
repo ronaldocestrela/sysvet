@@ -30,14 +30,14 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
     {
         _tenantContext.TenantId = tenantId;
 
-        await EnsureOneAsync(ApplicationRoles.Admin, Permissions.AdminDefaults(), cancellationToken);
-        await EnsureOneAsync(ApplicationRoles.Veterinarian, Permissions.VeterinarianDefaults(), cancellationToken);
-        await EnsureOneAsync(ApplicationRoles.Receptionist, Permissions.ReceptionistDefaults(), cancellationToken);
-        await EnsureOneAsync(ApplicationRoles.Cashier, Permissions.CashierDefaults(), cancellationToken);
+        await EnsureOneAsync(ApplicationRoles.Admin, Permissions.AdminDefaults(), 100m, cancellationToken);
+        await EnsureOneAsync(ApplicationRoles.Veterinarian, Permissions.VeterinarianDefaults(), 0m, cancellationToken);
+        await EnsureOneAsync(ApplicationRoles.Receptionist, Permissions.ReceptionistDefaults(), 0m, cancellationToken);
+        await EnsureOneAsync(ApplicationRoles.Cashier, Permissions.CashierDefaults(), 0m, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task EnsureOneAsync(string baseRole, IReadOnlyList<string> defaults, CancellationToken cancellationToken)
+    private async Task EnsureOneAsync(string baseRole, IReadOnlyList<string> defaults, decimal maxDiscountPercent, CancellationToken cancellationToken)
     {
         var existing = await _accessProfileRepository.GetSystemProfileByBaseRoleAsync(baseRole, cancellationToken);
         if (existing is not null)
@@ -46,6 +46,12 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
             if (baseRole == ApplicationRoles.Admin && !existing.PermissionCodes.Contains(Permissions.AuditRead))
             {
                 existing.Grant(Permissions.AuditRead);
+                changed = true;
+            }
+
+            if (baseRole == ApplicationRoles.Admin && existing.MaxDiscountPercent < 100m)
+            {
+                existing.SetMaxDiscountPercent(100m);
                 changed = true;
             }
 
@@ -63,7 +69,7 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
             return;
         }
 
-        var created = AccessProfile.CreateSystem(baseRole, baseRole, defaults);
+        var created = AccessProfile.CreateSystem(baseRole, baseRole, defaults, maxDiscountPercent);
         if (created.IsSuccess)
         {
             _accessProfileRepository.Add(created.Value);

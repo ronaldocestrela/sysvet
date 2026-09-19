@@ -138,6 +138,9 @@ public class OfflineDbContext : DbContext
     /// <summary>Local cash register sessions.</summary>
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
 
+    /// <summary>Local commission rules (sync pull).</summary>
+    public DbSet<CommissionRule> SalesCommissionRules => Set<CommissionRule>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -179,6 +182,10 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesPaymentConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesPaymentRefundConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCashRegisterConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCommissionAccrualConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesSaleReturnConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesSaleReturnLineConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCommissionRuleConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

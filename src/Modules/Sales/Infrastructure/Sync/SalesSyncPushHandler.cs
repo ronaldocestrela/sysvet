@@ -34,6 +34,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
             nameof(CreateOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<CreateOrderCommand>(message.Payload, JsonOptions), message.Id),
             nameof(PayOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<PayOrderCommand>(message.Payload, JsonOptions), message.Id),
             nameof(RefundOrderPaymentCommand) => WithIdempotency(JsonSerializer.Deserialize<RefundOrderPaymentCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(ReturnOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<ReturnOrderCommand>(message.Payload, JsonOptions), message.Id),
             _ => null
         };
 
@@ -47,6 +48,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
             CreateOrderCommand create => Map(await _mediator.Send(create, cancellationToken)),
             PayOrderCommand pay => Map(await _mediator.Send(pay, cancellationToken)),
             RefundOrderPaymentCommand refund => MapGuid(await _mediator.Send(refund, cancellationToken)),
+            ReturnOrderCommand returnOrder => MapGuid(await _mediator.Send(returnOrder, cancellationToken)),
             _ => Result.Failure(new Error("Sync.HandlerMismatch", "Not a sales sync command."))
         };
     }

@@ -89,6 +89,9 @@ internal static class SyncOutboxCommandMapper
             var code when code.Contains("AlreadyDeleted", StringComparison.Ordinal) => true,
             "Order.InsufficientStock" => true,
             "ProductBalance.InsufficientFunds" => true,
+            "Order.DiscountExceedsProfileLimit" => true,
+            "Order.ReturnExceedsRemainingQuantity" => true,
+            "Order.ReturnNotAllowed" => true,
             _ => false
         };
     }

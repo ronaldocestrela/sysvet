@@ -81,6 +81,21 @@ public class AccessProfileTests
     }
 
     [Fact]
+    public void SetMaxDiscountPercent_OutOfRange_ReturnsFailure()
+    {
+        var profile = AccessProfile.CreateSystem("Admin", ApplicationRoles.Admin, Permissions.AdminDefaults(), 100).Value;
+        profile.SetMaxDiscountPercent(101).IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Clone_CopiesMaxDiscountPercent()
+    {
+        var profile = AccessProfile.CreateCustom("X", null, ApplicationRoles.Cashier, Permissions.CashierDefaults(), 15m).Value;
+        var clone = profile.Clone("Y").Value;
+        clone.MaxDiscountPercent.Should().Be(15m);
+    }
+
+    [Fact]
     public void SetPermissions_WithInvalidCode_ReturnsFailure()
     {
         var profile = AccessProfile.CreateCustom("Custom", null, ApplicationRoles.Admin, [Permissions.TutorsRead]).Value;

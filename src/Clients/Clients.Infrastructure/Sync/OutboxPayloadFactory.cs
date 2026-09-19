@@ -451,6 +451,7 @@ internal static class OutboxPayloadFactory
         Guid? tutorId,
         Guid? petId,
         Guid? sourceQuoteId,
+        decimal discountPercent,
         IReadOnlyList<object> items,
         Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new
@@ -460,6 +461,7 @@ internal static class OutboxPayloadFactory
             TutorId = tutorId,
             PetId = petId,
             SourceQuoteId = sourceQuoteId,
+            DiscountPercent = discountPercent,
             Items = items,
             IdempotencyKey = idempotencyKey
         });

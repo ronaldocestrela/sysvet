@@ -18,5 +18,6 @@ public static class AccessProfileMappings
             profile.Description,
             profile.IsSystem,
             profile.BaseRole,
+            profile.MaxDiscountPercent,
             profile.PermissionCodes.OrderBy(c => c, StringComparer.Ordinal).ToList());
 }

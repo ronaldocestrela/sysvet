@@ -77,7 +77,8 @@ public sealed class ConsumeStockForSaleRequestHandler : IRequestHandler<ConsumeS
                     lot.LotNumber,
                     lot.ExpirationDate,
                     reason,
-                    lot.Id);
+                    lot.Id,
+                    correlationId: request.OrderId);
 
                 if (movement.IsFailure)
                 {
@@ -113,7 +114,7 @@ public sealed class ConsumeStockForSaleRequestHandler : IRequestHandler<ConsumeS
 
         await _productRepository.UpdateBalanceAsync(balance, cancellationToken);
         var reason = $"{StockMovementReasons.Sale} - Order {orderId}";
-        var movement = StockMovement.Create(product.Id, MovementType.Out, quantity, null, null, reason);
+        var movement = StockMovement.Create(product.Id, MovementType.Out, quantity, null, null, reason, correlationId: orderId);
         if (movement.IsFailure)
         {
             return Result.Failure(movement.Error);

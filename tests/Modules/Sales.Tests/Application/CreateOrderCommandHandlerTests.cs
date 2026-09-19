@@ -1,4 +1,6 @@
+using Core.Application.Common.Interfaces;
 using Core.Domain;
+using Core.Domain.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
@@ -31,7 +33,15 @@ public class CreateOrderCommandHandlerTests
         var tutorRepo = Substitute.For<ITutorRepository>();
         var petRepo = Substitute.For<IPetRepository>();
 
-        var handler = new CreateOrderCommandHandler(orderRepo, cashRepo, tutorRepo, petRepo);
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.IsAuthenticated.Returns(true);
+        currentUser.UserId.Returns(Guid.NewGuid().ToString());
+        currentUser.AccessProfileId.Returns(Guid.NewGuid());
+        var accessProfiles = Substitute.For<IAccessProfileRepository>();
+        accessProfiles.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(AccessProfile.CreateSystem("Admin", "Admin", Core.Domain.Authorization.Permissions.AdminDefaults(), 100m).Value);
+
+        var handler = new CreateOrderCommandHandler(orderRepo, cashRepo, tutorRepo, petRepo, accessProfiles, currentUser);
         var result = await handler.Handle(new CreateOrderCommand
         {
             CashRegisterId = register.Id,
