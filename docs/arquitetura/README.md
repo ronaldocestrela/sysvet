@@ -24,6 +24,9 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-016](./ADR-016-carteira-vacinacao.md) | Carteira de vacinação, alertas e export print | Accepted |
 | [ADR-017](./ADR-017-orcamentos-clinicos.md) | Orçamentos clínicos e fila PDV | Accepted |
 | [ADR-018](./ADR-018-internacao-mapa-execucao.md) | Internação e mapa de execução | Accepted |
+| [ADR-019](./ADR-019-produtos-lotes-estoque.md) | Produtos, lotes e saldo por lote | Accepted |
+| [ADR-020](./ADR-020-movimentacoes-estoque-alertas.md) | Movimentações lot-aware e alertas | Accepted |
+| [ADR-021](./ADR-021-entrada-xml-nfe-compra.md) | Entrada NF-e de compra via XML | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

@@ -103,7 +103,9 @@ public sealed class RegisterStockMovementCommandHandler : IRequestHandler<Regist
             request.Reason,
             lot?.Id,
             request.AdjustmentDirection,
-            movementId);
+            movementId,
+            occurredAt: null,
+            correlationId: request.CorrelationId);
 
         if (movementResult.IsFailure)
         {

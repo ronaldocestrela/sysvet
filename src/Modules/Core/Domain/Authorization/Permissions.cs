@@ -41,6 +41,9 @@ public static class Permissions
     public const string StockRead = "Stock.Read";
     public const string StockWrite = "Stock.Write";
 
+    public const string PurchaseImportsRead = "PurchaseImports.Read";
+    public const string PurchaseImportsWrite = "PurchaseImports.Write";
+
     public const string SalesRead = "Sales.Read";
     public const string SalesWrite = "Sales.Write";
 
@@ -65,6 +68,7 @@ public static class Permissions
         ClinicalQuotesRead, ClinicalQuotesWrite,
         ProductsRead, ProductsWrite,
         StockRead, StockWrite,
+        PurchaseImportsRead, PurchaseImportsWrite,
         SalesRead, SalesWrite,
         CashRegisterRead, CashRegisterWrite,
         AuditRead
@@ -107,7 +111,8 @@ public static class Permissions
         VaccinesRead,
         ClinicalQuotesRead, ClinicalQuotesWrite,
         ProductsRead, ProductsWrite,
-        StockRead
+        StockRead,
+        PurchaseImportsRead, PurchaseImportsWrite
     ];
 
     /// <summary>

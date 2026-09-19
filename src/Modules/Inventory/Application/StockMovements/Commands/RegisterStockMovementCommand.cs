@@ -17,5 +17,6 @@ public sealed record RegisterStockMovementCommand(
     AdjustmentDirection? AdjustmentDirection = null,
     string? BatchNumber = null,
     DateTimeOffset? ExpirationDate = null,
+    Guid? CorrelationId = null,
     Guid MovementId = default,
     Guid IdempotencyKey = default) : IIdempotentCommand<Guid>;

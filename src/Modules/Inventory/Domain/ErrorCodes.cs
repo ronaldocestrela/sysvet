@@ -63,4 +63,22 @@ public static class ErrorCodes
     {
         public static readonly Error InvalidAmount = new("Money.InvalidAmount", "Amount cannot be negative.");
     }
+
+    public static class PurchaseImport
+    {
+        public static readonly Error InvalidXml = new("PurchaseImport.InvalidXml", "The NF-e XML could not be parsed.");
+        public static readonly Error InvalidAccessKey = new("PurchaseImport.InvalidAccessKey", "Access key must contain 44 digits.");
+        public static readonly Error AccessKeyConflict = new("PurchaseImport.AccessKeyConflict", "This NF-e was already imported and confirmed.");
+        public static readonly Error NotFound = new("PurchaseImport.NotFound", "Purchase import was not found.");
+        public static readonly Error AlreadyConfirmed = new("PurchaseImport.AlreadyConfirmed", "Import is already confirmed.");
+        public static readonly Error NoLines = new("PurchaseImport.NoLines", "NF-e has no product lines.");
+        public static readonly Error MissingBlobKey = new("PurchaseImport.MissingBlobKey", "Stored XML key is required.");
+        public static readonly Error SupplierRequired = new("PurchaseImport.SupplierRequired", "Supplier must be linked before confirm.");
+        public static readonly Error LineWithoutProduct = new("PurchaseImport.LineWithoutProduct", "All lines must be mapped to products.");
+        public static readonly Error StockNotApplied = new("PurchaseImport.StockNotApplied", "Stock movements were not applied to all lines.");
+        public static readonly Error InvalidSupplierProductCode = new("PurchaseImport.InvalidSupplierProductCode", "Supplier product code is required.");
+        public static readonly Error FileTooLarge = new("PurchaseImport.FileTooLarge", "XML file exceeds the maximum allowed size.");
+        public static readonly Error InvalidContentType = new("PurchaseImport.InvalidContentType", "Upload must be an XML file.");
+        public static readonly Error LineNotFound = new("PurchaseImport.LineNotFound", "Import line was not found.");
+    }
 }

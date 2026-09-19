@@ -36,6 +36,7 @@ public static class MauiProgram
 		builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 		builder.Services.AddScoped<Clients.Infrastructure.Http.IWardUnitApiService, Clients.Infrastructure.Http.WardUnitApiService>();
 		builder.Services.AddScoped<Clients.Infrastructure.Crm.IClinicalAttachmentService, Clients.Infrastructure.Http.ClinicalAttachmentService>();
+		builder.Services.AddScoped<Clients.Infrastructure.Http.IPurchaseImportApiService, Clients.Infrastructure.Http.PurchaseImportApiService>();
 
 		builder.Services.AddSharedUI();
 		builder.Services.AddSingleton<INavigationService, MauiApp.Services.MauiNavigationService>();

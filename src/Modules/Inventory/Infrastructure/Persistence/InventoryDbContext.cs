@@ -16,6 +16,9 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
     public DbSet<ProductBalance> ProductBalances => Set<ProductBalance>();
     public DbSet<ProductLot> ProductLots => Set<ProductLot>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<PurchaseInvoiceImport> PurchaseInvoiceImports => Set<PurchaseInvoiceImport>();
+    public DbSet<PurchaseInvoiceImportLine> PurchaseInvoiceImportLines => Set<PurchaseInvoiceImportLine>();
+    public DbSet<SupplierProductMapping> SupplierProductMappings => Set<SupplierProductMapping>();
 
     public InventoryDbContext(DbContextOptions<InventoryDbContext> options, ITenantContext tenantContext) : base(options)
     {
@@ -32,6 +35,9 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
         modelBuilder.Entity<ProductBalance>().HasQueryFilter(b => EF.Property<Guid>(b, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<ProductLot>().HasQueryFilter(l => EF.Property<Guid>(l, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<Supplier>().HasQueryFilter(s => EF.Property<Guid>(s, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<PurchaseInvoiceImport>().HasQueryFilter(i => EF.Property<Guid>(i, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<PurchaseInvoiceImportLine>().HasQueryFilter(l => EF.Property<Guid>(l, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<SupplierProductMapping>().HasQueryFilter(m => EF.Property<Guid>(m, "TenantId") == TenantContext.TenantId);
         
         base.OnModelCreating(modelBuilder);
     }

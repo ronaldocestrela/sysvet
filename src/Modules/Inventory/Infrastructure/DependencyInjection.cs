@@ -39,6 +39,8 @@ public static class DependencyInjection
         services.AddScoped<IStockMovementRepository, StockMovementRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<IProductLotRepository, ProductLotRepository>();
+        services.AddScoped<IPurchaseInvoiceImportRepository, PurchaseInvoiceImportRepository>();
+        services.AddScoped<ISupplierProductMappingRepository, SupplierProductMappingRepository>();
         services.AddScoped<StockCatalogReconciler>();
         services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.InventorySyncChangeFeedContributor>();
         services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.InventorySyncPushHandler>();

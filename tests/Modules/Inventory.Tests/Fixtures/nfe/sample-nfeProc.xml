@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">
+  <NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+    <infNFe Id="NFe35250900000000000000550010000000011000000001" versao="4.00">
+      <ide>
+        <nNF>123</nNF>
+        <serie>1</serie>
+        <dhEmi>2026-09-18T10:00:00-03:00</dhEmi>
+      </ide>
+      <emit>
+        <CNPJ>11222333000181</CNPJ>
+        <xNome>Fornecedor Teste LTDA</xNome>
+        <xFant>Distribuidora Teste</xFant>
+      </emit>
+      <det nItem="1">
+        <prod>
+          <cProd>PROD001</cProd>
+          <cEAN>7891234567890</cEAN>
+          <xProd>Ração Premium 15kg</xProd>
+          <NCM>23091000</NCM>
+          <uCom>UN</uCom>
+          <qCom>10.0000</qCom>
+          <vUnCom>45.5000000000</vUnCom>
+          <vProd>455.00</vProd>
+        </prod>
+      </det>
+      <total>
+        <ICMSTot>
+          <vNF>455.00</vNF>
+        </ICMSTot>
+      </total>
+      <cobr>
+        <dup>
+          <nDup>001</nDup>
+          <dVenc>2026-10-18</dVenc>
+          <vDup>455.00</vDup>
+        </dup>
+      </cobr>
+    </infNFe>
+  </NFe>
+  <protNFe versao="4.00">
+    <infProt>
+      <chNFe>35250900000000000000550010000000011000000001</chNFe>
+    </infProt>
+  </protNFe>
+</nfeProc>

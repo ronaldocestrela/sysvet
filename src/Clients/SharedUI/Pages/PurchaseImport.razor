@@ -1,0 +1,234 @@
+@page "/purchase-imports"
+@page "/purchase-imports/{ImportId:guid}"
+@using Clients.Infrastructure.Http
+@using Inventory.Domain.Enums
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject IPurchaseImportApiService PurchaseImportApi
+@inject IConnectivityService Connectivity
+@inject IToastService Toast
+@inject NavigationManager Navigation
+
+<div class="header-section">
+    <h1>Entrada NF-e (XML)</h1>
+</div>
+
+<ConnectivityBanner />
+
+@if (!Connectivity.IsOnline)
+{
+    <p class="text-muted">Importação de XML requer conexão com a API.</p>
+}
+else if (_conference is not null)
+{
+    <div class="card p-3">
+        <h2>Conferência — NF @_conference.InvoiceNumber</h2>
+        <p>Chave: @_conference.AccessKey</p>
+        <p>Status: @_conference.Status</p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Qtd</th>
+                    <th>Produto</th>
+                    <th>Movimentação</th>
+                    <th>Lote</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in _conference.Lines)
+                {
+                    <tr>
+                        <td>@line.Description</td>
+                        <td>@line.Quantity</td>
+                        <td>@line.ProductId</td>
+                        <td>@line.StockMovementId</td>
+                        <td>@line.LotNumber</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <button class="btn btn-primary" @onclick="() => Navigation.NavigateTo(AppRoutes.PurchaseImports)">Nova importação</button>
+    </div>
+}
+else if (_preview is not null)
+{
+    <div class="card p-3 mb-3">
+        <h2>Prévia — NF @_preview.InvoiceNumber</h2>
+        <p>Fornecedor: @_preview.Emitter.TradeName (@_preview.Emitter.Document)</p>
+        <p>Total: @_preview.TotalAmount.ToString("C")</p>
+    </div>
+
+    <div class="card p-3">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Descrição</th>
+                    <th>Qtd</th>
+                    <th>Mapeamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in _preview.Lines)
+                {
+                    <tr>
+                        <td>@line.SupplierProductCode</td>
+                        <td>@line.Description</td>
+                        <td>@line.Quantity</td>
+                        <td>
+                            @if (line.RequiresMapping)
+                            {
+                                <small>Criar: SKU @line.SuggestedSku</small>
+                                <input type="text" placeholder="Código de barras" @bind="_barcodes[line.LineId]" class="form-control form-control-sm mt-1" />
+                            }
+                            else
+                            {
+                                <span>Vinculado @line.SuggestedProductId</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <button class="btn btn-primary" disabled="@_confirming" @onclick="ConfirmAsync">Confirmar entrada</button>
+    </div>
+}
+else
+{
+    <div class="card p-3">
+        <FormField Label="Arquivo XML da NF-e">
+            <InputFile OnChange="OnFileSelected" accept=".xml,application/xml,text/xml" />
+        </FormField>
+        @if (_uploading)
+        {
+            <LoadingState Message="Processando XML..." />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? ImportId { get; set; }
+
+    private PurchaseImportPreviewClientDto? _preview;
+    private PurchaseImportDetailClientDto? _conference;
+    private bool _uploading;
+    private bool _confirming;
+    private readonly Dictionary<Guid, string> _barcodes = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ImportId is Guid id && Connectivity.IsOnline)
+        {
+            var detail = await PurchaseImportApi.GetByIdAsync(id);
+            if (detail.IsSuccess && detail.Value.Status == PurchaseImportStatus.Confirmed)
+            {
+                _conference = detail.Value;
+            }
+        }
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        if (!Connectivity.IsOnline || e.FileCount == 0)
+        {
+            return;
+        }
+
+        _uploading = true;
+        try
+        {
+            await using var stream = e.File.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+            var result = await PurchaseImportApi.ParseAsync(ms, e.File.Name);
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            _preview = result.Value;
+            foreach (var line in _preview.Lines.Where(l => l.RequiresMapping))
+            {
+                _barcodes[line.LineId] = line.Barcode ?? string.Empty;
+            }
+        }
+        finally
+        {
+            _uploading = false;
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (_preview is null)
+        {
+            return;
+        }
+
+        _confirming = true;
+        try
+        {
+            var supplier = new ConfirmSupplierClientAction
+            {
+                Mode = _preview.MatchedSupplierId.HasValue ? 0 : 1,
+                SupplierId = _preview.MatchedSupplierId
+            };
+
+            var lines = _preview.Lines.Select(line =>
+            {
+                if (!line.RequiresMapping)
+                {
+                    return new ConfirmLineClientAction
+                    {
+                        LineId = line.LineId,
+                        Mode = 0,
+                        ProductId = line.SuggestedProductId
+                    };
+                }
+
+                return new ConfirmLineClientAction
+                {
+                    LineId = line.LineId,
+                    Mode = 1,
+                    CreateProduct = new CreateProductClientPayload
+                    {
+                        Sku = line.SuggestedSku ?? line.SupplierProductCode,
+                        Barcode = _barcodes.TryGetValue(line.LineId, out var bc) && !string.IsNullOrWhiteSpace(bc)
+                            ? bc
+                            : $"789{line.LineId:N}"[..13],
+                        Category = (int)ProductCategory.Other,
+                        RequiresLot = !string.IsNullOrWhiteSpace(line.LotNumber),
+                        ReorderLevel = 0,
+                        Description = line.Description
+                    }
+                };
+            }).ToList();
+
+            var body = new ConfirmPurchaseImportClientRequest { Supplier = supplier, Lines = lines };
+            var result = await PurchaseImportApi.ConfirmAsync(_preview.ImportId, body);
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            Navigation.NavigateTo($"{AppRoutes.PurchaseImports}/{_preview.ImportId}");
+            var detail = await PurchaseImportApi.GetByIdAsync(_preview.ImportId);
+            if (detail.IsSuccess)
+            {
+                _preview = null;
+                _conference = detail.Value;
+            }
+
+            Toast.Show("Entrada confirmada.", ToastType.Success);
+        }
+        finally
+        {
+            _confirming = false;
+        }
+    }
+}

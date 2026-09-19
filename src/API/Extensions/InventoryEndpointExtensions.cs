@@ -1,3 +1,6 @@
+using Inventory.Application.PurchaseImports.Commands;
+using Inventory.Application.PurchaseImports.Dtos;
+using Inventory.Application.PurchaseImports.Queries;
 using Inventory.Application.ProductLots.Commands;
 using Inventory.Application.StockMovements.Commands;
 using Inventory.Application.StockMovements.Queries;
@@ -139,6 +142,7 @@ public static class InventoryEndpointExtensions
                 body.AdjustmentDirection,
                 body.BatchNumber,
                 body.ExpirationDate,
+                body.CorrelationId,
                 body.MovementId,
                 key);
             return (await mediator.Send(command)).ToHttpResult();
@@ -166,6 +170,50 @@ public static class InventoryEndpointExtensions
             StockAlertKind? parsedKind = Enum.TryParse<StockAlertKind>(kind, true, out var k) ? k : null;
             return (await mediator.Send(new ListStockAlertsQuery(parsedKind, horizonDays <= 0 ? 30 : horizonDays, page <= 0 ? 1 : page, pageSize <= 0 ? 50 : pageSize))).ToHttpResult();
         });
+
+        group.MapPost("/purchase-imports/parse", async (HttpContext httpContext, IMediator mediator) =>
+        {
+            if (!httpContext.Request.HasFormContentType)
+            {
+                return Results.BadRequest("Multipart form expected.");
+            }
+
+            var form = await httpContext.Request.ReadFormAsync();
+            var file = form.Files.GetFile("file");
+            if (file is null)
+            {
+                return Results.BadRequest("Missing file field.");
+            }
+
+            await using var stream = file.OpenReadStream();
+            var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/xml" : file.ContentType;
+            var command = new ParsePurchaseNfeXmlCommand(
+                stream,
+                file.FileName,
+                contentType,
+                file.Length,
+                EndpointIdempotency.ReadKey(httpContext));
+
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        group.MapPost("/purchase-imports/{id:guid}/confirm", async (Guid id, HttpContext httpContext, [FromBody] ConfirmPurchaseImportRequest? body, IMediator mediator) =>
+        {
+            if (body?.Lines is null || body.Lines.Count == 0)
+            {
+                return Results.BadRequest("Confirm body must include supplier and lines.");
+            }
+
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            var command = new ConfirmPurchaseNfeImportCommand(id, body.Supplier, body.Lines, key);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        group.MapGet("/purchase-imports", async ([FromQuery] int take, IMediator mediator) =>
+            (await mediator.Send(new ListPurchaseImportsQuery(take <= 0 ? 50 : take))).ToHttpResult());
+
+        group.MapGet("/purchase-imports/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new GetPurchaseImportByIdQuery(id))).ToHttpResult());
 
         return app;
     }
@@ -206,6 +254,7 @@ public static class InventoryEndpointExtensions
         AdjustmentDirection? AdjustmentDirection = null,
         string? BatchNumber = null,
         DateTimeOffset? ExpirationDate = null,
+        Guid? CorrelationId = null,
         Guid MovementId = default);
 
     private sealed record TransferStockBody(
@@ -215,4 +264,5 @@ public static class InventoryEndpointExtensions
         decimal Quantity,
         string Reason,
         Guid CorrelationId = default);
+
 }

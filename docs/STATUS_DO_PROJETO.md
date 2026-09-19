@@ -117,7 +117,16 @@ Iniciado o módulo de estoque.
 - Sync: plugin Inventory no push/pull; SQLite offline + `IInventoryStore`.
 - UI: `/products`, `/products/{id}`, `/suppliers` (SharedUI).
 
-### 👉 **Próxima Ação: Fase 5.2 — Movimentações e alertas**
+### Fase 5.2 — Movimentações e alertas — Concluída (ADR-020)
+
+- Movimentações lot-aware, transferência, kardex, alertas; sync `StockMovement`; UI `/stock-movements`, `/stock-alerts`.
+
+### Fase 5.3 — Entrada via XML (NF compra) — Concluída (ADR-021)
+
+- Parser NF-e (`NfePurchaseXmlParser`), agregado `PurchaseInvoiceImport`, API parse/confirm, evento `PurchaseInvoiceImportedEvent` (AP Fase 7).
+- Permissões `PurchaseImports.Read/Write`; UI online `/purchase-imports`.
+
+### 👉 **Próxima Ação: Fase 5.4 — Perdas, fracionamento e devoluções**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 5.
 

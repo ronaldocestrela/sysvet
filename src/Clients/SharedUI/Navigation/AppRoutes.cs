@@ -59,6 +59,9 @@ public static class AppRoutes
     /// <summary>Inventory low-stock and expiry alerts.</summary>
     public const string StockAlerts = "/stock-alerts";
 
+    /// <summary>NF-e purchase XML import.</summary>
+    public const string PurchaseImports = "/purchase-imports";
+
     /// <summary>Point of sale terminal.</summary>
     public const string SalesPos = "/sales/pos";
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+  <infNFe Id="NFe35250900000000000000550010000000011000000002" versao="4.00">
+    <ide>
+      <nNF>124</nNF>
+      <serie>1</serie>
+      <dhEmi>2026-09-18T11:00:00-03:00</dhEmi>
+    </ide>
+    <emit>
+      <CNPJ>11222333000181</CNPJ>
+      <xNome>Fornecedor Teste LTDA</xNome>
+      <xFant>Distribuidora Teste</xFant>
+    </emit>
+    <det nItem="1">
+      <prod>
+        <cProd>MED001</cProd>
+        <cEAN>SEM GTIN</cEAN>
+        <xProd>Antibiótico 500mg</xProd>
+        <NCM>30049099</NCM>
+        <uCom>UN</uCom>
+        <qCom>20.0000</qCom>
+        <vUnCom>12.0000000000</vUnCom>
+        <vProd>240.00</vProd>
+        <rastro>
+          <nLote>LOTE-A</nLote>
+          <dVal>2027-06-01</dVal>
+          <qLote>12.0000</qLote>
+        </rastro>
+        <rastro>
+          <nLote>LOTE-B</nLote>
+          <dVal>2027-12-01</dVal>
+          <qLote>8.0000</qLote>
+        </rastro>
+      </prod>
+    </det>
+    <total>
+      <ICMSTot>
+        <vNF>240.00</vNF>
+      </ICMSTot>
+    </total>
+  </infNFe>
+</NFe>
