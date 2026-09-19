@@ -1,5 +1,7 @@
 @page "/stock-movements"
 @using Clients.Infrastructure.Crm
+@using Core.Domain
+@using Inventory.Domain
 @using Inventory.Domain.Entities
 @using SharedUI.Components
 @using SharedUI.Services
@@ -8,7 +10,7 @@
 
 <div class="header-section">
     <h1>Movimentações de estoque</h1>
-    <button class="btn btn-primary" @onclick="OpenAddModal">Registrar movimentação</button>
+    <button class="btn btn-primary" @onclick="OpenAddModal">Registrar operação</button>
 </div>
 
 <LoadingState IsLoading="_loading" Message="Carregando movimentações...">
@@ -38,7 +40,7 @@
                             <td>@DisplayType(mov.Type)</td>
                             <td>@mov.ProductName</td>
                             <td>@mov.Quantity</td>
-                            <td>@mov.Reason</td>
+                            <td>@DisplayReason(mov.Reason)</td>
                             <td>@(mov.LotNumber ?? "—")</td>
                         </tr>
                     }
@@ -48,8 +50,16 @@
     </div>
 </LoadingState>
 
-<Modal @bind-IsVisible="_showModal" Title="Registrar movimentação">
+<Modal @bind-IsVisible="_showModal" Title="Registrar operação">
     <ChildContent>
+        <FormField Label="Operação">
+            <select @bind="_operationKind" @bind:after="OnOperationChanged">
+                <option value="Movement">Movimentação manual</option>
+                <option value="Loss">Perda</option>
+                <option value="Fractionate">Fracionar embalagem</option>
+                <option value="Return">Devolução ao fornecedor</option>
+            </select>
+        </FormField>
         <FormField Label="Produto">
             <select @bind="_selectedProductId" @bind:after="OnProductChanged">
                 <option value="@Guid.Empty">Selecione...</option>
@@ -59,41 +69,83 @@
                 }
             </select>
         </FormField>
-        <FormField Label="Lote (quando exigido)">
+        <FormField Label="Lote">
             <select @bind="_selectedLotId">
                 <option value="">—</option>
                 @foreach (var lot in _lotsForProduct)
                 {
-                    <option value="@lot.Id">@lot.LotNumber (saldo @lot.Quantity)</option>
+                    <option value="@lot.Id">@lot.LotNumber (saldo @lot.Quantity)@(lot.IsFractional ? " [fracionado]" : "")</option>
                 }
             </select>
         </FormField>
-        <FormField Label="Tipo">
-            <select @bind="_movementType">
-                <option value="@MovementType.In">Entrada</option>
-                <option value="@MovementType.Out">Saída</option>
-                <option value="@MovementType.Adjustment">Ajuste</option>
-            </select>
-        </FormField>
-        @if (_movementType == MovementType.Adjustment)
+        @if (_operationKind == "Movement")
         {
-            <FormField Label="Direção do ajuste">
-                <select @bind="_adjustmentDirection">
-                    <option value="@AdjustmentDirection.Increase">Aumento</option>
-                    <option value="@AdjustmentDirection.Decrease">Redução</option>
+            <FormField Label="Tipo">
+                <select @bind="_movementType">
+                    <option value="@MovementType.In">Entrada</option>
+                    <option value="@MovementType.Out">Saída</option>
+                    <option value="@MovementType.Adjustment">Ajuste</option>
                 </select>
             </FormField>
+            @if (_movementType == MovementType.Adjustment)
+            {
+                <FormField Label="Direção do ajuste">
+                    <select @bind="_adjustmentDirection">
+                        <option value="@AdjustmentDirection.Increase">Aumento</option>
+                        <option value="@AdjustmentDirection.Decrease">Redução</option>
+                    </select>
+                </FormField>
+            }
+            <FormField Label="Motivo">
+                <input type="text" @bind="_reason" />
+            </FormField>
         }
-        <FormField Label="Quantidade">
+        @if (_operationKind == "Loss")
+        {
+            <FormField Label="Motivo da perda">
+                <select @bind="_lossReasonCode">
+                    <option value="@StockLossReasons.Expired">Validade</option>
+                    <option value="@StockLossReasons.Damage">Avaria</option>
+                    <option value="@StockLossReasons.InternalConsumption">Consumo interno</option>
+                    <option value="@StockLossReasons.Donation">Doação</option>
+                </select>
+            </FormField>
+            <FormField Label="Observações">
+                <input type="text" @bind="_notes" />
+            </FormField>
+        }
+        @if (_operationKind == "Fractionate")
+        {
+            <FormField Label="Embalagens a abrir">
+                <input type="number" step="1" min="1" @bind="_packagesToOpen" />
+            </FormField>
+            @if (_selectedProductDetail is not null && _selectedProductDetail.UnitsPerPackage > 1)
+            {
+                <p class="text-muted">Unidades por embalagem: @_selectedProductDetail.UnitsPerPackage</p>
+            }
+        }
+        @if (_operationKind == "Return")
+        {
+            <FormField Label="Fornecedor">
+                <select @bind="_selectedSupplierId">
+                    <option value="">Padrão do produto</option>
+                    @foreach (var s in _suppliers)
+                    {
+                        <option value="@s.Id">@s.TradeName</option>
+                    }
+                </select>
+            </FormField>
+            <FormField Label="Observações">
+                <input type="text" @bind="_notes" />
+            </FormField>
+        }
+        <FormField Label="@QuantityLabel">
             <input type="number" step="0.01" @bind="_quantity" />
-        </FormField>
-        <FormField Label="Motivo">
-            <input type="text" @bind="_reason" />
         </FormField>
     </ChildContent>
     <FooterTemplate>
         <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
-        <button class="btn btn-primary" @onclick="SaveMovement">Registrar</button>
+        <button class="btn btn-primary" @onclick="SaveOperation">Registrar</button>
     </FooterTemplate>
 </Modal>
 
@@ -101,18 +153,28 @@
     private List<InventoryStockMovementItem> _movements = [];
     private List<InventoryProductListItem> _products = [];
     private List<InventoryProductLotItem> _lotsForProduct = [];
+    private List<InventorySupplierItem> _suppliers = [];
+    private InventoryProductDetail? _selectedProductDetail;
     private bool _loading = true;
     private bool _showModal;
+    private string _operationKind = "Movement";
     private Guid _selectedProductId;
     private Guid? _selectedLotId;
+    private Guid? _selectedSupplierId;
     private MovementType _movementType = MovementType.In;
     private AdjustmentDirection _adjustmentDirection = AdjustmentDirection.Increase;
     private decimal _quantity = 1;
+    private decimal _packagesToOpen = 1;
     private string _reason = string.Empty;
+    private string _lossReasonCode = StockLossReasons.Expired;
+    private string _notes = string.Empty;
+
+    private string QuantityLabel => _operationKind == "Fractionate" ? "Embalagens (ignorado — use campo acima)" : "Quantidade";
 
     protected override async Task OnInitializedAsync()
     {
         await LoadProductsAsync();
+        await LoadSuppliersAsync();
         await LoadMovementsAsync();
     }
 
@@ -120,6 +182,12 @@
     {
         var result = await InventoryStore.ListProductsAsync();
         _products = result.IsSuccess ? result.Value.ToList() : [];
+    }
+
+    private async Task LoadSuppliersAsync()
+    {
+        var result = await InventoryStore.ListSuppliersAsync();
+        _suppliers = result.IsSuccess ? result.Value.ToList() : [];
     }
 
     private async Task LoadMovementsAsync()
@@ -133,6 +201,7 @@
     private async Task OnProductChanged()
     {
         _lotsForProduct = [];
+        _selectedProductDetail = null;
         if (_selectedProductId == Guid.Empty)
         {
             return;
@@ -141,22 +210,38 @@
         var detail = await InventoryStore.GetProductByIdAsync(_selectedProductId);
         if (detail.IsSuccess)
         {
+            _selectedProductDetail = detail.Value;
             _lotsForProduct = detail.Value.Lots.Where(l => l.IsActive).ToList();
+            if (_operationKind == "Fractionate")
+            {
+                _lotsForProduct = _lotsForProduct.Where(l => !l.IsFractional).ToList();
+            }
         }
+    }
+
+    private async Task OnOperationChanged()
+    {
+        await OnProductChanged();
     }
 
     private void OpenAddModal()
     {
+        _operationKind = "Movement";
         _selectedProductId = Guid.Empty;
         _selectedLotId = null;
+        _selectedSupplierId = null;
         _movementType = MovementType.In;
         _quantity = 1;
+        _packagesToOpen = 1;
         _reason = string.Empty;
+        _notes = string.Empty;
+        _lossReasonCode = StockLossReasons.Expired;
         _lotsForProduct = [];
+        _selectedProductDetail = null;
         _showModal = true;
     }
 
-    private async Task SaveMovement()
+    private async Task SaveOperation()
     {
         if (_selectedProductId == Guid.Empty)
         {
@@ -164,14 +249,45 @@
             return;
         }
 
-        AdjustmentDirection? direction = _movementType == MovementType.Adjustment ? _adjustmentDirection : null;
-        var result = await InventoryStore.RegisterStockMovementAsync(
-            _selectedProductId,
-            _movementType,
-            _quantity,
-            _reason,
-            _selectedLotId,
-            direction);
+        Result<Guid> result;
+        switch (_operationKind)
+        {
+            case "Loss":
+                result = await InventoryStore.RegisterStockLossAsync(
+                    _selectedProductId,
+                    _selectedLotId,
+                    _quantity,
+                    _lossReasonCode,
+                    string.IsNullOrWhiteSpace(_notes) ? null : _notes);
+                break;
+            case "Fractionate":
+                if (_selectedLotId is null)
+                {
+                    Toast.Show("Selecione o lote lacrado.", ToastType.Warning);
+                    return;
+                }
+
+                result = await InventoryStore.FractionatePackageAsync(_selectedProductId, _selectedLotId.Value, _packagesToOpen);
+                break;
+            case "Return":
+                result = await InventoryStore.RegisterSupplierReturnAsync(
+                    _selectedProductId,
+                    _selectedLotId,
+                    _quantity,
+                    _selectedSupplierId,
+                    string.IsNullOrWhiteSpace(_notes) ? null : _notes);
+                break;
+            default:
+                AdjustmentDirection? direction = _movementType == MovementType.Adjustment ? _adjustmentDirection : null;
+                result = await InventoryStore.RegisterStockMovementAsync(
+                    _selectedProductId,
+                    _movementType,
+                    _quantity,
+                    _reason,
+                    _selectedLotId,
+                    direction);
+                break;
+        }
 
         if (result.IsFailure)
         {
@@ -179,7 +295,7 @@
             return;
         }
 
-        Toast.Show("Movimentação registrada.", ToastType.Success);
+        Toast.Show("Operação registrada.", ToastType.Success);
         _showModal = false;
         await LoadMovementsAsync();
         await LoadProductsAsync();
@@ -191,5 +307,16 @@
         MovementType.Out => "Saída",
         MovementType.Adjustment => "Ajuste",
         _ => type.ToString()
+    };
+
+    private static string DisplayReason(string reason) => reason switch
+    {
+        StockMovementReasons.LossExpired => "Perda — validade",
+        StockMovementReasons.LossDamage => "Perda — avaria",
+        StockMovementReasons.InternalConsumption => "Consumo interno",
+        StockMovementReasons.Donation => "Doação",
+        StockMovementReasons.SupplierReturn => "Devolução fornecedor",
+        StockMovementReasons.Fractionation => "Fracionamento",
+        _ => reason
     };
 }

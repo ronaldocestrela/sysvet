@@ -15,6 +15,7 @@ public class ProductLotConfiguration : IEntityTypeConfiguration<ProductLot>
         builder.Property(l => l.LotNumber).IsRequired().HasMaxLength(50);
         builder.Property(l => l.UnitCost).HasPrecision(18, 4);
         builder.Property(l => l.Quantity).HasPrecision(18, 4);
+        builder.Property(l => l.IsFractional).HasDefaultValue(false);
         builder.Property(e => e.RowVersion).IsConcurrencyToken();
         builder.HasOne<Product>().WithMany().HasForeignKey(l => l.ProductId).OnDelete(DeleteBehavior.Cascade);
     }

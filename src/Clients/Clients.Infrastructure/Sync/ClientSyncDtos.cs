@@ -310,6 +310,7 @@ public sealed class ClientSyncInventoryProductDto
     public int MerchandiseOrigin { get; init; }
     public decimal AverageCost { get; init; }
     public bool RequiresLot { get; init; }
+    public decimal UnitsPerPackage { get; init; } = 1m;
     public bool IsActive { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
 }
@@ -322,6 +323,7 @@ public sealed class ClientSyncInventoryProductLotDto
     public DateTimeOffset? ExpirationDate { get; init; }
     public decimal UnitCost { get; init; }
     public decimal Quantity { get; init; }
+    public bool IsFractional { get; init; }
     public bool IsActive { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
 }
@@ -337,6 +339,8 @@ public sealed class ClientSyncInventoryStockMovementDto
     public string? BatchNumber { get; init; }
     public DateTimeOffset? ExpirationDate { get; init; }
     public string Reason { get; init; } = string.Empty;
+    public string? Notes { get; init; }
+    public Guid? SupplierId { get; init; }
     public DateTimeOffset Date { get; init; }
     public Guid? CorrelationId { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }

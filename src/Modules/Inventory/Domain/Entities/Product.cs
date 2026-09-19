@@ -23,6 +23,8 @@ public class Product : AggregateRoot
     public int MerchandiseOrigin { get; private set; }
     public decimal AverageCost { get; private set; }
     public bool RequiresLot { get; private set; }
+    /// <summary>Units contained in one purchasable package when fractionation applies.</summary>
+    public decimal UnitsPerPackage { get; private set; } = 1m;
     public bool IsActive { get; private set; } = true;
 
     private Product() { }
@@ -40,7 +42,8 @@ public class Product : AggregateRoot
         string ncm,
         string? cest,
         int merchandiseOrigin,
-        bool requiresLot)
+        bool requiresLot,
+        decimal unitsPerPackage)
         : base(id)
     {
         Name = name;
@@ -55,6 +58,7 @@ public class Product : AggregateRoot
         Cest = cest;
         MerchandiseOrigin = merchandiseOrigin;
         RequiresLot = requiresLot;
+        UnitsPerPackage = unitsPerPackage;
     }
 
     /// <summary>
@@ -73,7 +77,8 @@ public class Product : AggregateRoot
         int merchandiseOrigin,
         Guid? supplierId,
         bool? requiresLot = null,
-        Guid? id = null)
+        Guid? id = null,
+        decimal? unitsPerPackage = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -108,6 +113,12 @@ public class Product : AggregateRoot
             return Result.Failure<Product>(ErrorCodes.Product.InvalidMerchandiseOrigin);
         }
 
+        var unitsPerPack = unitsPerPackage ?? 1m;
+        if (unitsPerPack <= 0)
+        {
+            return Result.Failure<Product>(ErrorCodes.Product.InvalidUnitsPerPackage);
+        }
+
         var lotRequired = requiresLot ?? category is ProductCategory.Medication or ProductCategory.Vaccine;
         var productId = id ?? Guid.NewGuid();
 
@@ -124,7 +135,8 @@ public class Product : AggregateRoot
             ncmResult.Value.Value,
             string.IsNullOrWhiteSpace(cest) ? null : cest.Trim(),
             merchandiseOrigin,
-            lotRequired));
+            lotRequired,
+            unitsPerPack));
     }
 
     /// <summary>
@@ -142,9 +154,10 @@ public class Product : AggregateRoot
         string? cest,
         int merchandiseOrigin,
         Guid? supplierId,
-        bool requiresLot)
+        bool requiresLot,
+        decimal unitsPerPackage)
     {
-        var created = Create(name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, Id);
+        var created = Create(name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, Id, unitsPerPackage);
         if (created.IsFailure)
         {
             return Result.Failure(created.Error);
@@ -163,6 +176,7 @@ public class Product : AggregateRoot
         Cest = draft.Cest;
         MerchandiseOrigin = draft.MerchandiseOrigin;
         RequiresLot = requiresLot;
+        UnitsPerPackage = draft.UnitsPerPackage;
         UpdatedAt = DateTimeOffset.UtcNow;
         return Result.Success();
     }

@@ -67,6 +67,7 @@ public static class InventoryEndpointExtensions
                 body.MerchandiseOrigin,
                 body.SupplierId,
                 body.RequiresLot,
+                body.UnitsPerPackage,
                 key);
             return (await mediator.Send(command)).ToHttpResult();
         });
@@ -127,8 +128,8 @@ public static class InventoryEndpointExtensions
             return (await mediator.Send(new SetSupplierActiveCommand(id, body.IsActive, key))).ToHttpResult();
         });
 
-        group.MapGet("/stock/movements", async ([FromQuery] Guid? productId, [FromQuery] int page, [FromQuery] int pageSize, IMediator mediator) =>
-            (await mediator.Send(new ListStockMovementsQuery(productId, page <= 0 ? 1 : page, pageSize <= 0 ? 50 : pageSize))).ToHttpResult());
+        group.MapGet("/stock/movements", async ([FromQuery] Guid? productId, [FromQuery] string? reason, [FromQuery] int page, [FromQuery] int pageSize, IMediator mediator) =>
+            (await mediator.Send(new ListStockMovementsQuery(productId, reason, page <= 0 ? 1 : page, pageSize <= 0 ? 50 : pageSize))).ToHttpResult());
 
         group.MapPost("/stock/movements", async (HttpContext httpContext, [FromBody] RegisterStockMovementBody body, IMediator mediator) =>
         {
@@ -160,6 +161,24 @@ public static class InventoryEndpointExtensions
                 body.CorrelationId,
                 key);
             return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        group.MapPost("/stock/losses", async (HttpContext httpContext, [FromBody] RegisterStockLossCommand command, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command with { IdempotencyKey = key })).ToHttpResult();
+        });
+
+        group.MapPost("/stock/fractionations", async (HttpContext httpContext, [FromBody] FractionatePackageCommand command, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command with { IdempotencyKey = key })).ToHttpResult();
+        });
+
+        group.MapPost("/stock/supplier-returns", async (HttpContext httpContext, [FromBody] RegisterSupplierReturnCommand command, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command with { IdempotencyKey = key })).ToHttpResult();
         });
 
         group.MapGet("/products/{id:guid}/kardex", async (Guid id, [FromQuery] DateTimeOffset? from, [FromQuery] DateTimeOffset? to, [FromQuery] Guid? lotId, IMediator mediator) =>
@@ -232,7 +251,8 @@ public static class InventoryEndpointExtensions
         string? Cest,
         int MerchandiseOrigin,
         Guid? SupplierId,
-        bool RequiresLot);
+        bool RequiresLot,
+        decimal UnitsPerPackage = 1m);
 
     private sealed record RegisterProductLotBody(
         string LotNumber,

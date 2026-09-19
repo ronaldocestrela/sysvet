@@ -19,6 +19,7 @@ public static class ErrorCodes
         public static readonly Error BarcodeConflict = new("Product.BarcodeConflict", "A product with this barcode already exists.");
         public static readonly Error SkuConflict = new("Product.SkuConflict", "A product with this SKU already exists.");
         public static readonly Error Inactive = new("Product.Inactive", "The product is inactive.");
+        public static readonly Error InvalidUnitsPerPackage = new("Product.InvalidUnitsPerPackage", "Units per package must be greater than zero.");
     }
 
     public static class Supplier
@@ -52,6 +53,10 @@ public static class ErrorCodes
         public static readonly Error TransferSameLot = new("StockMovement.TransferSameLot", "Source and destination lots must differ.");
         public static readonly Error TransferProductMismatch = new("StockMovement.TransferProductMismatch", "Lots must belong to the same product.");
         public static readonly Error InvalidAdjustmentDirection = new("StockMovement.InvalidAdjustmentDirection", "Adjustment direction is required for adjustment movements.");
+        public static readonly Error InvalidLossReason = new("StockMovement.InvalidLossReason", "Loss reason is not allowed.");
+        public static readonly Error FractionationRequiresLot = new("StockMovement.FractionationRequiresLot", "Fractionation requires a sealed product lot.");
+        public static readonly Error CannotFractionateOpenLot = new("StockMovement.CannotFractionateOpenLot", "Cannot fractionate an already fractional lot.");
+        public static readonly Error SupplierRequired = new("StockMovement.SupplierRequired", "Supplier is required for supplier returns.");
     }
 
     public static class ProductBalance

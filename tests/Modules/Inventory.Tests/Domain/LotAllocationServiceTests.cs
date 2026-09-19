@@ -30,4 +30,15 @@ public class LotAllocationServiceTests
         var lot = ProductLot.Create(productId, "A", null, 1m, 3m).Value;
         LotAllocationService.Allocate(new[] { lot }, 5m).Should().BeEmpty();
     }
+
+    [Fact]
+    public void OrderForConsumption_PrefersFractionalLotBeforeSealed()
+    {
+        var productId = Guid.NewGuid();
+        var sealedLot = ProductLot.Create(productId, "SEALED", DateTimeOffset.UtcNow.AddDays(1), 1m, 100m).Value;
+        var fractional = ProductLot.Create(productId, "SEALED-F", DateTimeOffset.UtcNow.AddDays(1), 1m, 5m, isFractional: true).Value;
+
+        var ordered = LotAllocationService.OrderForConsumption(new[] { sealedLot, fractional });
+        ordered[0].LotNumber.Should().Be("SEALED-F");
+    }
 }

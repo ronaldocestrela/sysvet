@@ -37,6 +37,9 @@ public sealed class InventorySyncPushHandler : ISyncPushHandler
             nameof(SetProductLotActiveCommand) => WithIdempotency(JsonSerializer.Deserialize<SetProductLotActiveCommand>(message.Payload, JsonOptions), message.Id),
             nameof(RegisterStockMovementCommand) => WithIdempotency(JsonSerializer.Deserialize<RegisterStockMovementCommand>(message.Payload, JsonOptions), message.Id),
             nameof(TransferStockCommand) => WithIdempotency(JsonSerializer.Deserialize<TransferStockCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(RegisterStockLossCommand) => WithIdempotency(JsonSerializer.Deserialize<RegisterStockLossCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(FractionatePackageCommand) => WithIdempotency(JsonSerializer.Deserialize<FractionatePackageCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(RegisterSupplierReturnCommand) => WithIdempotency(JsonSerializer.Deserialize<RegisterSupplierReturnCommand>(message.Payload, JsonOptions), message.Id),
             _ => null
         };
 

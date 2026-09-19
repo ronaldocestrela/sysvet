@@ -19,6 +19,8 @@ public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement
         builder.Property(s => s.ProductLotId);
         builder.Property(s => s.BatchNumber).HasMaxLength(50);
         builder.Property(s => s.Reason).IsRequired().HasMaxLength(200);
+        builder.Property(s => s.Notes).HasMaxLength(500);
+        builder.Property(s => s.SupplierId);
         builder.Property(s => s.CorrelationId);
 
         builder.HasOne<Product>()

@@ -40,4 +40,23 @@ public class StockMovementTests
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("StockMovement.InvalidQuantity");
     }
+
+    [Fact]
+    public void Create_WithSupplierAndNotes_PersistsOptionalFields()
+    {
+        var supplierId = Guid.NewGuid();
+        var result = StockMovement.Create(
+            Guid.NewGuid(),
+            MovementType.Out,
+            3m,
+            null,
+            null,
+            Inventory.Domain.StockMovementReasons.SupplierReturn,
+            supplierId: supplierId,
+            notes: "Devolução parcial");
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.SupplierId.Should().Be(supplierId);
+        result.Value.Notes.Should().Be("Devolução parcial");
+    }
 }

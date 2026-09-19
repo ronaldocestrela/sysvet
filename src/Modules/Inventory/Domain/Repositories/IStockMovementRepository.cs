@@ -12,5 +12,5 @@ public interface IStockMovementRepository : IRepository<StockMovement>
     Task<IReadOnlyList<StockMovement>> ListByProductAsync(Guid productId, CancellationToken cancellationToken = default);
 
     /// <summary>Lists recent movements optionally filtered by product.</summary>
-    Task<IReadOnlyList<StockMovement>> ListRecentAsync(Guid? productId, int skip, int take, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<StockMovement>> ListRecentAsync(Guid? productId, string? reason, int skip, int take, CancellationToken cancellationToken = default);
 }

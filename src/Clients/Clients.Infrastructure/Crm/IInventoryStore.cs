@@ -25,6 +25,7 @@ public interface IInventoryStore
         int merchandiseOrigin,
         Guid? supplierId,
         bool? requiresLot,
+        decimal? unitsPerPackage = null,
         CancellationToken cancellationToken = default);
     Task<Result<Guid>> RegisterProductLotAsync(
         Guid productId,
@@ -57,6 +58,28 @@ public interface IInventoryStore
         Guid destinationLotId,
         decimal quantity,
         string reason,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Guid>> RegisterStockLossAsync(
+        Guid productId,
+        Guid? productLotId,
+        decimal quantity,
+        string lossReasonCode,
+        string? notes = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Guid>> FractionatePackageAsync(
+        Guid productId,
+        Guid sealedLotId,
+        decimal packagesToOpen,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<Guid>> RegisterSupplierReturnAsync(
+        Guid productId,
+        Guid? productLotId,
+        decimal quantity,
+        Guid? supplierId,
+        string? notes = null,
         CancellationToken cancellationToken = default);
 
     Task<Result<IReadOnlyList<InventoryStockMovementItem>>> ListStockMovementsAsync(
@@ -95,6 +118,7 @@ public sealed class InventoryProductLotItem
     public decimal UnitCost { get; init; }
     public decimal Quantity { get; init; }
     public bool IsActive { get; init; }
+    public bool IsFractional { get; init; }
 }
 
 public sealed class InventoryProductDetail
@@ -114,6 +138,9 @@ public sealed class InventoryProductDetail
     public decimal AverageCost { get; init; }
     public decimal TotalQuantity { get; init; }
     public bool RequiresLot { get; init; }
+    public decimal UnitsPerPackage { get; init; } = 1m;
+    public decimal SealedQuantity { get; init; }
+    public decimal FractionalQuantity { get; init; }
     public bool IsActive { get; init; }
     public IReadOnlyList<InventoryProductLotItem> Lots { get; init; } = Array.Empty<InventoryProductLotItem>();
 }

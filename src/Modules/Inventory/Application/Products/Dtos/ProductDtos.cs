@@ -21,7 +21,8 @@ public sealed record ProductLotDto(
     DateTimeOffset? ExpirationDate,
     decimal UnitCost,
     decimal Quantity,
-    bool IsActive);
+    bool IsActive,
+    bool IsFractional);
 
 /// <summary>Full product with lots.</summary>
 public sealed record ProductDetailDto(
@@ -40,5 +41,8 @@ public sealed record ProductDetailDto(
     decimal AverageCost,
     decimal TotalQuantity,
     bool RequiresLot,
+    decimal UnitsPerPackage,
+    decimal SealedQuantity,
+    decimal FractionalQuantity,
     bool IsActive,
     IReadOnlyList<ProductLotDto> Lots);

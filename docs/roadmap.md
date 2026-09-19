@@ -566,7 +566,7 @@ flowchart TD
 | **5.1 Cadastro de produtos e lotes** | 8 | Concluído |
 | **5.2 Movimentações e alertas** | 8 | Concluído |
 | **5.3 Entrada via XML (NF compra)** | 8 | Concluído |
-| **5.4 Perdas, fracionamento e devoluções** | 5 | Pendente |
+| **5.4 Perdas, fracionamento e devoluções** | 5 | Concluído |
 | **5.5 Inventário mobile (barcode)** | 8 | Pendente |
 | **5.6 Etiquetas e sugestão de compras** | 8 | Pendente |
 | **Total Fase 5** | **45 SP** | |
@@ -633,11 +633,24 @@ flowchart TD
 
 **Aceite:** XML importado gera movimentação de entrada conferível.
 
-### 5.4 Perdas, fracionamento e devoluções (5 SP)
+### 5.4 Perdas, fracionamento e devoluções (5 SP) — Concluído
 
-- [ ] Motivos: validade, avaria, consumo interno, doação
-- [ ] Fracionamento de embalagem; rastreio de saldo fracionado
-- [ ] Devolução ao fornecedor
+**Domain**
+- [x] `StockLossReasons`, códigos em `StockMovementReasons`; `Product.UnitsPerPackage`, `ProductLot.IsFractional`; `StockMovement.Notes`/`SupplierId`
+- [x] `PackageFractionationService`; FEFO prioriza lote fracionado; ADR-022
+
+**Application**
+- [x] CQRS `RegisterStockLoss`, `FractionatePackage`, `RegisterSupplierReturn` (idempotente); `StockLedgerWriter`
+- [x] `SupplierReturnRegisteredEvent`; permissões `Stock.Write`; filtro `Reason` em listagem
+
+**API**
+- [x] `/api/v1/inventory/stock/losses`, `/stock/fractionations`, `/stock/supplier-returns`
+
+**Sync**
+- [x] Pull/push novos campos e commands; outbox client
+
+**Clients**
+- [x] `IInventoryStore` perda/fracionamento/devolução; UI `StockMovements`, saldos lacrado/fracionado em `ProductDetail`
 
 **Aceite:** Perda registrada reduz saldo com motivo auditável.
 

@@ -30,7 +30,7 @@ public sealed class ListStockMovementsQueryHandler : IRequestHandler<ListStockMo
         var take = Math.Clamp(request.PageSize, 1, 200);
         var skip = (page - 1) * take;
 
-        var movements = await _movementRepository.ListRecentAsync(request.ProductId, skip, take, cancellationToken);
+        var movements = await _movementRepository.ListRecentAsync(request.ProductId, request.Reason, skip, take, cancellationToken);
         var products = (await _productRepository.GetAllAsync(cancellationToken)).ToDictionary(p => p.Id);
         var lotCache = new Dictionary<Guid, ProductLot>();
 

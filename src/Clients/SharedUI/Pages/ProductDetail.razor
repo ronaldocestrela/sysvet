@@ -15,7 +15,7 @@ else
 {
     <div class="header-section">
         <h1>@_product.Name</h1>
-        <p>SKU: @_product.Sku | Barras: @_product.Barcode | Saldo total: @_product.TotalQuantity | Custo médio: @_product.AverageCost.ToString("N2")</p>
+        <p>SKU: @_product.Sku | Barras: @_product.Barcode | Saldo total: @_product.TotalQuantity (lacrado: @_product.SealedQuantity, fracionado: @_product.FractionalQuantity) | Unid./embalagem: @_product.UnitsPerPackage | Custo médio: @_product.AverageCost.ToString("N2")</p>
     </div>
 
     <div class="card p-3">
@@ -36,6 +36,7 @@ else
                         <th>Validade</th>
                         <th>Custo unit.</th>
                         <th>Quantidade</th>
+                        <th>Tipo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,6 +47,7 @@ else
                             <td>@(lot.ExpirationDate?.ToString("d") ?? "—")</td>
                             <td>@lot.UnitCost.ToString("N2")</td>
                             <td>@lot.Quantity</td>
+                            <td>@(lot.IsFractional ? "Fracionado" : "Lacrado")</td>
                         </tr>
                     }
                 </tbody>

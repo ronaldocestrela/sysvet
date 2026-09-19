@@ -59,6 +59,7 @@ public sealed partial class OfflineInventoryStore : IInventoryStore
         int merchandiseOrigin,
         Guid? supplierId,
         bool? requiresLot,
+        decimal? unitsPerPackage = null,
         CancellationToken cancellationToken = default)
     {
         if (await _dbContext.Products.AnyAsync(p => p.Sku == sku.Trim().ToUpperInvariant(), cancellationToken))
@@ -67,7 +68,7 @@ public sealed partial class OfflineInventoryStore : IInventoryStore
         }
 
         var id = Guid.NewGuid();
-        var created = Product.Create(name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, id);
+        var created = Product.Create(name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, id, unitsPerPackage);
         if (created.IsFailure)
         {
             return Result.Failure<Guid>(created.Error);
@@ -76,7 +77,7 @@ public sealed partial class OfflineInventoryStore : IInventoryStore
         _dbContext.Products.Add(created.Value);
         await _dbContext.ProductBalances.AddAsync(new ProductBalance(id, 0m), cancellationToken);
         EnqueueOutbox("RegisterProductCommand",
-            OutboxPayloadFactory.RegisterProduct(id, name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, id));
+            OutboxPayloadFactory.RegisterProduct(id, name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, id, unitsPerPackage));
         await _dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success(id);
     }
@@ -209,6 +210,9 @@ public sealed partial class OfflineInventoryStore : IInventoryStore
             AverageCost = product.AverageCost,
             TotalQuantity = total,
             RequiresLot = product.RequiresLot,
+            UnitsPerPackage = product.UnitsPerPackage,
+            SealedQuantity = lots.Where(l => l.IsActive && !l.IsFractional).Sum(l => l.Quantity),
+            FractionalQuantity = lots.Where(l => l.IsActive && l.IsFractional).Sum(l => l.Quantity),
             IsActive = product.IsActive,
             Lots = lots.Select(l => new InventoryProductLotItem
             {
@@ -217,7 +221,8 @@ public sealed partial class OfflineInventoryStore : IInventoryStore
                 ExpirationDate = l.ExpirationDate,
                 UnitCost = l.UnitCost,
                 Quantity = l.Quantity,
-                IsActive = l.IsActive
+                IsActive = l.IsActive,
+                IsFractional = l.IsFractional
             }).ToList()
         };
 }

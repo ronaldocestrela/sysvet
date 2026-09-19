@@ -19,4 +19,22 @@ public static class StockMovementReasons
 
     /// <summary>Inventory correction.</summary>
     public const string Adjustment = "Adjustment";
+
+    /// <summary>Loss due to expiration.</summary>
+    public const string LossExpired = "LossExpired";
+
+    /// <summary>Loss due to damage.</summary>
+    public const string LossDamage = "LossDamage";
+
+    /// <summary>Internal consumption write-off.</summary>
+    public const string InternalConsumption = "InternalConsumption";
+
+    /// <summary>Donation write-off.</summary>
+    public const string Donation = "Donation";
+
+    /// <summary>Return to supplier.</summary>
+    public const string SupplierReturn = "SupplierReturn";
+
+    /// <summary>Package opened into fractional lot.</summary>
+    public const string Fractionation = "Fractionation";
 }

@@ -116,6 +116,7 @@ public sealed class InventorySyncChangeFeedContributor : ISyncChangeFeedContribu
             MerchandiseOrigin = p.MerchandiseOrigin,
             AverageCost = p.AverageCost,
             RequiresLot = p.RequiresLot,
+            UnitsPerPackage = p.UnitsPerPackage,
             IsActive = p.IsActive,
             UpdatedAt = p.UpdatedAt,
             RowVersion = Convert.ToBase64String(p.RowVersion ?? Array.Empty<byte>())
@@ -130,6 +131,7 @@ public sealed class InventorySyncChangeFeedContributor : ISyncChangeFeedContribu
             ExpirationDate = l.ExpirationDate,
             UnitCost = l.UnitCost,
             Quantity = l.Quantity,
+            IsFractional = l.IsFractional,
             IsActive = l.IsActive,
             UpdatedAt = l.UpdatedAt,
             RowVersion = Convert.ToBase64String(l.RowVersion ?? Array.Empty<byte>())
@@ -147,6 +149,8 @@ public sealed class InventorySyncChangeFeedContributor : ISyncChangeFeedContribu
             BatchNumber = m.BatchNumber,
             ExpirationDate = m.ExpirationDate,
             Reason = m.Reason,
+            Notes = m.Notes,
+            SupplierId = m.SupplierId,
             Date = m.Date,
             CorrelationId = m.CorrelationId,
             UpdatedAt = m.UpdatedAt,

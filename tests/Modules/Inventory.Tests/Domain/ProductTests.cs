@@ -64,4 +64,34 @@ public class ProductTests
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Product.InvalidName");
     }
+
+    [Fact]
+    public void Create_WithZeroUnitsPerPackage_ReturnsFailure()
+    {
+        var result = Product.Create(
+            "Item",
+            "",
+            "SKU1",
+            "1234567890123",
+            "UN",
+            0,
+            ProductCategory.Other,
+            "23091000",
+            null,
+            0,
+            null,
+            unitsPerPackage: 0m);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Product.InvalidUnitsPerPackage");
+    }
+
+    [Fact]
+    public void Create_DefaultUnitsPerPackage_IsOne()
+    {
+        var result = Product.Create("Item", "", "SKU1", "1234567890123", "UN", 0, ProductCategory.Other, "23091000", null, 0, null);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.UnitsPerPackage.Should().Be(1m);
+    }
 }

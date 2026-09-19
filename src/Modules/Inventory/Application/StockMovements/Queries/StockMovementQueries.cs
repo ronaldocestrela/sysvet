@@ -11,6 +11,7 @@ namespace Inventory.Application.StockMovements.Queries;
 [AuthorizeRequest(AuthorizationPolicies.Authenticated, Permissions.StockRead)]
 public sealed record ListStockMovementsQuery(
     Guid? ProductId = null,
+    string? Reason = null,
     int Page = 1,
     int PageSize = 50) : IQuery<IReadOnlyList<StockMovementListItemDto>>;
 

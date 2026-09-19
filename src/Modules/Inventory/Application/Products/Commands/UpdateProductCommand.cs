@@ -23,4 +23,5 @@ public sealed record UpdateProductCommand(
     int MerchandiseOrigin,
     Guid? SupplierId,
     bool RequiresLot,
+    decimal UnitsPerPackage = 1m,
     Guid IdempotencyKey = default) : IIdempotentCommand;

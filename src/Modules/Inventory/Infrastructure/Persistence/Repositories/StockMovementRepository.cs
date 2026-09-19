@@ -36,12 +36,17 @@ public class StockMovementRepository : IStockMovementRepository
             .ThenBy(m => m.Id)
             .ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<StockMovement>> ListRecentAsync(Guid? productId, int skip, int take, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<StockMovement>> ListRecentAsync(Guid? productId, string? reason, int skip, int take, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.StockMovements.AsNoTracking().AsQueryable();
         if (productId is Guid pid)
         {
             query = query.Where(m => m.ProductId == pid);
+        }
+
+        if (!string.IsNullOrWhiteSpace(reason))
+        {
+            query = query.Where(m => m.Reason == reason);
         }
 
         return await query

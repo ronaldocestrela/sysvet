@@ -14,11 +14,13 @@ public class ProductLot : Entity
     public DateTimeOffset? ExpirationDate { get; private set; }
     public decimal UnitCost { get; private set; }
     public decimal Quantity { get; private set; }
+    /// <summary>When true, this lot holds opened/partial package stock for the same SKU.</summary>
+    public bool IsFractional { get; private set; }
     public bool IsActive { get; private set; } = true;
 
     private ProductLot() { }
 
-    private ProductLot(Guid id, Guid productId, string lotNumber, DateTimeOffset? expirationDate, decimal unitCost, decimal quantity)
+    private ProductLot(Guid id, Guid productId, string lotNumber, DateTimeOffset? expirationDate, decimal unitCost, decimal quantity, bool isFractional)
         : base(id)
     {
         ProductId = productId;
@@ -26,6 +28,7 @@ public class ProductLot : Entity
         ExpirationDate = expirationDate;
         UnitCost = unitCost;
         Quantity = quantity;
+        IsFractional = isFractional;
     }
 
     /// <summary>
@@ -37,7 +40,8 @@ public class ProductLot : Entity
         DateTimeOffset? expirationDate,
         decimal unitCost,
         decimal initialQuantity,
-        Guid? id = null)
+        Guid? id = null,
+        bool isFractional = false)
     {
         if (productId == Guid.Empty)
         {
@@ -66,7 +70,8 @@ public class ProductLot : Entity
             lotNumber.Trim().ToUpperInvariant(),
             expirationDate,
             unitCost,
-            initialQuantity));
+            initialQuantity,
+            isFractional));
     }
 
     /// <summary>
@@ -122,6 +127,13 @@ public class ProductLot : Entity
     public void SetActive(bool isActive)
     {
         IsActive = isActive;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Updates fractional flag during sync reconciliation.</summary>
+    public void SetFractional(bool isFractional)
+    {
+        IsFractional = isFractional;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

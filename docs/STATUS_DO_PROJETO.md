@@ -126,7 +126,13 @@ Iniciado o módulo de estoque.
 - Parser NF-e (`NfePurchaseXmlParser`), agregado `PurchaseInvoiceImport`, API parse/confirm, evento `PurchaseInvoiceImportedEvent` (AP Fase 7).
 - Permissões `PurchaseImports.Read/Write`; UI online `/purchase-imports`.
 
-### 👉 **Próxima Ação: Fase 5.4 — Perdas, fracionamento e devoluções**
+### Fase 5.4 — Perdas, fracionamento e devoluções — Concluída (ADR-022)
+
+- Domínio: `StockLossReasons`, `UnitsPerPackage`, lote `IsFractional`, `PackageFractionationService`.
+- API/CQRS: perda, fracionamento, devolução ao fornecedor; evento `SupplierReturnRegisteredEvent`.
+- Sync + UI offline: novos commands/campos; `/stock-movements` e detalhe de produto.
+
+### 👉 **Próxima Ação: Fase 5.5 — Inventário mobile (barcode)**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 5.
 

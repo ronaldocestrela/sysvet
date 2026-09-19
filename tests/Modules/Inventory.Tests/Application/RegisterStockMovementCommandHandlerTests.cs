@@ -33,14 +33,14 @@ public class RegisterStockMovementCommandHandlerTests
         var balance = new ProductBalance(productId, 20m);
         productRepository.GetBalanceAsync(productId, Arg.Any<CancellationToken>()).Returns(balance);
 
-        var reconciler = new StockCatalogReconciler(productRepository, lotRepository);
-        var handler = new RegisterStockMovementCommandHandler(
+        var ledgerWriter = new StockLedgerWriter(
             productRepository,
             lotRepository,
             movementRepository,
-            reconciler,
+            new StockCatalogReconciler(productRepository, lotRepository),
             tenantContext,
             auditLogger);
+        var handler = new RegisterStockMovementCommandHandler(ledgerWriter);
 
         var command = new RegisterStockMovementCommand(
             productId,
@@ -74,14 +74,14 @@ public class RegisterStockMovementCommandHandlerTests
         var balance = new ProductBalance(productId, 10m);
         productRepository.GetBalanceAsync(productId, Arg.Any<CancellationToken>()).Returns(balance);
 
-        var reconciler = new StockCatalogReconciler(productRepository, lotRepository);
-        var handler = new RegisterStockMovementCommandHandler(
+        var ledgerWriter = new StockLedgerWriter(
             productRepository,
             lotRepository,
             movementRepository,
-            reconciler,
+            new StockCatalogReconciler(productRepository, lotRepository),
             tenantContext,
             auditLogger);
+        var handler = new RegisterStockMovementCommandHandler(ledgerWriter);
 
         var command = new RegisterStockMovementCommand(productId, MovementType.In, 5m, StockMovementReasons.Purchase);
         var result = await handler.Handle(command, CancellationToken.None);

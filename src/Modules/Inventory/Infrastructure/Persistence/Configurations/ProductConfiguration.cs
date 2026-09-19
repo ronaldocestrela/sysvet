@@ -26,6 +26,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Ncm).IsRequired().HasMaxLength(8);
         builder.Property(p => p.Cest).HasMaxLength(7);
         builder.Property(p => p.AverageCost).HasPrecision(18, 4);
+        builder.Property(p => p.UnitsPerPackage).HasPrecision(18, 4).HasDefaultValue(1m);
 
         builder.Property(e => e.RowVersion).IsConcurrencyToken();
     }

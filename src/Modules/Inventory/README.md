@@ -4,7 +4,7 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 
 ## Status
 
-> **Fase 5.3 concluída:** importação NF-e de compra via XML (parse/confirm online), mapeamento assistido, movimentações `Purchase` conferíveis; além de 5.2 (movimentações lot-aware, kardex, alertas, sync e UI offline).
+> **Fase 5.4 concluída:** perdas auditáveis, fracionamento (`UnitsPerPackage` + lote `-F`), devolução ao fornecedor com evento de integração; além de 5.3 (NF-e compra) e 5.2 (movimentações lot-aware).
 
 ## Escopo de Negócio
 
@@ -16,6 +16,9 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 - **Kardex**: histórico imutável por produto com saldo corrido
 - **Saldo**: projeção por produto (`ProductBalance`) derivada dos lotes ativos
 - **Entrada NF-e**: upload XML, rascunho, mapeamento assistido de fornecedor/produto, confirmação com movimentações `In`/`Purchase`
+- **Perdas**: motivos validade, avaria, consumo interno, doação (`Out` + códigos auditáveis)
+- **Fracionamento**: abertura de embalagens para lote fracionado no mesmo SKU
+- **Devolução**: saída vinculada ao fornecedor + `SupplierReturnRegisteredEvent` (Finance futuro)
 
 ## Estrutura de Camadas
 
@@ -35,3 +38,4 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 - [ADR-019](../../../docs/arquitetura/ADR-019-produtos-lotes-estoque.md)
 - [ADR-020](../../../docs/arquitetura/ADR-020-movimentacoes-estoque-alertas.md)
 - [ADR-021](../../../docs/arquitetura/ADR-021-entrada-xml-nfe-compra.md)
+- [ADR-022](../../../docs/arquitetura/ADR-022-perdas-fracionamento-devolucoes.md)

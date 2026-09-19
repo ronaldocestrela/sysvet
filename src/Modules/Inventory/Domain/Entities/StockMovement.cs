@@ -16,6 +16,8 @@ public class StockMovement : Entity
     public string? BatchNumber { get; private set; }
     public DateTimeOffset? ExpirationDate { get; private set; }
     public string Reason { get; private set; } = string.Empty;
+    public string? Notes { get; private set; }
+    public Guid? SupplierId { get; private set; }
     public DateTimeOffset Date { get; private set; }
     public Guid? CorrelationId { get; private set; }
 
@@ -31,6 +33,8 @@ public class StockMovement : Entity
         string? batchNumber,
         DateTimeOffset? expirationDate,
         string reason,
+        string? notes,
+        Guid? supplierId,
         DateTimeOffset date,
         Guid? correlationId)
         : base(id)
@@ -43,6 +47,8 @@ public class StockMovement : Entity
         BatchNumber = batchNumber;
         ExpirationDate = expirationDate;
         Reason = reason;
+        Notes = notes;
+        SupplierId = supplierId;
         Date = date;
         CorrelationId = correlationId;
     }
@@ -61,7 +67,9 @@ public class StockMovement : Entity
         AdjustmentDirection? adjustmentDirection = null,
         Guid? id = null,
         DateTimeOffset? occurredAt = null,
-        Guid? correlationId = null)
+        Guid? correlationId = null,
+        Guid? supplierId = null,
+        string? notes = null)
     {
         if (quantity <= 0)
         {
@@ -96,6 +104,8 @@ public class StockMovement : Entity
             batchNumber,
             expirationDate,
             reason,
+            notes,
+            supplierId,
             date,
             correlationId));
     }

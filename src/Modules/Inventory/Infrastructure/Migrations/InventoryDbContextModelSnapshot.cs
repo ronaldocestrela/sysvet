@@ -92,6 +92,12 @@ namespace Inventory.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("UnitsPerPackage")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue(1m);
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -152,6 +158,11 @@ namespace Inventory.Infrastructure.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsFractional")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("LotNumber")
                         .IsRequired()
@@ -385,6 +396,10 @@ namespace Inventory.Infrastructure.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -394,6 +409,9 @@ namespace Inventory.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("TEXT");

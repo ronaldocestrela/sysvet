@@ -704,7 +704,8 @@ public sealed class OfflineSyncPullApplier
                 dto.MerchandiseOrigin,
                 dto.SupplierId,
                 dto.RequiresLot,
-                dto.Id);
+                dto.Id,
+                dto.UnitsPerPackage);
             if (created.IsFailure)
             {
                 return;
@@ -736,7 +737,8 @@ public sealed class OfflineSyncPullApplier
             dto.Cest,
             dto.MerchandiseOrigin,
             dto.SupplierId,
-            dto.RequiresLot);
+            dto.RequiresLot,
+            dto.UnitsPerPackage);
         product.SetActive(dto.IsActive);
         product.RecalculateAverageCost(dto.AverageCost);
         product.UpdatedAt = dto.UpdatedAt;
@@ -747,7 +749,7 @@ public sealed class OfflineSyncPullApplier
         var lot = await _dbContext.ProductLots.FirstOrDefaultAsync(l => l.Id == dto.Id, cancellationToken);
         if (lot is null)
         {
-            var created = ProductLot.Create(dto.ProductId, dto.LotNumber, dto.ExpirationDate, dto.UnitCost, dto.Quantity, dto.Id);
+            var created = ProductLot.Create(dto.ProductId, dto.LotNumber, dto.ExpirationDate, dto.UnitCost, dto.Quantity, dto.Id, dto.IsFractional);
             if (created.IsFailure)
             {
                 return;
@@ -767,6 +769,7 @@ public sealed class OfflineSyncPullApplier
 
         lot.UpdateMetadata(dto.ExpirationDate, dto.UnitCost);
         lot.SetQuantity(dto.Quantity);
+        lot.SetFractional(dto.IsFractional);
         lot.SetActive(dto.IsActive);
         lot.UpdatedAt = dto.UpdatedAt;
     }
@@ -801,7 +804,9 @@ public sealed class OfflineSyncPullApplier
             direction,
             dto.Id,
             dto.Date,
-            dto.CorrelationId);
+            dto.CorrelationId,
+            dto.SupplierId,
+            dto.Notes);
 
         if (movement.IsFailure)
         {

@@ -13,7 +13,8 @@ public static class LotAllocationService
     public static IReadOnlyList<ProductLot> OrderForConsumption(IEnumerable<ProductLot> lots) =>
         lots
             .Where(l => l.IsActive && l.Quantity > 0)
-            .OrderBy(l => l.ExpirationDate.HasValue ? 0 : 1)
+            .OrderByDescending(l => l.IsFractional)
+            .ThenBy(l => l.ExpirationDate.HasValue ? 0 : 1)
             .ThenBy(l => l.ExpirationDate ?? DateTimeOffset.MaxValue)
             .ThenBy(l => l.LotNumber, StringComparer.Ordinal)
             .ToList();

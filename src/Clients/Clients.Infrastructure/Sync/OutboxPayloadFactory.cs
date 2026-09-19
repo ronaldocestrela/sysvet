@@ -275,7 +275,8 @@ internal static class OutboxPayloadFactory
         int merchandiseOrigin,
         Guid? supplierId,
         bool? requiresLot,
-        Guid idempotencyKey) =>
+        Guid idempotencyKey,
+        decimal? unitsPerPackage = null) =>
         System.Text.Json.JsonSerializer.Serialize(new
         {
             Name = name,
@@ -290,6 +291,7 @@ internal static class OutboxPayloadFactory
             MerchandiseOrigin = merchandiseOrigin,
             SupplierId = supplierId,
             RequiresLot = requiresLot,
+            UnitsPerPackage = unitsPerPackage,
             ProductId = productId,
             IdempotencyKey = idempotencyKey
         });
@@ -350,6 +352,59 @@ internal static class OutboxPayloadFactory
             Quantity = quantity,
             Reason = reason,
             CorrelationId = correlationId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string RegisterStockLoss(
+        Guid productId,
+        Guid? productLotId,
+        decimal quantity,
+        string lossReasonCode,
+        string? notes,
+        Guid movementId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            ProductId = productId,
+            ProductLotId = productLotId,
+            Quantity = quantity,
+            LossReasonCode = lossReasonCode,
+            Notes = notes,
+            MovementId = movementId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string FractionatePackage(
+        Guid productId,
+        Guid sealedLotId,
+        decimal packagesToOpen,
+        Guid correlationId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            ProductId = productId,
+            SealedLotId = sealedLotId,
+            PackagesToOpen = packagesToOpen,
+            CorrelationId = correlationId,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string RegisterSupplierReturn(
+        Guid productId,
+        Guid? productLotId,
+        decimal quantity,
+        Guid? supplierId,
+        string? notes,
+        Guid movementId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            ProductId = productId,
+            ProductLotId = productLotId,
+            Quantity = quantity,
+            SupplierId = supplierId,
+            Notes = notes,
+            MovementId = movementId,
             IdempotencyKey = idempotencyKey
         });
 
