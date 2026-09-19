@@ -62,6 +62,9 @@ public static class AppRoutes
     /// <summary>NF-e purchase XML import.</summary>
     public const string PurchaseImports = "/purchase-imports";
 
+    /// <summary>Physical inventory count sessions (online).</summary>
+    public const string InventoryCounts = "/inventory-counts";
+
     /// <summary>Point of sale terminal.</summary>
     public const string SalesPos = "/sales/pos";
 

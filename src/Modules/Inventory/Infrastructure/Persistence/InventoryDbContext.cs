@@ -19,6 +19,8 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
     public DbSet<PurchaseInvoiceImport> PurchaseInvoiceImports => Set<PurchaseInvoiceImport>();
     public DbSet<PurchaseInvoiceImportLine> PurchaseInvoiceImportLines => Set<PurchaseInvoiceImportLine>();
     public DbSet<SupplierProductMapping> SupplierProductMappings => Set<SupplierProductMapping>();
+    public DbSet<InventoryCount> InventoryCounts => Set<InventoryCount>();
+    public DbSet<InventoryCountLine> InventoryCountLines => Set<InventoryCountLine>();
 
     public InventoryDbContext(DbContextOptions<InventoryDbContext> options, ITenantContext tenantContext) : base(options)
     {
@@ -38,6 +40,8 @@ public class InventoryDbContext : DbContext, IInventoryUnitOfWork
         modelBuilder.Entity<PurchaseInvoiceImport>().HasQueryFilter(i => EF.Property<Guid>(i, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<PurchaseInvoiceImportLine>().HasQueryFilter(l => EF.Property<Guid>(l, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<SupplierProductMapping>().HasQueryFilter(m => EF.Property<Guid>(m, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<InventoryCount>().HasQueryFilter(c => EF.Property<Guid>(c, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<InventoryCountLine>().HasQueryFilter(l => EF.Property<Guid>(l, "TenantId") == TenantContext.TenantId);
         
         base.OnModelCreating(modelBuilder);
     }

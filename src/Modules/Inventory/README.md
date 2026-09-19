@@ -4,7 +4,7 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 
 ## Status
 
-> **Fase 5.4 concluída:** perdas auditáveis, fracionamento (`UnitsPerPackage` + lote `-F`), devolução ao fornecedor com evento de integração; além de 5.3 (NF-e compra) e 5.2 (movimentações lot-aware).
+> **Fase 5.5 concluída:** inventário físico online (contagem cega, submit, approve com ajustes lot-aware); além de 5.4 (perdas/fracionamento/devolução), 5.3 (NF-e compra) e 5.2 (movimentações).
 
 ## Escopo de Negócio
 
@@ -19,6 +19,7 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 - **Perdas**: motivos validade, avaria, consumo interno, doação (`Out` + códigos auditáveis)
 - **Fracionamento**: abertura de embalagens para lote fracionado no mesmo SKU
 - **Devolução**: saída vinculada ao fornecedor + `SupplierReturnRegisteredEvent` (Finance futuro)
+- **Inventário físico**: sessão `InventoryCount` (online), contagem por barcode, aprovação gera movimentos `InventoryCount`
 
 ## Estrutura de Camadas
 
@@ -39,3 +40,4 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 - [ADR-020](../../../docs/arquitetura/ADR-020-movimentacoes-estoque-alertas.md)
 - [ADR-021](../../../docs/arquitetura/ADR-021-entrada-xml-nfe-compra.md)
 - [ADR-022](../../../docs/arquitetura/ADR-022-perdas-fracionamento-devolucoes.md)
+- [ADR-023](../../../docs/arquitetura/ADR-023-inventario-mobile-barcode.md)

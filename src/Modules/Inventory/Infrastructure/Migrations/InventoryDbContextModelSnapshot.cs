@@ -518,6 +518,89 @@ namespace Inventory.Infrastructure.Migrations
                     b.ToTable("SupplierProductMappings", "dbo");
                 });
 
+            modelBuilder.Entity("Inventory.Domain.Entities.InventoryCount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Code")
+                        .IsUnique();
+
+                    b.ToTable("InventoryCounts", "dbo");
+                });
+
+            modelBuilder.Entity("Inventory.Domain.Entities.InventoryCountLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CountedQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("ExpectedQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("InventoryCountId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ProductLotId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<Guid?>("StockMovementId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Variance")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryCountId", "ProductId", "ProductLotId");
+
+                    b.ToTable("InventoryCountLines", "dbo");
+                });
+
             modelBuilder.Entity("Inventory.Domain.Entities.ProductBalance", b =>
                 {
                     b.HasOne("Inventory.Domain.Entities.Product", null)
@@ -545,6 +628,15 @@ namespace Inventory.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Inventory.Domain.Entities.InventoryCountLine", b =>
+                {
+                    b.HasOne("Inventory.Domain.Entities.InventoryCount", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("InventoryCountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Inventory.Domain.Entities.StockMovement", b =>
                 {
                     b.HasOne("Inventory.Domain.Entities.Product", null)
@@ -552,6 +644,11 @@ namespace Inventory.Infrastructure.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Inventory.Domain.Entities.InventoryCount", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("Inventory.Domain.Entities.PurchaseInvoiceImport", b =>

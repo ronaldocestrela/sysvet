@@ -1,0 +1,398 @@
+@page "/inventory-counts"
+@page "/inventory-counts/{SessionId:guid}"
+@using Clients.Infrastructure.Http
+@using Inventory.Domain.Enums
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject IInventoryCountApiService InventoryCountApi
+@inject IBarcodeScannerService BarcodeScanner
+@inject IConnectivityService Connectivity
+@inject IToastService Toast
+@inject NavigationManager Navigation
+
+<div class="header-section">
+    <h1>Inventário (contagem)</h1>
+</div>
+
+<ConnectivityBanner />
+
+@if (!Connectivity.IsOnline)
+{
+    <p class="text-muted">Inventário requer conexão com a API.</p>
+}
+else if (_detail is not null)
+{
+    <div class="card p-3 mb-3">
+        <h2>Sessão @_detail.Code</h2>
+        <p>Status: @_detail.Status</p>
+
+        @if (_detail.Status == InventoryCountStatus.InProgress)
+        {
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-md-6">
+                    <FormField Label="Código de barras">
+                        <input class="form-control" @bind="_barcodeInput" @bind:event="oninput" @onkeydown="OnBarcodeKeyDown" />
+                    </FormField>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Qtd</label>
+                    <input type="number" min="0.0001" step="0.0001" class="form-control" @bind="_quantityToAdd" />
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    @if (BarcodeScanner.IsAvailable)
+                    {
+                        <button class="btn btn-outline-primary" @onclick="ScanAsync">Escanear</button>
+                    }
+                    <button class="btn btn-primary" disabled="@_adding" @onclick="AddLineAsync">Adicionar</button>
+                </div>
+            </div>
+
+            @if (_pendingProduct is not null && _pendingLots.Count > 0)
+            {
+                <div class="alert alert-info">
+                    <strong>@_pendingProduct.Name</strong> — selecione o lote:
+                    <select class="form-select mt-2" @bind="_selectedLotId">
+                        <option value="">—</option>
+                        @foreach (var lot in _pendingLots)
+                        {
+                            <option value="@lot.Id">@lot.LotNumber (contagem cega)</option>
+                        }
+                    </select>
+                </div>
+            }
+        }
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>SKU</th>
+                    <th>Lote</th>
+                    <th>Contado</th>
+                    @if (_detail.Status != InventoryCountStatus.InProgress)
+                    {
+                        <th>Sistema</th>
+                        <th>Divergência</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in _detail.Lines)
+                {
+                    <tr>
+                        <td>@line.ProductName</td>
+                        <td>@line.Sku</td>
+                        <td>@line.LotNumber</td>
+                        <td>@line.CountedQuantity</td>
+                        @if (_detail.Status != InventoryCountStatus.InProgress)
+                        {
+                            <td>@line.ExpectedQuantity</td>
+                            <td>@line.Variance</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="d-flex gap-2">
+            @if (_detail.Status == InventoryCountStatus.InProgress)
+            {
+                <button class="btn btn-warning" disabled="@_busy" @onclick="SubmitAsync">Enviar conferência</button>
+                <button class="btn btn-outline-secondary" disabled="@_busy" @onclick="CancelAsync">Cancelar</button>
+            }
+            else if (_detail.Status == InventoryCountStatus.Submitted)
+            {
+                <button class="btn btn-success" disabled="@_busy" @onclick="ApproveAsync">Aprovar ajustes</button>
+                <button class="btn btn-outline-secondary" disabled="@_busy" @onclick="CancelAsync">Cancelar</button>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="() => Navigation.NavigateTo(AppRoutes.InventoryCounts)">Voltar</button>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" disabled="@_busy" @onclick="StartNewAsync">Iniciar inventário</button>
+    </div>
+
+    @if (_sessions.Count > 0)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Status</th>
+                    <th>Linhas</th>
+                    <th>Atualizado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in _sessions)
+                {
+                    <tr style="cursor:pointer" @onclick="() => OpenSession(item.Id)">
+                        <td>@item.Code</td>
+                        <td>@item.Status</td>
+                        <td>@item.LineCount</td>
+                        <td>@item.UpdatedAt.ToLocalTime().ToString("g")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    [Parameter] public Guid? SessionId { get; set; }
+
+    private readonly List<InventoryCountListItemClientDto> _sessions = new();
+    private InventoryCountDetailClientDto? _detail;
+    private string _barcodeInput = string.Empty;
+    private decimal _quantityToAdd = 1m;
+    private bool _busy;
+    private bool _adding;
+    private InventoryProductByBarcodeClientDto? _pendingProduct;
+    private List<InventoryProductLotClientDto> _pendingLots = new();
+    private Guid? _selectedLotId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Connectivity.IsOnline)
+        {
+            return;
+        }
+
+        if (SessionId is Guid id)
+        {
+            await LoadDetailAsync(id);
+        }
+        else
+        {
+            _detail = null;
+            await LoadListAsync();
+        }
+    }
+
+    private async Task LoadListAsync()
+    {
+        var result = await InventoryCountApi.ListAsync();
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _sessions.Clear();
+        _sessions.AddRange(result.Value);
+    }
+
+    private async Task LoadDetailAsync(Guid id)
+    {
+        var result = await InventoryCountApi.GetByIdAsync(id);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _detail = result.Value;
+    }
+
+    private async Task StartNewAsync()
+    {
+        _busy = true;
+        try
+        {
+            var result = await InventoryCountApi.StartAsync();
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            Navigation.NavigateTo($"{AppRoutes.InventoryCounts}/{result.Value}");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void OpenSession(Guid id) => Navigation.NavigateTo($"{AppRoutes.InventoryCounts}/{id}");
+
+    private async Task ScanAsync()
+    {
+        var scan = await BarcodeScanner.ScanAsync();
+        if (scan.IsFailure)
+        {
+            if (scan.Error.Code != "BarcodeScanner.Cancelled")
+            {
+                Toast.Show(scan.Error.Message, ToastType.Warning);
+            }
+
+            return;
+        }
+
+        _barcodeInput = scan.Value;
+        await ResolveProductForLotAsync();
+    }
+
+    private async Task OnBarcodeKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ResolveProductForLotAsync();
+        }
+    }
+
+    private async Task ResolveProductForLotAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_barcodeInput))
+        {
+            return;
+        }
+
+        var product = await InventoryCountApi.GetProductByBarcodeAsync(_barcodeInput);
+        if (product.IsFailure)
+        {
+            Toast.Show(product.Error.Message, ToastType.Error);
+            _pendingProduct = null;
+            _pendingLots.Clear();
+            return;
+        }
+
+        _pendingProduct = product.Value;
+        _pendingLots = product.Value.Lots.Where(l => l.IsActive).ToList();
+        _selectedLotId = _pendingLots.Count == 1 ? _pendingLots[0].Id : null;
+    }
+
+    private async Task AddLineAsync()
+    {
+        if (_detail is null || string.IsNullOrWhiteSpace(_barcodeInput))
+        {
+            Toast.Show("Informe ou escaneie um código de barras.", ToastType.Warning);
+            return;
+        }
+
+        if (_pendingProduct is null)
+        {
+            await ResolveProductForLotAsync();
+        }
+
+        if (_pendingProduct is not null && _pendingLots.Count > 0 && _selectedLotId is null)
+        {
+            Toast.Show("Selecione o lote do produto.", ToastType.Warning);
+            return;
+        }
+
+        _adding = true;
+        try
+        {
+            var request = new AddInventoryCountLineClientRequest
+            {
+                Barcode = _pendingProduct is null ? _barcodeInput : null,
+                ProductId = _pendingProduct?.Id,
+                ProductLotId = _selectedLotId,
+                QuantityToAdd = _quantityToAdd
+            };
+
+            var result = await InventoryCountApi.AddLineAsync(_detail.Id, request);
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            _barcodeInput = string.Empty;
+            _pendingProduct = null;
+            _pendingLots.Clear();
+            _selectedLotId = null;
+            _quantityToAdd = 1m;
+            await LoadDetailAsync(_detail.Id);
+            Toast.Show("Linha registrada.", ToastType.Success);
+        }
+        finally
+        {
+            _adding = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_detail is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var result = await InventoryCountApi.SubmitAsync(_detail.Id);
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            await LoadDetailAsync(_detail.Id);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task ApproveAsync()
+    {
+        if (_detail is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var result = await InventoryCountApi.ApproveAsync(_detail.Id);
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            Toast.Show("Inventário aprovado; saldos atualizados.", ToastType.Success);
+            await LoadDetailAsync(_detail.Id);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        if (_detail is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var result = await InventoryCountApi.CancelAsync(_detail.Id);
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            Navigation.NavigateTo(AppRoutes.InventoryCounts);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

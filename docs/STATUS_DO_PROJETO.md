@@ -132,7 +132,12 @@ Iniciado o módulo de estoque.
 - API/CQRS: perda, fracionamento, devolução ao fornecedor; evento `SupplierReturnRegisteredEvent`.
 - Sync + UI offline: novos commands/campos; `/stock-movements` e detalhe de produto.
 
-### 👉 **Próxima Ação: Fase 5.5 — Inventário mobile (barcode)**
+### Fase 5.5 — Inventário mobile (barcode) — Concluída (ADR-023)
+
+- Sessão online `InventoryCount` (contagem cega → submit → approve); ajustes `InventoryCount` no ledger.
+- API `/api/v1/inventory/counts`; UI `/inventory-counts`; scanner MAUI via `IBarcodeScannerService`.
+
+### 👉 **Próxima Ação: Fase 5.6 — Etiquetas e sugestão de compras**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 5.
 

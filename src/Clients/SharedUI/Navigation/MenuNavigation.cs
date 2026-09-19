@@ -21,6 +21,7 @@ public static class MenuNavigation
             ["purchase-imports"] = new(AppRoutes.PurchaseImports, "Entrada NF-e", "bi-file-earmark-code"),
             ["stock"] = new(AppRoutes.StockMovements, "Movimentações", "bi-arrow-left-right"),
             ["stock-alerts"] = new(AppRoutes.StockAlerts, "Alertas de estoque", "bi-exclamation-diamond"),
+            ["inventory-counts"] = new(AppRoutes.InventoryCounts, "Inventário", "bi-upc-scan"),
             ["audit"] = new(AppRoutes.Home, "Auditoria", "bi-journal-text")
         };
 

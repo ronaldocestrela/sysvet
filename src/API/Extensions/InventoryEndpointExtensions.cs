@@ -1,3 +1,5 @@
+using Inventory.Application.InventoryCounts.Commands;
+using Inventory.Application.InventoryCounts.Queries;
 using Inventory.Application.PurchaseImports.Commands;
 using Inventory.Application.PurchaseImports.Dtos;
 using Inventory.Application.PurchaseImports.Queries;
@@ -234,6 +236,55 @@ public static class InventoryEndpointExtensions
         group.MapGet("/purchase-imports/{id:guid}", async (Guid id, IMediator mediator) =>
             (await mediator.Send(new GetPurchaseImportByIdQuery(id))).ToHttpResult());
 
+        group.MapPost("/counts", async (HttpContext httpContext, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(new StartInventoryCountCommand(key))).ToHttpResult();
+        });
+
+        group.MapGet("/counts", async ([FromQuery] int take, IMediator mediator) =>
+            (await mediator.Send(new ListInventoryCountsQuery(take <= 0 ? 50 : take))).ToHttpResult());
+
+        group.MapGet("/counts/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new GetInventoryCountByIdQuery(id))).ToHttpResult());
+
+        group.MapPost("/counts/{id:guid}/lines", async (Guid id, HttpContext httpContext, [FromBody] AddInventoryCountLineBody body, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            var command = new AddInventoryCountLineCommand(id, body.Barcode, body.ProductId, body.ProductLotId, body.QuantityToAdd, key);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        group.MapPut("/counts/{id:guid}/lines/{lineId:guid}", async (Guid id, Guid lineId, HttpContext httpContext, [FromBody] UpdateInventoryCountLineBody body, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(new UpdateInventoryCountLineCommand(id, lineId, body.CountedQuantity, key))).ToHttpResult();
+        });
+
+        group.MapDelete("/counts/{id:guid}/lines/{lineId:guid}", async (Guid id, Guid lineId, HttpContext httpContext, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(new RemoveInventoryCountLineCommand(id, lineId, key))).ToHttpResult();
+        });
+
+        group.MapPost("/counts/{id:guid}/submit", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(new SubmitInventoryCountCommand(id, key))).ToHttpResult();
+        });
+
+        group.MapPost("/counts/{id:guid}/approve", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(new ApproveInventoryCountCommand(id, key))).ToHttpResult();
+        });
+
+        group.MapPost("/counts/{id:guid}/cancel", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+        {
+            var key = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(new CancelInventoryCountCommand(id, key))).ToHttpResult();
+        });
+
         return app;
     }
 
@@ -284,5 +335,13 @@ public static class InventoryEndpointExtensions
         decimal Quantity,
         string Reason,
         Guid CorrelationId = default);
+
+    private sealed record AddInventoryCountLineBody(
+        string? Barcode,
+        Guid? ProductId,
+        Guid? ProductLotId,
+        decimal QuantityToAdd = 1m);
+
+    private sealed record UpdateInventoryCountLineBody(decimal CountedQuantity);
 
 }

@@ -567,7 +567,7 @@ flowchart TD
 | **5.2 Movimentações e alertas** | 8 | Concluído |
 | **5.3 Entrada via XML (NF compra)** | 8 | Concluído |
 | **5.4 Perdas, fracionamento e devoluções** | 5 | Concluído |
-| **5.5 Inventário mobile (barcode)** | 8 | Pendente |
+| **5.5 Inventário mobile (barcode)** | 8 | Concluído |
 | **5.6 Etiquetas e sugestão de compras** | 8 | Pendente |
 | **Total Fase 5** | **45 SP** | |
 
@@ -654,10 +654,24 @@ flowchart TD
 
 **Aceite:** Perda registrada reduz saldo com motivo auditável.
 
-### 5.5 Inventário mobile (barcode) (8 SP)
+### 5.5 Inventário mobile (barcode) (8 SP) — Concluído
 
-- [ ] Contagem cega no MAUI via câmera
-- [ ] Divergência vs saldo sistema; ajuste aprovado
+**Domain**
+- [x] `InventoryCount`, `InventoryCountLine`, `InventoryCountStatus`; motivo `StockMovementReasons.InventoryCount`
+- [x] ADR-023
+
+**Application**
+- [x] CQRS sessão (start, linhas, submit, approve, cancel); contagem cega no DTO; approve via `StockLedgerWriter`
+- [x] Permissões `Stock.Read` / `Stock.Write`
+
+**API**
+- [x] `/api/v1/inventory/counts` (+ lines, submit, approve, cancel); lookup barcode existente
+
+**Sync**
+- [x] Sessão online-only (sem pull/push de `InventoryCount`); movimentos pós-approve no feed existente
+
+**Clients**
+- [x] `IInventoryCountApiService`; `/inventory-counts` SharedUI; `IBarcodeScannerService` MAUI + stub web; menu `inventory-counts`
 
 **Aceite:** Inventário MAUI atualiza saldo após aprovação.
 

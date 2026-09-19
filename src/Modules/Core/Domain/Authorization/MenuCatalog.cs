@@ -20,6 +20,7 @@ public static class MenuCatalog
         ["purchase-imports"] = Permissions.PurchaseImportsRead,
         ["stock"] = Permissions.StockRead,
         ["stock-alerts"] = Permissions.StockRead,
+        ["inventory-counts"] = Permissions.StockRead,
         ["sales"] = Permissions.SalesRead,
         ["cash"] = Permissions.CashRegisterRead,
         ["audit"] = Permissions.AuditRead

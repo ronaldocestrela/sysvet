@@ -86,4 +86,17 @@ public static class ErrorCodes
         public static readonly Error InvalidContentType = new("PurchaseImport.InvalidContentType", "Upload must be an XML file.");
         public static readonly Error LineNotFound = new("PurchaseImport.LineNotFound", "Import line was not found.");
     }
+
+    public static class InventoryCount
+    {
+        public static readonly Error NotFound = new("InventoryCount.NotFound", "Inventory count session was not found.");
+        public static readonly Error AlreadyInProgress = new("InventoryCount.AlreadyInProgress", "Another inventory count is already in progress.");
+        public static readonly Error InvalidStatus = new("InventoryCount.InvalidStatus", "Operation is not allowed in the current session status.");
+        public static readonly Error EmptyLines = new("InventoryCount.EmptyLines", "At least one count line is required.");
+        public static readonly Error InvalidQuantity = new("InventoryCount.InvalidQuantity", "Quantity must be greater than zero.");
+        public static readonly Error LineNotFound = new("InventoryCount.LineNotFound", "Count line was not found.");
+        public static readonly Error LotRequired = new("InventoryCount.LotRequired", "Product lot is required for this product.");
+        public static readonly Error InvalidCode = new("InventoryCount.InvalidCode", "Session code is invalid.");
+        public static readonly Error NotSubmitted = new("InventoryCount.NotSubmitted", "Session must be submitted before approval.");
+    }
 }

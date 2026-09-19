@@ -37,4 +37,7 @@ public static class StockMovementReasons
 
     /// <summary>Package opened into fractional lot.</summary>
     public const string Fractionation = "Fractionation";
+
+    /// <summary>Physical inventory count adjustment after approval.</summary>
+    public const string InventoryCount = "InventoryCount";
 }
