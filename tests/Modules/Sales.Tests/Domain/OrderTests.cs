@@ -149,3 +149,23 @@ public class OrderTests
         result.IsFailure.Should().BeTrue();
     }
 }
+
+public class MoneyTests
+{
+    [Fact]
+    public void Create_WithNegativeAmount_ReturnsFailure()
+    {
+        Sales.Domain.ValueObjects.Money.Create(-1m).IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Operators_AddAndSubtract_WorkForNonNegativeResult()
+    {
+        var left = Sales.Domain.ValueObjects.Money.CreateUnsafe(20m);
+        var right = Sales.Domain.ValueObjects.Money.CreateUnsafe(5m);
+
+        (left + right).Amount.Should().Be(25m);
+        (left - right).Amount.Should().Be(15m);
+        left.ToString().Should().Contain("BRL");
+    }
+}

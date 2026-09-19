@@ -110,4 +110,42 @@ public class ClinicalQuoteTests
         quote.Status.Should().Be(ClinicalQuoteStatus.Approved);
         quote.ConversionStatus.Should().Be(QuoteConversionStatus.Pending);
     }
+
+    [Fact]
+    public void Reject_FromSent_SetsRejected()
+    {
+        var quote = ClinicalQuote.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()).Value;
+        quote.ReplaceDraftItems([
+            (Guid.NewGuid(), "Item", 1m, 10m, ClinicalQuoteItemKind.Service, null, 0)
+        ]);
+        quote.Send();
+
+        quote.Reject().IsSuccess.Should().BeTrue();
+        quote.Status.Should().Be(ClinicalQuoteStatus.Rejected);
+    }
+
+    [Fact]
+    public void RestoreFromSync_RehydratesItems()
+    {
+        var id = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        var restored = ClinicalQuote.RestoreFromSync(
+            id,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ClinicalQuoteStatus.Sent,
+            QuoteConversionStatus.None,
+            null,
+            "notes",
+            now,
+            null,
+            now,
+            [(itemId, "Consulta", 1m, 80m, ClinicalQuoteItemKind.Service, null, 0)]);
+
+        restored.Status.Should().Be(ClinicalQuoteStatus.Sent);
+        restored.Items.Should().ContainSingle(i => i.Id == itemId);
+    }
 }

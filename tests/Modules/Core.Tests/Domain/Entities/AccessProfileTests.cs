@@ -56,4 +56,35 @@ public class AccessProfileTests
         clone.Value.IsSystem.Should().BeFalse();
         clone.Value.PermissionCodes.Should().BeEquivalentTo(profile.PermissionCodes);
     }
+
+    [Fact]
+    public void CreateCustom_ShouldAllowRenameRevokeAndSetPermissions()
+    {
+        var created = AccessProfile.CreateCustom("Recepção+", "extra", ApplicationRoles.Receptionist, [Permissions.TutorsRead]);
+
+        created.IsSuccess.Should().BeTrue();
+        var profile = created.Value;
+        profile.SetDescription("desk");
+        profile.Rename("Recepção plus").IsSuccess.Should().BeTrue();
+        profile.Name.Should().Be("Recepção plus");
+        profile.Revoke(Permissions.TutorsRead).IsSuccess.Should().BeTrue();
+        profile.PermissionCodes.Should().BeEmpty();
+        profile.SetPermissions([Permissions.TutorsRead, Permissions.PetsRead]).IsSuccess.Should().BeTrue();
+        profile.PermissionCodes.Should().BeEquivalentTo([Permissions.TutorsRead, Permissions.PetsRead]);
+        profile.MarkForDeletion().IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CreateCustom_WithInvalidName_ReturnsFailure()
+    {
+        AccessProfile.CreateCustom(" ", null, ApplicationRoles.Admin, []).IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetPermissions_WithInvalidCode_ReturnsFailure()
+    {
+        var profile = AccessProfile.CreateCustom("Custom", null, ApplicationRoles.Admin, [Permissions.TutorsRead]).Value;
+
+        profile.SetPermissions(["Nope.Permission"]).IsFailure.Should().BeTrue();
+    }
 }

@@ -127,4 +127,18 @@ public class ProductTests
         result.IsSuccess.Should().BeTrue();
         result.Value.TargetStock.Should().Be(20m);
     }
+
+    [Fact]
+    public void UpdateDetails_AndSetActive_MutateProduct()
+    {
+        var product = Product.Create("Item", "", "SKU1", "1234567890123", "UN", 0, ProductCategory.Other, "23091000", null, 0, null).Value;
+
+        product.UpdateDetails("Item 2", "desc", "SKU2", "1234567890124", "CX", 2m, 10m, ProductCategory.Food, "23091000", null, 0, null, false, 1m)
+            .IsSuccess.Should().BeTrue();
+        product.Name.Should().Be("Item 2");
+        product.SetActive(false);
+        product.IsActive.Should().BeFalse();
+        product.RecalculateAverageCost(3.5m);
+        product.AverageCost.Should().Be(3.5m);
+    }
 }

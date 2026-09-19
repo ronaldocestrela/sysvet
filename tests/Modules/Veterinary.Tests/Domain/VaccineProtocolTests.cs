@@ -49,4 +49,54 @@ public class VaccineProtocolTests
         protocol.Deactivate().IsSuccess.Should().BeTrue();
         protocol.IsActive.Should().BeFalse();
     }
+
+    [Fact]
+    public void Deactivate_WhenAlreadyInactive_ReturnsFailure()
+    {
+        var protocol = VaccineProtocol.Create(Guid.NewGuid(), "Core", PetSpecies.Dog).Value;
+        protocol.Deactivate();
+
+        protocol.Deactivate().IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void UpdateDetails_WithValidData_RenamesProtocol()
+    {
+        var protocol = VaccineProtocol.Create(Guid.NewGuid(), "Core", PetSpecies.Dog).Value;
+
+        var result = protocol.UpdateDetails("Feline core", PetSpecies.Cat);
+
+        result.IsSuccess.Should().BeTrue();
+        protocol.Name.Should().Be("Feline core");
+        protocol.Species.Should().Be(PetSpecies.Cat);
+    }
+
+    [Fact]
+    public void RestoreFromSync_AndApplySnapshot_ReplacesDoses()
+    {
+        var id = Guid.NewGuid();
+        var doseId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        var restored = VaccineProtocol.RestoreFromSync(
+            id,
+            "Core",
+            PetSpecies.Dog,
+            true,
+            now,
+            [(doseId, 1, "1ª dose", 42, 90, null, 365)]);
+
+        restored.Doses.Should().HaveCount(1);
+
+        restored.ApplySyncSnapshot(
+            "Updated",
+            PetSpecies.Cat,
+            false,
+            now,
+            Array.Empty<(Guid, int, string, int, int?, int?, int?)>());
+
+        restored.Name.Should().Be("Updated");
+        restored.Species.Should().Be(PetSpecies.Cat);
+        restored.IsActive.Should().BeFalse();
+        restored.Doses.Should().BeEmpty();
+    }
 }

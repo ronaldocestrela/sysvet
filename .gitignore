@@ -48,13 +48,18 @@ bld/
 *.cache
 *.nupkg
 
-# Test Results
+# Test Results / coverage (CI local copies included)
 TestResults/
+TestResults-*/
 coveragereport/
+coveragereport-*/
+coverage-ci/
 artifacts/
 *.trx
 *.coverage
 *.coveragexml
+*.cobertura.xml
+Cobertura.xml
 
 # Local tooling / extracted packages (not committed)
 .local/
