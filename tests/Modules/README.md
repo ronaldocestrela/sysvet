@@ -9,7 +9,7 @@ Contém os projetos de **testes unitários** para cada módulo de negócio. A es
 | [`Core.Tests/`](./Core.Tests/README.md) | `src/Modules/Core` | 🟡 Em desenvolvimento — testes de Domain escritos |
 | [`Veterinary.Tests/`](./Veterinary.Tests/) | `src/Modules/Veterinary` | 🔴 Placeholder — apenas `UnitTest1.cs` |
 | [`Petshop.Tests/`](./Petshop.Tests/) | `src/Modules/Petshop` | 🔴 Placeholder |
-| [`Sales.Tests/`](./Sales.Tests/) | `src/Modules/Sales` | 🔴 Placeholder |
+| [`Sales.Tests/`](./Sales.Tests/) | `src/Modules/Sales` | Domain + Application (Order/Pay, handlers) |
 | [`Inventory.Tests/`](./Inventory.Tests/) | `src/Modules/Inventory` | 🔴 Placeholder |
 | [`Fiscal.Tests/`](./Fiscal.Tests/) | `src/Modules/Fiscal` | 🔴 Placeholder |
 

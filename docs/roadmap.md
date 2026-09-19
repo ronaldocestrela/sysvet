@@ -708,7 +708,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **6.1 Motor de vendas (PDV)** | 13 | Pendente |
+| **6.1 Motor de vendas (PDV)** | 13 | Concluído |
 | **6.2 PDV 100% offline** | 8 | Pendente |
 | **6.3 Pagamentos e TEF** | 13 | Pendente |
 | **6.4 Comissões, descontos, devoluções** | 8 | Pendente |
@@ -717,13 +717,27 @@ flowchart TD
 | **6.7 Notificações de status (banho)** | 5 | Pendente |
 | **Total Fase 6** | **65 SP** | |
 
-### 6.1 Motor de vendas (PDV) (13 SP)
+### 6.1 Motor de vendas (PDV) (13 SP) — Concluído
 
-- [ ] Carrinho, itens, serviços, múltiplas formas de pagamento
-- [ ] Vínculo cliente/pet; emissão de comprovante
-- [ ] Baixa automática de estoque
+**Domain**
+- [x] `Order`/`OrderItem`/`Payment`; enums (`OrderItemKind`, `PaymentMethod`, `FinanceIntegrationStatus`, …); split `Pay()`; tutor/pet/quote
+- [x] ADR-025
 
-**Aceite:** Venda concluída reduz estoque e registra receita pendente (Finance).
+**Application**
+- [x] `CreateOrderCommand`, `PayOrderCommand` (estoque via `ConsumeStockForSaleRequest`); `GetOpenCashRegisterQuery`, `GetOrderByIdQuery`
+- [x] `OrderPaidEvent` enriquecido; `ClinicalQuoteConvertedEvent` → `MarkConverted`; validators, idempotency, permissões Cashier/Sales
+
+**API**
+- [x] Migration `ExpandPdvMotor`; `GET /cash-registers/open`, `GET /orders/{id}`, `POST /orders`, `POST /orders/{id}/pay` (lista de pagamentos)
+
+**Integração**
+- [x] Baixa de estoque síncrona no pay (falha se insuficiente); sem handler de estoque em `OrderPaidEvent`
+- [x] `FinanceIntegrationStatus.Pending` no pedido pago (sem módulo Finance)
+
+**Clients**
+- [x] `SalesApiService` (online-only); POS, caixa, comprovante `/sales/orders/{id}/receipt`; conversão de orçamento → POS com `quoteId`
+
+**Aceite:** Produto com saldo + serviço + split + pay → movimento `Sale`, pedido `Paid`/`FinanceIntegrationStatus.Pending` (`SalesEndpointsTests`).
 
 ### 6.2 PDV 100% offline (8 SP)
 

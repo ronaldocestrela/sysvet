@@ -16,6 +16,7 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
 
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
 
     public SalesDbContext(DbContextOptions<SalesDbContext> options, ITenantContext tenantContext) : base(options)

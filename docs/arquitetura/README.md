@@ -30,6 +30,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-022](./ADR-022-perdas-fracionamento-devolucoes.md) | Perdas, fracionamento e devoluções | Accepted |
 | [ADR-023](./ADR-023-inventario-mobile-barcode.md) | Inventário mobile (barcode) | Accepted |
 | [ADR-024](./ADR-024-etiquetas-sugestao-compras.md) | Etiquetas PDF/ZPL e sugestão de compras | Accepted |
+| [ADR-025](./ADR-025-motor-pdv-vendas.md) | Motor PDV online (pay, estoque, receita pendente) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

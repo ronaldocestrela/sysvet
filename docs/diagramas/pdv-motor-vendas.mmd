@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Pos as PosTerminal
+    participant Api as SalesAPI
+    participant Sales as OrderAggregate
+    participant Inv as ConsumeStockForSale
+    participant Vet as Veterinary
+    participant Fin as FinanceFuture
+
+    Pos->>Api: POST /orders (itens, tutor, pet, quote)
+    Api->>Sales: CreateOrder
+    Pos->>Api: POST /orders/{id}/pay (payments)
+    Api->>Sales: Order.Pay
+    Api->>Inv: ConsumeStockForSaleRequest
+    Inv-->>Api: Result
+    Api->>Api: persist + OrderPaidEvent
+    Api->>Vet: ClinicalQuoteConvertedEvent
+    Api->>Fin: FinanceIntegrationStatus Pending

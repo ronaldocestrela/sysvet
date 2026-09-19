@@ -22,7 +22,7 @@
                         <td>@item.PetName</td>
                         <td>@item.TotalAmount.ToString("C")</td>
                         <td>@(item.DecidedAt?.LocalDateTime.ToString("g") ?? "—")</td>
-                        <td><button class="btn btn-outline" disabled title="Disponível na Fase 6 (PDV)">Converter venda</button></td>
+                        <td><a class="btn btn-outline" href="@($"/sales/pos?quoteId={item.QuoteId}")">Converter venda</a></td>
                     </tr>
                 }
             </tbody>

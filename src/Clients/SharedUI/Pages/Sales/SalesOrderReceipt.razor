@@ -1,0 +1,84 @@
+@page "/sales/orders/{OrderId:guid}/receipt"
+@using Microsoft.JSInterop
+@using SharedUI.Components
+@using Clients.Infrastructure.Http
+@using SharedUI.Services
+@inject ISalesApiService SalesService
+@inject IToastService Toast
+@inject IJSRuntime Js
+
+<div class="header-section no-print">
+    <h1>Comprovante de venda</h1>
+    <button class="btn btn-outline" @onclick="PrintAsync">Imprimir</button>
+    <a class="btn btn-primary" href="/sales/pos">Nova venda</a>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando comprovante...">
+    @if (_order is not null)
+    {
+        <div class="card print-area">
+            <p><strong>Pedido:</strong> @_order.Id</p>
+            <p><strong>Status:</strong> @_order.Status</p>
+            <p><strong>Financeiro:</strong> @_order.FinanceIntegrationStatus</p>
+            <p><strong>Data:</strong> @(_order.PaidAt?.LocalDateTime.ToString("g") ?? _order.CreatedAt.LocalDateTime.ToString("g"))</p>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Item</th><th>Qtd</th><th>Unit.</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in _order.Items)
+                    {
+                        <tr>
+                            <td>@line.ProductName</td>
+                            <td>@line.Quantity</td>
+                            <td>@line.UnitPrice.ToString("C")</td>
+                            <td>@((line.Quantity * line.UnitPrice).ToString("C"))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <p><strong>Total:</strong> @_order.TotalAmount.ToString("C")</p>
+            <h4>Pagamentos</h4>
+            <ul>
+                @foreach (var p in _order.Payments)
+                {
+                    <li>@p.Method: @p.Amount.ToString("C")</li>
+                }
+            </ul>
+        </div>
+    }
+</LoadingState>
+
+<style>
+    .header-section { display: flex; gap: var(--spacing-sm); align-items: center; margin-bottom: var(--spacing-lg); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { border: 1px solid var(--color-border); padding: var(--spacing-sm); }
+    @@media print {
+        .no-print { display: none !important; }
+        .print-area { box-shadow: none; border: none; }
+    }
+</style>
+
+@code {
+    [Parameter] public Guid OrderId { get; set; }
+
+    private SalesOrderDetailClientDto? _order;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await SalesService.GetOrderByIdAsync(OrderId);
+        if (result.IsSuccess)
+        {
+            _order = result.Value;
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private async Task PrintAsync() => await Js.InvokeVoidAsync("print");
+}

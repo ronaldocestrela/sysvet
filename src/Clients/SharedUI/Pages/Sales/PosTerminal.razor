@@ -1,12 +1,24 @@
 @page "/sales/pos"
+@using SharedUI.Components
 @using SharedUI.Services
+@using Clients.Infrastructure.Crm
+@using Clients.Infrastructure.Http
 @inject ISalesApiService SalesService
-@inject IInventoryApiService InventoryService
+@inject IInventoryStore InventoryStore
+@inject ITutorStore TutorStore
+@inject IPetStore PetStore
+@inject IClinicalQuoteStore QuoteStore
+@inject IToastService Toast
+@inject INavigationService Navigation
+@inject IConnectivityService Connectivity
 
 <div class="pos-container">
     <div class="header-container">
         <h2>Frente de Caixa (PDV)</h2>
-        <p>Registre suas vendas de forma rápida.</p>
+        @if (!Connectivity.IsOnline)
+        {
+            <p class="text-warning">Checkout online — conecte-se à internet para finalizar vendas.</p>
+        }
     </div>
 
     @if (_openRegister == null)
@@ -19,25 +31,46 @@
     {
         <div class="pos-grid">
             <div class="pos-products">
-                <h3>Produtos Disponíveis</h3>
+                <h3>Produtos</h3>
+                <input class="form-control" placeholder="Buscar produto..." @bind="_search" @bind:event="oninput" />
                 <div class="product-list">
-                    @foreach (var product in _products)
+                    @foreach (var product in FilteredProducts)
                     {
-                        <div class="product-card" @onclick="() => AddToCart(product)">
+                        <div class="product-card" @onclick="() => AddProduct(product)">
                             <h4>@product.Name</h4>
-                            <p class="price">R$ 15,00</p>
-                            <span class="badge">@product.UnitOfMeasure</span>
+                            <p class="price">@product.AverageCost.ToString("C")</p>
                         </div>
                     }
                 </div>
+                <button type="button" class="btn btn-outline mt-2" @onclick="ShowServiceModal">+ Serviço avulso</button>
             </div>
 
             <div class="pos-cart">
                 <h3>Carrinho</h3>
-                
+                <div class="form-group">
+                    <label>Tutor (opcional)</label>
+                    <select class="form-control" @bind="_selectedTutorIdString">
+                        <option value="">—</option>
+                        @foreach (var t in _tutors)
+                        {
+                            <option value="@t.Id">@t.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Pet (opcional)</label>
+                    <select class="form-control" @bind="_selectedPetIdString" disabled="@string.IsNullOrEmpty(_selectedTutorIdString)">
+                        <option value="">—</option>
+                        @foreach (var p in FilteredPets)
+                        {
+                            <option value="@p.Id">@p.Name</option>
+                        }
+                    </select>
+                </div>
+
                 @if (!_cart.Any())
                 {
-                    <p class="empty-cart">Selecione produtos para adicionar ao carrinho.</p>
+                    <p class="empty-cart">Adicione produtos ou serviços.</p>
                 }
                 else
                 {
@@ -47,21 +80,32 @@
                             <li>
                                 <div class="item-info">
                                     <strong>@item.ProductName</strong>
-                                    <span>R$ @item.UnitPrice.ToString("N2") x @item.Quantity</span>
+                                    <span>@item.Kind · R$ @item.UnitPrice.ToString("N2") x @item.Quantity</span>
                                 </div>
-                                <div class="item-actions">
-                                    <button class="btn-icon" @onclick="() => RemoveFromCart(item)">🗑️</button>
-                                </div>
+                                <button type="button" class="btn-icon" @onclick="() => RemoveFromCart(item)">🗑️</button>
                             </li>
                         }
                     </ul>
-
                     <div class="cart-total">
                         <strong>Total:</strong>
                         <span>R$ @Total.ToString("N2")</span>
                     </div>
-
-                    <button class="btn btn-success btn-lg" @onclick="FinishSale" disabled="@_isLoading">
+                    <h4>Pagamentos</h4>
+                    @foreach (var pay in _payments)
+                    {
+                        <div class="payment-row">
+                            <select @bind="pay.Method">
+                                <option value="Cash">Dinheiro</option>
+                                <option value="Pix">PIX</option>
+                                <option value="DebitCard">Débito</option>
+                                <option value="CreditCard">Crédito</option>
+                            </select>
+                            <input type="number" step="0.01" @bind="pay.Amount" />
+                        </div>
+                    }
+                    <button type="button" class="btn btn-outline btn-sm" @onclick="AddPaymentRow">+ Forma de pagamento</button>
+                    <p class="text-muted">Soma pagamentos: R$ @_payments.Sum(p => p.Amount).ToString("N2")</p>
+                    <button class="btn btn-success btn-lg" @onclick="FinishSale" disabled="@(_isLoading || !Connectivity.IsOnline)">
                         @(_isLoading ? "Processando..." : "Finalizar Venda")
                     </button>
                 }
@@ -70,58 +114,188 @@
     }
 </div>
 
+<Modal @bind-IsVisible="_serviceModal" Title="Serviço avulso">
+    <FormField Label="Descrição">
+        <input class="form-control" @bind="_serviceDescription" />
+    </FormField>
+    <FormField Label="Valor unitário">
+        <input type="number" step="0.01" class="form-control" @bind="_servicePrice" />
+    </FormField>
+    <button type="button" class="btn btn-primary" @onclick="AddService">Adicionar</button>
+</Modal>
+
 @code {
-    private CashRegisterDto? _openRegister;
-    private List<ProductDto> _products = new();
-    private List<OrderItemDto> _cart = new();
+    [SupplyParameterFromQuery] public Guid? QuoteId { get; set; }
+
+    private CashRegisterClientDto? _openRegister;
+    private List<InventoryProductListItem> _products = new();
+    private List<TutorDto> _tutors = new();
+    private List<PetDto> _pets = new();
+    private List<SalesOrderItemClientDto> _cart = new();
+    private List<PayOrderPaymentClientDto> _payments = new() { new PayOrderPaymentClientDto { Method = "Cash" } };
     private bool _isLoading;
+    private string _search = string.Empty;
+    private string _selectedTutorIdString = string.Empty;
+    private string _selectedPetIdString = string.Empty;
+    private bool _serviceModal;
+    private string _serviceDescription = string.Empty;
+    private decimal _servicePrice;
 
     private decimal Total => _cart.Sum(i => i.Quantity * i.UnitPrice);
 
+    private IEnumerable<InventoryProductListItem> FilteredProducts =>
+        _products.Where(p => string.IsNullOrWhiteSpace(_search) ||
+            p.Name.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+    private IEnumerable<PetDto> FilteredPets =>
+        string.IsNullOrEmpty(_selectedTutorIdString) || !Guid.TryParse(_selectedTutorIdString, out var tutorId)
+            ? Array.Empty<PetDto>()
+            : _pets.Where(p => p.TutorId == tutorId);
+
     protected override async Task OnInitializedAsync()
     {
-        _openRegister = await SalesService.GetOpenCashRegisterAsync();
-        
-        // Simular listagem rápida de produtos para o PDV
-        _products = (await InventoryService.GetProductsAsync()).ToList();
+        var register = await SalesService.GetOpenCashRegisterAsync();
+        if (register.IsSuccess)
+        {
+            _openRegister = register.Value;
+        }
+
+        var products = await InventoryStore.ListProductsAsync();
+        if (products.IsSuccess)
+        {
+            _products = products.Value.ToList();
+        }
+
+        var tutors = await TutorStore.ListAsync(1, 200);
+        if (tutors.IsSuccess)
+        {
+            _tutors = tutors.Value.Items.ToList();
+        }
+
+        var pets = await PetStore.ListAsync(1, 500);
+        if (pets.IsSuccess)
+        {
+            _pets = pets.Value.Items.ToList();
+        }
+
+        if (QuoteId.HasValue)
+        {
+            await LoadQuoteIntoCartAsync(QuoteId.Value);
+        }
     }
 
-    private void AddToCart(ProductDto product)
+    private async Task LoadQuoteIntoCartAsync(Guid quoteId)
     {
-        var existing = _cart.FirstOrDefault(i => i.ProductId == product.Id);
+        var quote = await QuoteStore.GetByIdAsync(quoteId);
+        if (quote.IsFailure)
+        {
+            return;
+        }
+
+        var pet = await PetStore.GetByIdAsync(quote.Value.PetId);
+        if (pet.IsSuccess)
+        {
+            _selectedTutorIdString = pet.Value.TutorId.ToString();
+            _selectedPetIdString = pet.Value.Id.ToString();
+        }
+
+        _cart.Clear();
+        foreach (var line in quote.Value.Items)
+        {
+            _cart.Add(new SalesOrderItemClientDto
+            {
+                Kind = line.Kind,
+                ProductName = line.Description,
+                Quantity = line.Quantity,
+                UnitPrice = line.UnitPrice
+            });
+        }
+
+        _payments = new List<PayOrderPaymentClientDto> { new() { Method = "Cash", Amount = Total } };
+    }
+
+    private void AddProduct(InventoryProductListItem product)
+    {
+        var existing = _cart.FirstOrDefault(i => i.Kind == "Product" && i.ProductId == product.Id);
         if (existing != null)
         {
             existing.Quantity++;
         }
         else
         {
-            _cart.Add(new OrderItemDto
+            _cart.Add(new SalesOrderItemClientDto
             {
+                Kind = "Product",
                 ProductId = product.Id,
                 ProductName = product.Name,
                 Quantity = 1m,
-                UnitPrice = 15.00m
+                UnitPrice = product.AverageCost > 0 ? product.AverageCost : 1m
             });
         }
     }
 
-    private void RemoveFromCart(OrderItemDto item)
+    private void ShowServiceModal() => _serviceModal = true;
+
+    private void AddService()
     {
-        _cart.Remove(item);
+        if (string.IsNullOrWhiteSpace(_serviceDescription))
+        {
+            return;
+        }
+
+        _cart.Add(new SalesOrderItemClientDto
+        {
+            Kind = "Service",
+            ProductName = _serviceDescription.Trim(),
+            Quantity = 1m,
+            UnitPrice = _servicePrice
+        });
+        _serviceModal = false;
+        _serviceDescription = string.Empty;
+        _servicePrice = 0;
     }
+
+    private void RemoveFromCart(SalesOrderItemClientDto item) => _cart.Remove(item);
+
+    private void AddPaymentRow() => _payments.Add(new PayOrderPaymentClientDto());
 
     private async Task FinishSale()
     {
-        if (_openRegister == null || !_cart.Any()) return;
+        if (_openRegister == null || !_cart.Any() || !Connectivity.IsOnline)
+        {
+            return;
+        }
+
+        Guid? tutorId = Guid.TryParse(_selectedTutorIdString, out var t) ? t : null;
+        Guid? petId = Guid.TryParse(_selectedPetIdString, out var p) ? p : null;
 
         _isLoading = true;
-        var orderId = await SalesService.CreateOrderAsync(_openRegister.Id, _cart);
-        await SalesService.PayOrderAsync(orderId);
-        
-        _cart.Clear();
+        var create = await SalesService.CreateOrderAsync(new CreateSalesOrderClientRequest
+        {
+            CashRegisterId = _openRegister.Id,
+            TutorId = tutorId,
+            PetId = petId,
+            SourceQuoteId = QuoteId,
+            Items = _cart
+        });
+
+        if (create.IsFailure)
+        {
+            Toast.Show(create.Error.Message, ToastType.Error);
+            _isLoading = false;
+            return;
+        }
+
+        var pay = await SalesService.PayOrderAsync(create.Value, _payments);
+        if (pay.IsFailure)
+        {
+            Toast.Show(pay.Error.Message, ToastType.Error);
+            _isLoading = false;
+            return;
+        }
+
+        Toast.Show("Venda concluída!", ToastType.Success);
+        Navigation.NavigateTo($"/sales/orders/{create.Value}/receipt");
         _isLoading = false;
-        
-        // Simular atualização de saldo local
-        _openRegister = await SalesService.GetOpenCashRegisterAsync();
     }
 }

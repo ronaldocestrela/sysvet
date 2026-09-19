@@ -8,4 +8,6 @@ namespace Sales.Domain.Repositories;
 
 public interface IOrderRepository : IRepository<Order>
 {
+    /// <summary>Sums cash payment amounts for paid orders in the given register session.</summary>
+    Task<decimal> SumCashPaymentsForCashRegisterAsync(Guid cashRegisterId, CancellationToken cancellationToken = default);
 }

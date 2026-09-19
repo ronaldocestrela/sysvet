@@ -15,7 +15,7 @@ public class CashRegisterConfiguration : IEntityTypeConfiguration<CashRegister>
         // Shadow property for TenantId mapping
         builder.Property<Guid>("TenantId").IsRequired();
 
-        builder.Property(c => c.Status).HasMaxLength(20).IsRequired();
+        builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
 
         builder.OwnsOne(c => c.OpeningBalance, money =>
         {

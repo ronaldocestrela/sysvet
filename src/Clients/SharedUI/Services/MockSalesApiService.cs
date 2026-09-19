@@ -1,61 +1,45 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Clients.Infrastructure.Http;
+using Core.Domain;
 
 namespace SharedUI.Services;
 
+/// <summary>Fallback mock when API is not wired (tests / offline demos).</summary>
 public class MockSalesApiService : ISalesApiService
 {
-    private CashRegisterDto? _openRegister;
+    private CashRegisterClientDto? _openRegister;
 
-    public async Task<Guid> OpenCashRegisterAsync(decimal openingBalance)
+    public Task<Result<Guid>> OpenCashRegisterAsync(decimal openingBalance, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(300);
-        _openRegister = new CashRegisterDto
+        _openRegister = new CashRegisterClientDto
         {
             Id = Guid.NewGuid(),
             Status = "Open",
             OpeningBalance = openingBalance,
             CurrentBalance = openingBalance
         };
-        return _openRegister.Id;
+        return Task.FromResult(Result.Success(_openRegister.Id));
     }
 
-    public async Task<bool> CloseCashRegisterAsync(Guid cashRegisterId, decimal actualClosingBalance)
+    public Task<Result<bool>> CloseCashRegisterAsync(Guid cashRegisterId, decimal actualClosingBalance, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(300);
         if (_openRegister != null && _openRegister.Id == cashRegisterId)
         {
-            _openRegister.Status = "Closed";
-            _openRegister.CurrentBalance = actualClosingBalance;
             _openRegister = null;
-            return true;
+            return Task.FromResult(Result.Success(true));
         }
-        return false;
+
+        return Task.FromResult(Result.Failure<bool>(new Error("Mock", "Caixa não encontrado.")));
     }
 
-    public async Task<CashRegisterDto?> GetOpenCashRegisterAsync()
-    {
-        await Task.Delay(100);
-        return _openRegister;
-    }
+    public Task<Result<CashRegisterClientDto?>> GetOpenCashRegisterAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(_openRegister));
 
-    public async Task<Guid> CreateOrderAsync(Guid cashRegisterId, List<OrderItemDto> items)
-    {
-        await Task.Delay(300);
-        if (_openRegister != null)
-        {
-            foreach (var item in items)
-            {
-                _openRegister.CurrentBalance += (item.Quantity * item.UnitPrice);
-            }
-        }
-        return Guid.NewGuid();
-    }
+    public Task<Result<Guid>> CreateOrderAsync(CreateSalesOrderClientRequest request, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(Guid.NewGuid()));
 
-    public async Task<bool> PayOrderAsync(Guid orderId)
-    {
-        await Task.Delay(300);
-        return true;
-    }
+    public Task<Result<bool>> PayOrderAsync(Guid orderId, IReadOnlyList<PayOrderPaymentClientDto> payments, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(true));
+
+    public Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(new SalesOrderDetailClientDto { Id = orderId, Status = "Paid", TotalAmount = 0 }));
 }

@@ -1,6 +1,6 @@
 # Status do Projeto SysVet
 
-**Data de Atualização:** 18/09/2026
+**Data de Atualização:** 19/09/2026
 
 Este documento contém o resumo de tudo o que foi construído até agora e serve de bússola para os desenvolvedores e IA saberem exatamente onde estamos no cronograma de desenvolvimento, evitando análises exaustivas a cada nova interação.
 
@@ -142,7 +142,13 @@ Iniciado o módulo de estoque.
 - `Product.TargetStock`; sugestão agrupada por fornecedor; export CSV; etiquetas PDF (QuestPDF) e ZPL na API.
 - UI: `/purchase-suggestions`, geração de etiqueta no detalhe do produto (online).
 
-### 👉 **Próxima Ação: Fase 6.1 — Motor de vendas (PDV)**
+### Fase 6.1 — Motor de vendas (PDV) — Concluída (ADR-025)
+
+- Carrinho produto/serviço, split de pagamentos, tutor/pet, comprovante; caixa aberto/fechado + saldo derivado.
+- Pay atômico com `ConsumeStockForSaleRequest`; orçamento aprovado → `ClinicalQuoteConvertedEvent`.
+- Clients: `SalesApiService`, POS/caixa/comprovante online-only; conversão de orçamento na fila PDV.
+
+### 👉 **Próxima Ação: Fase 6.2 — PDV 100% offline**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 6.
 

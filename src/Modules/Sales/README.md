@@ -1,32 +1,35 @@
 # `src/Modules/Sales/` — Módulo de Vendas e PDV
 
-Módulo responsável pelo **Ponto de Venda (PDV)** da clínica/petshop. Suporta operação **offline** — vendas registradas localmente são sincronizadas com o servidor quando a conexão é restaurada.
+Módulo responsável pelo **Ponto de Venda (PDV)** da clínica/petshop. A **Fase 6.1** entrega o motor de vendas **online**; fila offline e sync ficam na 6.2.
 
 ## Status
 
-> 🔴 **Não iniciado.** As subpastas de camada existem mas estão vazias (apenas `.gitkeep` e arquivos de projeto).
+> **Fase 6.1 concluída (ADR-025).** Domínio, Application, Infrastructure, endpoints API e clients SharedUI integrados. TEF, comissões e PDV offline são fases posteriores.
 
-## Escopo de Negócio
+## Escopo atual (6.1)
 
-Este módulo gerenciará:
-- **PDV offline**: criação de pedidos e recebimento de pagamentos sem conexão com internet
-- **Pedidos**: registro de produtos/serviços vendidos com descontos e totais
-- **Pagamentos**: múltiplas formas de pagamento por pedido (dinheiro, cartão, PIX)
-- **Comissões**: cálculo automático de comissão por funcionário com base nas vendas
-- **Sincronização**: fila de pedidos pendentes de envio ao servidor (offline-first)
-- **Caixa**: abertura, fechamento e sangria de caixa com controle de troco
+- **Pedidos:** linhas produto (`ProductId` + baixa de estoque) e serviço (sem estoque); preço snapshot na linha (ADR-019)
+- **Pagamentos:** múltiplas formas por pedido (`Cash`, cartões, `Pix`); registro sem TEF (6.3)
+- **Caixa:** abertura/fechamento; saldo atual derivado na query (abertura + vendas em dinheiro da sessão)
+- **CRM:** tutor/pet opcionais na venda; conversão de orçamento clínico via `SourceQuoteId` + `ClinicalQuoteConvertedEvent`
+- **Integração:** `ConsumeStockForSaleRequest` no pay; `OrderPaidEvent` com receita **`FinanceIntegrationStatus.Pending`** (módulo Finance 7.1+)
 
 ## Estrutura de Camadas
 
 | Pasta | Responsabilidade |
 |---|---|
-| [`Domain/`](./Domain/) | Entidades: `Order`, `OrderItem`, `Payment`, `CashRegister`. Value Objects: `Money`, `Discount`. Enums: `PaymentMethod`, `OrderStatus`. |
-| [`Application/`](./Application/) | Commands: `CreateOrder`, `AddOrderItem`, `ProcessPayment`, `SyncOfflineOrders`. Queries: `GetOrderById`, `GetSalesReport`. |
-| [`Infrastructure/`](./Infrastructure/) | `SalesDbContext` (SQL Server + SQLite), repositórios, serviço de fila de sincronização offline. |
+| [`Domain/`](./Domain/) | `Order`, `OrderItem`, `Payment`, `CashRegister`; enums de status/kind/método/finance |
+| [`Application/`](./Application/) | Commands/queries PDV; validators; handlers de pay com estoque e eventos |
+| [`Infrastructure/`](./Infrastructure/) | `SalesDbContext`, migrations, repositórios EF |
 
 ## Dependências
 
-- Referencia `Core.Domain` para `Tutor` (cliente da venda)
-- Integra-se ao `Inventory` para baixar estoque ao confirmar uma venda
-- Integra-se ao `Fiscal` para emissão de NF após pagamento
-- **Fase 6 (planejado):** consumir `ClinicalQuoteApprovedEvent` / `GET .../pending-conversions` (Veterinary 4.5) para converter orçamentos aprovados em itens de venda
+- **Core:** tutor/pet repositories, `ConsumeStockForSaleRequest`, eventos de integração
+- **Inventory:** handler de baixa de estoque no pay (sem referência Sales → Inventory no Domain)
+- **Veterinary:** consumer de `ClinicalQuoteConvertedEvent` para `MarkConverted`
+- **Clients:** [`SalesApiService`](../../Clients/Clients.Infrastructure/Http/SalesApiService.cs) — checkout exige rede
+
+## Referências
+
+- [`docs/arquitetura/ADR-025-motor-pdv-vendas.md`](../../../docs/arquitetura/ADR-025-motor-pdv-vendas.md)
+- [`docs/diagramas/pdv-motor-vendas.mmd`](../../../docs/diagramas/pdv-motor-vendas.mmd)

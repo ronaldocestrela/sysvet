@@ -67,7 +67,21 @@ namespace Sales.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FinanceIntegrationStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("PetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("SourceQuoteId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("TutorId")
                         .HasColumnType("TEXT");
 
                     b.Property<byte[]>("RowVersion")
@@ -97,10 +111,15 @@ namespace Sales.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("OrderId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ProductId")
+                    b.Property<Guid?>("ProductId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProductName")
@@ -220,9 +239,73 @@ namespace Sales.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sales.Domain.Entities.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Payments", "dbo");
+
+                    b.HasOne("Sales.Domain.Entities.Order", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Sales.Domain.ValueObjects.Money", "Amount", b1 =>
+                        {
+                            b1.Property<Guid>("PaymentId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Amount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Currency");
+
+                            b1.HasKey("PaymentId");
+
+                            b1.ToTable("Payments", "dbo");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PaymentId");
+                        });
+
+                    b.Navigation("Amount")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.Order", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

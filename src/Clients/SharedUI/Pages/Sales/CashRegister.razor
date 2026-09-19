@@ -1,10 +1,16 @@
 @page "/sales/cash-register"
+@using Clients.Infrastructure.Http
 @using SharedUI.Services
 @inject ISalesApiService SalesService
+@inject IToastService Toast
+@inject IConnectivityService Connectivity
 
 <div class="header-container">
     <h2>Gerenciamento de Caixa</h2>
-    <p>Abertura e fechamento do caixa para a sessão de vendas atual.</p>
+    @if (!Connectivity.IsOnline)
+    {
+        <p class="text-warning">Operações de caixa requerem conexão.</p>
+    }
 </div>
 
 @if (_openRegister != null)
@@ -13,77 +19,92 @@
         <h3>Sessão Ativa</h3>
         <p><strong>Caixa ID:</strong> @_openRegister.Id</p>
         <p><strong>Saldo Inicial:</strong> R$ @_openRegister.OpeningBalance.ToString("N2")</p>
-        <p><strong>Saldo Atual (Vendas + Suprimentos):</strong> R$ @_openRegister.CurrentBalance.ToString("N2")</p>
+        <p><strong>Saldo Atual:</strong> R$ @_openRegister.CurrentBalance.ToString("N2")</p>
 
         <hr />
-        
+
         <h4>Fechamento de Caixa</h4>
         <div class="form-group">
             <label>Valor real em caixa (para conferência):</label>
             <input type="number" step="0.01" class="form-control" @bind="_actualClosingBalance" />
         </div>
-        <button class="btn btn-danger" @onclick="CloseRegister" disabled="@_isLoading">
+        <button class="btn btn-danger" @onclick="CloseRegister" disabled="@(_isLoading || !Connectivity.IsOnline)">
             @(_isLoading ? "Fechando..." : "Fechar Caixa")
         </button>
-        
-        @if (_actualClosingBalance > 0 && _actualClosingBalance != _openRegister.CurrentBalance)
-        {
-            <div class="alert warning mt-2">
-                <strong>Atenção:</strong> Há uma diferença de R$ @((_actualClosingBalance - _openRegister.CurrentBalance).ToString("N2")) no caixa!
-            </div>
-        }
     </div>
 }
 else
 {
     <div class="card status-closed">
         <h3>Nenhum Caixa Aberto</h3>
-        <p>Você precisa abrir um caixa para iniciar as vendas (PDV).</p>
-
         <div class="form-group">
             <label>Saldo Inicial (Troco):</label>
             <input type="number" step="0.01" class="form-control" @bind="_openingBalance" />
         </div>
-        <button class="btn btn-primary" @onclick="OpenRegister" disabled="@_isLoading">
+        <button class="btn btn-primary" @onclick="OpenRegister" disabled="@(_isLoading || !Connectivity.IsOnline)">
             @(_isLoading ? "Abrindo..." : "Abrir Caixa")
         </button>
     </div>
 }
 
 @code {
-    private CashRegisterDto? _openRegister;
+    private CashRegisterClientDto? _openRegister;
     private decimal _openingBalance = 100m;
-    private decimal _actualClosingBalance = 0m;
+    private decimal _actualClosingBalance;
     private bool _isLoading;
 
     protected override async Task OnInitializedAsync()
     {
-        _openRegister = await SalesService.GetOpenCashRegisterAsync();
-        if (_openRegister != null)
+        await RefreshRegisterAsync();
+    }
+
+    private async Task RefreshRegisterAsync()
+    {
+        var result = await SalesService.GetOpenCashRegisterAsync();
+        if (result.IsSuccess)
         {
-            _actualClosingBalance = _openRegister.CurrentBalance;
+            _openRegister = result.Value;
+            if (_openRegister != null)
+            {
+                _actualClosingBalance = _openRegister.CurrentBalance;
+            }
         }
     }
 
     private async Task OpenRegister()
     {
         _isLoading = true;
-        var id = await SalesService.OpenCashRegisterAsync(_openingBalance);
-        _openRegister = await SalesService.GetOpenCashRegisterAsync();
-        if (_openRegister != null)
+        var result = await SalesService.OpenCashRegisterAsync(_openingBalance);
+        if (result.IsFailure)
         {
-            _actualClosingBalance = _openRegister.CurrentBalance;
+            Toast.Show(result.Error.Message, ToastType.Error);
         }
+        else
+        {
+            await RefreshRegisterAsync();
+        }
+
         _isLoading = false;
     }
 
     private async Task CloseRegister()
     {
-        if (_openRegister == null) return;
-        
+        if (_openRegister == null)
+        {
+            return;
+        }
+
         _isLoading = true;
-        await SalesService.CloseCashRegisterAsync(_openRegister.Id, _actualClosingBalance);
-        _openRegister = await SalesService.GetOpenCashRegisterAsync();
+        var result = await SalesService.CloseCashRegisterAsync(_openRegister.Id, _actualClosingBalance);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+        else
+        {
+            _openRegister = null;
+        }
+
         _isLoading = false;
     }
 }

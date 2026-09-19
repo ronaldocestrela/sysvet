@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Sales.Domain.Entities;
+using Sales.Domain.Enums;
 using Sales.Domain.Repositories;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ public class CashRegisterRepository : ICashRegisterRepository
     public async Task<CashRegister?> GetOpenCashRegisterByUserAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.CashRegisters
-            .FirstOrDefaultAsync(c => c.OpenedByUserId == userId && c.Status == "Open", cancellationToken);
+            .FirstOrDefaultAsync(c => c.OpenedByUserId == userId && c.Status == CashRegisterStatus.Open, cancellationToken);
     }
 
     public async Task<IEnumerable<CashRegister>> GetAllAsync(CancellationToken cancellationToken = default)

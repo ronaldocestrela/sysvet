@@ -42,7 +42,7 @@ Adotar **monólito modular** em .NET 10: um host API compõe os módulos `Core`,
 - Host: [`Program.cs`](../../src/API/Program.cs) — `MapCoreEndpoints`, `MapAuthEndpoints`, `MapVeterinaryEndpoints`, `MapInventoryEndpoints`, `MapSalesEndpoints`, `MapPetshopEndpoints`, `MapFiscalEndpoints`; filtro global [`ResultEndpointFilter`](../../src/API/Middlewares/ResultEndpointFilter.cs).
 - Estrutura: `src/Modules/{Modulo}/{Domain,Application,Infrastructure}/`.
 - Persistência isolada por módulo: `CoreDbContext`, `VeterinaryDbContext`, `InventoryDbContext`, `SalesDbContext` (Petshop/Fiscal: DI stub, sem DbContext funcional ainda).
-- Integração entre módulos (exemplo): `OrderPaidEvent` (Sales) consumido por `OrderPaidEventHandler` (Inventory) via MediatR `INotificationHandler`, sem chamada HTTP interna.
+- Integração entre módulos (exemplos): `ConsumeStockForSaleRequest` (Core) tratado em Inventory durante `PayOrderCommand` (Sales), antes do commit; `OrderPaidEvent` enriquecido para Finance futuro e `ClinicalQuoteConvertedEvent` para Veterinary — tudo via MediatR, sem HTTP interno (ADR-025).
 
 ## Relacionados
 

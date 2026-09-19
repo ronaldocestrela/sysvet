@@ -23,9 +23,10 @@ A Fase 4.5 exige orçamentos vinculados a atendimento/pet, status rascunho → e
 - Print via Blazor `@media print` (ADR-016).
 
 ## Consequências
-- PDV Fase 6 implementará consumer do evento e `MarkConverted(orderId)`.
-- Inventory sem catálogo de preços: linhas livres com `ProductId` opcional.
+- PDV Fase 6.1: `CreateOrder` com `SourceQuoteId`; ao pagar, `ClinicalQuoteConvertedEvent` → `ClinicalQuoteConvertedIntegrationHandler` chama `MarkConverted(orderId)` (ADR-025).
+- Inventory sem catálogo de preços: linhas livres com `ProductId` opcional; preço snapshot na venda.
 
 ## Referências
 - [`docs/diagramas/orcamentos-clinicos.mmd`](../diagramas/orcamentos-clinicos.mmd)
+- [`ADR-025`](./ADR-025-motor-pdv-vendas.md)
 - [`sync-poc.md`](./sync-poc.md)
