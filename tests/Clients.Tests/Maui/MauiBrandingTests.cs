@@ -16,8 +16,20 @@ public class MauiBrandingTests
 
         Assert.Contains("<ApplicationTitle>SysVet | VetNexus</ApplicationTitle>", csproj);
         Assert.Contains("<ApplicationId>com.vetnexus.sysvet</ApplicationId>", csproj);
+        Assert.Contains("<RootNamespace>MauiApp</RootNamespace>", csproj);
         Assert.Contains("Color=\"#4A90E2\"", csproj);
         Assert.Contains("net10.0-windows10.0.19041.0", csproj);
+    }
+
+    [Fact]
+    public void BlazorRootComponent_Namespace_Aligned_With_Xaml()
+    {
+        var mainPage = File.ReadAllText(Path.Combine(MauiRoot, "MainPage.xaml"));
+        var mainRazor = File.ReadAllText(Path.Combine(MauiRoot, "Main.razor"));
+
+        Assert.Contains("xmlns:local=\"clr-namespace:MauiApp\"", mainPage);
+        Assert.Contains("ComponentType=\"{x:Type local:Main}\"", mainPage);
+        Assert.Contains("@namespace MauiApp", mainRazor);
     }
 
     [Fact]
