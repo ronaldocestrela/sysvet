@@ -65,6 +65,9 @@ public static class AppRoutes
     /// <summary>Physical inventory count sessions (online).</summary>
     public const string InventoryCounts = "/inventory-counts";
 
+    /// <summary>Purchase suggestions grouped by supplier.</summary>
+    public const string PurchaseSuggestions = "/purchase-suggestions";
+
     /// <summary>Point of sale terminal.</summary>
     public const string SalesPos = "/sales/pos";
 

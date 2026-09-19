@@ -94,4 +94,37 @@ public class ProductTests
         result.IsSuccess.Should().BeTrue();
         result.Value.UnitsPerPackage.Should().Be(1m);
     }
+
+    [Fact]
+    public void Create_WithNegativeTargetStock_ReturnsFailure()
+    {
+        var result = Product.Create(
+            "Item", "", "SKU1", "1234567890123", "UN", 5m, ProductCategory.Other, "23091000", null, 0, null,
+            targetStock: -1m);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Product.InvalidTargetStock");
+    }
+
+    [Fact]
+    public void Create_WhenTargetBelowReorder_ReturnsFailure()
+    {
+        var result = Product.Create(
+            "Item", "", "SKU1", "1234567890123", "UN", 10m, ProductCategory.Other, "23091000", null, 0, null,
+            targetStock: 5m);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Product.InvalidTargetStock");
+    }
+
+    [Fact]
+    public void Create_WithValidTargetStock_Succeeds()
+    {
+        var result = Product.Create(
+            "Item", "", "SKU1", "1234567890123", "UN", 5m, ProductCategory.Other, "23091000", null, 0, null,
+            targetStock: 20m);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.TargetStock.Should().Be(20m);
+    }
 }

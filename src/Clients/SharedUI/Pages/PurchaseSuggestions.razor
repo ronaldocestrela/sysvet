@@ -1,0 +1,109 @@
+@page "/purchase-suggestions"
+@using Clients.Infrastructure.Crm
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IInventoryStore InventoryStore
+@inject IFileDownloadService FileDownload
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Sugestão de compras</h1>
+    <div class="actions">
+        <select class="form-control filter" @bind="_supplierFilter" @bind:after="LoadAsync">
+            <option value="">Todos os fornecedores</option>
+            @foreach (var s in _suppliers)
+            {
+                <option value="@s.Id">@s.TradeName</option>
+            }
+        </select>
+        <button class="btn btn-primary" @onclick="ExportCsvAsync">Exportar CSV</button>
+    </div>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Calculando sugestões...">
+    @if (!_groups.Any())
+    {
+        <p class="empty-state">Nenhum produto abaixo do ponto de pedido.</p>
+    }
+    else
+    {
+        @foreach (var group in _groups)
+        {
+            <div class="card p-3 mb-3">
+                <h2>@group.SupplierName @(group.SupplierDocument is not null ? $"({group.SupplierDocument})" : "")</h2>
+                <p>Total estimado: @group.GroupEstimatedTotal.ToString("N2")</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>SKU</th>
+                            <th>Saldo</th>
+                            <th>Alvo</th>
+                            <th>Sugerido</th>
+                            <th>Custo médio</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var line in group.Lines)
+                        {
+                            <tr>
+                                <td>@line.ProductName</td>
+                                <td>@line.Sku</td>
+                                <td>@line.OnHand.ToString("N2")</td>
+                                <td>@(line.TargetStock > 0 ? line.TargetStock.ToString("N2") : line.ReorderLevel.ToString("N2"))</td>
+                                <td>@line.SuggestedQuantity.ToString("N2")</td>
+                                <td>@line.AverageCost.ToString("N2")</td>
+                                <td>@line.EstimatedTotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</LoadingState>
+
+<style>
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); gap: var(--spacing-md); flex-wrap: wrap; }
+    .actions { display: flex; gap: var(--spacing-sm); align-items: center; }
+    .filter { min-width: 220px; }
+</style>
+
+@code {
+    private List<InventoryPurchaseSuggestionGroup> _groups = [];
+    private List<InventorySupplierItem> _suppliers = [];
+    private bool _loading = true;
+    private string _supplierFilter = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        Guid? supplierId = Guid.TryParse(_supplierFilter, out var sid) ? sid : null;
+        var suppliers = await InventoryStore.ListSuppliersAsync();
+        _suppliers = suppliers.IsSuccess ? suppliers.Value.ToList() : [];
+        var result = await InventoryStore.GetPurchaseSuggestionsAsync(supplierId);
+        _groups = result.IsSuccess ? result.Value.ToList() : [];
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _loading = false;
+    }
+
+    private async Task ExportCsvAsync()
+    {
+        Guid? supplierId = Guid.TryParse(_supplierFilter, out var sid) ? sid : null;
+        var result = await InventoryStore.ExportPurchaseSuggestionsCsvAsync(supplierId);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        await FileDownload.DownloadAsync("purchase-suggestions.csv", "text/csv", result.Value);
+    }
+}

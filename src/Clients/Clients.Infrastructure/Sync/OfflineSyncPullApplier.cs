@@ -705,7 +705,8 @@ public sealed class OfflineSyncPullApplier
                 dto.SupplierId,
                 dto.RequiresLot,
                 dto.Id,
-                dto.UnitsPerPackage);
+                dto.UnitsPerPackage,
+                dto.TargetStock);
             if (created.IsFailure)
             {
                 return;
@@ -732,6 +733,7 @@ public sealed class OfflineSyncPullApplier
             dto.Barcode,
             dto.UnitOfMeasure,
             dto.ReorderLevel,
+            dto.TargetStock,
             category,
             dto.Ncm,
             dto.Cest,

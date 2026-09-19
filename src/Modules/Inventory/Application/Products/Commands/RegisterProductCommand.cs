@@ -23,5 +23,6 @@ public sealed record RegisterProductCommand(
     Guid? SupplierId,
     bool? RequiresLot,
     decimal? UnitsPerPackage = null,
+    decimal TargetStock = 0m,
     Guid ProductId = default,
     Guid IdempotencyKey = default) : IIdempotentCommand<Guid>;

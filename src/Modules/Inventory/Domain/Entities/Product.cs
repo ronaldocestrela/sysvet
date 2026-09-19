@@ -16,6 +16,8 @@ public class Product : AggregateRoot
     public string Barcode { get; private set; } = string.Empty;
     public string UnitOfMeasure { get; private set; } = string.Empty;
     public decimal ReorderLevel { get; private set; }
+    /// <summary>Desired on-hand level for purchase suggestions; zero means use reorder level only.</summary>
+    public decimal TargetStock { get; private set; }
     public ProductCategory Category { get; private set; }
     public Guid? SupplierId { get; private set; }
     public string Ncm { get; private set; } = string.Empty;
@@ -37,6 +39,7 @@ public class Product : AggregateRoot
         string barcode,
         string unitOfMeasure,
         decimal reorderLevel,
+        decimal targetStock,
         ProductCategory category,
         Guid? supplierId,
         string ncm,
@@ -52,6 +55,7 @@ public class Product : AggregateRoot
         Barcode = barcode;
         UnitOfMeasure = unitOfMeasure;
         ReorderLevel = reorderLevel;
+        TargetStock = targetStock;
         Category = category;
         SupplierId = supplierId;
         Ncm = ncm;
@@ -78,7 +82,8 @@ public class Product : AggregateRoot
         Guid? supplierId,
         bool? requiresLot = null,
         Guid? id = null,
-        decimal? unitsPerPackage = null)
+        decimal? unitsPerPackage = null,
+        decimal targetStock = 0m)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -108,6 +113,16 @@ public class Product : AggregateRoot
             return Result.Failure<Product>(ErrorCodes.Product.InvalidReorderLevel);
         }
 
+        if (targetStock < 0)
+        {
+            return Result.Failure<Product>(ErrorCodes.Product.InvalidTargetStock);
+        }
+
+        if (targetStock > 0 && reorderLevel > 0 && targetStock < reorderLevel)
+        {
+            return Result.Failure<Product>(ErrorCodes.Product.InvalidTargetStock);
+        }
+
         if (merchandiseOrigin is < 0 or > 8)
         {
             return Result.Failure<Product>(ErrorCodes.Product.InvalidMerchandiseOrigin);
@@ -130,6 +145,7 @@ public class Product : AggregateRoot
             barcodeResult.Value.Value,
             string.IsNullOrWhiteSpace(unitOfMeasure) ? "UN" : unitOfMeasure.Trim(),
             reorderLevel,
+            targetStock,
             category,
             supplierId,
             ncmResult.Value.Value,
@@ -149,6 +165,7 @@ public class Product : AggregateRoot
         string barcode,
         string unitOfMeasure,
         decimal reorderLevel,
+        decimal targetStock,
         ProductCategory category,
         string ncm,
         string? cest,
@@ -157,7 +174,7 @@ public class Product : AggregateRoot
         bool requiresLot,
         decimal unitsPerPackage)
     {
-        var created = Create(name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, Id, unitsPerPackage);
+        var created = Create(name, description, sku, barcode, unitOfMeasure, reorderLevel, category, ncm, cest, merchandiseOrigin, supplierId, requiresLot, Id, unitsPerPackage, targetStock);
         if (created.IsFailure)
         {
             return Result.Failure(created.Error);
@@ -170,6 +187,7 @@ public class Product : AggregateRoot
         Barcode = draft.Barcode;
         UnitOfMeasure = draft.UnitOfMeasure;
         ReorderLevel = draft.ReorderLevel;
+        TargetStock = draft.TargetStock;
         Category = draft.Category;
         SupplierId = supplierId;
         Ncm = draft.Ncm;

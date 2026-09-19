@@ -568,7 +568,7 @@ flowchart TD
 | **5.3 Entrada via XML (NF compra)** | 8 | Concluído |
 | **5.4 Perdas, fracionamento e devoluções** | 5 | Concluído |
 | **5.5 Inventário mobile (barcode)** | 8 | Concluído |
-| **5.6 Etiquetas e sugestão de compras** | 8 | Pendente |
+| **5.6 Etiquetas e sugestão de compras** | 8 | Concluído |
 | **Total Fase 5** | **45 SP** | |
 
 ### 5.1 Cadastro de produtos e lotes (8 SP) — Concluído
@@ -675,12 +675,26 @@ flowchart TD
 
 **Aceite:** Inventário MAUI atualiza saldo após aprovação.
 
-### 5.6 Etiquetas e sugestão de compras (8 SP)
+### 5.6 Etiquetas e sugestão de compras (8 SP) — Concluído
 
-- [ ] Geração/impressão de etiquetas (PDF/ZPL)
-- [ ] Regra de reposição; pedido sugerido por fornecedor
+**Domain**
+- [x] `Product.TargetStock`; `PurchaseSuggestionCalculator`; `ZplLabelEncoder` (Code128, 60×40 mm)
+- [x] ADR-024
 
-**Aceite:** Relatório de sugestão exportável; etiqueta gerada para produto.
+**Application**
+- [x] `GenerateProductLabelsQuery` (PDF via `IProductLabelPdfRenderer`, ZPL nativo); `ListPurchaseSuggestionsQuery` + `ExportPurchaseSuggestionsQuery` (CSV)
+- [x] Permissões `Products.Read` (etiquetas) e `Stock.Read` (sugestão); `TargetStock` em register/update/DTOs
+
+**API**
+- [x] `POST /labels`, `GET /products/{id}/label`, `GET /purchase-suggestions`, `GET /purchase-suggestions/export`
+
+**Sync**
+- [x] Pull/push/outbox `TargetStock` em produtos; etiquetas e relatório **online-only**
+
+**Clients**
+- [x] `IProductLabelApiService`, `IFileDownloadService`; `/purchase-suggestions`; etiqueta em `ProductDetail`; estoque alvo no cadastro; menu `purchase-suggestions`
+
+**Aceite:** Relatório de sugestão exportável (CSV); etiqueta PDF/ZPL gerada para produto ativo.
 
 ---
 

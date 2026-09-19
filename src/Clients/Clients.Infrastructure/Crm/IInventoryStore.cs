@@ -26,6 +26,15 @@ public interface IInventoryStore
         Guid? supplierId,
         bool? requiresLot,
         decimal? unitsPerPackage = null,
+        decimal targetStock = 0m,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<IReadOnlyList<InventoryPurchaseSuggestionGroup>>> GetPurchaseSuggestionsAsync(
+        Guid? supplierId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<byte[]>> ExportPurchaseSuggestionsCsvAsync(
+        Guid? supplierId = null,
         CancellationToken cancellationToken = default);
     Task<Result<Guid>> RegisterProductLotAsync(
         Guid productId,
@@ -107,6 +116,7 @@ public sealed class InventoryProductListItem
     public decimal TotalQuantity { get; init; }
     public decimal AverageCost { get; init; }
     public decimal ReorderLevel { get; init; }
+    public decimal TargetStock { get; init; }
     public bool IsActive { get; init; }
 }
 
@@ -130,6 +140,7 @@ public sealed class InventoryProductDetail
     public string Barcode { get; init; } = string.Empty;
     public string UnitOfMeasure { get; init; } = string.Empty;
     public decimal ReorderLevel { get; init; }
+    public decimal TargetStock { get; init; }
     public ProductCategory Category { get; init; }
     public Guid? SupplierId { get; init; }
     public string Ncm { get; init; } = string.Empty;
@@ -188,4 +199,27 @@ public sealed class InventorySupplierItem
     public string? ContactEmail { get; init; }
     public string? ContactPhone { get; init; }
     public bool IsActive { get; init; }
+}
+
+public sealed class InventoryPurchaseSuggestionLine
+{
+    public Guid ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public string Sku { get; init; } = string.Empty;
+    public string Barcode { get; init; } = string.Empty;
+    public decimal OnHand { get; init; }
+    public decimal ReorderLevel { get; init; }
+    public decimal TargetStock { get; init; }
+    public decimal SuggestedQuantity { get; init; }
+    public decimal AverageCost { get; init; }
+    public decimal EstimatedTotal { get; init; }
+}
+
+public sealed class InventoryPurchaseSuggestionGroup
+{
+    public Guid? SupplierId { get; init; }
+    public string SupplierName { get; init; } = string.Empty;
+    public string? SupplierDocument { get; init; }
+    public IReadOnlyList<InventoryPurchaseSuggestionLine> Lines { get; init; } = Array.Empty<InventoryPurchaseSuggestionLine>();
+    public decimal GroupEstimatedTotal { get; init; }
 }

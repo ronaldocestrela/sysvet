@@ -1120,6 +1120,9 @@ namespace Clients.Infrastructure.Migrations
                     b.Property<decimal>("ReorderLevel")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("TargetStock")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("RequiresLot")
                         .HasColumnType("INTEGER");
 

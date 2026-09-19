@@ -1,6 +1,8 @@
 using Core.Domain;
 using Core.Infrastructure.Configuration;
 using Inventory.Application.Common;
+using Inventory.Application.Labels;
+using Inventory.Infrastructure.Labels;
 using Inventory.Application.Products.Commands;
 using Inventory.Application.StockMovements.Commands;
 using Inventory.Domain.Repositories;
@@ -46,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<StockCatalogReconciler>();
         services.AddScoped<StockLedgerWriter>();
         services.AddScoped<Inventory.Application.InventoryCounts.InventoryCountOnHandResolver>();
+        services.AddSingleton<IProductLabelPdfRenderer, QuestPdfProductLabelRenderer>();
         services.AddScoped<TransferStockCommandHandler>();
         services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.InventorySyncChangeFeedContributor>();
         services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.InventorySyncPushHandler>();

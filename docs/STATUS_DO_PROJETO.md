@@ -137,9 +137,14 @@ Iniciado o módulo de estoque.
 - Sessão online `InventoryCount` (contagem cega → submit → approve); ajustes `InventoryCount` no ledger.
 - API `/api/v1/inventory/counts`; UI `/inventory-counts`; scanner MAUI via `IBarcodeScannerService`.
 
-### 👉 **Próxima Ação: Fase 5.6 — Etiquetas e sugestão de compras**
+### Fase 5.6 — Etiquetas e sugestão de compras — Concluída (ADR-024)
 
-Ver [`roadmap.md`](roadmap.md) § Fase 5.
+- `Product.TargetStock`; sugestão agrupada por fornecedor; export CSV; etiquetas PDF (QuestPDF) e ZPL na API.
+- UI: `/purchase-suggestions`, geração de etiqueta no detalhe do produto (online).
+
+### 👉 **Próxima Ação: Fase 6.1 — Motor de vendas (PDV)**
+
+Ver [`roadmap.md`](roadmap.md) § Fase 6.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

@@ -4,7 +4,7 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 
 ## Status
 
-> **Fase 5.5 concluída:** inventário físico online (contagem cega, submit, approve com ajustes lot-aware); além de 5.4 (perdas/fracionamento/devolução), 5.3 (NF-e compra) e 5.2 (movimentações).
+> **Fase 5.6 concluída:** etiquetas PDF/ZPL na API, sugestão de compras por fornecedor (`TargetStock` + `ReorderLevel`), export CSV; além de 5.5 (inventário mobile), 5.4–5.2.
 
 ## Escopo de Negócio
 
@@ -20,6 +20,8 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 - **Fracionamento**: abertura de embalagens para lote fracionado no mesmo SKU
 - **Devolução**: saída vinculada ao fornecedor + `SupplierReturnRegisteredEvent` (Finance futuro)
 - **Inventário físico**: sessão `InventoryCount` (online), contagem por barcode, aprovação gera movimentos `InventoryCount`
+- **Etiquetas**: geração PDF/ZPL (Code128, nome/SKU) via API — online-only
+- **Sugestão de compras**: projeção por fornecedor a partir de estoque baixo e `TargetStock`; export CSV
 
 ## Estrutura de Camadas
 
@@ -41,3 +43,4 @@ Módulo responsável pelo **controle de estoque** de produtos comercializados e 
 - [ADR-021](../../../docs/arquitetura/ADR-021-entrada-xml-nfe-compra.md)
 - [ADR-022](../../../docs/arquitetura/ADR-022-perdas-fracionamento-devolucoes.md)
 - [ADR-023](../../../docs/arquitetura/ADR-023-inventario-mobile-barcode.md)
+- [ADR-024](../../../docs/arquitetura/ADR-024-etiquetas-sugestao-compras.md)

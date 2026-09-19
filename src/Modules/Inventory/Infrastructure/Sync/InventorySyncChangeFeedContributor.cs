@@ -109,6 +109,7 @@ public sealed class InventorySyncChangeFeedContributor : ISyncChangeFeedContribu
             Barcode = p.Barcode,
             UnitOfMeasure = p.UnitOfMeasure,
             ReorderLevel = p.ReorderLevel,
+            TargetStock = p.TargetStock,
             Category = p.Category.ToString(),
             SupplierId = p.SupplierId,
             Ncm = p.Ncm,

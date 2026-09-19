@@ -311,6 +311,7 @@ public sealed class SyncInventoryProductDto
     public string Barcode { get; init; } = string.Empty;
     public string UnitOfMeasure { get; init; } = string.Empty;
     public decimal ReorderLevel { get; init; }
+    public decimal TargetStock { get; init; }
     public string Category { get; init; } = string.Empty;
     public Guid? SupplierId { get; init; }
     public string Ncm { get; init; } = string.Empty;

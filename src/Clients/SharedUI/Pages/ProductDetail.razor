@@ -1,7 +1,12 @@
 @page "/products/{ProductId:guid}"
 @using Clients.Infrastructure.Crm
+@using Clients.Infrastructure.Http
 @using SharedUI.Components
+@using SharedUI.Services
 @inject IInventoryStore InventoryStore
+@inject IProductLabelApiService LabelApi
+@inject IFileDownloadService FileDownload
+@inject IToastService Toast
 
 @if (_loading)
 {
@@ -15,7 +20,21 @@ else
 {
     <div class="header-section">
         <h1>@_product.Name</h1>
-        <p>SKU: @_product.Sku | Barras: @_product.Barcode | Saldo total: @_product.TotalQuantity (lacrado: @_product.SealedQuantity, fracionado: @_product.FractionalQuantity) | Unid./embalagem: @_product.UnitsPerPackage | Custo médio: @_product.AverageCost.ToString("N2")</p>
+        <p>SKU: @_product.Sku | Barras: @_product.Barcode | Ponto pedido: @_product.ReorderLevel | Estoque alvo: @_product.TargetStock | Saldo total: @_product.TotalQuantity (lacrado: @_product.SealedQuantity, fracionado: @_product.FractionalQuantity) | Unid./embalagem: @_product.UnitsPerPackage | Custo médio: @_product.AverageCost.ToString("N2")</p>
+    </div>
+
+    <div class="card p-3 mb-3">
+        <h2>Etiqueta</h2>
+        <div class="label-actions">
+            <FormField Label="Formato">
+                <select @bind="_labelFormat">
+                    <option value="pdf">PDF</option>
+                    <option value="zpl">ZPL</option>
+                </select>
+            </FormField>
+            <FormField Label="Cópias"><input type="number" min="1" max="50" @bind="_labelCopies" /></FormField>
+            <button class="btn btn-primary" @onclick="DownloadLabelAsync">Gerar etiqueta</button>
+        </div>
     </div>
 
     <div class="card p-3">
@@ -105,6 +124,11 @@ else
     </FooterTemplate>
 </Modal>
 
+<style>
+    .header-section { margin-bottom: var(--spacing-md); }
+    .label-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-md); align-items: flex-end; }
+</style>
+
 @code {
     [Parameter] public Guid ProductId { get; set; }
 
@@ -116,6 +140,8 @@ else
     private DateTime? _expirationDate;
     private decimal _unitCost;
     private decimal _initialQty;
+    private string _labelFormat = "pdf";
+    private int _labelCopies = 1;
 
     protected override async Task OnParametersSetAsync() => await LoadAsync();
 
@@ -137,5 +163,17 @@ else
         await InventoryStore.RegisterProductLotAsync(ProductId, _lotNumber, exp, _unitCost, _initialQty);
         _showLotModal = false;
         await LoadAsync();
+    }
+
+    private async Task DownloadLabelAsync()
+    {
+        var result = await LabelApi.DownloadProductLabelAsync(ProductId, _labelFormat, _labelCopies);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
     }
 }

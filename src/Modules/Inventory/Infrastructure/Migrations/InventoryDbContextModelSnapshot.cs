@@ -68,6 +68,12 @@ namespace Inventory.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("TargetStock")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasDefaultValue(0m)
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("RequiresLot")
                         .HasColumnType("INTEGER");
 

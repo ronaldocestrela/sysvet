@@ -27,6 +27,9 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-019](./ADR-019-produtos-lotes-estoque.md) | Produtos, lotes e saldo por lote | Accepted |
 | [ADR-020](./ADR-020-movimentacoes-estoque-alertas.md) | Movimentações lot-aware e alertas | Accepted |
 | [ADR-021](./ADR-021-entrada-xml-nfe-compra.md) | Entrada NF-e de compra via XML | Accepted |
+| [ADR-022](./ADR-022-perdas-fracionamento-devolucoes.md) | Perdas, fracionamento e devoluções | Accepted |
+| [ADR-023](./ADR-023-inventario-mobile-barcode.md) | Inventário mobile (barcode) | Accepted |
+| [ADR-024](./ADR-024-etiquetas-sugestao-compras.md) | Etiquetas PDF/ZPL e sugestão de compras | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

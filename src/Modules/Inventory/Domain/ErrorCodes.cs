@@ -13,6 +13,7 @@ public static class ErrorCodes
         public static readonly Error InvalidSku = new("Product.InvalidSku", "SKU is invalid.");
         public static readonly Error InvalidBarcode = new("Product.InvalidBarcode", "Product barcode is invalid.");
         public static readonly Error InvalidReorderLevel = new("Product.InvalidReorderLevel", "Reorder level cannot be negative.");
+        public static readonly Error InvalidTargetStock = new("Product.InvalidTargetStock", "Target stock must be non-negative and not below reorder level when both are set.");
         public static readonly Error InvalidNcm = new("Product.InvalidNcm", "NCM must be eight digits.");
         public static readonly Error InvalidMerchandiseOrigin = new("Product.InvalidMerchandiseOrigin", "Merchandise origin must be between 0 and 8.");
         public static readonly Error NotFound = new("Product.NotFound", "The specified product was not found.");
@@ -20,6 +21,14 @@ public static class ErrorCodes
         public static readonly Error SkuConflict = new("Product.SkuConflict", "A product with this SKU already exists.");
         public static readonly Error Inactive = new("Product.Inactive", "The product is inactive.");
         public static readonly Error InvalidUnitsPerPackage = new("Product.InvalidUnitsPerPackage", "Units per package must be greater than zero.");
+    }
+
+    public static class ProductLabel
+    {
+        public static readonly Error EmptyRequest = new("ProductLabel.EmptyRequest", "At least one label item is required.");
+        public static readonly Error TooManyItems = new("ProductLabel.TooManyItems", "A maximum of 50 products per label request is allowed.");
+        public static readonly Error InvalidCopies = new("ProductLabel.InvalidCopies", "Copies must be between 1 and 50.");
+        public static readonly Error UnsupportedFormat = new("ProductLabel.UnsupportedFormat", "Label format is not supported.");
     }
 
     public static class Supplier

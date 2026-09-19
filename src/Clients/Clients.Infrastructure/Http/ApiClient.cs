@@ -25,6 +25,38 @@ public class ApiClient
         };
     }
 
+    /// <summary>Downloads a binary file from GET.</summary>
+    public async Task<Result<DownloadedFile>> DownloadGetAsync(string url, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            return await ReadDownloadAsync(response, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<DownloadedFile>(new Error("ApiClient.Exception", ex.Message));
+        }
+    }
+
+    /// <summary>Downloads a binary file from POST with JSON body.</summary>
+    public async Task<Result<DownloadedFile>> DownloadPostAsync<TRequest>(string url, TRequest body, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = JsonContent.Create(body, options: _jsonOptions)
+            };
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            return await ReadDownloadAsync(response, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<DownloadedFile>(new Error("ApiClient.Exception", ex.Message));
+        }
+    }
+
     /// <summary>Performs an HTTP GET and deserializes the JSON body on success.</summary>
     public async Task<Result<T>> GetAsync<T>(string url, CancellationToken cancellationToken = default)
     {
@@ -169,6 +201,21 @@ public class ApiClient
     {
         var failure = await MapFailureAsync(response, cancellationToken);
         return Result.Failure<T>(failure.Error);
+    }
+
+    private async Task<Result<DownloadedFile>> ReadDownloadAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            var failure = await MapFailureAsync(response, cancellationToken);
+            return Result.Failure<DownloadedFile>(failure.Error);
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+        var fileName = response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+            ?? "download.bin";
+        return Result.Success(new DownloadedFile(bytes, contentType, fileName));
     }
 
     private async Task<Result> MapFailureAsync(HttpResponseMessage response, CancellationToken cancellationToken)

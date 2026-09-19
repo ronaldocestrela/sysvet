@@ -1,5 +1,7 @@
 using Inventory.Application.InventoryCounts.Commands;
 using Inventory.Application.InventoryCounts.Queries;
+using Inventory.Application.Labels;
+using Inventory.Application.PurchaseSuggestions;
 using Inventory.Application.PurchaseImports.Commands;
 using Inventory.Application.PurchaseImports.Dtos;
 using Inventory.Application.PurchaseImports.Queries;
@@ -70,9 +72,32 @@ public static class InventoryEndpointExtensions
                 body.SupplierId,
                 body.RequiresLot,
                 body.UnitsPerPackage,
+                body.TargetStock,
                 key);
             return (await mediator.Send(command)).ToHttpResult();
         });
+
+        group.MapGet("/products/{id:guid}/label", async (Guid id, [FromQuery] string? format, [FromQuery] int copies, IMediator mediator) =>
+        {
+            var labelFormat = string.Equals(format, "zpl", StringComparison.OrdinalIgnoreCase) ? LabelFormat.Zpl : LabelFormat.Pdf;
+            var copyCount = copies <= 0 ? 1 : copies;
+            var result = await mediator.Send(new GenerateProductLabelsQuery([new ProductLabelItemDto(id, copyCount)], labelFormat));
+            return ToFileResult(result);
+        });
+
+        group.MapPost("/labels", async ([FromBody] GenerateProductLabelsBody body, IMediator mediator) =>
+        {
+            var labelFormat = string.Equals(body.Format, "zpl", StringComparison.OrdinalIgnoreCase) ? LabelFormat.Zpl : LabelFormat.Pdf;
+            var items = body.Items.Select(i => new ProductLabelItemDto(i.ProductId, i.Copies <= 0 ? 1 : i.Copies)).ToList();
+            var result = await mediator.Send(new GenerateProductLabelsQuery(items, labelFormat));
+            return ToFileResult(result);
+        });
+
+        group.MapGet("/purchase-suggestions", async ([FromQuery] Guid? supplierId, IMediator mediator) =>
+            (await mediator.Send(new ListPurchaseSuggestionsQuery(supplierId))).ToHttpResult());
+
+        group.MapGet("/purchase-suggestions/export", async ([FromQuery] Guid? supplierId, IMediator mediator) =>
+            ToFileResult(await mediator.Send(new ExportPurchaseSuggestionsQuery(supplierId))));
 
         group.MapPost("/products/{id:guid}/active", async (Guid id, HttpContext httpContext, [FromBody] SetActiveBody body, IMediator mediator) =>
         {
@@ -288,6 +313,16 @@ public static class InventoryEndpointExtensions
         return app;
     }
 
+    private static IResult ToFileResult(Core.Domain.Result<LabelFileDto> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.ToProblemDetails();
+        }
+
+        return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
+    }
+
     private sealed record SetActiveBody(bool IsActive);
 
     private sealed record UpdateProductBody(
@@ -303,7 +338,14 @@ public static class InventoryEndpointExtensions
         int MerchandiseOrigin,
         Guid? SupplierId,
         bool RequiresLot,
-        decimal UnitsPerPackage = 1m);
+        decimal UnitsPerPackage = 1m,
+        decimal TargetStock = 0m);
+
+    private sealed record GenerateProductLabelsBody(
+        IReadOnlyList<GenerateProductLabelItemBody> Items,
+        string Format = "pdf");
+
+    private sealed record GenerateProductLabelItemBody(Guid ProductId, int Copies = 1);
 
     private sealed record RegisterProductLotBody(
         string LotNumber,

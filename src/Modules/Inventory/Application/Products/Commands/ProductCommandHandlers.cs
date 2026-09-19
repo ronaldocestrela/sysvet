@@ -63,7 +63,8 @@ public sealed class RegisterProductCommandHandler : IRequestHandler<RegisterProd
             request.SupplierId,
             request.RequiresLot,
             productId,
-            request.UnitsPerPackage);
+            request.UnitsPerPackage,
+            request.TargetStock);
 
         if (productResult.IsFailure)
         {
@@ -144,6 +145,7 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
             request.Barcode,
             request.UnitOfMeasure,
             request.ReorderLevel,
+            request.TargetStock,
             request.Category,
             request.Ncm,
             request.Cest,

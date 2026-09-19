@@ -41,6 +41,7 @@ public sealed class ListProductsQueryHandler : IRequestHandler<ListProductsQuery
                 total,
                 product.AverageCost,
                 product.ReorderLevel,
+                product.TargetStock,
                 product.IsActive));
         }
 
@@ -94,6 +95,7 @@ public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQ
             product.Barcode,
             product.UnitOfMeasure,
             product.ReorderLevel,
+            product.TargetStock,
             product.Category,
             product.SupplierId,
             product.Ncm,

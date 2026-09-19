@@ -71,6 +71,7 @@
             </select>
         </FormField>
         <FormField Label="Nível Reabastecimento"><input type="number" step="0.01" @bind="_reorderLevel" /></FormField>
+        <FormField Label="Estoque alvo (sugestão)"><input type="number" step="0.01" @bind="_targetStock" /></FormField>
     </ChildContent>
     <FooterTemplate>
         <button class="btn" @onclick="() => _showModal = false">Cancelar</button>
@@ -90,6 +91,7 @@
     private string _unit = "UN";
     private ProductCategory _category = ProductCategory.Other;
     private decimal _reorderLevel;
+    private decimal _targetStock;
 
     protected override async Task OnInitializedAsync() => await LoadProductsAsync();
 
@@ -108,12 +110,13 @@
         _unit = "UN";
         _category = ProductCategory.Other;
         _reorderLevel = 0;
+        _targetStock = 0;
         _showModal = true;
     }
 
     private async Task SaveProduct()
     {
-        await InventoryStore.RegisterProductAsync(_name, _description, _sku, _barcode, _unit, _reorderLevel, _category, _ncm, null, 0, null, null);
+        await InventoryStore.RegisterProductAsync(_name, _description, _sku, _barcode, _unit, _reorderLevel, _category, _ncm, null, 0, null, null, _targetStock);
         _showModal = false;
         await LoadProductsAsync();
     }

@@ -33,6 +33,8 @@ builder.Services.AddScoped<Clients.Infrastructure.Http.IWardUnitApiService, Clie
 builder.Services.AddScoped<Clients.Infrastructure.Crm.IClinicalAttachmentService, Clients.Infrastructure.Http.ClinicalAttachmentService>();
 builder.Services.AddScoped<Clients.Infrastructure.Http.IPurchaseImportApiService, Clients.Infrastructure.Http.PurchaseImportApiService>();
 builder.Services.AddScoped<Clients.Infrastructure.Http.IInventoryCountApiService, Clients.Infrastructure.Http.InventoryCountApiService>();
+builder.Services.AddScoped<Clients.Infrastructure.Http.IProductLabelApiService, Clients.Infrastructure.Http.ProductLabelApiService>();
+builder.Services.AddScoped<SharedUI.Services.IFileDownloadService, BlazorWeb.Services.WebFileDownloadService>();
 builder.Services.AddSingleton<SharedUI.Services.IBarcodeScannerService, BlazorWeb.Services.WebBarcodeScannerService>();
 
 builder.Services.AddSharedUI();

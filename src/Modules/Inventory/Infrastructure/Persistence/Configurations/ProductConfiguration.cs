@@ -22,6 +22,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Barcode).IsRequired().HasMaxLength(50);
         builder.Property(p => p.UnitOfMeasure).IsRequired().HasMaxLength(20);
         builder.Property(p => p.ReorderLevel).HasPrecision(18, 2);
+        builder.Property(p => p.TargetStock).HasPrecision(18, 2).HasDefaultValue(0m);
         builder.Property(p => p.Category).HasConversion<string>().HasMaxLength(30);
         builder.Property(p => p.Ncm).IsRequired().HasMaxLength(8);
         builder.Property(p => p.Cest).HasMaxLength(7);

@@ -276,7 +276,8 @@ internal static class OutboxPayloadFactory
         Guid? supplierId,
         bool? requiresLot,
         Guid idempotencyKey,
-        decimal? unitsPerPackage = null) =>
+        decimal? unitsPerPackage = null,
+        decimal targetStock = 0m) =>
         System.Text.Json.JsonSerializer.Serialize(new
         {
             Name = name,
@@ -292,6 +293,7 @@ internal static class OutboxPayloadFactory
             SupplierId = supplierId,
             RequiresLot = requiresLot,
             UnitsPerPackage = unitsPerPackage,
+            TargetStock = targetStock,
             ProductId = productId,
             IdempotencyKey = idempotencyKey
         });

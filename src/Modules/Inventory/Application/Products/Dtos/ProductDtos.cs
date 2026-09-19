@@ -12,6 +12,7 @@ public sealed record ProductListItemDto(
     decimal TotalQuantity,
     decimal AverageCost,
     decimal ReorderLevel,
+    decimal TargetStock,
     bool IsActive);
 
 /// <summary>Product lot in detail views.</summary>
@@ -33,6 +34,7 @@ public sealed record ProductDetailDto(
     string Barcode,
     string UnitOfMeasure,
     decimal ReorderLevel,
+    decimal TargetStock,
     ProductCategory Category,
     Guid? SupplierId,
     string Ncm,

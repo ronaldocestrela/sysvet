@@ -531,6 +531,109 @@ public sealed partial class OfflineInventoryStore
         return Result.Success<IReadOnlyList<InventoryStockAlertItem>>(alerts);
     }
 
+    public async Task<Result<IReadOnlyList<InventoryPurchaseSuggestionGroup>>> GetPurchaseSuggestionsAsync(
+        Guid? supplierId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var products = await _dbContext.Products.AsNoTracking().Where(p => p.IsActive).ToListAsync(cancellationToken);
+        var suppliers = await _dbContext.Suppliers.AsNoTracking().ToDictionaryAsync(s => s.Id, cancellationToken);
+        var linesBySupplier = new Dictionary<Guid?, List<InventoryPurchaseSuggestionLine>>();
+
+        foreach (var product in products)
+        {
+            if (supplierId is Guid filter && product.SupplierId != filter)
+            {
+                continue;
+            }
+
+            var lots = await _dbContext.ProductLots.AsNoTracking().Where(l => l.ProductId == product.Id).ToListAsync(cancellationToken);
+            var totalFromLots = lots.Where(l => l.IsActive).Sum(l => l.Quantity);
+            var balance = await _dbContext.ProductBalances.AsNoTracking().FirstOrDefaultAsync(b => b.ProductId == product.Id, cancellationToken);
+            var onHand = lots.Count > 0 ? totalFromLots : balance?.TotalQuantity ?? 0m;
+
+            var suggested = PurchaseSuggestionCalculator.ComputeSuggestedQuantity(
+                onHand, product.ReorderLevel, product.TargetStock, product.UnitsPerPackage);
+            if (suggested is null)
+            {
+                continue;
+            }
+
+            if (!linesBySupplier.TryGetValue(product.SupplierId, out var list))
+            {
+                list = [];
+                linesBySupplier[product.SupplierId] = list;
+            }
+
+            list.Add(new InventoryPurchaseSuggestionLine
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                Sku = product.Sku,
+                Barcode = product.Barcode,
+                OnHand = onHand,
+                ReorderLevel = product.ReorderLevel,
+                TargetStock = product.TargetStock,
+                SuggestedQuantity = suggested.Value,
+                AverageCost = product.AverageCost,
+                EstimatedTotal = suggested.Value * product.AverageCost
+            });
+        }
+
+        var groups = linesBySupplier
+            .OrderBy(k => k.Key ?? Guid.Empty)
+            .Select(kvp =>
+            {
+                Supplier? supplier = kvp.Key is Guid sid && suppliers.TryGetValue(sid, out var s) ? s : null;
+                var name = supplier?.TradeName ?? supplier?.LegalName ?? "Sem fornecedor";
+                var lines = kvp.Value.OrderBy(l => l.ProductName).ToList();
+                return new InventoryPurchaseSuggestionGroup
+                {
+                    SupplierId = kvp.Key,
+                    SupplierName = name,
+                    SupplierDocument = supplier?.Document,
+                    Lines = lines,
+                    GroupEstimatedTotal = lines.Sum(l => l.EstimatedTotal)
+                };
+            })
+            .ToList();
+
+        return Result.Success<IReadOnlyList<InventoryPurchaseSuggestionGroup>>(groups);
+    }
+
+    public async Task<Result<byte[]>> ExportPurchaseSuggestionsCsvAsync(
+        Guid? supplierId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var groupsResult = await GetPurchaseSuggestionsAsync(supplierId, cancellationToken);
+        if (groupsResult.IsFailure)
+        {
+            return Result.Failure<byte[]>(groupsResult.Error);
+        }
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Fornecedor;CNPJ;Produto;SKU;CodigoBarras;Saldo;PontoPedido;EstoqueAlvo;QtdSugerida;CustoMedio;TotalEstimado");
+        foreach (var group in groupsResult.Value)
+        {
+            foreach (var line in group.Lines)
+            {
+                sb.Append(group.SupplierName).Append(';');
+                sb.Append(group.SupplierDocument ?? "").Append(';');
+                sb.Append(line.ProductName).Append(';');
+                sb.Append(line.Sku).Append(';');
+                sb.Append(line.Barcode).Append(';');
+                sb.Append(line.OnHand.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                sb.Append(line.ReorderLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                sb.Append(line.TargetStock.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                sb.Append(line.SuggestedQuantity.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                sb.Append(line.AverageCost.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                sb.AppendLine(line.EstimatedTotal.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+        return Result.Success(bytes);
+    }
+
     private async Task ReconcileLocalAsync(Product product, List<ProductLot> lots, CancellationToken cancellationToken)
     {
         var balance = await _dbContext.ProductBalances.FirstOrDefaultAsync(b => b.ProductId == product.Id, cancellationToken);
