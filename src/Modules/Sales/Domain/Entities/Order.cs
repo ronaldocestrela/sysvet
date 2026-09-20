@@ -137,7 +137,48 @@ public class Order : AggregateRoot
             return Result.Failure<bool>(ErrorCodes.OrderItem.ProductIdRequired);
         }
 
-        return AddItemCore(OrderItemKind.Product, productId, productName, quantity, unitPrice, performerUserId, performerRole);
+        return AddItemCore(OrderItemKind.Product, productId, null, productName, quantity, unitPrice, performerUserId, performerRole);
+    }
+
+    /// <summary>
+    /// Adds a product kit line (stock explodes at pay time).
+    /// </summary>
+    public Result<bool> AddKitItem(Guid kitId, string displayName, decimal quantity, decimal unitPrice)
+    {
+        if (kitId == Guid.Empty)
+        {
+            return Result.Failure<bool>(ErrorCodes.Kit.UnknownOffer);
+        }
+
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return Result.Failure<bool>(ErrorCodes.Kit.NameRequired);
+        }
+
+        return AddItemCore(OrderItemKind.Kit, null, kitId, displayName.Trim(), quantity, unitPrice, null, null);
+    }
+
+    /// <summary>
+    /// Adds a prepaid service package line (credits uses at pay time).
+    /// </summary>
+    public Result<bool> AddPackageItem(Guid packageId, string displayName, decimal quantity, decimal unitPrice)
+    {
+        if (packageId == Guid.Empty)
+        {
+            return Result.Failure<bool>(ErrorCodes.Package.UnknownOffer);
+        }
+
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return Result.Failure<bool>(ErrorCodes.Package.NameRequired);
+        }
+
+        if (!TutorId.HasValue || TutorId == Guid.Empty || !PetId.HasValue || PetId == Guid.Empty)
+        {
+            return Result.Failure<bool>(ErrorCodes.Package.PetRequired);
+        }
+
+        return AddItemCore(OrderItemKind.Package, null, packageId, displayName.Trim(), quantity, unitPrice, null, null);
     }
 
     /// <summary>
@@ -161,7 +202,7 @@ public class Order : AggregateRoot
             return Result.Failure<bool>(ErrorCodes.OrderItem.DescriptionRequired);
         }
 
-        return AddItemCore(OrderItemKind.Service, null, description.Trim(), quantity, unitPrice, performerUserId, performerRole);
+        return AddItemCore(OrderItemKind.Service, null, null, description.Trim(), quantity, unitPrice, performerUserId, performerRole);
     }
 
     /// <summary>
@@ -173,6 +214,7 @@ public class Order : AggregateRoot
     private Result<bool> AddItemCore(
         OrderItemKind kind,
         Guid? productId,
+        Guid? catalogOfferId,
         string productName,
         decimal quantity,
         decimal unitPrice,
@@ -194,7 +236,7 @@ public class Order : AggregateRoot
             return Result.Failure<bool>(ErrorCodes.Money.InvalidAmount);
         }
 
-        _items.Add(new OrderItem(Id, kind, productId, productName, quantity, unitPrice, performerUserId, performerRole));
+        _items.Add(new OrderItem(Id, kind, productId, catalogOfferId, productName, quantity, unitPrice, performerUserId, performerRole));
         return Result.Success(true);
     }
 
@@ -396,7 +438,7 @@ public class Order : AggregateRoot
         DateTimeOffset createdAt,
         DateTimeOffset? paidAt,
         DateTimeOffset updatedAt,
-        IEnumerable<(Guid ItemId, OrderItemKind Kind, Guid? ProductId, string ProductName, decimal Quantity, decimal UnitPrice, Guid? PerformerUserId, CommissionRole? PerformerRole, decimal ReturnedQuantity)> items,
+        IEnumerable<(Guid ItemId, OrderItemKind Kind, Guid? ProductId, Guid? CatalogOfferId, string ProductName, decimal Quantity, decimal UnitPrice, Guid? PerformerUserId, CommissionRole? PerformerRole, decimal ReturnedQuantity)> items,
         IEnumerable<(
             Guid PaymentId,
             PaymentMethod Method,
@@ -428,6 +470,7 @@ public class Order : AggregateRoot
                 id,
                 item.Kind,
                 item.ProductId,
+                item.CatalogOfferId,
                 item.ProductName,
                 item.Quantity,
                 item.UnitPrice,

@@ -90,6 +90,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var salesCashRegisters = new List<SyncSalesCashRegisterDto>();
         var salesOrders = new List<SyncSalesOrderDto>();
         var salesCommissionRules = new List<SyncCommissionRuleDto>();
+        var salesProductKits = new List<SyncProductKitDto>();
+        var salesServicePackages = new List<SyncServicePackageDto>();
+        var salesPrepaidBalances = new List<SyncPrepaidBalanceDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -114,6 +117,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             salesCashRegisters.AddRange(modulePage.SalesCashRegisters);
             salesOrders.AddRange(modulePage.SalesOrders);
             salesCommissionRules.AddRange(modulePage.SalesCommissionRules);
+            salesProductKits.AddRange(modulePage.SalesProductKits);
+            salesServicePackages.AddRange(modulePage.SalesServicePackages);
+            salesPrepaidBalances.AddRange(modulePage.SalesPrepaidBalances);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -145,6 +151,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             SalesCashRegisters = salesCashRegisters,
             SalesOrders = salesOrders,
             SalesCommissionRules = salesCommissionRules,
+            SalesProductKits = salesProductKits,
+            SalesServicePackages = salesServicePackages,
+            SalesPrepaidBalances = salesPrepaidBalances,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

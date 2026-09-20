@@ -14,6 +14,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
     private readonly ITutorRepository _tutorRepository;
     private readonly IPetRepository _petRepository;
     private readonly IAccessProfileRepository _accessProfileRepository;
+    private readonly IProductKitRepository _productKitRepository;
+    private readonly IServicePackageRepository _servicePackageRepository;
     private readonly ICurrentUser _currentUser;
 
     public CreateOrderCommandHandler(
@@ -22,6 +24,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         ITutorRepository tutorRepository,
         IPetRepository petRepository,
         IAccessProfileRepository accessProfileRepository,
+        IProductKitRepository productKitRepository,
+        IServicePackageRepository servicePackageRepository,
         ICurrentUser currentUser)
     {
         _orderRepository = orderRepository;
@@ -29,6 +33,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         _tutorRepository = tutorRepository;
         _petRepository = petRepository;
         _accessProfileRepository = accessProfileRepository;
+        _productKitRepository = productKitRepository;
+        _servicePackageRepository = servicePackageRepository;
         _currentUser = currentUser;
     }
 
@@ -110,22 +116,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
         foreach (var item in request.Items)
         {
-            Result<bool> addResult = item.Kind switch
-            {
-                OrderItemKind.Service => order.AddServiceItem(
-                    item.ProductName,
-                    item.Quantity,
-                    item.UnitPrice,
-                    item.PerformerUserId,
-                    item.PerformerRole),
-                _ => order.AddProductItem(
-                    item.ProductId ?? Guid.Empty,
-                    item.ProductName,
-                    item.Quantity,
-                    item.UnitPrice,
-                    item.PerformerUserId,
-                    item.PerformerRole)
-            };
+            var addResult = await AddItemAsync(order, item, cancellationToken);
 
             if (!addResult.IsSuccess)
             {
@@ -136,6 +127,54 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         _orderRepository.Add(order);
 
         return Result.Success(order.Id);
+    }
+
+    private async Task<Result<bool>> AddItemAsync(Order order, CreateOrderItemDto item, CancellationToken cancellationToken)
+    {
+        return item.Kind switch
+        {
+            OrderItemKind.Service => order.AddServiceItem(
+                item.ProductName,
+                item.Quantity,
+                item.UnitPrice,
+                item.PerformerUserId,
+                item.PerformerRole),
+            OrderItemKind.Kit => await AddKitAsync(order, item, cancellationToken),
+            OrderItemKind.Package => await AddPackageAsync(order, item, cancellationToken),
+            _ => order.AddProductItem(
+                item.ProductId ?? Guid.Empty,
+                item.ProductName,
+                item.Quantity,
+                item.UnitPrice,
+                item.PerformerUserId,
+                item.PerformerRole)
+        };
+    }
+
+    private async Task<Result<bool>> AddKitAsync(Order order, CreateOrderItemDto item, CancellationToken cancellationToken)
+    {
+        var kitId = item.CatalogOfferId ?? Guid.Empty;
+        var kit = await _productKitRepository.GetByIdAsync(kitId, cancellationToken);
+        if (kit is null || !kit.IsActive)
+        {
+            return Result.Failure<bool>(Sales.Domain.ErrorCodes.Kit.UnknownOffer);
+        }
+
+        var name = string.IsNullOrWhiteSpace(item.ProductName) ? kit.Name : item.ProductName;
+        return order.AddKitItem(kitId, name, item.Quantity, item.UnitPrice);
+    }
+
+    private async Task<Result<bool>> AddPackageAsync(Order order, CreateOrderItemDto item, CancellationToken cancellationToken)
+    {
+        var packageId = item.CatalogOfferId ?? Guid.Empty;
+        var package = await _servicePackageRepository.GetByIdAsync(packageId, cancellationToken);
+        if (package is null || !package.IsActive)
+        {
+            return Result.Failure<bool>(Sales.Domain.ErrorCodes.Package.UnknownOffer);
+        }
+
+        var name = string.IsNullOrWhiteSpace(item.ProductName) ? package.Name : item.ProductName;
+        return order.AddPackageItem(packageId, name, item.Quantity, item.UnitPrice);
     }
 
     private Result<Guid> ResolveSellerUserId(Guid? requestedSellerId)

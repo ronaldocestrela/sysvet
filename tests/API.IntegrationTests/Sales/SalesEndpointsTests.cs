@@ -11,8 +11,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Sales.Application.CashRegisters.Dtos;
 using Sales.Application.Commissions;
+using Core.Application.Pets.Commands;
+using Core.Application.Tutors.Commands;
+using Core.Domain.Entities;
+using Sales.Application.Catalog;
 using Sales.Application.Orders.Commands;
 using Sales.Application.Orders.Dtos;
+using Sales.Application.Prepaid;
 using Sales.Domain.Enums;
 using Xunit;
 
@@ -337,6 +342,68 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 
         var caixa = await (await client.GetAsync("/api/v1/sales/cash-registers/open")).Content.ReadFromJsonAsync<OpenCashRegisterDto>();
         caixa!.CurrentBalance.Should().Be(50m);
+    }
+
+    [Fact]
+    public async Task PayPackageThenConsume_DecrementsRemainingUses()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var tutorId = Guid.NewGuid();
+        await client.PostAsJsonAsync("/api/v1/tutors", new CreateTutorCommand(tutorId, "Pacote Owner", "pkg@sysvet.com", "52998224725", "11999999999"));
+        var petId = Guid.NewGuid();
+        var petResponse = await client.PostAsJsonAsync("/api/v1/pets", new CreatePetCommand("Rex", PetSpecies.Dog, "SRD", PetSex.Male, tutorId, null, petId));
+        petResponse.EnsureSuccessStatusCode();
+
+        var packageId = await (await client.PutAsJsonAsync("/api/v1/sales/service-packages", new UpsertServicePackageCommand(
+            null,
+            "Pacote Banho 4x",
+            ServiceCode.Banho,
+            4,
+            true))).Content.ReadFromJsonAsync<Guid>();
+
+        var registerId = await (await client.PostAsJsonAsync("/api/v1/sales/cash-registers/open", new { openingBalance = 0m }))
+            .Content.ReadFromJsonAsync<Guid>();
+
+        var orderId = await (await client.PostAsJsonAsync("/api/v1/sales/orders", new CreateOrderCommand
+        {
+            CashRegisterId = registerId,
+            TutorId = tutorId,
+            PetId = petId,
+            Items =
+            [
+                new CreateOrderItemDto
+                {
+                    Kind = OrderItemKind.Package,
+                    CatalogOfferId = packageId,
+                    ProductName = "Pacote Banho 4x",
+                    Quantity = 1m,
+                    UnitPrice = 120m
+                }
+            ]
+        })).Content.ReadFromJsonAsync<Guid>();
+
+        (await client.PostAsJsonAsync($"/api/v1/sales/orders/{orderId}/pay", new PayOrderCommand
+        {
+            OrderId = orderId,
+            Payments = [new PayOrderPaymentDto { Method = PaymentMethod.Cash, Amount = 120m }]
+        })).EnsureSuccessStatusCode();
+
+        var balances = await (await client.GetAsync($"/api/v1/sales/prepaid-balances?petId={petId}"))
+            .Content.ReadFromJsonAsync<List<PrepaidBalanceDto>>();
+        balances!.Should().ContainSingle(b => b.RemainingUses == 4);
+
+        var usageId = Guid.NewGuid();
+        (await client.PostAsJsonAsync("/api/v1/sales/prepaid-balances/consume", new ConsumePrepaidPackageUseCommand
+        {
+            UsageId = usageId,
+            PetId = petId,
+            ServiceCode = ServiceCode.Banho,
+            AttendanceRef = "attendance-1"
+        })).EnsureSuccessStatusCode();
+
+        balances = await (await client.GetAsync($"/api/v1/sales/prepaid-balances?petId={petId}"))
+            .Content.ReadFromJsonAsync<List<PrepaidBalanceDto>>();
+        balances!.Single().RemainingUses.Should().Be(3);
     }
 }
 

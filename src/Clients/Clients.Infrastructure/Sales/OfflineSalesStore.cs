@@ -149,12 +149,14 @@ public sealed partial class OfflineSalesStore : ISalesStore
 
         foreach (var item in request.Items)
         {
-            var kind = string.Equals(item.Kind, "Service", StringComparison.OrdinalIgnoreCase)
-                ? OrderItemKind.Service
-                : OrderItemKind.Product;
-            var add = kind == OrderItemKind.Service
-                ? order.AddServiceItem(item.ProductName, item.Quantity, item.UnitPrice)
-                : order.AddProductItem(item.ProductId ?? Guid.Empty, item.ProductName, item.Quantity, item.UnitPrice);
+            var kind = ParseKind(item.Kind);
+            var add = kind switch
+            {
+                OrderItemKind.Service => order.AddServiceItem(item.ProductName, item.Quantity, item.UnitPrice),
+                OrderItemKind.Kit => order.AddKitItem(item.CatalogOfferId ?? Guid.Empty, item.ProductName, item.Quantity, item.UnitPrice),
+                OrderItemKind.Package => order.AddPackageItem(item.CatalogOfferId ?? Guid.Empty, item.ProductName, item.Quantity, item.UnitPrice),
+                _ => order.AddProductItem(item.ProductId ?? Guid.Empty, item.ProductName, item.Quantity, item.UnitPrice)
+            };
             if (add.IsFailure)
             {
                 return Result.Failure<Guid>(add.Error);
@@ -173,10 +175,34 @@ public sealed partial class OfflineSalesStore : ISalesStore
             .Select(p => new PaymentTerminalRefundRequest(p.Method, p.Amount.Amount, p.Nsu!))
             .ToList();
 
-        var stockLines = order.Items
-            .Where(i => i.Kind == OrderItemKind.Product && i.ProductId.HasValue)
-            .Select(i => (i.ProductId!.Value, i.Quantity))
-            .ToList();
+        var stockLines = new List<(Guid ProductId, decimal Quantity)>();
+        foreach (var item in order.Items)
+        {
+            if (item.Kind == OrderItemKind.Product && item.ProductId.HasValue)
+            {
+                stockLines.Add((item.ProductId.Value, item.Quantity));
+                continue;
+            }
+
+            if (item.Kind != OrderItemKind.Kit || !item.CatalogOfferId.HasValue)
+            {
+                continue;
+            }
+
+            var kit = await _dbContext.ProductKits
+                .AsNoTracking()
+                .Include(k => k.Components)
+                .FirstOrDefaultAsync(k => k.Id == item.CatalogOfferId.Value, cancellationToken);
+            if (kit is null)
+            {
+                return Result.Failure<Guid>(SalesErrorCodes.Kit.UnknownOffer);
+            }
+
+            foreach (var line in kit.ExplodeStockLines(item.Quantity))
+            {
+                stockLines.Add(line);
+            }
+        }
 
         if (stockLines.Count > 0)
         {
@@ -194,6 +220,45 @@ public sealed partial class OfflineSalesStore : ISalesStore
             return Result.Failure<Guid>(payResult.Error);
         }
 
+        foreach (var item in order.Items.Where(i => i.Kind == OrderItemKind.Package))
+        {
+            if (!item.CatalogOfferId.HasValue || !order.TutorId.HasValue || !order.PetId.HasValue)
+            {
+                return Result.Failure<Guid>(SalesErrorCodes.Package.PetRequired);
+            }
+
+            var package = await _dbContext.ServicePackages.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == item.CatalogOfferId.Value, cancellationToken);
+            if (package is null)
+            {
+                return Result.Failure<Guid>(SalesErrorCodes.Package.NotFound);
+            }
+
+            var balance = await _dbContext.PrepaidBalances
+                .FirstOrDefaultAsync(
+                    b => b.PetId == order.PetId.Value && b.ServiceCode == package.ServiceCode,
+                    cancellationToken);
+
+            if (balance is null)
+            {
+                var createdBalance = PrepaidBalance.Create(order.TutorId.Value, order.PetId.Value, package.ServiceCode);
+                if (createdBalance.IsFailure)
+                {
+                    return Result.Failure<Guid>(createdBalance.Error);
+                }
+
+                balance = createdBalance.Value;
+                _dbContext.PrepaidBalances.Add(balance);
+            }
+
+            var uses = (int)(item.Quantity * package.UsesPerUnit);
+            var credit = balance.Credit(orderId, item.Id, uses);
+            if (credit.IsFailure)
+            {
+                return Result.Failure<Guid>(credit.Error);
+            }
+        }
+
         var rules = await _dbContext.SalesCommissionRules.AsNoTracking().ToListAsync(cancellationToken);
         var accruals = CommissionCalculator.Calculate(order, order.SellerUserId, rules);
         order.AttachCommissions(accruals);
@@ -202,8 +267,9 @@ public sealed partial class OfflineSalesStore : ISalesStore
 
         var itemPayloads = request.Items.Select(i => (object)new
         {
-            Kind = string.Equals(i.Kind, "Service", StringComparison.OrdinalIgnoreCase) ? OrderItemKind.Service : OrderItemKind.Product,
+            Kind = ParseKind(i.Kind),
             i.ProductId,
+            i.CatalogOfferId,
             i.ProductName,
             i.Quantity,
             i.UnitPrice
@@ -312,6 +378,98 @@ public sealed partial class OfflineSalesStore : ISalesStore
     }
 
     /// <inheritdoc />
+    public async Task<Result<IReadOnlyList<ProductKitClientDto>>> ListProductKitsAsync(CancellationToken cancellationToken = default)
+    {
+        var kits = await _dbContext.ProductKits.AsNoTracking()
+            .Where(k => k.IsActive)
+            .OrderBy(k => k.Name)
+            .Select(k => new ProductKitClientDto { Id = k.Id, Name = k.Name })
+            .ToListAsync(cancellationToken);
+        return Result.Success<IReadOnlyList<ProductKitClientDto>>(kits);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<IReadOnlyList<ServicePackageClientDto>>> ListServicePackagesAsync(CancellationToken cancellationToken = default)
+    {
+        var packages = await _dbContext.ServicePackages.AsNoTracking()
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.Name)
+            .Select(p => new ServicePackageClientDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                ServiceCode = p.ServiceCode.ToString(),
+                UsesPerUnit = p.UsesPerUnit
+            })
+            .ToListAsync(cancellationToken);
+        return Result.Success<IReadOnlyList<ServicePackageClientDto>>(packages);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<IReadOnlyList<PrepaidBalanceClientDto>>> ListPrepaidBalancesAsync(
+        Guid? petId,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.PrepaidBalances.AsNoTracking().AsQueryable();
+        if (petId.HasValue)
+        {
+            query = query.Where(b => b.PetId == petId.Value);
+        }
+
+        var rows = await query
+            .OrderBy(b => b.PetId)
+            .Select(b => new PrepaidBalanceClientDto
+            {
+                Id = b.Id,
+                TutorId = b.TutorId,
+                PetId = b.PetId,
+                ServiceCode = b.ServiceCode.ToString(),
+                RemainingUses = b.RemainingUses
+            })
+            .ToListAsync(cancellationToken);
+        return Result.Success<IReadOnlyList<PrepaidBalanceClientDto>>(rows);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<bool>> ConsumePrepaidUseAsync(
+        ConsumePrepaidUseClientRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Enum.TryParse<ServiceCode>(request.ServiceCode, true, out var serviceCode))
+        {
+            return Result.Failure<bool>(SalesErrorCodes.Package.ServiceMismatch);
+        }
+
+        var balance = await _dbContext.PrepaidBalances
+            .FirstOrDefaultAsync(b => b.PetId == request.PetId && b.ServiceCode == serviceCode, cancellationToken);
+        if (balance is null)
+        {
+            return Result.Failure<bool>(SalesErrorCodes.Package.InsufficientBalance);
+        }
+
+        var consume = balance.Consume(serviceCode, request.PetId);
+        if (consume.IsFailure)
+        {
+            return Result.Failure<bool>(consume.Error);
+        }
+
+        var outboxId = request.UsageId;
+        EnqueueOutbox(
+            "ConsumePrepaidPackageUseCommand",
+            OutboxPayloadFactory.ConsumePrepaidPackageUse(
+                request.UsageId,
+                request.PetId,
+                request.ServiceCode,
+                request.AttendanceRef,
+                outboxId),
+            outboxId);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        RequestSyncIfOnline();
+        return Result.Success(true);
+    }
+
+    /// <inheritdoc />
     public async Task<SalesOrderSyncState> GetOrderSyncStateAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
         var orderIdText = orderId.ToString();
@@ -403,4 +561,13 @@ public sealed partial class OfflineSalesStore : ISalesStore
             _wakeSignal.RequestSync();
         }
     }
+
+    private static OrderItemKind ParseKind(string kind) =>
+        kind switch
+        {
+            var k when string.Equals(k, "Service", StringComparison.OrdinalIgnoreCase) => OrderItemKind.Service,
+            var k when string.Equals(k, "Kit", StringComparison.OrdinalIgnoreCase) => OrderItemKind.Kit,
+            var k when string.Equals(k, "Package", StringComparison.OrdinalIgnoreCase) => OrderItemKind.Package,
+            _ => OrderItemKind.Product
+        };
 }

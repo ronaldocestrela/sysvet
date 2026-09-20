@@ -503,6 +503,35 @@ namespace Clients.Infrastructure.Migrations
                     b.ToTable("SalesCommissionRules", (string)null);
                 });
 
+            modelBuilder.Entity("Sales.Domain.Entities.KitComponent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProductKitId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("QuantityPerKit")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductKitId");
+
+                    b.ToTable("SalesKitComponents", (string)null);
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -557,6 +586,9 @@ namespace Clients.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CatalogOfferId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Kind")
@@ -681,6 +713,66 @@ namespace Clients.Infrastructure.Migrations
                     b.ToTable("SalesPaymentRefunds", (string)null);
                 });
 
+            modelBuilder.Entity("Sales.Domain.Entities.PrepaidBalance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PurchasedUses")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RemainingUses")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalesPrepaidBalances", (string)null);
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.ProductKit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalesProductKits", (string)null);
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.SaleReturn", b =>
                 {
                     b.Property<Guid>("Id")
@@ -734,6 +826,39 @@ namespace Clients.Infrastructure.Migrations
                     b.HasIndex("SaleReturnId");
 
                     b.ToTable("SalesSaleReturnLines", (string)null);
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.ServicePackage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsesPerUnit")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalesServicePackages", (string)null);
                 });
 
             modelBuilder.Entity("Veterinary.Domain.Entities.Appointment", b =>
@@ -1850,6 +1975,15 @@ namespace Clients.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sales.Domain.Entities.KitComponent", b =>
+                {
+                    b.HasOne("Sales.Domain.Entities.ProductKit", null)
+                        .WithMany("Components")
+                        .HasForeignKey("ProductKitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("Sales.Domain.Entities.Order", null)
@@ -2154,6 +2288,11 @@ namespace Clients.Infrastructure.Migrations
             modelBuilder.Entity("Sales.Domain.Entities.Payment", b =>
                 {
                     b.Navigation("Refunds");
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.ProductKit", b =>
+                {
+                    b.Navigation("Components");
                 });
 
             modelBuilder.Entity("Sales.Domain.Entities.SaleReturn", b =>

@@ -107,8 +107,11 @@ public static class CommissionCalculator
 
     private static decimal ResolveRate(CommissionRole role, OrderItemKind kind, IReadOnlyList<CommissionRule> rules)
     {
+        var appliesTo = kind is OrderItemKind.Product or OrderItemKind.Kit
+            ? CommissionAppliesTo.Product
+            : CommissionAppliesTo.Service;
         var specific = rules.FirstOrDefault(r =>
-            r.Role == role && r.AppliesTo == (kind == OrderItemKind.Product ? CommissionAppliesTo.Product : CommissionAppliesTo.Service));
+            r.Role == role && r.AppliesTo == appliesTo);
         if (specific is not null)
         {
             return specific.RatePercent;

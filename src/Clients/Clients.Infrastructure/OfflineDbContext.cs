@@ -141,6 +141,18 @@ public class OfflineDbContext : DbContext
     /// <summary>Local commission rules (sync pull).</summary>
     public DbSet<CommissionRule> SalesCommissionRules => Set<CommissionRule>();
 
+    /// <summary>Local product kits (sync pull).</summary>
+    public DbSet<ProductKit> ProductKits => Set<ProductKit>();
+
+    /// <summary>Local kit components.</summary>
+    public DbSet<KitComponent> KitComponents => Set<KitComponent>();
+
+    /// <summary>Local service packages (sync pull).</summary>
+    public DbSet<ServicePackage> ServicePackages => Set<ServicePackage>();
+
+    /// <summary>Local prepaid balances (sync pull + optimistic pay/consume).</summary>
+    public DbSet<PrepaidBalance> PrepaidBalances => Set<PrepaidBalance>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -186,6 +198,10 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesSaleReturnConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesSaleReturnLineConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCommissionRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineProductKitConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineKitComponentConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineServicePackageConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflinePrepaidBalanceConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

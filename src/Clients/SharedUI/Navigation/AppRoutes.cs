@@ -76,4 +76,7 @@ public static class AppRoutes
 
     /// <summary>Commission rule configuration (online).</summary>
     public const string SalesCommissionRules = "/sales/commission-rules";
+
+    /// <summary>Prepaid service package balances and consumption.</summary>
+    public const string SalesPrepaidBalances = "/sales/prepaid-balances";
 }

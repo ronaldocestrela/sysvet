@@ -24,7 +24,19 @@ public sealed class CreateOrderCommandValidator : AbstractValidator<CreateOrderC
             {
                 item.RuleFor(i => i.ProductName).NotEmpty();
             });
+            item.When(i => i.Kind == OrderItemKind.Kit, () =>
+            {
+                item.RuleFor(i => i.CatalogOfferId).NotEmpty();
+            });
+            item.When(i => i.Kind == OrderItemKind.Package, () =>
+            {
+                item.RuleFor(i => i.CatalogOfferId).NotEmpty();
+            });
         });
+        RuleFor(x => x).Must(o =>
+                !o.Items.Any(i => i.Kind == OrderItemKind.Package) ||
+                (o.TutorId.HasValue && o.TutorId != Guid.Empty && o.PetId.HasValue && o.PetId != Guid.Empty))
+            .WithMessage("Pacote pré-pago exige tutor e pet.");
     }
 }
 

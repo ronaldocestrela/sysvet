@@ -4,6 +4,7 @@ using FluentAssertions;
 using MediatR;
 using NSubstitute;
 using Sales.Application.Orders.Commands;
+using Sales.Application.Prepaid;
 using Sales.Domain.Enums;
 using Sales.Infrastructure.Sync;
 
@@ -43,5 +44,30 @@ public class SalesSyncPushHandlerTests
 
         command.Should().NotBeNull();
         command!.IdempotencyKey.Should().Be(key);
+    }
+
+    [Fact]
+    public void TryMapCommand_ConsumePrepaid_ReturnsCommandWithIdempotency()
+    {
+        var handler = new SalesSyncPushHandler(Substitute.For<IMediator>());
+        var key = Guid.NewGuid();
+        var payload = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            UsageId = Guid.NewGuid(),
+            PetId = Guid.NewGuid(),
+            ServiceCode = "Banho",
+            AttendanceRef = "test",
+            IdempotencyKey = key
+        });
+
+        var command = handler.TryMapCommand(new SyncOutboxMessageDto
+        {
+            Id = key,
+            Type = nameof(ConsumePrepaidPackageUseCommand),
+            Payload = payload,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        command.Should().NotBeNull();
     }
 }

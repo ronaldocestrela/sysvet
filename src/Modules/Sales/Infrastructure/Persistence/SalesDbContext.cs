@@ -24,6 +24,11 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
     public DbSet<CommissionAccrual> CommissionAccruals => Set<CommissionAccrual>();
     public DbSet<SaleReturn> SaleReturns => Set<SaleReturn>();
     public DbSet<SaleReturnLine> SaleReturnLines => Set<SaleReturnLine>();
+    public DbSet<ProductKit> ProductKits => Set<ProductKit>();
+    public DbSet<KitComponent> KitComponents => Set<KitComponent>();
+    public DbSet<ServicePackage> ServicePackages => Set<ServicePackage>();
+    public DbSet<PrepaidBalance> PrepaidBalances => Set<PrepaidBalance>();
+    public DbSet<PrepaidCredit> PrepaidCredits => Set<PrepaidCredit>();
 
     public SalesDbContext(DbContextOptions<SalesDbContext> options, ITenantContext tenantContext) : base(options)
     {
@@ -38,6 +43,9 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
         modelBuilder.Entity<Order>().HasQueryFilter(o => EF.Property<Guid>(o, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<CashRegister>().HasQueryFilter(c => EF.Property<Guid>(c, "TenantId") == TenantContext.TenantId);
         modelBuilder.Entity<CommissionRule>().HasQueryFilter(r => EF.Property<Guid>(r, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<ProductKit>().HasQueryFilter(k => EF.Property<Guid>(k, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<ServicePackage>().HasQueryFilter(p => EF.Property<Guid>(p, "TenantId") == TenantContext.TenantId);
+        modelBuilder.Entity<PrepaidBalance>().HasQueryFilter(b => EF.Property<Guid>(b, "TenantId") == TenantContext.TenantId);
         
         base.OnModelCreating(modelBuilder);
     }
@@ -83,7 +91,8 @@ public class SalesDbContext : DbContext, ISalesUnitOfWork
                 continue;
             }
 
-            if (entry.Entity is Payment or PaymentRefund or SaleReturn or SaleReturnLine or CommissionAccrual)
+            if (entry.Entity is Payment or PaymentRefund or SaleReturn or SaleReturnLine or CommissionAccrual
+                or KitComponent)
             {
                 entry.State = EntityState.Added;
             }

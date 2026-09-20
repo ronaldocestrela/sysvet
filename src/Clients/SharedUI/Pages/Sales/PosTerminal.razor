@@ -5,6 +5,7 @@
 @using Clients.Infrastructure.Http
 @using Clients.Infrastructure.Sales
 @inject ISalesStore SalesStore
+@inject ISalesApiService SalesApi
 @inject IInventoryStore InventoryStore
 @inject ITutorStore TutorStore
 @inject IPetStore PetStore
@@ -45,6 +46,32 @@
                     }
                 </div>
                 <button type="button" class="btn btn-outline mt-2" @onclick="ShowServiceModal">+ Serviço avulso</button>
+                @if (_kits.Any())
+                {
+                    <h4 class="mt-3">Kits</h4>
+                    <div class="product-list">
+                        @foreach (var kit in _kits)
+                        {
+                            <div class="product-card" @onclick="() => AddKit(kit)">
+                                <h4>@kit.Name</h4>
+                                <p class="text-muted">Kit</p>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (_packages.Any())
+                {
+                    <h4 class="mt-3">Pacotes pré-pagos</h4>
+                    <div class="product-list">
+                        @foreach (var package in _packages)
+                        {
+                            <div class="product-card" @onclick="() => AddPackage(package)">
+                                <h4>@package.Name</h4>
+                                <p class="text-muted">@package.ServiceCode · @package.UsesPerUnit usos/un.</p>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
 
             <div class="pos-cart">
@@ -140,6 +167,8 @@
 
     private CashRegisterClientDto? _openRegister;
     private List<InventoryProductListItem> _products = new();
+    private List<ProductKitClientDto> _kits = new();
+    private List<ServicePackageClientDto> _packages = new();
     private List<TutorDto> _tutors = new();
     private List<PetDto> _pets = new();
     private List<SalesOrderItemClientDto> _cart = new();
@@ -177,6 +206,18 @@
         if (products.IsSuccess)
         {
             _products = products.Value.ToList();
+        }
+
+        var kits = await SalesApi.ListProductKitsAsync();
+        if (kits.IsSuccess && kits.Value is not null)
+        {
+            _kits = kits.Value.ToList();
+        }
+
+        var packages = await SalesApi.ListServicePackagesAsync();
+        if (packages.IsSuccess && packages.Value is not null)
+        {
+            _packages = packages.Value.ToList();
         }
 
         var tutors = await TutorStore.ListAsync(1, 200);
@@ -266,6 +307,43 @@
         _serviceModal = false;
         _serviceDescription = string.Empty;
         _servicePrice = 0;
+    }
+
+    private void AddKit(ProductKitClientDto kit)
+    {
+        var existing = _cart.FirstOrDefault(i => i.Kind == "Kit" && i.CatalogOfferId == kit.Id);
+        if (existing != null)
+        {
+            existing.Quantity++;
+            return;
+        }
+
+        _cart.Add(new SalesOrderItemClientDto
+        {
+            Kind = "Kit",
+            CatalogOfferId = kit.Id,
+            ProductName = kit.Name,
+            Quantity = 1m,
+            UnitPrice = 1m
+        });
+    }
+
+    private void AddPackage(ServicePackageClientDto package)
+    {
+        if (string.IsNullOrEmpty(_selectedTutorIdString) || string.IsNullOrEmpty(_selectedPetIdString))
+        {
+            Toast.Show("Selecione tutor e pet antes de vender um pacote pré-pago.", ToastType.Error);
+            return;
+        }
+
+        _cart.Add(new SalesOrderItemClientDto
+        {
+            Kind = "Package",
+            CatalogOfferId = package.Id,
+            ProductName = package.Name,
+            Quantity = 1m,
+            UnitPrice = 1m
+        });
     }
 
     private void RemoveFromCart(SalesOrderItemClientDto item) => _cart.Remove(item);

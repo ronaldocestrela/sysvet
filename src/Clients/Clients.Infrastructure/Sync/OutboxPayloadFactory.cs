@@ -491,4 +491,19 @@ internal static class OutboxPayloadFactory
             RefundNsu = refundNsu,
             IdempotencyKey = idempotencyKey
         });
+
+    public static string ConsumePrepaidPackageUse(
+        Guid usageId,
+        Guid petId,
+        string serviceCode,
+        string? attendanceRef,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            UsageId = usageId,
+            PetId = petId,
+            ServiceCode = serviceCode,
+            AttendanceRef = attendanceRef,
+            IdempotencyKey = idempotencyKey
+        });
 }

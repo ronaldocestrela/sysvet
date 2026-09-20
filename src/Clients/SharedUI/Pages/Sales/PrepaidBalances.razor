@@ -1,0 +1,94 @@
+@page "/sales/prepaid-balances"
+@using Clients.Infrastructure.Http
+@using SharedUI.Components
+@using SharedUI.Services
+@inject ISalesApiService SalesApi
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Pacotes pré-pagos</h1>
+    <p class="text-muted">Saldo de usos por pet e registro de atendimento (banho/tosa).</p>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando saldos...">
+    <div class="card mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Filtrar por pet (Id)</label>
+                <input class="form-control" @bind="_petFilter" placeholder="Opcional" />
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-secondary" @onclick="LoadAsync">Atualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <table class="data-table">
+            <thead>
+                <tr><th>Pet</th><th>Serviço</th><th>Saldo</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var row in _rows)
+                {
+                    <tr>
+                        <td>@row.PetId</td>
+                        <td>@row.ServiceCode</td>
+                        <td>@row.RemainingUses</td>
+                        <td>
+                            <button type="button" class="btn btn-primary btn-sm" disabled="@_saving"
+                                    @onclick="() => RegisterAttendanceAsync(row)">
+                                Registrar atendimento
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</LoadingState>
+
+@code {
+    private bool _loading = true;
+    private bool _saving;
+    private string? _petFilter;
+    private List<PrepaidBalanceClientDto> _rows = new();
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        Guid? petId = Guid.TryParse(_petFilter, out var parsed) ? parsed : null;
+        var result = await SalesApi.ListPrepaidBalancesAsync(petId);
+        _loading = false;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _rows = result.Value?.ToList() ?? new List<PrepaidBalanceClientDto>();
+    }
+
+    private async Task RegisterAttendanceAsync(PrepaidBalanceClientDto row)
+    {
+        _saving = true;
+        var result = await SalesApi.ConsumePrepaidUseAsync(new ConsumePrepaidUseClientRequest
+        {
+            UsageId = Guid.NewGuid(),
+            PetId = row.PetId,
+            ServiceCode = row.ServiceCode,
+            AttendanceRef = "manual-ui"
+        });
+        _saving = false;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Atendimento registrado.", ToastType.Success);
+        await LoadAsync();
+    }
+}

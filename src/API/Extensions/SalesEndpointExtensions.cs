@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Sales.Application.CashRegisters.Commands;
 using Sales.Application.CashRegisters.Queries;
+using Sales.Application.Catalog;
 using Sales.Application.Commissions;
 using Sales.Application.Orders.Commands;
 using Sales.Application.Orders.Queries;
+using Sales.Application.Prepaid;
 
 namespace API.Extensions;
 
@@ -75,6 +77,27 @@ public static class SalesEndpointExtensions
 
         group.MapGet("/commissions", async (Guid? orderId, IMediator mediator) =>
             (await mediator.Send(new ListCommissionAccrualsQuery(orderId))).ToHttpResult());
+
+        group.MapGet("/product-kits", async (IMediator mediator) =>
+            (await mediator.Send(new ListProductKitsQuery())).ToHttpResult());
+
+        group.MapPut("/product-kits", async (UpsertProductKitCommand command, IMediator mediator) =>
+            (await mediator.Send(command)).ToHttpResult());
+
+        group.MapGet("/service-packages", async (IMediator mediator) =>
+            (await mediator.Send(new ListServicePackagesQuery())).ToHttpResult());
+
+        group.MapPut("/service-packages", async (UpsertServicePackageCommand command, IMediator mediator) =>
+            (await mediator.Send(command)).ToHttpResult());
+
+        group.MapGet("/prepaid-balances", async (Guid? tutorId, Guid? petId, Sales.Domain.Enums.ServiceCode? serviceCode, IMediator mediator) =>
+            (await mediator.Send(new ListPrepaidBalancesQuery(tutorId, petId, serviceCode))).ToHttpResult());
+
+        group.MapPost("/prepaid-balances/consume", async (HttpContext httpContext, ConsumePrepaidPackageUseCommand command, IMediator mediator) =>
+        {
+            command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
 
         group.MapPost("/orders/{orderId:guid}/payments/{paymentId:guid}/refund", async (
             HttpContext httpContext,

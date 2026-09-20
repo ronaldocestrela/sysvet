@@ -31,6 +31,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .WithOne()
             .HasForeignKey(i => i.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(o => o.Items).HasField("_items");
 
         builder.HasMany(o => o.Payments)
             .WithOne()

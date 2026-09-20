@@ -1,3 +1,4 @@
+using Clients.Infrastructure.Sales;
 using Clients.Infrastructure.Sync;
 using Core.Domain;
 
@@ -8,11 +9,13 @@ public sealed class SalesApiService : ISalesApiService
 {
     private readonly ApiClient _apiClient;
     private readonly ISyncConnectivity _connectivity;
+    private readonly ISalesStore _salesStore;
 
-    public SalesApiService(ApiClient apiClient, ISyncConnectivity connectivity)
+    public SalesApiService(ApiClient apiClient, ISyncConnectivity connectivity, ISalesStore salesStore)
     {
         _apiClient = apiClient;
         _connectivity = connectivity;
+        _salesStore = salesStore;
     }
 
     public Task<Result<Guid>> OpenCashRegisterAsync(decimal openingBalance, CancellationToken cancellationToken = default)
@@ -129,6 +132,51 @@ public sealed class SalesApiService : ISalesApiService
         return _apiClient.PutAsync<CommissionRuleUpsertClientRequest, Guid>(
             "/api/v1/sales/commission-rules",
             request,
+            cancellationToken: cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<ProductKitClientDto>>> ListProductKitsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return _salesStore.ListProductKitsAsync(cancellationToken);
+        }
+
+        return _apiClient.GetAsync<IReadOnlyList<ProductKitClientDto>>("/api/v1/sales/product-kits", cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<ServicePackageClientDto>>> ListServicePackagesAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return _salesStore.ListServicePackagesAsync(cancellationToken);
+        }
+
+        return _apiClient.GetAsync<IReadOnlyList<ServicePackageClientDto>>("/api/v1/sales/service-packages", cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<PrepaidBalanceClientDto>>> ListPrepaidBalancesAsync(Guid? petId, CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return _salesStore.ListPrepaidBalancesAsync(petId, cancellationToken);
+        }
+
+        var query = petId.HasValue ? $"?petId={petId}" : string.Empty;
+        return _apiClient.GetAsync<IReadOnlyList<PrepaidBalanceClientDto>>($"/api/v1/sales/prepaid-balances{query}", cancellationToken);
+    }
+
+    public Task<Result<bool>> ConsumePrepaidUseAsync(ConsumePrepaidUseClientRequest request, CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return _salesStore.ConsumePrepaidUseAsync(request, cancellationToken);
+        }
+
+        return _apiClient.PostAsync<ConsumePrepaidUseClientRequest, bool>(
+            "/api/v1/sales/prepaid-balances/consume",
+            request,
+            idempotencyKey: request.UsageId,
             cancellationToken: cancellationToken);
     }
 

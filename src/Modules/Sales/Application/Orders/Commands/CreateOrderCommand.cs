@@ -27,6 +27,7 @@ public class CreateOrderItemDto
 {
     public OrderItemKind Kind { get; set; } = OrderItemKind.Product;
     public Guid? ProductId { get; set; }
+    public Guid? CatalogOfferId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }

@@ -164,3 +164,46 @@ internal sealed class OfflineSalesCommissionRuleConfiguration : IEntityTypeConfi
         builder.HasIndex(nameof(CommissionRule.Role), nameof(CommissionRule.AppliesTo)).IsUnique();
     }
 }
+
+internal sealed class OfflineProductKitConfiguration : IEntityTypeConfiguration<ProductKit>
+{
+    public void Configure(EntityTypeBuilder<ProductKit> builder)
+    {
+        builder.ToTable("SalesProductKits");
+        builder.HasKey(k => k.Id);
+        builder.Property(k => k.Name).HasMaxLength(150).IsRequired();
+        builder.HasMany(k => k.Components).WithOne().HasForeignKey(c => c.ProductKitId).OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(k => k.Components).HasField("_components");
+    }
+}
+
+internal sealed class OfflineKitComponentConfiguration : IEntityTypeConfiguration<KitComponent>
+{
+    public void Configure(EntityTypeBuilder<KitComponent> builder)
+    {
+        builder.ToTable("SalesKitComponents");
+        builder.HasKey(c => c.Id);
+    }
+}
+
+internal sealed class OfflineServicePackageConfiguration : IEntityTypeConfiguration<ServicePackage>
+{
+    public void Configure(EntityTypeBuilder<ServicePackage> builder)
+    {
+        builder.ToTable("SalesServicePackages");
+        builder.HasKey(p => p.Id);
+        builder.Property(p => p.Name).HasMaxLength(150).IsRequired();
+        builder.Property(p => p.ServiceCode).HasConversion<string>();
+    }
+}
+
+internal sealed class OfflinePrepaidBalanceConfiguration : IEntityTypeConfiguration<PrepaidBalance>
+{
+    public void Configure(EntityTypeBuilder<PrepaidBalance> builder)
+    {
+        builder.ToTable("SalesPrepaidBalances");
+        builder.HasKey(b => b.Id);
+        builder.Property(b => b.ServiceCode).HasConversion<string>();
+        builder.Ignore(b => b.Credits);
+    }
+}

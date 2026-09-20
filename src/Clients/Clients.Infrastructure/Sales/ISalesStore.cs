@@ -14,6 +14,17 @@ public interface ISalesStore
     Task<Result<Guid>> RefundOrderPaymentAsync(Guid orderId, Guid paymentId, decimal amount, string? refundNsu = null, CancellationToken cancellationToken = default);
     Task<Result<Guid>> ReturnOrderAsync(Guid orderId, Guid returnId, IReadOnlyList<ReturnOrderLineClientDto> lines, CancellationToken cancellationToken = default);
     Task<SalesOrderSyncState> GetOrderSyncStateAsync(Guid orderId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ProductKitClientDto>>> ListProductKitsAsync(CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ServicePackageClientDto>>> ListServicePackagesAsync(CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<PrepaidBalanceClientDto>>> ListPrepaidBalancesAsync(Guid? petId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ConsumePrepaidUseAsync(ConsumePrepaidUseClientRequest request, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Product kit row for offline PDV.</summary>
+public sealed class ProductKitClientDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
 }
 
 /// <summary>Outbox sync state for a local paid order.</summary>

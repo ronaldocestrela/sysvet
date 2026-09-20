@@ -38,6 +38,9 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncSalesCashRegisterDto> SalesCashRegisters { get; init; } = Array.Empty<ClientSyncSalesCashRegisterDto>();
     public IReadOnlyList<ClientSyncSalesOrderDto> SalesOrders { get; init; } = Array.Empty<ClientSyncSalesOrderDto>();
     public IReadOnlyList<ClientSyncCommissionRuleDto> SalesCommissionRules { get; init; } = Array.Empty<ClientSyncCommissionRuleDto>();
+    public IReadOnlyList<ClientSyncProductKitDto> SalesProductKits { get; init; } = Array.Empty<ClientSyncProductKitDto>();
+    public IReadOnlyList<ClientSyncServicePackageDto> SalesServicePackages { get; init; } = Array.Empty<ClientSyncServicePackageDto>();
+    public IReadOnlyList<ClientSyncPrepaidBalanceDto> SalesPrepaidBalances { get; init; } = Array.Empty<ClientSyncPrepaidBalanceDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }
@@ -414,6 +417,7 @@ public sealed class ClientSyncSalesOrderItemDto
     public Guid Id { get; init; }
     public string Kind { get; init; } = string.Empty;
     public Guid? ProductId { get; init; }
+    public Guid? CatalogOfferId { get; init; }
     public string ProductName { get; init; } = string.Empty;
     public decimal Quantity { get; init; }
     public decimal UnitPrice { get; init; }
@@ -455,6 +459,42 @@ public sealed class ClientSyncCommissionRuleDto
     public string Role { get; init; } = string.Empty;
     public string AppliesTo { get; init; } = string.Empty;
     public decimal RatePercent { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncProductKitDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<ClientSyncProductKitComponentDto> Components { get; init; } = Array.Empty<ClientSyncProductKitComponentDto>();
+}
+
+public sealed class ClientSyncProductKitComponentDto
+{
+    public Guid ProductId { get; init; }
+    public decimal QuantityPerKit { get; init; }
+}
+
+public sealed class ClientSyncServicePackageDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string ServiceCode { get; init; } = string.Empty;
+    public int UsesPerUnit { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncPrepaidBalanceDto
+{
+    public Guid Id { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid PetId { get; init; }
+    public string ServiceCode { get; init; } = string.Empty;
+    public int RemainingUses { get; init; }
+    public int PurchasedUses { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
 }
 

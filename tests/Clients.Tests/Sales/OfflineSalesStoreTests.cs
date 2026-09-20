@@ -5,6 +5,8 @@ using Clients.Infrastructure.Sales;
 using Clients.Infrastructure.Sync;
 using FluentAssertions;
 using Sales.Domain.Payments;
+using Sales.Domain.Entities;
+using Sales.Domain.Enums;
 using Inventory.Domain.Entities;
 using Inventory.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -102,6 +104,70 @@ public class OfflineSalesStoreTests
 
         sale.IsFailure.Should().BeTrue();
         sale.Error.Code.Should().Be("Order.InsufficientStock");
+    }
+
+    [Fact]
+    public async Task CreateAndPayOrder_WithPackage_CreditsPrepaidBalance()
+    {
+        var (ctx, store) = CreateStore();
+        await using var _ = ctx;
+        var packageId = Guid.NewGuid();
+        var package = ServicePackage.Create(packageId, "Banho 4x", ServiceCode.Banho, 4, true);
+        package.IsSuccess.Should().BeTrue();
+        ctx.ServicePackages.Add(package.Value);
+        await ctx.SaveChangesAsync();
+
+        var open = await store.OpenCashRegisterAsync(0m);
+        open.IsSuccess.Should().BeTrue();
+        var tutorId = Guid.NewGuid();
+        var petId = Guid.NewGuid();
+
+        var sale = await store.CreateAndPayOrderAsync(new CreateSalesOrderClientRequest
+        {
+            CashRegisterId = open.Value,
+            TutorId = tutorId,
+            PetId = petId,
+            Items =
+            [
+                new SalesOrderItemClientDto
+                {
+                    Kind = "Package",
+                    CatalogOfferId = packageId,
+                    ProductName = "Banho 4x",
+                    Quantity = 1m,
+                    UnitPrice = 100m
+                }
+            ]
+        }, [new PayOrderPaymentClientDto { Method = "Cash", Amount = 100m }]);
+
+        sale.IsSuccess.Should().BeTrue();
+        var balance = await ctx.PrepaidBalances.SingleAsync(b => b.PetId == petId);
+        balance.RemainingUses.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task ConsumePrepaidUse_DecrementsBalanceAndEnqueuesOutbox()
+    {
+        var (ctx, store) = CreateStore();
+        await using var _ = ctx;
+        var balance = PrepaidBalance.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), ServiceCode.Banho);
+        balance.IsSuccess.Should().BeTrue();
+        ctx.Entry(balance.Value).Property(b => b.RemainingUses).CurrentValue = 2;
+        ctx.PrepaidBalances.Add(balance.Value);
+        await ctx.SaveChangesAsync();
+
+        var usageId = Guid.NewGuid();
+        var result = await store.ConsumePrepaidUseAsync(new ConsumePrepaidUseClientRequest
+        {
+            UsageId = usageId,
+            PetId = balance.Value.PetId,
+            ServiceCode = "Banho"
+        });
+
+        result.IsSuccess.Should().BeTrue();
+        (await ctx.PrepaidBalances.SingleAsync()).RemainingUses.Should().Be(1);
+        var outbox = await ctx.OutboxMessages.SingleAsync(m => m.Type == "ConsumePrepaidPackageUseCommand");
+        outbox.Id.Should().Be(usageId);
     }
 
     private sealed class FakeOfflineConnectivity : ISyncConnectivity

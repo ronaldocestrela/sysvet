@@ -5,23 +5,33 @@ using Sales.Domain.Entities;
 using Sales.Domain.Enums;
 using Sales.Domain.Payments;
 using Sales.Domain.Repositories;
+using Sales.Domain.Services;
 
 namespace Sales.Application.Orders.Commands;
 
 public sealed class ReturnOrderCommandHandler : IRequestHandler<ReturnOrderCommand, Result<Guid>>
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly IProductKitRepository _productKitRepository;
+    private readonly IServicePackageRepository _servicePackageRepository;
+    private readonly IPrepaidBalanceRepository _prepaidBalanceRepository;
     private readonly IPaymentTerminal _paymentTerminal;
     private readonly IPublisher _publisher;
     private readonly IMediator _mediator;
 
     public ReturnOrderCommandHandler(
         IOrderRepository orderRepository,
+        IProductKitRepository productKitRepository,
+        IServicePackageRepository servicePackageRepository,
+        IPrepaidBalanceRepository prepaidBalanceRepository,
         IPaymentTerminal paymentTerminal,
         IPublisher publisher,
         IMediator mediator)
     {
         _orderRepository = orderRepository;
+        _productKitRepository = productKitRepository;
+        _servicePackageRepository = servicePackageRepository;
+        _prepaidBalanceRepository = prepaidBalanceRepository;
         _paymentTerminal = paymentTerminal;
         _publisher = publisher;
         _mediator = mediator;
@@ -41,17 +51,45 @@ public sealed class ReturnOrderCommandHandler : IRequestHandler<ReturnOrderComma
             return Result.Success(existingReturn.Id);
         }
 
-        var stockLines = request.Lines
-            .Select(l =>
-            {
-                var item = order.Items.FirstOrDefault(i => i.Id == l.OrderItemId);
-                return item is { Kind: OrderItemKind.Product, ProductId: not null }
-                    ? new RestoreStockForSaleReturnLine(item.ProductId.Value, l.Quantity)
-                    : null;
-            })
-            .Where(x => x is not null)
-            .Cast<RestoreStockForSaleReturnLine>()
+        var kitIds = order.Items
+            .Where(i => i.Kind == OrderItemKind.Kit && i.CatalogOfferId.HasValue)
+            .Select(i => i.CatalogOfferId!.Value)
+            .Distinct()
             .ToList();
+        var kitsById = new Dictionary<Guid, Sales.Domain.Entities.ProductKit>();
+        foreach (var kitId in kitIds)
+        {
+            var kit = await _productKitRepository.GetByIdAsync(kitId, cancellationToken);
+            if (kit is not null)
+            {
+                kitsById[kitId] = kit;
+            }
+        }
+
+        var stockLines = new List<RestoreStockForSaleReturnLine>();
+        foreach (var line in request.Lines)
+        {
+            var item = order.Items.FirstOrDefault(i => i.Id == line.OrderItemId);
+            if (item is null)
+            {
+                continue;
+            }
+
+            if (item is { Kind: OrderItemKind.Product, ProductId: not null })
+            {
+                stockLines.Add(new RestoreStockForSaleReturnLine(item.ProductId.Value, line.Quantity));
+                continue;
+            }
+
+            if (item is { Kind: OrderItemKind.Kit, CatalogOfferId: not null } &&
+                kitsById.TryGetValue(item.CatalogOfferId.Value, out var kit))
+            {
+                foreach (var (productId, qty) in kit.ExplodeStockLines(line.Quantity))
+                {
+                    stockLines.Add(new RestoreStockForSaleReturnLine(productId, qty));
+                }
+            }
+        }
 
         if (stockLines.Count > 0)
         {
@@ -72,6 +110,41 @@ public sealed class ReturnOrderCommandHandler : IRequestHandler<ReturnOrderComma
         }
 
         var saleReturn = returnResult.Value;
+
+        foreach (var line in request.Lines)
+        {
+            var item = order.Items.FirstOrDefault(i => i.Id == line.OrderItemId);
+            if (item is not { Kind: OrderItemKind.Package, CatalogOfferId: not null })
+            {
+                continue;
+            }
+
+            var package = await _servicePackageRepository.GetByIdAsync(item.CatalogOfferId.Value, cancellationToken);
+            if (package is null)
+            {
+                continue;
+            }
+
+            var usesToReverse = (int)(line.Quantity * package.UsesPerUnit);
+            if (usesToReverse <= 0)
+            {
+                continue;
+            }
+
+            var balance = await _prepaidBalanceRepository.GetByPetAndServiceAsync(order.PetId!.Value, package.ServiceCode, cancellationToken);
+            if (balance is null)
+            {
+                continue;
+            }
+
+            var reverse = balance.ReverseCredit(item.Id, usesToReverse);
+            if (reverse.IsFailure)
+            {
+                return Result.Failure<Guid>(reverse.Error);
+            }
+
+        }
+
         var refundRemaining = saleReturn.RefundAmount.Amount;
         if (refundRemaining > 0)
         {

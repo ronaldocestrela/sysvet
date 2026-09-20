@@ -210,5 +210,8 @@ public class SyncBackgroundWorker : BackgroundService
         && page.InventoryStockMovements.Count == 0
         && page.SalesCashRegisters.Count == 0
         && page.SalesOrders.Count == 0
-        && page.SalesCommissionRules.Count == 0;
+        && page.SalesCommissionRules.Count == 0
+        && page.SalesProductKits.Count == 0
+        && page.SalesServicePackages.Count == 0
+        && page.SalesPrepaidBalances.Count == 0;
 }

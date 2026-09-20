@@ -13,6 +13,9 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
 {
     private readonly IOrderRepository _orderRepository;
     private readonly ICommissionRuleRepository _commissionRuleRepository;
+    private readonly IProductKitRepository _productKitRepository;
+    private readonly IServicePackageRepository _servicePackageRepository;
+    private readonly IPrepaidBalanceRepository _prepaidBalanceRepository;
     private readonly IPaymentTerminal _paymentTerminal;
     private readonly IPublisher _publisher;
     private readonly IMediator _mediator;
@@ -20,12 +23,18 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
     public PayOrderCommandHandler(
         IOrderRepository orderRepository,
         ICommissionRuleRepository commissionRuleRepository,
+        IProductKitRepository productKitRepository,
+        IServicePackageRepository servicePackageRepository,
+        IPrepaidBalanceRepository prepaidBalanceRepository,
         IPaymentTerminal paymentTerminal,
         IPublisher publisher,
         IMediator mediator)
     {
         _orderRepository = orderRepository;
         _commissionRuleRepository = commissionRuleRepository;
+        _productKitRepository = productKitRepository;
+        _servicePackageRepository = servicePackageRepository;
+        _prepaidBalanceRepository = prepaidBalanceRepository;
         _paymentTerminal = paymentTerminal;
         _publisher = publisher;
         _mediator = mediator;
@@ -59,10 +68,23 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
             return payResult;
         }
 
-        var stockLines = order.Items
-            .Where(i => i.Kind == OrderItemKind.Product && i.ProductId.HasValue)
-            .Select(i => new ConsumeStockForSaleLine(i.ProductId!.Value, i.Quantity))
+        var kitIds = order.Items
+            .Where(i => i.Kind == OrderItemKind.Kit && i.CatalogOfferId.HasValue)
+            .Select(i => i.CatalogOfferId!.Value)
+            .Distinct()
             .ToList();
+        var kitsById = new Dictionary<Guid, ProductKit>();
+        foreach (var kitId in kitIds)
+        {
+            var kit = await _productKitRepository.GetByIdAsync(kitId, cancellationToken);
+            if (kit is not null)
+            {
+                kitsById[kitId] = kit;
+            }
+        }
+
+        var stockAggregates = OrderStockLineBuilder.Build(order.Items, kitsById);
+        var stockLines = stockAggregates.Select(l => new ConsumeStockForSaleLine(l.ProductId, l.Quantity)).ToList();
 
         if (stockLines.Count > 0)
         {
@@ -72,6 +94,13 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
                 await CompensateAuthorizationsAsync(authorizedForCompensation, cancellationToken);
                 return Result.Failure<bool>(Sales.Domain.ErrorCodes.Order.InsufficientStock);
             }
+        }
+
+        var packageCredit = await CreditPrepaidPackagesAsync(order, cancellationToken);
+        if (packageCredit.IsFailure)
+        {
+            await CompensateAuthorizationsAsync(authorizedForCompensation, cancellationToken);
+            return Result.Failure<bool>(packageCredit.Error);
         }
 
         if (!order.Commissions.Any())
@@ -166,6 +195,55 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<bo
         }
 
         return Result.Success((paymentEntities, authorizedForCompensation));
+    }
+
+    private async Task<Result> CreditPrepaidPackagesAsync(Order order, CancellationToken cancellationToken)
+    {
+        if (!order.TutorId.HasValue || !order.PetId.HasValue)
+        {
+            return Result.Success();
+        }
+
+        foreach (var item in order.Items.Where(i => i.Kind == OrderItemKind.Package && i.CatalogOfferId.HasValue))
+        {
+            var package = await _servicePackageRepository.GetByIdAsync(item.CatalogOfferId!.Value, cancellationToken);
+            if (package is null || !package.IsActive)
+            {
+                return Result.Failure(Sales.Domain.ErrorCodes.Package.UnknownOffer);
+            }
+
+            var uses = (int)(item.Quantity * package.UsesPerUnit);
+            if (uses <= 0)
+            {
+                continue;
+            }
+
+            var balance = await _prepaidBalanceRepository.GetByIdForCreditAsync(order.PetId.Value, package.ServiceCode, cancellationToken);
+            var isNewBalance = balance is null;
+            if (isNewBalance)
+            {
+                var created = PrepaidBalance.Create(order.TutorId.Value, order.PetId.Value, package.ServiceCode);
+                if (created.IsFailure)
+                {
+                    return Result.Failure(created.Error);
+                }
+
+                balance = created.Value;
+            }
+
+            var credit = balance!.Credit(order.Id, item.Id, uses);
+            if (credit.IsFailure)
+            {
+                return credit;
+            }
+
+            if (isNewBalance)
+            {
+                _prepaidBalanceRepository.Add(balance);
+            }
+        }
+
+        return Result.Success();
     }
 
     private async Task CompensateAuthorizationsAsync(

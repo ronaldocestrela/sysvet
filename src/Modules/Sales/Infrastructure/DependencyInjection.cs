@@ -40,6 +40,9 @@ public static class DependencyInjection
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICashRegisterRepository, CashRegisterRepository>();
         services.AddScoped<ICommissionRuleRepository, CommissionRuleRepository>();
+        services.AddScoped<IProductKitRepository, ProductKitRepository>();
+        services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
+        services.AddScoped<IPrepaidBalanceRepository, PrepaidBalanceRepository>();
 
         services.AddSingleton<IPaymentTerminal, SimulatedPaymentTerminal>();
 

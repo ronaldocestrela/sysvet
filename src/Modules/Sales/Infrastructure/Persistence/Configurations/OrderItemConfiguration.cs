@@ -13,6 +13,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.Property(i => i.Kind).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(i => i.ProductId);
+        builder.Property(i => i.CatalogOfferId);
         builder.Property(i => i.ProductName).IsRequired().HasMaxLength(150);
         builder.Property(i => i.Quantity).HasPrecision(18, 2);
         builder.Property(i => i.ReturnedQuantity).HasPrecision(18, 2);

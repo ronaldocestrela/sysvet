@@ -92,6 +92,12 @@ internal static class SyncOutboxCommandMapper
             "Order.DiscountExceedsProfileLimit" => true,
             "Order.ReturnExceedsRemainingQuantity" => true,
             "Order.ReturnNotAllowed" => true,
+            "Package.InsufficientBalance" => true,
+            "Package.ServiceMismatch" => true,
+            "Package.PetRequired" => true,
+            "Package.PetMismatch" => true,
+            "Package.ReturnAfterConsumption" => true,
+            "Package.NotFound" => true,
             _ => false
         };
     }

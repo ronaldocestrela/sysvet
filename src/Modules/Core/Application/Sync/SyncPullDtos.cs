@@ -416,6 +416,7 @@ public sealed class SyncSalesOrderItemDto
     public Guid Id { get; init; }
     public string Kind { get; init; } = string.Empty;
     public Guid? ProductId { get; init; }
+    public Guid? CatalogOfferId { get; init; }
     public string ProductName { get; init; } = string.Empty;
     public decimal Quantity { get; init; }
     public decimal UnitPrice { get; init; }
@@ -461,6 +462,49 @@ public sealed class SyncCommissionRuleDto
     public string Role { get; init; } = string.Empty;
     public string AppliesTo { get; init; } = string.Empty;
     public decimal RatePercent { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Product kit offer for sync pull.</summary>
+public sealed class SyncProductKitDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+    public IReadOnlyList<SyncProductKitComponentDto> Components { get; init; } = Array.Empty<SyncProductKitComponentDto>();
+}
+
+/// <summary>Kit component line for sync pull.</summary>
+public sealed class SyncProductKitComponentDto
+{
+    public Guid ProductId { get; init; }
+    public decimal QuantityPerKit { get; init; }
+}
+
+/// <summary>Prepaid service package offer for sync pull.</summary>
+public sealed class SyncServicePackageDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string ServiceCode { get; init; } = string.Empty;
+    public int UsesPerUnit { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+/// <summary>Prepaid balance wallet for sync pull.</summary>
+public sealed class SyncPrepaidBalanceDto
+{
+    public Guid Id { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid PetId { get; init; }
+    public string ServiceCode { get; init; } = string.Empty;
+    public int RemainingUses { get; init; }
+    public int PurchasedUses { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
     public string RowVersion { get; init; } = string.Empty;
 }
@@ -513,6 +557,9 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncSalesCashRegisterDto> SalesCashRegisters { get; init; } = Array.Empty<SyncSalesCashRegisterDto>();
     public IReadOnlyList<SyncSalesOrderDto> SalesOrders { get; init; } = Array.Empty<SyncSalesOrderDto>();
     public IReadOnlyList<SyncCommissionRuleDto> SalesCommissionRules { get; init; } = Array.Empty<SyncCommissionRuleDto>();
+    public IReadOnlyList<SyncProductKitDto> SalesProductKits { get; init; } = Array.Empty<SyncProductKitDto>();
+    public IReadOnlyList<SyncServicePackageDto> SalesServicePackages { get; init; } = Array.Empty<SyncServicePackageDto>();
+    public IReadOnlyList<SyncPrepaidBalanceDto> SalesPrepaidBalances { get; init; } = Array.Empty<SyncPrepaidBalanceDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

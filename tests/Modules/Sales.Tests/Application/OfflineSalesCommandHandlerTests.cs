@@ -60,7 +60,18 @@ public class OfflineSalesCommandHandlerTests
         var publisher = Substitute.For<IPublisher>();
         var commissionRules = Substitute.For<ICommissionRuleRepository>();
         commissionRules.ListAllAsync(Arg.Any<CancellationToken>()).Returns(Array.Empty<CommissionRule>());
-        var handler = new PayOrderCommandHandler(orderRepo, commissionRules, new SimulatedPaymentTerminal(), publisher, mediator);
+        var kitRepo = Substitute.For<IProductKitRepository>();
+        var packageRepo = Substitute.For<IServicePackageRepository>();
+        var prepaidRepo = Substitute.For<IPrepaidBalanceRepository>();
+        var handler = new PayOrderCommandHandler(
+            orderRepo,
+            commissionRules,
+            kitRepo,
+            packageRepo,
+            prepaidRepo,
+            new SimulatedPaymentTerminal(),
+            publisher,
+            mediator);
 
         var result = await handler.Handle(new PayOrderCommand
         {
@@ -111,7 +122,10 @@ public class OfflineSalesCommandHandlerTests
         var accessProfiles = Substitute.For<IAccessProfileRepository>();
         accessProfiles.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(AccessProfile.CreateSystem("Admin", "Admin", Core.Domain.Authorization.Permissions.AdminDefaults(), 100m).Value);
-        return new CreateOrderCommandHandler(orderRepo, cashRepo, tutorRepo, petRepo, accessProfiles, currentUser);
+        var kitRepo = Substitute.For<IProductKitRepository>();
+        var packageRepo = Substitute.For<IServicePackageRepository>();
+        return new CreateOrderCommandHandler(
+            orderRepo, cashRepo, tutorRepo, petRepo, accessProfiles, kitRepo, packageRepo, currentUser);
     }
 
     private static async Task<SalesDbContext> CreateContextAsync()

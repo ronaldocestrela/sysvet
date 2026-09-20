@@ -11,6 +11,7 @@ public static class MenuNavigation
             ["sales"] = new(AppRoutes.SalesPos, "PDV", "bi-cart"),
             ["commission-rules"] = new(AppRoutes.SalesCommissionRules, "Comissões", "bi-percent"),
             ["cash"] = new(AppRoutes.SalesCashRegister, "Caixa", "bi-wallet2"),
+            ["prepaid-balances"] = new(AppRoutes.SalesPrepaidBalances, "Pacotes pré-pagos", "bi-ticket-perforated"),
             ["tutors"] = new(AppRoutes.Tutors, "Tutores", "bi-people"),
             ["pets"] = new(AppRoutes.Pets, "Pets", "bi-heart"),
             ["appointments"] = new(AppRoutes.Appointments, "Agenda", "bi-calendar-event"),

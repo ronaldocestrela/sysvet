@@ -138,6 +138,21 @@ public sealed class OfflineSyncPullApplier
                 await UpsertSalesCommissionRuleAsync(dto, cancellationToken);
             }
 
+            foreach (var dto in page.SalesProductKits)
+            {
+                await UpsertSalesProductKitAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.SalesServicePackages)
+            {
+                await UpsertSalesServicePackageAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.SalesPrepaidBalances)
+            {
+                await UpsertSalesPrepaidBalanceAsync(dto, cancellationToken);
+            }
+
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
                         ?? _dbContext.SyncState.Add(new SyncState()).Entity;
             state.LastPullAt = page.NextSince;
@@ -893,7 +908,7 @@ public sealed class OfflineSyncPullApplier
                 performerRole = parsedRole;
             }
 
-            return (i.Id, kind, i.ProductId, i.ProductName, i.Quantity, i.UnitPrice, i.PerformerUserId, performerRole, i.ReturnedQuantity);
+            return (i.Id, kind, i.ProductId, i.CatalogOfferId, i.ProductName, i.Quantity, i.UnitPrice, i.PerformerUserId, performerRole, i.ReturnedQuantity);
         }).ToList();
 
         var commissions = dto.Commissions.Select(c =>
@@ -1018,6 +1033,104 @@ public sealed class OfflineSyncPullApplier
         }
 
         existing.SetRate(dto.RatePercent);
+        existing.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertSalesProductKitAsync(ClientSyncProductKitDto dto, CancellationToken cancellationToken)
+    {
+        var components = dto.Components.Select(c => (c.ProductId, c.QuantityPerKit)).ToList();
+        if (components.Count == 0)
+        {
+            return;
+        }
+
+        var existing = await _dbContext.ProductKits
+            .Include(k => k.Components)
+            .FirstOrDefaultAsync(k => k.Id == dto.Id, cancellationToken);
+
+        if (existing is null)
+        {
+            var created = ProductKit.Create(dto.Id, dto.Name, dto.IsActive, components);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            created.Value.UpdatedAt = dto.UpdatedAt;
+            _dbContext.ProductKits.Add(created.Value);
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        existing.Update(dto.Name, dto.IsActive);
+        existing.ReplaceComponents(components);
+        existing.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertSalesServicePackageAsync(ClientSyncServicePackageDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<ServiceCode>(dto.ServiceCode, true, out var serviceCode))
+        {
+            return;
+        }
+
+        var existing = await _dbContext.ServicePackages.FirstOrDefaultAsync(p => p.Id == dto.Id, cancellationToken);
+        if (existing is null)
+        {
+            var created = ServicePackage.Create(dto.Id, dto.Name, serviceCode, dto.UsesPerUnit, dto.IsActive);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            created.Value.UpdatedAt = dto.UpdatedAt;
+            _dbContext.ServicePackages.Add(created.Value);
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        existing.Update(dto.Name, serviceCode, dto.UsesPerUnit, dto.IsActive);
+        existing.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertSalesPrepaidBalanceAsync(ClientSyncPrepaidBalanceDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<ServiceCode>(dto.ServiceCode, true, out var serviceCode))
+        {
+            return;
+        }
+
+        var existing = await _dbContext.PrepaidBalances.FirstOrDefaultAsync(b => b.Id == dto.Id, cancellationToken);
+        if (existing is null)
+        {
+            var created = PrepaidBalance.Create(dto.Id, dto.TutorId, dto.PetId, serviceCode);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            _dbContext.Entry(created.Value).Property(b => b.RemainingUses).CurrentValue = dto.RemainingUses;
+            _dbContext.Entry(created.Value).Property(b => b.PurchasedUses).CurrentValue = dto.PurchasedUses;
+            created.Value.UpdatedAt = dto.UpdatedAt;
+            _dbContext.PrepaidBalances.Add(created.Value);
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        _dbContext.Entry(existing).Property(b => b.RemainingUses).CurrentValue = dto.RemainingUses;
+        _dbContext.Entry(existing).Property(b => b.PurchasedUses).CurrentValue = dto.PurchasedUses;
         existing.UpdatedAt = dto.UpdatedAt;
     }
 }

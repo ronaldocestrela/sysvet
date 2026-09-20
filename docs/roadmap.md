@@ -712,7 +712,7 @@ flowchart TD
 | **6.2 PDV 100% offline** | 8 | Concluído |
 | **6.3 Pagamentos e TEF** | 13 | Concluído |
 | **6.4 Comissões, descontos, devoluções** | 8 | Concluído |
-| **6.5 Pacotes, kits e pré-pagos** | 5 | Pendente |
+| **6.5 Pacotes, kits e pré-pagos** | 5 | Concluído |
 | **6.6 Estética — banho e tosa** | 13 | Pendente |
 | **6.7 Notificações de status (banho)** | 5 | Pendente |
 | **Total Fase 6** | **65 SP** | |
@@ -799,12 +799,25 @@ flowchart TD
 
 **Aceite:** Comissão na venda e devolução com `SaleReturn` + caixa/estoque (`SalesEndpointsTests`).
 
-### 6.5 Pacotes, kits e pré-pagos (5 SP)
+### 6.5 Pacotes, kits e pré-pagos (5 SP) — Concluído
 
-- [ ] Kit de produtos; pacote de serviços com saldo de usos
-- [ ] Abatimento automático ao consumir serviço
+**Domain**
+- [x] `ProductKit`, `ServicePackage`, `PrepaidBalance`; `OrderItemKind.Kit|Package`; ADR-029
 
-**Aceite:** Pacote banho decrementa saldo a cada atendimento.
+**Application**
+- [x] CRUD/listagem kits e pacotes; `ConsumePrepaidPackageUseCommand`; pay credita saldo; return reverte; kit explode estoque
+- [x] `ConsumePrepaidServicePackageRequest` (Core)
+
+**API**
+- [x] Migration `PackagesKitsPrepaidSync`; rotas kits/pacotes/saldos/consume
+
+**Sync**
+- [x] Push `ConsumePrepaidPackageUseCommand`; pull kits/pacotes/saldos + pedidos com `CatalogOfferId`; falhas permanentes de saldo
+
+**Clients**
+- [x] PDV offline: kinds Kit/Package no outbox; página `/sales/prepaid-balances`; menu `prepaid-balances`
+
+**Aceite:** Pacote banho decrementa saldo a cada atendimento (`PayPackageThenConsume_DecrementsRemainingUses`).
 
 ### 6.6 Estética — banho e tosa (13 SP)
 

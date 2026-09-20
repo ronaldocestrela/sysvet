@@ -26,4 +26,4 @@ Este módulo gerenciará:
 ## Dependências
 
 - Referencia `Core.Domain` para `Pet` e `Tutor` via Id
-- Integra-se ao módulo `Sales` para geração de cobrança após conclusão do serviço (via evento de domínio)
+- Integra-se ao módulo `Sales` para cobrança e consumo de pacotes pré-pagos via `ConsumePrepaidServicePackageRequest` (ADR-029) ao concluir o serviço

@@ -7,6 +7,7 @@ using NSubstitute;
 using Sales.Application.Orders.Commands;
 using Sales.Domain.Entities;
 using Sales.Domain.Enums;
+using Sales.Domain.Repositories;
 using Sales.Infrastructure.Persistence;
 
 namespace Sales.Tests.Application;
@@ -41,7 +42,10 @@ public class CreateOrderCommandHandlerTests
         accessProfiles.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(AccessProfile.CreateSystem("Admin", "Admin", Core.Domain.Authorization.Permissions.AdminDefaults(), 100m).Value);
 
-        var handler = new CreateOrderCommandHandler(orderRepo, cashRepo, tutorRepo, petRepo, accessProfiles, currentUser);
+        var kitRepo = Substitute.For<IProductKitRepository>();
+        var packageRepo = Substitute.For<IServicePackageRepository>();
+        var handler = new CreateOrderCommandHandler(
+            orderRepo, cashRepo, tutorRepo, petRepo, accessProfiles, kitRepo, packageRepo, currentUser);
         var result = await handler.Handle(new CreateOrderCommand
         {
             CashRegisterId = register.Id,

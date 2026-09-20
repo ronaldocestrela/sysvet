@@ -74,4 +74,30 @@ public static class ErrorCodes
     {
         public static readonly Error InvalidReverseAmount = new("Commission.InvalidReverseAmount", "Valor de estorno de comissão inválido.");
     }
+
+    public static class Kit
+    {
+        public static readonly Error InvalidId = new("Kit.InvalidId", "Identificador do kit inválido.");
+        public static readonly Error NameRequired = new("Kit.NameRequired", "Nome do kit é obrigatório.");
+        public static readonly Error EmptyComponents = new("Kit.EmptyComponents", "O kit deve conter ao menos um produto.");
+        public static readonly Error UnknownOffer = new("Kit.UnknownOffer", "Kit não encontrado ou inativo.");
+        public static readonly Error InvalidComponent = new("Kit.InvalidComponent", "Componente do kit inválido.");
+        public static readonly Error InvalidComponentQuantity = new("Kit.InvalidComponentQuantity", "Quantidade do componente deve ser maior que zero.");
+    }
+
+    public static class Package
+    {
+        public static readonly Error InvalidId = new("Package.InvalidId", "Identificador do pacote inválido.");
+        public static readonly Error NameRequired = new("Package.NameRequired", "Nome do pacote é obrigatório.");
+        public static readonly Error InvalidUsesPerUnit = new("Package.InvalidUsesPerUnit", "Usos por unidade deve ser maior que zero.");
+        public static readonly Error UnknownOffer = new("Package.UnknownOffer", "Pacote não encontrado ou inativo.");
+        public static readonly Error PetRequired = new("Package.PetRequired", "Pacote pré-pago exige tutor e pet no pedido.");
+        public static readonly Error InsufficientBalance = new("Package.InsufficientBalance", "Saldo de usos insuficiente.");
+        public static readonly Error ServiceMismatch = new("Package.ServiceMismatch", "Serviço não corresponde ao saldo do pacote.");
+        public static readonly Error PetMismatch = new("Package.PetMismatch", "Pet não corresponde ao saldo do pacote.");
+        public static readonly Error ReturnAfterConsumption = new("Package.ReturnAfterConsumption", "Não é possível devolver usos já consumidos do pacote.");
+        public static readonly Error InvalidUses = new("Package.InvalidUses", "Quantidade de usos inválida.");
+        public static readonly Error InvalidUsageId = new("Package.InvalidUsageId", "Identificador de consumo inválido.");
+        public static readonly Error NotFound = new("Package.NotFound", "Saldo pré-pago não encontrado.");
+    }
 }

@@ -4,7 +4,7 @@ Módulo responsável pelo **Ponto de Venda (PDV)** da clínica/petshop. **6.1–
 
 ## Status
 
-> **Fases 6.1–6.4 concluídas (ADR-025–028).** Domínio, Application, sync, API e clients (`ISalesStore`) integrados.
+> **Fases 6.1–6.5 concluídas (ADR-025–029).** Domínio, Application, sync, API e clients (`ISalesStore`) integrados.
 
 ## Escopo
 
@@ -13,7 +13,8 @@ Módulo responsável pelo **Ponto de Venda (PDV)** da clínica/petshop. **6.1–
 - **Devoluções:** `ReturnItems` → `SaleReturn`, estoque `SaleReturn`, estorno caixa proporcional, reversão de comissão
 - **Comissões:** `CommissionRule` + `CommissionCalculator` → `CommissionAccrual` no pay
 - **Caixa:** abertura/fechamento; saldo gaveta e totais por forma
-- **Offline:** outbox Create/Pay/Refund/Return; regras de comissão via pull; comissão calculada localmente no pay
+- **Offline:** outbox Create/Pay/Refund/Return/Consume; regras de comissão via pull; comissão calculada localmente no pay
+- **Pacotes/kits:** `ProductKit`, `ServicePackage`, saldo `PrepaidBalance`; consumo via API ou request Core (6.6 Petshop)
 
 ## Estrutura de Camadas
 
@@ -29,4 +30,5 @@ Módulo responsável pelo **Ponto de Venda (PDV)** da clínica/petshop. **6.1–
 - [`docs/arquitetura/ADR-026-pdv-offline-sync.md`](../../../docs/arquitetura/ADR-026-pdv-offline-sync.md)
 - [`docs/arquitetura/ADR-027-pagamentos-tef.md`](../../../docs/arquitetura/ADR-027-pagamentos-tef.md)
 - [`docs/arquitetura/ADR-028-comissoes-descontos-devolucoes-venda.md`](../../../docs/arquitetura/ADR-028-comissoes-descontos-devolucoes-venda.md)
+- [`docs/arquitetura/ADR-029-pacotes-kits-prepagos.md`](../../../docs/arquitetura/ADR-029-pacotes-kits-prepagos.md)
 - [`docs/diagramas/pdv-comissoes-devolucoes.mmd`](../../../docs/diagramas/pdv-comissoes-devolucoes.mmd)

@@ -164,7 +164,12 @@ Iniciado o módulo de estoque.
 - Desconto no pedido com teto `AccessProfile.MaxDiscountPercent` (`/auth/me`); comissões snapshot no pay; devolução com estoque (`SaleReturn`) + estorno proporcional.
 - API returns/commission-rules/commissions; sync pull/push; PDV offline com regras locais e UI comprovante **Devolver**.
 
-### 👉 **Próxima Ação: Fase 6.5 — Pacotes, kits e pré-pagos**
+### Fase 6.5 — Pacotes, kits e pré-pagos — Concluída (ADR-029)
+
+- Kits de produtos (explosão de estoque no pay); pacotes pré-pagos com saldo por pet; consumo via API/`ConsumePrepaidServicePackageRequest`.
+- Aceite: `PayPackageThenConsume_DecrementsRemainingUses` em `SalesEndpointsTests`.
+
+### 👉 **Próxima Ação: Fase 6.6 — Estética banho e tosa**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 6.
 

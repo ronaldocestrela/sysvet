@@ -1,3 +1,4 @@
+using Clients.Infrastructure.Sales;
 using Core.Domain;
 
 namespace Clients.Infrastructure.Http;
@@ -14,6 +15,35 @@ public interface ISalesApiService
     Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<CommissionRuleClientDto>>> ListCommissionRulesAsync(CancellationToken cancellationToken = default);
     Task<Result<Guid>> UpsertCommissionRuleAsync(CommissionRuleUpsertClientRequest request, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ProductKitClientDto>>> ListProductKitsAsync(CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ServicePackageClientDto>>> ListServicePackagesAsync(CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<PrepaidBalanceClientDto>>> ListPrepaidBalancesAsync(Guid? petId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ConsumePrepaidUseAsync(ConsumePrepaidUseClientRequest request, CancellationToken cancellationToken = default);
+}
+
+public sealed class ServicePackageClientDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string ServiceCode { get; init; } = string.Empty;
+    public int UsesPerUnit { get; init; }
+}
+
+public sealed class PrepaidBalanceClientDto
+{
+    public Guid Id { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid PetId { get; init; }
+    public string ServiceCode { get; init; } = string.Empty;
+    public int RemainingUses { get; init; }
+}
+
+public sealed class ConsumePrepaidUseClientRequest
+{
+    public Guid UsageId { get; init; }
+    public Guid PetId { get; init; }
+    public string ServiceCode { get; init; } = string.Empty;
+    public string? AttendanceRef { get; init; }
 }
 
 public sealed class CommissionRuleClientDto
@@ -64,6 +94,7 @@ public sealed class SalesOrderItemClientDto
     public Guid Id { get; set; }
     public string Kind { get; set; } = "Product";
     public Guid? ProductId { get; set; }
+    public Guid? CatalogOfferId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }

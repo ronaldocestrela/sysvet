@@ -1,4 +1,5 @@
 using Clients.Infrastructure.Http;
+using Clients.Infrastructure.Sales;
 using Core.Domain;
 
 namespace SharedUI.Services;
@@ -51,4 +52,16 @@ public class MockSalesApiService : ISalesApiService
 
     public Task<Result<Guid>> UpsertCommissionRuleAsync(CommissionRuleUpsertClientRequest request, CancellationToken cancellationToken = default)
         => Task.FromResult(Result.Success(Guid.NewGuid()));
+
+    public Task<Result<IReadOnlyList<ProductKitClientDto>>> ListProductKitsAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success<IReadOnlyList<ProductKitClientDto>>(Array.Empty<ProductKitClientDto>()));
+
+    public Task<Result<IReadOnlyList<ServicePackageClientDto>>> ListServicePackagesAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success<IReadOnlyList<ServicePackageClientDto>>(Array.Empty<ServicePackageClientDto>()));
+
+    public Task<Result<IReadOnlyList<PrepaidBalanceClientDto>>> ListPrepaidBalancesAsync(Guid? petId, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success<IReadOnlyList<PrepaidBalanceClientDto>>(Array.Empty<PrepaidBalanceClientDto>()));
+
+    public Task<Result<bool>> ConsumePrepaidUseAsync(ConsumePrepaidUseClientRequest request, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(true));
 }

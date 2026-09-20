@@ -54,11 +54,41 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
         hasMore |= rules.HasMore;
         maxUpdated = Max(maxUpdated, rules.Items.Select(r => r.UpdatedAt));
 
+        var kits = await ReadPageAsync(
+            _dbContext.ProductKits.AsNoTracking().Include(k => k.Components),
+            since,
+            take,
+            k => k.UpdatedAt,
+            cancellationToken);
+        hasMore |= kits.HasMore;
+        maxUpdated = Max(maxUpdated, kits.Items.Select(k => k.UpdatedAt));
+
+        var packages = await ReadPageAsync(
+            _dbContext.ServicePackages.AsNoTracking(),
+            since,
+            take,
+            p => p.UpdatedAt,
+            cancellationToken);
+        hasMore |= packages.HasMore;
+        maxUpdated = Max(maxUpdated, packages.Items.Select(p => p.UpdatedAt));
+
+        var balances = await ReadPageAsync(
+            _dbContext.PrepaidBalances.AsNoTracking(),
+            since,
+            take,
+            b => b.UpdatedAt,
+            cancellationToken);
+        hasMore |= balances.HasMore;
+        maxUpdated = Max(maxUpdated, balances.Items.Select(b => b.UpdatedAt));
+
         return new SyncContributorChanges
         {
             SalesCashRegisters = registers.Items.Select(MapRegister).ToList(),
             SalesOrders = orders.Items.Select(MapOrder).ToList(),
             SalesCommissionRules = rules.Items.Select(MapRule).ToList(),
+            SalesProductKits = kits.Items.Select(MapKit).ToList(),
+            SalesServicePackages = packages.Items.Select(MapPackage).ToList(),
+            SalesPrepaidBalances = balances.Items.Select(MapBalance).ToList(),
             MaxUpdatedAt = maxUpdated,
             HasMore = hasMore
         };
@@ -130,6 +160,7 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
                 Id = i.Id,
                 Kind = i.Kind.ToString(),
                 ProductId = i.ProductId,
+                CatalogOfferId = i.CatalogOfferId,
                 ProductName = i.ProductName,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice.Amount,
@@ -190,5 +221,45 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
             RatePercent = r.RatePercent,
             UpdatedAt = r.UpdatedAt,
             RowVersion = Convert.ToBase64String(r.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncProductKitDto MapKit(ProductKit k) =>
+        new()
+        {
+            Id = k.Id,
+            Name = k.Name,
+            IsActive = k.IsActive,
+            UpdatedAt = k.UpdatedAt,
+            RowVersion = Convert.ToBase64String(k.RowVersion ?? Array.Empty<byte>()),
+            Components = k.Components.Select(c => new SyncProductKitComponentDto
+            {
+                ProductId = c.ProductId,
+                QuantityPerKit = c.QuantityPerKit
+            }).ToList()
+        };
+
+    private static SyncServicePackageDto MapPackage(ServicePackage p) =>
+        new()
+        {
+            Id = p.Id,
+            Name = p.Name,
+            ServiceCode = p.ServiceCode.ToString(),
+            UsesPerUnit = p.UsesPerUnit,
+            IsActive = p.IsActive,
+            UpdatedAt = p.UpdatedAt,
+            RowVersion = Convert.ToBase64String(p.RowVersion ?? Array.Empty<byte>())
+        };
+
+    private static SyncPrepaidBalanceDto MapBalance(PrepaidBalance b) =>
+        new()
+        {
+            Id = b.Id,
+            TutorId = b.TutorId,
+            PetId = b.PetId,
+            ServiceCode = b.ServiceCode.ToString(),
+            RemainingUses = b.RemainingUses,
+            PurchasedUses = b.PurchasedUses,
+            UpdatedAt = b.UpdatedAt,
+            RowVersion = Convert.ToBase64String(b.RowVersion ?? Array.Empty<byte>())
         };
 }

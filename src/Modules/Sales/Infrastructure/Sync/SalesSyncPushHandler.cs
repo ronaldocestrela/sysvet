@@ -6,6 +6,7 @@ using Core.Domain;
 using MediatR;
 using Sales.Application.CashRegisters.Commands;
 using Sales.Application.Orders.Commands;
+using Sales.Application.Prepaid;
 
 namespace Sales.Infrastructure.Sync;
 
@@ -35,6 +36,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
             nameof(PayOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<PayOrderCommand>(message.Payload, JsonOptions), message.Id),
             nameof(RefundOrderPaymentCommand) => WithIdempotency(JsonSerializer.Deserialize<RefundOrderPaymentCommand>(message.Payload, JsonOptions), message.Id),
             nameof(ReturnOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<ReturnOrderCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(ConsumePrepaidPackageUseCommand) => WithIdempotency(JsonSerializer.Deserialize<ConsumePrepaidPackageUseCommand>(message.Payload, JsonOptions), message.Id),
             _ => null
         };
 
@@ -49,6 +51,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
             PayOrderCommand pay => Map(await _mediator.Send(pay, cancellationToken)),
             RefundOrderPaymentCommand refund => MapGuid(await _mediator.Send(refund, cancellationToken)),
             ReturnOrderCommand returnOrder => MapGuid(await _mediator.Send(returnOrder, cancellationToken)),
+            ConsumePrepaidPackageUseCommand consume => Map(await _mediator.Send(consume, cancellationToken)),
             _ => Result.Failure(new Error("Sync.HandlerMismatch", "Not a sales sync command."))
         };
     }

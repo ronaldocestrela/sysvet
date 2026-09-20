@@ -70,6 +70,23 @@ public class OrderTests
     }
 
     [Fact]
+    public void AddPackageItem_WithTutorAndPet_Succeeds()
+    {
+        var tutorId = Guid.NewGuid();
+        var petId = Guid.NewGuid();
+        var order = Order.Create(
+            cashRegisterId: Guid.NewGuid(),
+            sellerUserId: DefaultSellerId,
+            tutorId: tutorId,
+            petId: petId).Value;
+
+        var result = order.AddPackageItem(Guid.NewGuid(), "Pacote Banho", 1m, 100m);
+
+        result.IsSuccess.Should().BeTrue();
+        order.Items.Should().ContainSingle(i => i.Kind == OrderItemKind.Package);
+    }
+
+    [Fact]
     public void AddItem_Service_RequiresDescription()
     {
         var order = CreateDraftOrder();

@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Pos as PDV
+    participant Sales as Sales
+    participant Inv as Inventory
+    participant Bt as Banho_6_6
+
+    Pos->>Sales: PayOrder com Package
+    Sales->>Sales: PrepaidBalance.Credit
+    Pos->>Sales: ConsumePrepaidPackageUse
+    Bt->>Sales: ConsumePrepaidServicePackageRequest
+    Sales->>Sales: RemainingUses minus 1
+    Pos->>Sales: PayOrder com Kit
+    Sales->>Inv: ConsumeStockForSale exploded

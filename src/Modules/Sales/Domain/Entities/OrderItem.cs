@@ -12,6 +12,7 @@ public class OrderItem : Entity
     public Guid OrderId { get; private set; }
     public OrderItemKind Kind { get; private set; }
     public Guid? ProductId { get; private set; }
+    public Guid? CatalogOfferId { get; private set; }
     public string ProductName { get; private set; } = string.Empty;
     public decimal Quantity { get; private set; }
     public Money UnitPrice { get; private set; } = Money.Zero;
@@ -29,12 +30,13 @@ public class OrderItem : Entity
         Guid orderId,
         OrderItemKind kind,
         Guid? productId,
+        Guid? catalogOfferId,
         string productName,
         decimal quantity,
         decimal unitPrice,
         Guid? performerUserId = null,
         CommissionRole? performerRole = null)
-        : this(Guid.NewGuid(), orderId, kind, productId, productName, quantity, unitPrice, performerUserId, performerRole)
+        : this(Guid.NewGuid(), orderId, kind, productId, catalogOfferId, productName, quantity, unitPrice, performerUserId, performerRole)
     {
     }
 
@@ -43,6 +45,7 @@ public class OrderItem : Entity
         Guid orderId,
         OrderItemKind kind,
         Guid? productId,
+        Guid? catalogOfferId,
         string productName,
         decimal quantity,
         decimal unitPrice,
@@ -53,6 +56,7 @@ public class OrderItem : Entity
         OrderId = orderId;
         Kind = kind;
         ProductId = productId;
+        CatalogOfferId = catalogOfferId;
         ProductName = productName;
         Quantity = quantity;
         UnitPrice = Money.CreateUnsafe(unitPrice);
@@ -83,6 +87,7 @@ public class OrderItem : Entity
         Guid orderId,
         OrderItemKind kind,
         Guid? productId,
+        Guid? catalogOfferId,
         string productName,
         decimal quantity,
         decimal unitPrice,
@@ -90,7 +95,7 @@ public class OrderItem : Entity
         CommissionRole? performerRole = null,
         decimal returnedQuantity = 0)
     {
-        var item = new OrderItem(id, orderId, kind, productId, productName, quantity, unitPrice, performerUserId, performerRole)
+        var item = new OrderItem(id, orderId, kind, productId, catalogOfferId, productName, quantity, unitPrice, performerUserId, performerRole)
         {
             ReturnedQuantity = returnedQuantity
         };
