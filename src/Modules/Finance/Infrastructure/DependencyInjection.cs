@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IFinancialTitleRepository, FinancialTitleRepository>();
         services.AddScoped<IFinancialCategoryRepository, FinancialCategoryRepository>();
         services.AddScoped<ICostCenterRepository, CostCenterRepository>();
+        services.AddScoped<ICardReconciliationRepository, CardReconciliationRepository>();
 
         services.AddScoped<IFinanceUnitOfWork>(provider => provider.GetRequiredService<FinanceDbContext>());
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<FinanceDbContext>());

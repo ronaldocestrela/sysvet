@@ -28,7 +28,20 @@ public class CashRegisterConfiguration : IEntityTypeConfiguration<CashRegister>
             money.Property(m => m.Amount).HasColumnName("ClosingBalance").HasPrecision(18, 2);
             money.Property(m => m.Currency).HasColumnName("ClosingBalanceCurrency").HasMaxLength(3);
         });
-        
+
+        builder.OwnsOne(c => c.ExpectedClosingBalance, money =>
+        {
+            money.Property(m => m.Amount).HasColumnName("ExpectedClosingBalance").HasPrecision(18, 2);
+            money.Property(m => m.Currency).HasColumnName("ExpectedClosingBalanceCurrency").HasMaxLength(3);
+        });
+
+        builder.HasMany(c => c.Movements)
+            .WithOne()
+            .HasForeignKey(m => m.CashRegisterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(c => c.Movements).HasField("_movements");
+
         builder.Property(c => c.RowVersion).IsConcurrencyToken();
     }
 }

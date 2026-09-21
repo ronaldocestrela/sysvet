@@ -21,12 +21,14 @@ public class CashRegisterRepository : ICashRegisterRepository
     public async Task<CashRegister?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.CashRegisters
+            .Include(c => c.Movements)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public async Task<CashRegister?> GetOpenCashRegisterByUserAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.CashRegisters
+            .Include(c => c.Movements)
             .FirstOrDefaultAsync(c => c.OpenedByUserId == userId && c.Status == CashRegisterStatus.Open, cancellationToken);
     }
 
@@ -42,7 +44,14 @@ public class CashRegisterRepository : ICashRegisterRepository
 
     public void Update(CashRegister cashRegister)
     {
-        _dbContext.CashRegisters.Update(cashRegister);
+    }
+
+    public void AddMovement(CashMovement movement)
+    {
+        if (_dbContext.Entry(movement).State == EntityState.Detached)
+        {
+            _dbContext.Add(movement);
+        }
     }
 
     public void Remove(CashRegister cashRegister)

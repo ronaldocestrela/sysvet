@@ -4,6 +4,16 @@ using Sales.Application.CashRegisters.Commands;
 namespace Sales.Application.CashRegisters.Validators;
 
 /// <summary>FluentValidation rules for cash register commands.</summary>
+public sealed class RecordCashMovementCommandValidator : AbstractValidator<RecordCashMovementCommand>
+{
+    public RecordCashMovementCommandValidator()
+    {
+        RuleFor(x => x.CashRegisterId).NotEmpty();
+        RuleFor(x => x.Amount).GreaterThan(0);
+        RuleFor(x => x.Reason).NotEmpty().MaximumLength(500);
+    }
+}
+
 public sealed class OpenCashRegisterCommandValidator : AbstractValidator<OpenCashRegisterCommand>
 {
     public OpenCashRegisterCommandValidator()

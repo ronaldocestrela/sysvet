@@ -35,6 +35,7 @@ public class FinancialTitleTests
         title.SourceType.Should().Be(TitleSourceType.Sale);
         title.SourceId.Should().Be(orderId);
         title.Allocations.Should().HaveCount(2);
+        title.Allocations.Should().Contain(a => a.ExternalReference == "NSU1");
     }
 
     [Fact]

@@ -39,4 +39,12 @@ public static class ErrorCodes
         public static readonly Error InvalidCode = new("CostCenter.InvalidCode", "Código do centro de custo é obrigatório.");
         public static readonly Error InvalidName = new("CostCenter.InvalidName", "Nome do centro de custo é obrigatório.");
     }
+
+    public static class Reconciliation
+    {
+        public static readonly Error NotFound = new("CardReconciliation.NotFound", "Lote de conciliação não encontrado.");
+        public static readonly Error InvalidReference = new("CardReconciliation.InvalidReference", "Referência do lote é obrigatória.");
+        public static readonly Error EmptyStatement = new("CardReconciliation.EmptyStatement", "Informe ao menos uma linha no extrato.");
+        public static readonly Error InvalidLine = new("CardReconciliation.InvalidLine", "Linha do extrato inválida (NSU e valor obrigatórios).");
+    }
 }

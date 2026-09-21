@@ -19,6 +19,89 @@ namespace Finance.Infrastructure.Persistence.Migrations
                 .HasDefaultSchema("dbo")
                 .HasAnnotation("ProductVersion", "10.0.11");
 
+            modelBuilder.Entity("Finance.Domain.Entities.CardReconciliationBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("ImportedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("PeriodFrom")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("PeriodTo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CardReconciliationBatches", "dbo");
+                });
+
+            modelBuilder.Entity("Finance.Domain.Entities.CardReconciliationLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Fee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("MatchedAllocationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Method")
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nsu")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.ToTable("CardReconciliationLines", "dbo");
+                });
+
             modelBuilder.Entity("Finance.Domain.Entities.CostCenter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -182,6 +265,10 @@ namespace Finance.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CorrelationId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("FinancialTitleId")
                         .HasColumnType("TEXT");
 
@@ -207,10 +294,21 @@ namespace Finance.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExternalReference");
+
                     b.HasIndex("FinancialTitleId", "CorrelationId", "Kind")
                         .IsUnique();
 
                     b.ToTable("TitleAllocations", "dbo");
+                });
+
+            modelBuilder.Entity("Finance.Domain.Entities.CardReconciliationLine", b =>
+                {
+                    b.HasOne("Finance.Domain.Entities.CardReconciliationBatch", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Finance.Domain.Entities.TitleAllocation", b =>
@@ -220,6 +318,11 @@ namespace Finance.Infrastructure.Persistence.Migrations
                         .HasForeignKey("FinancialTitleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Finance.Domain.Entities.CardReconciliationBatch", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("Finance.Domain.Entities.FinancialTitle", b =>

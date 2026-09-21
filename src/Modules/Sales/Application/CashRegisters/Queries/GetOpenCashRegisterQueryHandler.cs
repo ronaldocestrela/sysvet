@@ -1,7 +1,6 @@
 using Core.Domain;
 using MediatR;
 using Sales.Application.CashRegisters.Dtos;
-using Sales.Domain.Enums;
 using Sales.Domain.Repositories;
 
 namespace Sales.Application.CashRegisters.Queries;
@@ -31,25 +30,18 @@ public sealed class GetOpenCashRegisterQueryHandler : IRequestHandler<GetOpenCas
         }
 
         var totals = await _orderRepository.GetPaymentTotalsForCashRegisterAsync(register.Id, cancellationToken);
-        var methodTotals = totals
-            .Select(t => new CashRegisterMethodTotalsDto
-            {
-                Method = t.Method,
-                Gross = t.Gross,
-                Refunded = t.Refunded
-            })
-            .ToList();
-
-        var cashNet = methodTotals.FirstOrDefault(m => m.Method == PaymentMethod.Cash)?.Net ?? 0m;
-        var current = register.OpeningBalance.Amount + cashNet;
+        var cashNet = CashRegisterCashNet.FromTotals(totals);
+        var expected = register.ComputeExpectedCash(cashNet);
 
         return Result.Success<OpenCashRegisterDto?>(new OpenCashRegisterDto
         {
             Id = register.Id,
             Status = register.Status.ToString(),
             OpeningBalance = register.OpeningBalance.Amount,
-            CurrentBalance = current,
-            MethodTotals = methodTotals
+            ExpectedBalance = expected,
+            CurrentBalance = expected,
+            MethodTotals = CashRegisterDtoMapper.MapTotals(totals),
+            Movements = CashRegisterDtoMapper.MapMovements(register)
         });
     }
 }

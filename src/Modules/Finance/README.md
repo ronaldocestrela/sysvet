@@ -4,7 +4,7 @@ Módulo responsável pela **gestão financeira** da clínica/petshop: contas a p
 
 ## Status
 
-> **Fase 7.2 concluída (ADR-032).** AP/AR materializados a partir de vendas e NF-e de compra; projeção previsto vs realizado; caixa TEF/conciliação na **7.3**.
+> **Fases 7.2–7.3 concluídas (ADR-032, ADR-033).** AP/AR + conciliação PoC de cartão (NSU); caixa operacional permanece no Sales.
 
 ## Escopo entregue (7.2)
 
@@ -12,9 +12,16 @@ Módulo responsável pela **gestão financeira** da clínica/petshop: contas a p
 - Consumo de `OrderPaidEvent`, `PurchaseInvoiceImportedEvent`, estorno/devolução
 - API `/api/v1/financial-*`; permissões `Finance.*`; sync e espelho SQLite nos clients
 
-## Escopo previsto (7.3+)
+## Escopo entregue (7.3)
 
-- Caixa operacional (sangrias, conciliação TEF), DRE/fluxo completo (7.4), fiscal (7.5+)
+- `TitleAllocation.ExternalReference` (NSU do TEF na alocação de cartão)
+- `CardReconciliationBatch` — import JSON manual, match `Matched` / `Divergent` / `Unmatched`
+- API `/api/v1/finance/card-reconciliations`, `/finance/card-settlements/unmatched`
+- Cliente: página `/finance/card-reconciliation` (online-only)
+
+## Escopo previsto (7.4+)
+
+- DRE/fluxo completo (7.4), fiscal (7.5+)
 
 ## Estrutura de Camadas
 

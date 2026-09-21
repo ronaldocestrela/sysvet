@@ -8,6 +8,7 @@ public interface ISalesStore
 {
     Task<Result<Guid>> OpenCashRegisterAsync(decimal openingBalance, CancellationToken cancellationToken = default);
     Task<Result<bool>> CloseCashRegisterAsync(Guid cashRegisterId, decimal actualClosingBalance, CancellationToken cancellationToken = default);
+    Task<Result<Guid>> RecordCashMovementAsync(Guid cashRegisterId, string kind, decimal amount, string reason, CancellationToken cancellationToken = default);
     Task<Result<CashRegisterClientDto?>> GetOpenCashRegisterAsync(CancellationToken cancellationToken = default);
     Task<Result<Guid>> CreateAndPayOrderAsync(CreateSalesOrderClientRequest request, IReadOnlyList<PayOrderPaymentClientDto> payments, CancellationToken cancellationToken = default);
     Task<Result<SalesOrderDetailClientDto>> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default);

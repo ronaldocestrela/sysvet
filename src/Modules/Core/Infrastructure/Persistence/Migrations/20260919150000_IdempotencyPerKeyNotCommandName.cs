@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Core.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
+    [Migration("20260919150000_IdempotencyPerKeyNotCommandName")]
     public partial class IdempotencyPerKeyNotCommandName : Migration
     {
         /// <inheritdoc />

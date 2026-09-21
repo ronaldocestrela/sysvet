@@ -45,7 +45,7 @@ public class IdempotencyBehaviorTests
         Assert.True(result.IsSuccess);
         Assert.Equal("Ok", result.Value);
         
-        await mockService.Received(1).CreateRequestAsync(key, "TestCommand", Arg.Any<CancellationToken>());
+        await mockService.Received(1).CreateRequestAsync(key, $"TestCommand:{key:N}", Arg.Any<CancellationToken>());
     }
 
     [Fact]

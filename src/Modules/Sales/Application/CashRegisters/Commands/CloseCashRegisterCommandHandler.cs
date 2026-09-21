@@ -8,10 +8,14 @@ namespace Sales.Application.CashRegisters.Commands;
 public class CloseCashRegisterCommandHandler : IRequestHandler<CloseCashRegisterCommand, Result<bool>>
 {
     private readonly ICashRegisterRepository _cashRegisterRepository;
+    private readonly IOrderRepository _orderRepository;
 
-    public CloseCashRegisterCommandHandler(ICashRegisterRepository cashRegisterRepository)
+    public CloseCashRegisterCommandHandler(
+        ICashRegisterRepository cashRegisterRepository,
+        IOrderRepository orderRepository)
     {
         _cashRegisterRepository = cashRegisterRepository;
+        _orderRepository = orderRepository;
     }
 
     public async Task<Result<bool>> Handle(CloseCashRegisterCommand request, CancellationToken cancellationToken)
@@ -27,7 +31,9 @@ public class CloseCashRegisterCommandHandler : IRequestHandler<CloseCashRegister
             return Result.Success(true);
         }
 
-        var result = cashRegister.Close(request.ActualClosingBalance);
+        var totals = await _orderRepository.GetPaymentTotalsForCashRegisterAsync(cashRegister.Id, cancellationToken);
+        var cashNet = CashRegisterCashNet.FromTotals(totals);
+        var result = cashRegister.Close(request.ActualClosingBalance, cashNet);
         if (!result.IsSuccess)
         {
             return result;

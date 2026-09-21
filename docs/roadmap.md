@@ -871,7 +871,7 @@ flowchart TD
 |--------|-----|--------|
 | **7.1 Módulo Finance — estrutura** | 5 | Concluído |
 | **7.2 Contas a pagar e receber** | 8 | Concluído |
-| **7.3 Caixa, sangrias e conciliação** | 13 | Pendente |
+| **7.3 Caixa, sangrias e conciliação** | 13 | Concluído |
 | **7.4 Fluxo de caixa e demonstrativos** | 8 | Pendente |
 | **7.5 NF-e e NFS-e** | 13 | Pendente |
 | **7.6 NFC-e e contingência offline** | 13 | Pendente |
@@ -910,11 +910,20 @@ flowchart TD
 
 ### 7.3 Caixa, sangrias e conciliação (13 SP)
 
-- [ ] Abertura/fechamento de caixa por operador
-- [ ] Sangrias e suprimentos
-- [ ] Conciliação cartões (TEF) vs recebíveis
+**Domain**
+- [x] Sales: `CashMovement` (sangria/suprimento), `ExpectedClosingBalance`, `Close` com variance (ADR-033)
+- [x] Finance: `TitleAllocation.ExternalReference` (NSU); `CardReconciliationBatch` + match NSU/valor
 
-**Aceite:** Fechamento de caixa bate com vendas do período ± sangrias.
+**Application / API**
+- [x] `RecordCashMovementCommand`; close com `cashNet`; `GET` caixa aberto/detalhe
+- [x] `POST /api/v1/sales/cash-registers/{id}/movements`; migrations Sales + Finance
+- [x] Import/list/get conciliação cartão; `GET .../card-settlements/unmatched`
+
+**Sync / Clients**
+- [x] Outbox sangria; pull movimentos + esperado no fechamento; SQLite offline
+- [x] UI caixa (esperado vs contado); `/finance/card-reconciliation` (online)
+
+**Aceite:** `CloseCashRegister_ExpectedBalance_MatchesCashSalesMinusDrops`; `ImportCardStatement_MatchesReceivableByNsu`.
 
 ### 7.4 Fluxo de caixa e demonstrativos (8 SP)
 

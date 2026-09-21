@@ -35,6 +35,9 @@ public class MockSalesApiService : ISalesApiService
     public Task<Result<CashRegisterClientDto?>> GetOpenCashRegisterAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(Result.Success(_openRegister));
 
+    public Task<Result<Guid>> RecordCashMovementAsync(Guid cashRegisterId, string kind, decimal amount, string reason, CancellationToken cancellationToken = default)
+        => Task.FromResult(Result.Success(Guid.NewGuid()));
+
     public Task<Result<Guid>> CreateOrderAsync(CreateSalesOrderClientRequest request, CancellationToken cancellationToken = default)
         => Task.FromResult(Result.Success(Guid.NewGuid()));
 

@@ -26,6 +26,7 @@ As fases 6.1–6.2 entregaram PDV com split de pagamentos manual (sem NSU) e syn
 ## Consequências
 - Migrations Sales (`PaymentsTef`) e SQLite cliente (`OfflinePaymentsTef`).
 - `OrderPaymentRefundedEvent` / `OrderReturnedEvent` revertem alocações do recebível da venda (Finance 7.2, ADR-032).
+- **7.3 (ADR-033):** NSU de cartão copiado para `TitleAllocation.ExternalReference`; conciliação PoC importa extrato e faz match NSU + valor.
 - Adapters reais plugam em `IPaymentTerminal` sem alterar domínio/application.
 
 ## Confirmação no código
@@ -35,6 +36,6 @@ As fases 6.1–6.2 entregaram PDV com split de pagamentos manual (sem NSU) e syn
 - Aceite: [`SalesEndpointsTests`](../../tests/API.IntegrationTests/Sales/SalesEndpointsTests.cs) (NSU Pix + estorno cash no caixa)
 
 ## Relacionados
-- [ADR-025](./ADR-025-motor-pdv-vendas.md), [ADR-026](./ADR-026-pdv-offline-sync.md)
+- [ADR-025](./ADR-025-motor-pdv-vendas.md), [ADR-026](./ADR-026-pdv-offline-sync.md), [ADR-033](./ADR-033-caixa-sangrias-conciliacao.md)
 - [`docs/diagramas/pdv-pagamentos-tef.mmd`](../diagramas/pdv-pagamentos-tef.mmd)
 - [`docs/roadmap.md`](../roadmap.md) § 6.3

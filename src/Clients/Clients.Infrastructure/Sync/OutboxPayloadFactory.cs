@@ -445,6 +445,23 @@ internal static class OutboxPayloadFactory
             IdempotencyKey = idempotencyKey
         });
 
+    public static string RecordCashMovement(
+        Guid cashRegisterId,
+        global::Sales.Domain.Enums.CashMovementKind kind,
+        decimal amount,
+        string reason,
+        Guid movementId,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            CashRegisterId = cashRegisterId,
+            Kind = kind,
+            Amount = amount,
+            Reason = reason,
+            MovementId = movementId,
+            IdempotencyKey = idempotencyKey
+        });
+
     public static string CreateOrder(
         Guid orderId,
         Guid cashRegisterId,

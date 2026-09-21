@@ -9,4 +9,6 @@ namespace Sales.Domain.Repositories;
 public interface ICashRegisterRepository : IRepository<CashRegister>
 {
     Task<CashRegister?> GetOpenCashRegisterByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    void AddMovement(CashMovement movement);
 }

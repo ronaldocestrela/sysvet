@@ -8,6 +8,7 @@ public interface ISalesApiService
 {
     Task<Result<Guid>> OpenCashRegisterAsync(decimal openingBalance, CancellationToken cancellationToken = default);
     Task<Result<bool>> CloseCashRegisterAsync(Guid cashRegisterId, decimal actualClosingBalance, CancellationToken cancellationToken = default);
+    Task<Result<Guid>> RecordCashMovementAsync(Guid cashRegisterId, string kind, decimal amount, string reason, CancellationToken cancellationToken = default);
     Task<Result<CashRegisterClientDto?>> GetOpenCashRegisterAsync(CancellationToken cancellationToken = default);
     Task<Result<Guid>> CreateOrderAsync(CreateSalesOrderClientRequest request, CancellationToken cancellationToken = default);
     Task<Result<bool>> PayOrderAsync(Guid orderId, IReadOnlyList<PayOrderPaymentClientDto> payments, CancellationToken cancellationToken = default);
@@ -76,9 +77,20 @@ public sealed class CashRegisterClientDto
     public Guid Id { get; set; }
     public string Status { get; set; } = string.Empty;
     public decimal OpeningBalance { get; set; }
+    public decimal ExpectedBalance { get; set; }
     public decimal CurrentBalance { get; set; }
     public IReadOnlyList<CashRegisterMethodTotalsClientDto> MethodTotals { get; set; } =
         Array.Empty<CashRegisterMethodTotalsClientDto>();
+    public IReadOnlyList<CashMovementClientDto> Movements { get; set; } = Array.Empty<CashMovementClientDto>();
+}
+
+public sealed class CashMovementClientDto
+{
+    public Guid Id { get; set; }
+    public string Kind { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Reason { get; set; } = string.Empty;
+    public DateTimeOffset OccurredAt { get; set; }
 }
 
 public sealed class CashRegisterMethodTotalsClientDto

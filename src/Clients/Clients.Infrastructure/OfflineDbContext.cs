@@ -222,6 +222,7 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesPaymentConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesPaymentRefundConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCashRegisterConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCashMovementConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesCommissionAccrualConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesSaleReturnConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineSalesSaleReturnLineConfiguration());

@@ -19,6 +19,42 @@ namespace Sales.Infrastructure.Migrations
                 .HasDefaultSchema("dbo")
                 .HasAnnotation("ProductVersion", "10.0.11");
 
+            modelBuilder.Entity("Sales.Domain.Entities.CashMovement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CashRegisterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashRegisterId");
+
+                    b.ToTable("CashMovements", "dbo");
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.CashRegister", b =>
                 {
                     b.Property<Guid>("Id")
@@ -554,6 +590,42 @@ namespace Sales.Infrastructure.Migrations
                     b.ToTable("ServicePackages", "dbo");
                 });
 
+            modelBuilder.Entity("Sales.Domain.Entities.CashMovement", b =>
+                {
+                    b.HasOne("Sales.Domain.Entities.CashRegister", null)
+                        .WithMany("Movements")
+                        .HasForeignKey("CashRegisterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Sales.Domain.ValueObjects.Money", "Amount", b1 =>
+                        {
+                            b1.Property<Guid>("CashMovementId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Amount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AmountCurrency");
+
+                            b1.HasKey("CashMovementId");
+
+                            b1.ToTable("CashMovements", "dbo");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CashMovementId");
+                        });
+
+                    b.Navigation("Amount")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.CashRegister", b =>
                 {
                     b.OwnsOne("Sales.Domain.ValueObjects.Money", "ClosingBalance", b1 =>
@@ -571,6 +643,30 @@ namespace Sales.Infrastructure.Migrations
                                 .HasMaxLength(3)
                                 .HasColumnType("TEXT")
                                 .HasColumnName("ClosingBalanceCurrency");
+
+                            b1.HasKey("CashRegisterId");
+
+                            b1.ToTable("CashRegisters", "dbo");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CashRegisterId");
+                        });
+
+                    b.OwnsOne("Sales.Domain.ValueObjects.Money", "ExpectedClosingBalance", b1 =>
+                        {
+                            b1.Property<Guid>("CashRegisterId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("ExpectedClosingBalance");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("ExpectedClosingBalanceCurrency");
 
                             b1.HasKey("CashRegisterId");
 
@@ -605,6 +701,9 @@ namespace Sales.Infrastructure.Migrations
                         });
 
                     b.Navigation("ClosingBalance")
+                        .IsRequired();
+
+                    b.Navigation("ExpectedClosingBalance")
                         .IsRequired();
 
                     b.Navigation("OpeningBalance")
@@ -843,6 +942,11 @@ namespace Sales.Infrastructure.Migrations
                         .HasForeignKey("SaleReturnId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Sales.Domain.Entities.CashRegister", b =>
+                {
+                    b.Navigation("Movements");
                 });
 
             modelBuilder.Entity("Sales.Domain.Entities.Order", b =>

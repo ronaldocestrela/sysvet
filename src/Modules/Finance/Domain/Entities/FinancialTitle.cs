@@ -95,7 +95,8 @@ public sealed class FinancialTitle : AggregateRoot
                 payment.Amount,
                 paidAt,
                 payment.Method,
-                payment.CorrelationId));
+                payment.CorrelationId,
+                payment.Nsu));
         }
 
         title.RefreshStatus();

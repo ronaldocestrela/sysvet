@@ -77,6 +77,9 @@ public static class AppRoutes
     /// <summary>Accounts payable and receivable.</summary>
     public const string Finance = "/finance";
 
+    /// <summary>Card TEF reconciliation (online).</summary>
+    public const string FinanceCardReconciliation = "/finance/card-reconciliation";
+
     /// <summary>Point of sale terminal.</summary>
     public const string SalesPos = "/sales/pos";
 

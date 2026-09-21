@@ -49,10 +49,33 @@ public sealed class SalesApiService : ISalesApiService
     {
         if (!_connectivity.IsOnline)
         {
-            return Task.FromResult(Result.Failure<CashRegisterClientDto?>(OfflineError()));
+            return _salesStore.GetOpenCashRegisterAsync(cancellationToken);
         }
 
         return _apiClient.GetAsync<CashRegisterClientDto?>("/api/v1/sales/cash-registers/open", cancellationToken);
+    }
+
+    public Task<Result<Guid>> RecordCashMovementAsync(
+        Guid cashRegisterId,
+        string kind,
+        decimal amount,
+        string reason,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return _salesStore.RecordCashMovementAsync(cashRegisterId, kind, amount, reason, cancellationToken);
+        }
+
+        var movementKind = string.Equals(kind, "Supply", StringComparison.OrdinalIgnoreCase)
+            ? global::Sales.Domain.Enums.CashMovementKind.Supply
+            : global::Sales.Domain.Enums.CashMovementKind.Drop;
+
+        return _apiClient.PostAsync<object, Guid>(
+            $"/api/v1/sales/cash-registers/{cashRegisterId}/movements",
+            new { kind = movementKind, amount, reason },
+            idempotencyKey: Guid.NewGuid(),
+            cancellationToken: cancellationToken);
     }
 
     public Task<Result<Guid>> CreateOrderAsync(CreateSalesOrderClientRequest request, CancellationToken cancellationToken = default)

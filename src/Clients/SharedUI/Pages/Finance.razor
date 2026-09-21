@@ -1,12 +1,14 @@
 @page "/finance"
 @using Clients.Infrastructure.Finance
 @using SharedUI.Components
+@using SharedUI.Navigation
 @using SharedUI.Services
 @inject IFinanceStore FinanceStore
 @inject IToastService Toast
 
-<div class="header-section">
-    <h1>Contas a pagar e receber</h1>
+<div class="header-section d-flex justify-content-between align-items-center">
+    <h1 class="mb-0">Contas a pagar e receber</h1>
+    <a class="btn btn-outline-primary btn-sm" href="@AppRoutes.FinanceCardReconciliation">Conciliação cartão</a>
 </div>
 
 <div class="card mb-3">

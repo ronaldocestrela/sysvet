@@ -70,7 +70,9 @@ public sealed partial class OfflineSalesStore : ISalesStore
             return Result.Success(true);
         }
 
-        var closed = register.Close(actualClosingBalance);
+        var totals = await GetPaymentTotalsForRegisterAsync(register.Id, cancellationToken);
+        var cashNet = GetCashNet(totals);
+        var closed = register.Close(actualClosingBalance, cashNet);
         if (closed.IsFailure)
         {
             return closed;
@@ -86,32 +88,99 @@ public sealed partial class OfflineSalesStore : ISalesStore
     /// <inheritdoc />
     public async Task<Result<CashRegisterClientDto?>> GetOpenCashRegisterAsync(CancellationToken cancellationToken = default)
     {
-        var register = await _dbContext.CashRegisters.FirstOrDefaultAsync(
-            c => c.Status == CashRegisterStatus.Open,
-            cancellationToken);
+        var register = await _dbContext.CashRegisters
+            .Include(c => c.Movements)
+            .FirstOrDefaultAsync(c => c.Status == CashRegisterStatus.Open, cancellationToken);
         if (register is null)
         {
             return Result.Success<CashRegisterClientDto?>(null);
         }
 
         var totals = await GetPaymentTotalsForRegisterAsync(register.Id, cancellationToken);
-        var cashRow = totals.FirstOrDefault(t => t.Method == PaymentMethod.Cash);
-        var cashNet = cashRow is null ? 0m : cashRow.Gross - cashRow.Refunded;
+        var cashNet = GetCashNet(totals);
+        var expected = register.ComputeExpectedCash(cashNet);
 
-        return Result.Success<CashRegisterClientDto?>(new CashRegisterClientDto
+        return Result.Success<CashRegisterClientDto?>(MapRegisterClientDto(register, expected, totals));
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<Guid>> RecordCashMovementAsync(
+        Guid cashRegisterId,
+        string kind,
+        decimal amount,
+        string reason,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Enum.TryParse<CashMovementKind>(kind, true, out var movementKind))
+        {
+            return Result.Failure<Guid>(SalesErrorCodes.CashRegister.MovementNotAllowed);
+        }
+
+        var register = await _dbContext.CashRegisters
+            .Include(c => c.Movements)
+            .FirstOrDefaultAsync(c => c.Id == cashRegisterId, cancellationToken);
+        if (register is null)
+        {
+            return Result.Failure<Guid>(SalesErrorCodes.CashRegister.NotFound);
+        }
+
+        var totals = await GetPaymentTotalsForRegisterAsync(register.Id, cancellationToken);
+        var cashNet = GetCashNet(totals);
+        var movementId = Guid.NewGuid();
+        var result = movementKind switch
+        {
+            CashMovementKind.Drop => register.RecordDrop(amount, reason, cashNet, movementId),
+            CashMovementKind.Supply => register.RecordSupply(amount, reason, movementId),
+            _ => Result.Failure<Guid>(SalesErrorCodes.CashRegister.MovementNotAllowed)
+        };
+
+        if (result.IsFailure)
+        {
+            return result;
+        }
+
+        var outboxId = Guid.NewGuid();
+        EnqueueOutbox(
+            "RecordCashMovementCommand",
+            OutboxPayloadFactory.RecordCashMovement(cashRegisterId, movementKind, amount, reason, movementId, outboxId),
+            outboxId);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        RequestSyncIfOnline();
+        return result;
+    }
+
+    private static decimal GetCashNet(IReadOnlyList<global::Sales.Domain.Queries.CashRegisterPaymentTotals> totals)
+    {
+        var cash = totals.FirstOrDefault(t => t.Method == PaymentMethod.Cash);
+        return cash is null ? 0m : cash.Gross - cash.Refunded;
+    }
+
+    private static CashRegisterClientDto MapRegisterClientDto(
+        CashRegister register,
+        decimal expectedBalance,
+        IReadOnlyList<global::Sales.Domain.Queries.CashRegisterPaymentTotals> totals) =>
+        new()
         {
             Id = register.Id,
             Status = register.Status.ToString(),
             OpeningBalance = register.OpeningBalance.Amount,
-            CurrentBalance = register.OpeningBalance.Amount + cashNet,
+            ExpectedBalance = expectedBalance,
+            CurrentBalance = expectedBalance,
             MethodTotals = totals.Select(t => new CashRegisterMethodTotalsClientDto
             {
                 Method = t.Method.ToString(),
                 Gross = t.Gross,
                 Refunded = t.Refunded
+            }).ToList(),
+            Movements = register.Movements.Select(m => new CashMovementClientDto
+            {
+                Id = m.Id,
+                Kind = m.Kind.ToString(),
+                Amount = m.Amount.Amount,
+                Reason = m.Reason,
+                OccurredAt = m.OccurredAt
             }).ToList()
-        });
-    }
+        };
 
     /// <inheritdoc />
     public async Task<Result<Guid>> CreateAndPayOrderAsync(

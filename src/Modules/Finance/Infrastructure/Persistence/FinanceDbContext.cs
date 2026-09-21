@@ -14,6 +14,8 @@ public class FinanceDbContext : DbContext, IFinanceUnitOfWork, IDomainEventSourc
     public DbSet<TitleAllocation> TitleAllocations => Set<TitleAllocation>();
     public DbSet<FinancialCategory> FinancialCategories => Set<FinancialCategory>();
     public DbSet<CostCenter> CostCenters => Set<CostCenter>();
+    public DbSet<CardReconciliationBatch> CardReconciliationBatches => Set<CardReconciliationBatch>();
+    public DbSet<CardReconciliationLine> CardReconciliationLines => Set<CardReconciliationLine>();
 
     private readonly ITenantContext _tenantContext;
 

@@ -79,6 +79,7 @@ public sealed class ClientSyncTitleAllocationDto
     public decimal Amount { get; init; }
     public DateTimeOffset PaidAt { get; init; }
     public string Method { get; init; } = string.Empty;
+    public string? ExternalReference { get; init; }
     public Guid CorrelationId { get; init; }
     public string Kind { get; init; } = string.Empty;
     public DateTimeOffset UpdatedAt { get; init; }
@@ -511,8 +512,21 @@ public sealed class ClientSyncSalesCashRegisterDto
     public DateTimeOffset OpenedAt { get; init; }
     public DateTimeOffset? ClosedAt { get; init; }
     public decimal OpeningBalance { get; init; }
+    public decimal ExpectedClosingBalance { get; init; }
     public decimal ClosingBalance { get; init; }
     public string Status { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<ClientSyncSalesCashMovementDto> Movements { get; init; } = Array.Empty<ClientSyncSalesCashMovementDto>();
+}
+
+public sealed class ClientSyncSalesCashMovementDto
+{
+    public Guid Id { get; init; }
+    public Guid CashRegisterId { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public decimal Amount { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public DateTimeOffset OccurredAt { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
 }
 

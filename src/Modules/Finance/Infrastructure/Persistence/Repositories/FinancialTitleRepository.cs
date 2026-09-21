@@ -1,5 +1,6 @@
 using Finance.Domain.Entities;
 using Finance.Domain.Enums;
+using Finance.Domain.Models;
 using Finance.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -121,5 +122,18 @@ public sealed class FinancialTitleRepository : IFinancialTitleRepository
         }
 
         return await query.OrderBy(t => t.DueDate).ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<CardSettlementSnapshot>> ListCardSettlementSnapshotsAsync(CancellationToken cancellationToken)
+    {
+        var cardMethods = new[] { "DebitCard", "CreditCard" };
+
+        return await _dbContext.TitleAllocations
+            .AsNoTracking()
+            .Where(a => a.Kind == AllocationKind.Settlement
+                        && a.ExternalReference != null
+                        && cardMethods.Contains(a.Method))
+            .Select(a => new CardSettlementSnapshot(a.Id, a.ExternalReference!, a.Amount, a.Method))
+            .ToListAsync(cancellationToken);
     }
 }

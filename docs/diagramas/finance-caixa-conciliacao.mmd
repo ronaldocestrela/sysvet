@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph sales [Sales]
+    Open[OpenCashRegister]
+    Pay[PayOrder Cash]
+    Drop[Sangria_Suprimento]
+    Close[Close com esperado]
+  end
+  subgraph finance [Finance]
+    AR[AR liquidado com NSU]
+    Stmt[ImportCardStatement]
+    Match[Match NSU]
+  end
+  Open --> Pay
+  Pay --> Drop
+  Drop --> Close
+  Pay --> AR
+  AR --> Match
+  Stmt --> Match

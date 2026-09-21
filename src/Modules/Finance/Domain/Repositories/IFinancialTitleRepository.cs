@@ -1,5 +1,6 @@
 using Finance.Domain.Entities;
 using Finance.Domain.Enums;
+using Finance.Domain.Models;
 
 namespace Finance.Domain.Repositories;
 
@@ -29,6 +30,8 @@ public interface IFinancialTitleRepository
         DateOnly? dueFrom,
         DateOnly? dueTo,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<CardSettlementSnapshot>> ListCardSettlementSnapshotsAsync(CancellationToken cancellationToken);
 
     void Add(FinancialTitle title);
 

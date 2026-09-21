@@ -104,6 +104,33 @@ internal sealed class OfflineSalesCashRegisterConfiguration : IEntityTypeConfigu
             money.Property(m => m.Amount).HasColumnName("ClosingBalance");
             money.Property(m => m.Currency).HasColumnName("ClosingCurrency");
         });
+        builder.OwnsOne(c => c.ExpectedClosingBalance, money =>
+        {
+            money.Property(m => m.Amount).HasColumnName("ExpectedClosingBalance");
+            money.Property(m => m.Currency).HasColumnName("ExpectedClosingCurrency");
+        });
+
+        builder.HasMany(c => c.Movements)
+            .WithOne()
+            .HasForeignKey(m => m.CashRegisterId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(c => c.Movements).HasField("_movements");
+    }
+}
+
+internal sealed class OfflineSalesCashMovementConfiguration : IEntityTypeConfiguration<CashMovement>
+{
+    public void Configure(EntityTypeBuilder<CashMovement> builder)
+    {
+        builder.ToTable("SalesCashMovements");
+        builder.HasKey(m => m.Id);
+        builder.Property(m => m.Reason).HasMaxLength(500);
+        builder.Property(m => m.Kind).HasConversion<string>();
+        builder.OwnsOne(m => m.Amount, money =>
+        {
+            money.Property(x => x.Amount).HasColumnName("Amount");
+            money.Property(x => x.Currency).HasColumnName("AmountCurrency");
+        });
     }
 }
 

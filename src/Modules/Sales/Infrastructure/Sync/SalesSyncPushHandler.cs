@@ -31,6 +31,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
         message.Type switch
         {
             nameof(OpenCashRegisterCommand) => WithIdempotency(JsonSerializer.Deserialize<OpenCashRegisterCommand>(message.Payload, JsonOptions), message.Id),
+            nameof(RecordCashMovementCommand) => WithIdempotency(JsonSerializer.Deserialize<RecordCashMovementCommand>(message.Payload, JsonOptions), message.Id),
             nameof(CloseCashRegisterCommand) => WithIdempotency(JsonSerializer.Deserialize<CloseCashRegisterCommand>(message.Payload, JsonOptions), message.Id),
             nameof(CreateOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<CreateOrderCommand>(message.Payload, JsonOptions), message.Id),
             nameof(PayOrderCommand) => WithIdempotency(JsonSerializer.Deserialize<PayOrderCommand>(message.Payload, JsonOptions), message.Id),
@@ -47,6 +48,7 @@ public sealed class SalesSyncPushHandler : ISyncPushHandler
         {
             OpenCashRegisterCommand open => Map(await _mediator.Send(open, cancellationToken)),
             CloseCashRegisterCommand close => await _mediator.Send(close, cancellationToken),
+            RecordCashMovementCommand movement => Map(await _mediator.Send(movement, cancellationToken)),
             CreateOrderCommand create => Map(await _mediator.Send(create, cancellationToken)),
             PayOrderCommand pay => Map(await _mediator.Send(pay, cancellationToken)),
             RefundOrderPaymentCommand refund => MapGuid(await _mediator.Send(refund, cancellationToken)),

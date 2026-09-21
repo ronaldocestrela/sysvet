@@ -31,5 +31,6 @@ public sealed class TitleAllocationDto
     public decimal Amount { get; init; }
     public DateTimeOffset PaidAt { get; init; }
     public string Method { get; init; } = string.Empty;
+    public string? ExternalReference { get; init; }
     public AllocationKind Kind { get; init; }
 }

@@ -2,6 +2,8 @@ using Core.Domain;
 using Finance.Application.Categories;
 using Finance.Application.CostCenters;
 using Finance.Application.Projections;
+using Finance.Application.Reconciliation;
+using Finance.Application.Reconciliation.Dtos;
 using Finance.Application.Titles.Commands;
 using Finance.Application.Titles.Queries;
 using Finance.Domain.Enums;
@@ -64,6 +66,18 @@ public static class FinanceEndpointExtensions
             (await mediator.Send(new GetBalanceProjectionQuery(from, to))).ToHttpResult());
         finance.MapGet("/parties/{partyKind}/{partyId:guid}/ledger", async (PartyKind partyKind, Guid partyId, IMediator mediator) =>
             (await mediator.Send(new GetPartyLedgerQuery(partyKind, partyId))).ToHttpResult());
+
+        finance.MapGet("/card-reconciliations", async (IMediator mediator) =>
+            (await mediator.Send(new ListCardReconciliationsQuery())).ToHttpResult());
+        finance.MapGet("/card-reconciliations/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new GetCardReconciliationByIdQuery(id))).ToHttpResult());
+        finance.MapPost("/card-reconciliations", async (HttpContext httpContext, [FromBody] ImportCardStatementCommand command, IMediator mediator) =>
+        {
+            command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+        finance.MapGet("/card-settlements/unmatched", async (IMediator mediator) =>
+            (await mediator.Send(new GetUnmatchedCardSettlementsQuery())).ToHttpResult());
 
         return builder;
     }

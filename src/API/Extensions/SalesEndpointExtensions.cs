@@ -42,6 +42,20 @@ public static class SalesEndpointExtensions
             return (await mediator.Send(command)).ToHttpResult();
         });
 
+        group.MapGet("/cash-registers/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new GetCashRegisterByIdQuery(id))).ToHttpResult());
+
+        group.MapPost("/cash-registers/{id:guid}/movements", async (
+            HttpContext httpContext,
+            Guid id,
+            RecordCashMovementCommand command,
+            IMediator mediator) =>
+        {
+            command.CashRegisterId = id;
+            command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
         group.MapPost("/orders", async (HttpContext httpContext, CreateOrderCommand command, IMediator mediator) =>
         {
             command.IdempotencyKey = EndpointIdempotency.ReadKey(httpContext);

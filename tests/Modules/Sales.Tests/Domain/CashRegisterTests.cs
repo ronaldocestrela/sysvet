@@ -31,15 +31,17 @@ public class CashRegisterTests
     }
 
     [Fact]
-    public void Close_WhenOpen_SetsClosedStatus()
+    public void Close_WhenOpen_SetsClosedStatusAndExpected()
     {
         var register = CashRegister.Open(Guid.NewGuid(), 100m).Value;
 
-        var result = register.Close(120m);
+        var result = register.Close(120m, cashNet: 20m);
 
         result.IsSuccess.Should().BeTrue();
         register.Status.Should().Be(CashRegisterStatus.Closed);
+        register.ExpectedClosingBalance.Amount.Should().Be(120m);
         register.ClosingBalance.Amount.Should().Be(120m);
+        register.ClosingVariance.Should().Be(0m);
         register.ClosedAt.Should().NotBeNull();
     }
 
@@ -47,18 +49,69 @@ public class CashRegisterTests
     public void Close_WhenAlreadyClosed_ReturnsFailure()
     {
         var register = CashRegister.Open(Guid.NewGuid(), 10m).Value;
-        register.Close(10m);
+        register.Close(10m, 0m);
 
-        register.Close(10m).IsFailure.Should().BeTrue();
+        register.Close(10m, 0m).IsFailure.Should().BeTrue();
     }
 
     [Fact]
-    public void RestoreFromSync_RehydratesClosedRegister()
+    public void RecordDrop_SubtractsFromExpectedCash()
+    {
+        var register = CashRegister.Open(Guid.NewGuid(), 100m).Value;
+
+        register.RecordDrop(30m, "Cofre", cashNet: 50m).IsSuccess.Should().BeTrue();
+
+        register.ComputeExpectedCash(50m).Should().Be(120m);
+    }
+
+    [Fact]
+    public void RecordDrop_WhenExceedsExpected_ReturnsFailure()
+    {
+        var register = CashRegister.Open(Guid.NewGuid(), 100m).Value;
+
+        var result = register.RecordDrop(200m, "Cofre", cashNet: 0m);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("CashRegister.InsufficientCash");
+    }
+
+    [Fact]
+    public void RecordSupply_AddsToExpectedCash()
+    {
+        var register = CashRegister.Open(Guid.NewGuid(), 100m).Value;
+
+        register.RecordSupply(10m, "Troco").IsSuccess.Should().BeTrue();
+
+        register.ComputeExpectedCash(50m).Should().Be(160m);
+    }
+
+    [Fact]
+    public void Close_WithDropAndSupply_MatchesPlanFormula()
+    {
+        var register = CashRegister.Open(Guid.NewGuid(), 100m).Value;
+        register.RecordDrop(30m, "Sangria", cashNet: 50m);
+        register.RecordSupply(10m, "Suprimento");
+
+        register.ComputeExpectedCash(50m).Should().Be(130m);
+        register.Close(125m, 50m).IsSuccess.Should().BeTrue();
+        register.ClosingVariance.Should().Be(-5m);
+    }
+
+    [Fact]
+    public void RestoreFromSync_RehydratesClosedRegisterWithMovements()
     {
         var id = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var openedAt = DateTimeOffset.UtcNow.AddHours(-2);
         var closedAt = DateTimeOffset.UtcNow;
+        var movement = CashMovement.Restore(
+            Guid.NewGuid(),
+            id,
+            CashMovementKind.Drop,
+            20m,
+            "Sync",
+            openedAt.AddMinutes(30),
+            openedAt.AddMinutes(30));
 
         var restored = CashRegister.RestoreFromSync(
             id,
@@ -67,12 +120,16 @@ public class CashRegisterTests
             closedAt,
             50m,
             80m,
+            78m,
             CashRegisterStatus.Closed,
-            closedAt);
+            closedAt,
+            [movement]);
 
         restored.Id.Should().Be(id);
         restored.Status.Should().Be(CashRegisterStatus.Closed);
-        restored.ClosingBalance.Amount.Should().Be(80m);
+        restored.ClosingBalance.Amount.Should().Be(78m);
+        restored.ExpectedClosingBalance.Amount.Should().Be(80m);
+        restored.Movements.Should().HaveCount(1);
     }
 
     [Fact]

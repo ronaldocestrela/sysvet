@@ -418,6 +418,96 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
             .Content.ReadFromJsonAsync<List<PrepaidBalanceDto>>();
         balances!.Single().RemainingUses.Should().Be(3);
     }
+
+    [Fact]
+    public async Task CloseCashRegister_ExpectedBalance_MatchesCashSalesMinusDrops()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var suffix = Guid.NewGuid().ToString()[..8];
+
+        var productResponse = await client.PostAsJsonAsync("/api/v1/inventory/products", new RegisterProductCommand(
+            "Caixa " + suffix,
+            "",
+            "CX-" + suffix,
+            "789" + suffix,
+            "UN",
+            0m,
+            ProductCategory.Food,
+            "23091000",
+            null,
+            0,
+            null,
+            null));
+        var productId = await productResponse.Content.ReadFromJsonAsync<Guid>();
+
+        await client.PostAsJsonAsync("/api/v1/inventory/stock/movements", new
+        {
+            productId,
+            type = MovementType.In,
+            quantity = 10m,
+            reason = "Opening"
+        });
+
+        var registerId = await (await client.PostAsJsonAsync("/api/v1/sales/cash-registers/open", new { openingBalance = 100m }))
+            .Content.ReadFromJsonAsync<Guid>();
+
+        var orderId = await (await client.PostAsJsonAsync("/api/v1/sales/orders", new CreateOrderCommand
+        {
+            CashRegisterId = registerId,
+            Items =
+            [
+                new CreateOrderItemDto
+                {
+                    Kind = OrderItemKind.Product,
+                    ProductId = productId,
+                    ProductName = "Item",
+                    Quantity = 1m,
+                    UnitPrice = 50m
+                }
+            ]
+        })).Content.ReadFromJsonAsync<Guid>();
+
+        (await client.PostAsJsonAsync($"/api/v1/sales/orders/{orderId}/pay", new PayOrderCommand
+        {
+            OrderId = orderId,
+            Payments = [new PayOrderPaymentDto { Method = PaymentMethod.Cash, Amount = 50m }]
+        })).EnsureSuccessStatusCode();
+
+        client.DefaultRequestHeaders.Remove("Idempotency-Key");
+        client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
+        (await client.PostAsJsonAsync($"/api/v1/sales/cash-registers/{registerId}/movements", new
+        {
+            kind = CashMovementKind.Drop,
+            amount = 30m,
+            reason = "Cofre"
+        })).EnsureSuccessStatusCode();
+
+        client.DefaultRequestHeaders.Remove("Idempotency-Key");
+        client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
+        (await client.PostAsJsonAsync($"/api/v1/sales/cash-registers/{registerId}/movements", new
+        {
+            kind = CashMovementKind.Supply,
+            amount = 10m,
+            reason = "Troco"
+        })).EnsureSuccessStatusCode();
+
+        var openDto = await (await client.GetAsync("/api/v1/sales/cash-registers/open")).Content.ReadFromJsonAsync<OpenCashRegisterDto>();
+        openDto!.ExpectedBalance.Should().Be(130m);
+
+        client.DefaultRequestHeaders.Remove("Idempotency-Key");
+        client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
+        (await client.PostAsJsonAsync("/api/v1/sales/cash-registers/close", new
+        {
+            cashRegisterId = registerId,
+            actualClosingBalance = 130m
+        })).EnsureSuccessStatusCode();
+
+        var detail = await (await client.GetAsync($"/api/v1/sales/cash-registers/{registerId}"))
+            .Content.ReadFromJsonAsync<CashRegisterDetailDto>();
+        detail!.ExpectedClosingBalance.Should().Be(130m);
+        detail.ClosingBalance.Should().Be(130m);
+        detail.ClosingVariance.Should().Be(0m);
+    }
 }
 
 public class LoginResponseDto

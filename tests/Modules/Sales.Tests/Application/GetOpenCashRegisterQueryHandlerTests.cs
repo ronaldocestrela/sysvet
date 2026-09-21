@@ -48,6 +48,7 @@ public class GetOpenCashRegisterQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.Id.Should().Be(register.Id);
         result.Value.OpeningBalance.Should().Be(40m);
+        result.Value.ExpectedBalance.Should().Be(65m);
         result.Value.CurrentBalance.Should().Be(65m);
         result.Value.Status.Should().Be("Open");
     }

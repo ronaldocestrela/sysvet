@@ -900,15 +900,7 @@ public sealed class OfflineSyncPullApplier
         var register = await _dbContext.CashRegisters.FirstOrDefaultAsync(c => c.Id == dto.Id, cancellationToken);
         if (register is null)
         {
-            _dbContext.CashRegisters.Add(CashRegister.RestoreFromSync(
-                dto.Id,
-                dto.OpenedByUserId,
-                dto.OpenedAt,
-                dto.ClosedAt,
-                dto.OpeningBalance,
-                dto.ClosingBalance,
-                status,
-                dto.UpdatedAt));
+            _dbContext.CashRegisters.Add(MapCashRegisterFromSync(dto, status));
             return;
         }
 
@@ -918,15 +910,33 @@ public sealed class OfflineSyncPullApplier
         }
 
         _dbContext.CashRegisters.Remove(register);
-        _dbContext.CashRegisters.Add(CashRegister.RestoreFromSync(
+        _dbContext.CashRegisters.Add(MapCashRegisterFromSync(dto, status));
+    }
+
+    private static CashRegister MapCashRegisterFromSync(ClientSyncSalesCashRegisterDto dto, CashRegisterStatus status)
+    {
+        var movements = dto.Movements
+            .Select(m => CashMovement.Restore(
+                m.Id,
+                m.CashRegisterId,
+                Enum.Parse<CashMovementKind>(m.Kind, true),
+                m.Amount,
+                m.Reason,
+                m.OccurredAt,
+                m.UpdatedAt))
+            .ToList();
+
+        return CashRegister.RestoreFromSync(
             dto.Id,
             dto.OpenedByUserId,
             dto.OpenedAt,
             dto.ClosedAt,
             dto.OpeningBalance,
+            dto.ExpectedClosingBalance,
             dto.ClosingBalance,
             status,
-            dto.UpdatedAt));
+            dto.UpdatedAt,
+            movements);
     }
 
     private async Task UpsertSalesOrderAsync(ClientSyncSalesOrderDto dto, CancellationToken cancellationToken)
@@ -1376,7 +1386,8 @@ public sealed class OfflineSyncPullApplier
                 a.Method,
                 a.CorrelationId,
                 Enum.Parse<AllocationKind>(a.Kind, true),
-                a.UpdatedAt))
+                a.UpdatedAt,
+                a.ExternalReference))
             .ToList();
 
         var existing = await _dbContext.FinancialTitles

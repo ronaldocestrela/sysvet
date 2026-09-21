@@ -31,6 +31,7 @@ internal static class FinancialTitleMapper
                     Amount = a.Amount,
                     PaidAt = a.PaidAt,
                     Method = a.Method,
+                    ExternalReference = a.ExternalReference,
                     Kind = a.Kind
                 })
                 .ToList()

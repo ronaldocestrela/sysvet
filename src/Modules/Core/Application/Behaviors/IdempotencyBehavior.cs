@@ -65,7 +65,7 @@ public class IdempotencyBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
 
         if (isSuccess)
         {
-            await _idempotencyService.CreateRequestAsync(key, typeof(TRequest).Name, cancellationToken);
+            await _idempotencyService.CreateRequestAsync(key, $"{typeof(TRequest).Name}:{key:N}", cancellationToken);
         }
 
         return response;

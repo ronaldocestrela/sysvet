@@ -15,6 +15,7 @@ public sealed class TitleAllocation : Entity
     public string Method { get; private set; } = string.Empty;
     public Guid CorrelationId { get; private set; }
     public AllocationKind Kind { get; private set; }
+    public string? ExternalReference { get; private set; }
 
     private TitleAllocation() { }
 
@@ -24,6 +25,7 @@ public sealed class TitleAllocation : Entity
         DateTimeOffset paidAt,
         string method,
         Guid correlationId,
+        string? externalReference = null,
         Guid? id = null)
     {
         return new TitleAllocation
@@ -34,7 +36,8 @@ public sealed class TitleAllocation : Entity
             PaidAt = paidAt,
             Method = method.Trim(),
             CorrelationId = correlationId,
-            Kind = AllocationKind.Settlement
+            Kind = AllocationKind.Settlement,
+            ExternalReference = string.IsNullOrWhiteSpace(externalReference) ? null : externalReference.Trim()
         };
     }
 
@@ -67,7 +70,8 @@ public sealed class TitleAllocation : Entity
         string method,
         Guid correlationId,
         AllocationKind kind,
-        DateTimeOffset updatedAt)
+        DateTimeOffset updatedAt,
+        string? externalReference = null)
     {
         return new TitleAllocation
         {
@@ -78,6 +82,7 @@ public sealed class TitleAllocation : Entity
             Method = method,
             CorrelationId = correlationId,
             Kind = kind,
+            ExternalReference = externalReference,
             UpdatedAt = updatedAt
         };
     }

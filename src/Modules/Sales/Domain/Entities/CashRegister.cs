@@ -13,8 +13,14 @@ public class CashRegister : AggregateRoot
     public DateTimeOffset OpenedAt { get; private set; }
     public DateTimeOffset? ClosedAt { get; private set; }
     public Money OpeningBalance { get; private set; } = Money.Zero;
+    public Money ExpectedClosingBalance { get; private set; } = Money.Zero;
     public Money ClosingBalance { get; private set; } = Money.Zero;
     public CashRegisterStatus Status { get; private set; } = CashRegisterStatus.Closed;
+
+    private readonly List<CashMovement> _movements = new();
+
+    /// <summary>Cash drawer movements (sangria/suprimento).</summary>
+    public IReadOnlyCollection<CashMovement> Movements => _movements.AsReadOnly();
 
     private CashRegister() { }
 
@@ -53,13 +59,74 @@ public class CashRegister : AggregateRoot
     }
 
     /// <summary>
-    /// Closes the session with the counted cash in drawer.
+    /// Computes expected cash in drawer: opening + cash sales net − drops + supplies.
     /// </summary>
-    public Result<bool> Close(decimal actualClosingBalance)
+    public decimal ComputeExpectedCash(decimal cashNet)
+    {
+        var drops = _movements.Where(m => m.Kind == CashMovementKind.Drop).Sum(m => m.Amount.Amount);
+        var supplies = _movements.Where(m => m.Kind == CashMovementKind.Supply).Sum(m => m.Amount.Amount);
+        return OpeningBalance.Amount + cashNet - drops + supplies;
+    }
+
+    /// <summary>Records a sangria (cash removed from drawer).</summary>
+    public Result<Guid> RecordDrop(decimal amount, string reason, decimal cashNet, Guid? movementId = null)
+    {
+        if (Status != CashRegisterStatus.Open)
+        {
+            return Result.Failure<Guid>(ErrorCodes.CashRegister.MovementNotAllowed);
+        }
+
+        var expected = ComputeExpectedCash(cashNet);
+        if (amount > expected)
+        {
+            return Result.Failure<Guid>(ErrorCodes.CashRegister.InsufficientCash);
+        }
+
+        var movementResult = CashMovement.Create(Id, CashMovementKind.Drop, amount, reason, id: movementId);
+        if (movementResult.IsFailure)
+        {
+            return Result.Failure<Guid>(movementResult.Error);
+        }
+
+        _movements.Add(movementResult.Value);
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success(movementResult.Value.Id);
+    }
+
+    /// <summary>Records a suprimento (cash added to drawer).</summary>
+    public Result<Guid> RecordSupply(decimal amount, string reason, Guid? movementId = null)
+    {
+        if (Status != CashRegisterStatus.Open)
+        {
+            return Result.Failure<Guid>(ErrorCodes.CashRegister.MovementNotAllowed);
+        }
+
+        var movementResult = CashMovement.Create(Id, CashMovementKind.Supply, amount, reason, id: movementId);
+        if (movementResult.IsFailure)
+        {
+            return Result.Failure<Guid>(movementResult.Error);
+        }
+
+        _movements.Add(movementResult.Value);
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success(movementResult.Value.Id);
+    }
+
+    /// <summary>
+    /// Closes the session with counted cash and snapshots expected balance from sales/movements.
+    /// </summary>
+    public Result<bool> Close(decimal actualClosingBalance, decimal cashNet)
     {
         if (Status == CashRegisterStatus.Closed)
         {
             return Result.Failure<bool>(ErrorCodes.CashRegister.AlreadyClosed);
+        }
+
+        var expected = ComputeExpectedCash(cashNet);
+        var expectedMoney = Money.Create(expected);
+        if (expectedMoney.IsFailure)
+        {
+            return Result.Failure<bool>(expectedMoney.Error);
         }
 
         var moneyResult = Money.Create(actualClosingBalance);
@@ -68,6 +135,7 @@ public class CashRegister : AggregateRoot
             return Result.Failure<bool>(moneyResult.Error);
         }
 
+        ExpectedClosingBalance = expectedMoney.Value;
         ClosingBalance = moneyResult.Value;
         ClosedAt = DateTimeOffset.UtcNow;
         Status = CashRegisterStatus.Closed;
@@ -76,6 +144,12 @@ public class CashRegister : AggregateRoot
         return Result.Success(true);
     }
 
+    /// <summary>Variance after close (counted minus expected).</summary>
+    public decimal? ClosingVariance =>
+        Status == CashRegisterStatus.Closed
+            ? ClosingBalance.Amount - ExpectedClosingBalance.Amount
+            : null;
+
     /// <summary>Rehydrates a cash register from sync pull.</summary>
     public static CashRegister RestoreFromSync(
         Guid id,
@@ -83,19 +157,28 @@ public class CashRegister : AggregateRoot
         DateTimeOffset openedAt,
         DateTimeOffset? closedAt,
         decimal openingBalance,
+        decimal expectedClosingBalance,
         decimal closingBalance,
         CashRegisterStatus status,
-        DateTimeOffset updatedAt)
+        DateTimeOffset updatedAt,
+        IEnumerable<CashMovement>? movements = null)
     {
         var opening = Money.CreateUnsafe(openingBalance);
         var register = new CashRegister(id, openedByUserId, opening)
         {
             OpenedAt = openedAt,
             ClosedAt = closedAt,
+            ExpectedClosingBalance = Money.CreateUnsafe(expectedClosingBalance),
             ClosingBalance = Money.CreateUnsafe(closingBalance),
             Status = status,
             UpdatedAt = updatedAt
         };
+
+        if (movements != null)
+        {
+            register._movements.AddRange(movements);
+        }
+
         return register;
     }
 }

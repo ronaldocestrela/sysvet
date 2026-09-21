@@ -382,10 +382,24 @@ public sealed class SyncSalesCashRegisterDto
     public DateTimeOffset OpenedAt { get; init; }
     public DateTimeOffset? ClosedAt { get; init; }
     public decimal OpeningBalance { get; init; }
+    public decimal ExpectedClosingBalance { get; init; }
     public decimal ClosingBalance { get; init; }
     public string Status { get; init; } = string.Empty;
     public DateTimeOffset UpdatedAt { get; init; }
     public string RowVersion { get; init; } = string.Empty;
+    public IReadOnlyList<SyncSalesCashMovementDto> Movements { get; init; } = Array.Empty<SyncSalesCashMovementDto>();
+}
+
+/// <summary>Cash movement on a register session.</summary>
+public sealed class SyncSalesCashMovementDto
+{
+    public Guid Id { get; init; }
+    public Guid CashRegisterId { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public decimal Amount { get; init; }
+    public string Reason { get; init; } = string.Empty;
+    public DateTimeOffset OccurredAt { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
 }
 
 /// <summary>POS order row for sync pull.</summary>
@@ -632,6 +646,7 @@ public sealed class SyncTitleAllocationDto
     public decimal Amount { get; init; }
     public DateTimeOffset PaidAt { get; init; }
     public string Method { get; init; } = string.Empty;
+    public string? ExternalReference { get; init; }
     public Guid CorrelationId { get; init; }
     public string Kind { get; init; } = string.Empty;
     public DateTimeOffset UpdatedAt { get; init; }

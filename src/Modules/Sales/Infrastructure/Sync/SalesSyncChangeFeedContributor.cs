@@ -22,7 +22,7 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
         var hasMore = false;
 
         var registers = await ReadPageAsync(
-            _dbContext.CashRegisters.AsNoTracking(),
+            _dbContext.CashRegisters.AsNoTracking().Include(c => c.Movements),
             since,
             take,
             c => c.UpdatedAt,
@@ -133,10 +133,21 @@ public sealed class SalesSyncChangeFeedContributor : ISyncChangeFeedContributor
             OpenedAt = c.OpenedAt,
             ClosedAt = c.ClosedAt,
             OpeningBalance = c.OpeningBalance.Amount,
+            ExpectedClosingBalance = c.ExpectedClosingBalance.Amount,
             ClosingBalance = c.ClosingBalance.Amount,
             Status = c.Status.ToString(),
             UpdatedAt = c.UpdatedAt,
-            RowVersion = Convert.ToBase64String(c.RowVersion ?? Array.Empty<byte>())
+            RowVersion = Convert.ToBase64String(c.RowVersion ?? Array.Empty<byte>()),
+            Movements = c.Movements.Select(m => new SyncSalesCashMovementDto
+            {
+                Id = m.Id,
+                CashRegisterId = m.CashRegisterId,
+                Kind = m.Kind.ToString(),
+                Amount = m.Amount.Amount,
+                Reason = m.Reason,
+                OccurredAt = m.OccurredAt,
+                UpdatedAt = m.UpdatedAt
+            }).ToList()
         };
 
     private static SyncSalesOrderDto MapOrder(Order o) =>

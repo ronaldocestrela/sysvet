@@ -1,0 +1,137 @@
+@page "/finance/card-reconciliation"
+@using Clients.Infrastructure.Finance
+@using SharedUI.Services
+@inject FinanceReconciliationApiService ReconciliationApi
+@inject IConnectivityService Connectivity
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Conciliação de cartões (TEF)</h1>
+    @if (!Connectivity.IsOnline)
+    {
+        <p class="text-warning">Requer conexão online com a API.</p>
+    }
+</div>
+
+@if (Connectivity.IsOnline)
+{
+    <div class="card mb-3">
+        <h5>Importar extrato (PoC)</h5>
+        <div class="form-group">
+            <label>Referência</label>
+            <input class="form-control" @bind="_reference" />
+        </div>
+        <div class="form-group">
+            <label>NSU</label>
+            <input class="form-control" @bind="_lineNsu" />
+        </div>
+        <div class="form-group">
+            <label>Valor</label>
+            <input type="number" step="0.01" class="form-control" @bind="_lineAmount" />
+        </div>
+        <button class="btn btn-primary" @onclick="ImportAsync" disabled="@_loading">Importar lote</button>
+    </div>
+
+    <div class="card mb-3">
+        <h5>Lotes</h5>
+        @if (_batches.Count == 0)
+        {
+            <p class="text-muted">Nenhum lote importado.</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var b in _batches)
+                {
+                    <li>@b.Reference — matched @b.MatchedCount / unmatched @b.UnmatchedCount / divergent @b.DivergentCount</li>
+                }
+            </ul>
+        }
+    </div>
+
+    <div class="card">
+        <h5>Recebíveis de cartão não conciliados</h5>
+        @if (_unmatched.Count == 0)
+        {
+            <p class="text-muted">Nenhum pendente.</p>
+        }
+        else
+        {
+            <table class="table table-sm">
+                <thead><tr><th>NSU</th><th>Método</th><th>Valor</th></tr></thead>
+                <tbody>
+                    @foreach (var u in _unmatched)
+                    {
+                        <tr><td>@u.Nsu</td><td>@u.Method</td><td>@u.Amount.ToString("C")</td></tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+@code {
+    private bool _loading;
+    private string _reference = "Extrato PoC";
+    private string _lineNsu = string.Empty;
+    private decimal _lineAmount;
+    private List<CardReconciliationSummaryClientDto> _batches = new();
+    private List<UnmatchedCardSettlementClientDto> _unmatched = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Connectivity.IsOnline)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        var batches = await ReconciliationApi.ListBatchesAsync();
+        if (batches.IsSuccess && batches.Value != null)
+        {
+            _batches = batches.Value.ToList();
+        }
+
+        var unmatched = await ReconciliationApi.ListUnmatchedAsync();
+        if (unmatched.IsSuccess && unmatched.Value != null)
+        {
+            _unmatched = unmatched.Value.ToList();
+        }
+    }
+
+    private async Task ImportAsync()
+    {
+        _loading = true;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var request = new ImportCardStatementClientRequest
+        {
+            Reference = _reference,
+            PeriodFrom = today,
+            PeriodTo = today,
+            Lines =
+            [
+                new ImportCardStatementLineClientRequest
+                {
+                    Nsu = _lineNsu,
+                    Amount = _lineAmount,
+                    Method = "CreditCard"
+                }
+            ]
+        };
+
+        var result = await ReconciliationApi.ImportStatementAsync(request);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+        else
+        {
+            Toast.Show("Lote importado.", ToastType.Success);
+            await LoadAsync();
+        }
+
+        _loading = false;
+    }
+}

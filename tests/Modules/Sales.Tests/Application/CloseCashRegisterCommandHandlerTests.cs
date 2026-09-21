@@ -14,9 +14,12 @@ public class CloseCashRegisterCommandHandlerTests
     {
         var register = CashRegister.Open(Guid.NewGuid(), 100m).Value;
         var repo = Substitute.For<ICashRegisterRepository>();
+        var orderRepo = Substitute.For<IOrderRepository>();
         repo.GetByIdAsync(register.Id, Arg.Any<CancellationToken>()).Returns(register);
+        orderRepo.GetPaymentTotalsForCashRegisterAsync(register.Id, Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Sales.Domain.Queries.CashRegisterPaymentTotals>());
 
-        var handler = new CloseCashRegisterCommandHandler(repo);
+        var handler = new CloseCashRegisterCommandHandler(repo, orderRepo);
         var result = await handler.Handle(new CloseCashRegisterCommand
         {
             CashRegisterId = register.Id,
@@ -31,11 +34,12 @@ public class CloseCashRegisterCommandHandlerTests
     public async Task Handle_WhenAlreadyClosed_ReturnsSuccessWithoutUpdate()
     {
         var register = CashRegister.Open(Guid.NewGuid(), 10m).Value;
-        register.Close(10m);
+        register.Close(10m, 0m);
         var repo = Substitute.For<ICashRegisterRepository>();
         repo.GetByIdAsync(register.Id, Arg.Any<CancellationToken>()).Returns(register);
 
-        var handler = new CloseCashRegisterCommandHandler(repo);
+        var orderRepo = Substitute.For<IOrderRepository>();
+        var handler = new CloseCashRegisterCommandHandler(repo, orderRepo);
         var result = await handler.Handle(new CloseCashRegisterCommand
         {
             CashRegisterId = register.Id,
@@ -52,7 +56,8 @@ public class CloseCashRegisterCommandHandlerTests
         var repo = Substitute.For<ICashRegisterRepository>();
         repo.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((CashRegister?)null);
 
-        var handler = new CloseCashRegisterCommandHandler(repo);
+        var orderRepo = Substitute.For<IOrderRepository>();
+        var handler = new CloseCashRegisterCommandHandler(repo, orderRepo);
         var result = await handler.Handle(new CloseCashRegisterCommand
         {
             CashRegisterId = Guid.NewGuid(),

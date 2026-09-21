@@ -63,6 +63,7 @@ public sealed class FinanceSyncChangeFeedContributor : ISyncChangeFeedContributo
                     Amount = a.Amount,
                     PaidAt = a.PaidAt,
                     Method = a.Method,
+                    ExternalReference = a.ExternalReference,
                     CorrelationId = a.CorrelationId,
                     Kind = a.Kind.ToString(),
                     UpdatedAt = a.UpdatedAt

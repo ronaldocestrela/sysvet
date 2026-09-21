@@ -192,7 +192,14 @@ Iniciado o módulo de estoque.
 - Endpoints Finance; sync pull/push; clientes `/finance` + `IFinanceStore`.
 - Aceite: `PayOrder_ShouldDebitStockAndMarkFinanceLinked`, `ConfirmPurchaseXml_CreatesPayablesFromDuplicates`.
 
-### 👉 **Próxima Ação: Fase 7.3 — Caixa, sangrias e conciliação**
+### Fase 7.3 — Caixa, sangrias e conciliação — Concluída (ADR-033)
+
+- Caixa operacional no Sales: sangrias/suprimentos, saldo esperado na gaveta, fechamento com variance (não bloqueia).
+- Finance: NSU nas alocações AR de cartão; import PoC de extrato e match por NSU + valor.
+- Sync offline de movimentos; conciliação de cartão online-only; UI caixa + `/finance/card-reconciliation`.
+- Aceite: `CloseCashRegister_ExpectedBalance_MatchesCashSalesMinusDrops`; `ImportCardStatement_MatchesReceivableByNsu`.
+
+### 👉 **Próxima Ação: Fase 7.4 — Fluxo de caixa e demonstrativos**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 7.
 

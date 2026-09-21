@@ -57,6 +57,10 @@ public static class ErrorCodes
         public static readonly Error AlreadyClosed = new("CashRegister.AlreadyClosed", "O caixa já está fechado.");
         public static readonly Error AlreadyOpen = new("CashRegister.AlreadyOpen", "O usuário já possui um caixa aberto.");
         public static readonly Error InvalidId = new("CashRegister.InvalidId", "Identificador do caixa inválido.");
+        public static readonly Error InsufficientCash = new("CashRegister.InsufficientCash", "Saldo em caixa insuficiente para a sangria.");
+        public static readonly Error MovementNotAllowed = new("CashRegister.MovementNotAllowed", "Movimento de caixa não permitido na sessão atual.");
+        public static readonly Error InvalidReason = new("CashRegister.InvalidReason", "Informe o motivo do movimento de caixa.");
+        public static readonly Error InvalidMovementAmount = new("CashRegister.InvalidMovementAmount", "Valor do movimento deve ser maior que zero.");
     }
 
     public static class Money

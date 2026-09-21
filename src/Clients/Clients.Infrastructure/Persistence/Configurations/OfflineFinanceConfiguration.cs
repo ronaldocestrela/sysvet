@@ -32,6 +32,7 @@ internal sealed class OfflineTitleAllocationConfiguration : IEntityTypeConfigura
         builder.ToTable("TitleAllocations");
         builder.HasKey(a => a.Id);
         builder.Property(a => a.Kind).HasConversion<string>();
+        builder.Property(a => a.ExternalReference).HasMaxLength(64);
     }
 }
 
