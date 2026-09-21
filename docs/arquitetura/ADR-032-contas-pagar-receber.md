@@ -17,7 +17,7 @@ A Fase 7.1 entregou o esqueleto do módulo Finance. Vendas (ADR-025) já publica
 3. **AR de PDV:** um recebível por pedido pago, **liquidado** na criação (split de pagamentos vira alocações). Cartão não fica em aberto; alocações de débito/crédito persistem **NSU** em `ExternalReference` (conciliação PoC entregue na 7.3, ADR-033).
 4. **AP de NF-e:** um payable por duplicata (`cobr/dup`); sem duplicatas, título único no total da nota.
 5. **Permissões:** `Finance.Read` / `Finance.Write`; menu `finance`; Receptionist + Admin.
-6. **Projeção 7.2:** previsto (saldo em aberto por vencimento) vs realizado (alocações no período); ledger por contraparte — não é DRE (7.4).
+6. **Projeção 7.2:** previsto (saldo em aberto por vencimento) vs realizado (alocações no período); ledger por contraparte — não é DRE (entregue na 7.4, ADR-034).
 
 ## Consequências
 
@@ -33,5 +33,5 @@ A Fase 7.1 entregou o esqueleto do módulo Finance. Vendas (ADR-025) já publica
 
 ## Relacionados
 
-- [ADR-021](./ADR-021-entrada-xml-nfe-compra.md), [ADR-025](./ADR-025-motor-pdv-vendas.md), [ADR-027](./ADR-027-pagamentos-tef.md), [ADR-033](./ADR-033-caixa-sangrias-conciliacao.md)
+- [ADR-021](./ADR-021-entrada-xml-nfe-compra.md), [ADR-025](./ADR-025-motor-pdv-vendas.md), [ADR-027](./ADR-027-pagamentos-tef.md), [ADR-033](./ADR-033-caixa-sangrias-conciliacao.md), [ADR-034](./ADR-034-fluxo-caixa-demonstrativos.md)
 - [`docs/diagramas/finance-ap-ar.mmd`](../diagramas/finance-ap-ar.mmd)

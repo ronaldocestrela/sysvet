@@ -47,4 +47,12 @@ public static class ErrorCodes
         public static readonly Error EmptyStatement = new("CardReconciliation.EmptyStatement", "Informe ao menos uma linha no extrato.");
         public static readonly Error InvalidLine = new("CardReconciliation.InvalidLine", "Linha do extrato inválida (NSU e valor obrigatórios).");
     }
+
+    public static class Report
+    {
+        public static readonly Error InvalidDateRange = new("Finance.Report.InvalidDateRange", "A data inicial não pode ser posterior à data final.");
+        public static readonly Error RangeTooLarge = new("Finance.Report.RangeTooLarge", "O intervalo do relatório não pode exceder 366 dias.");
+        public static readonly Error InvalidMonth = new("Finance.Report.InvalidMonth", "Mês de competência inválido.");
+        public static readonly Error ExportNotFullMonth = new("Finance.Report.ExportNotFullMonth", "Exportação mensal exige intervalo de mês calendário completo.");
+    }
 }

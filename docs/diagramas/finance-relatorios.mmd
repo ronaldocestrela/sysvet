@@ -1,0 +1,28 @@
+flowchart TB
+  subgraph data [Finance AP_AR]
+    Titles[FinancialTitle]
+    Alloc[TitleAllocation]
+    Cat[FinancialCategory]
+  end
+  subgraph domain [Finance.Domain]
+    Calc[FinancialStatementCalculator]
+  end
+  subgraph outputs [Demonstrativos]
+    CF[CashFlow regime caixa]
+    DRE[DRE competencia IssueDate]
+  end
+  subgraph delivery [Entrega]
+    API[GET cash-flow dre export]
+    UI["/finance/reports"]
+    Offline[SQLite IFinanceStore]
+  end
+  Titles --> Calc
+  Alloc --> Calc
+  Cat --> Calc
+  Calc --> CF
+  Calc --> DRE
+  CF --> API
+  DRE --> API
+  API --> UI
+  Calc --> Offline
+  Offline --> UI

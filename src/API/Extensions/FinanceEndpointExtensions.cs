@@ -2,6 +2,7 @@ using Core.Domain;
 using Finance.Application.Categories;
 using Finance.Application.CostCenters;
 using Finance.Application.Projections;
+using Finance.Application.Reports;
 using Finance.Application.Reconciliation;
 using Finance.Application.Reconciliation.Dtos;
 using Finance.Application.Titles.Commands;
@@ -64,6 +65,19 @@ public static class FinanceEndpointExtensions
         var finance = builder.MapGroup("/api/v1/finance").RequireAuthorization().WithTags("Finance");
         finance.MapGet("/projection", async ([FromQuery] DateOnly from, [FromQuery] DateOnly to, IMediator mediator) =>
             (await mediator.Send(new GetBalanceProjectionQuery(from, to))).ToHttpResult());
+        finance.MapGet("/cash-flow", async ([FromQuery] DateOnly from, [FromQuery] DateOnly to, IMediator mediator) =>
+            (await mediator.Send(new GetCashFlowQuery(from, to))).ToHttpResult());
+        finance.MapGet("/dre", async ([FromQuery] int year, [FromQuery] int month, IMediator mediator) =>
+            (await mediator.Send(new GetSimplifiedDreQuery(year, month))).ToHttpResult());
+        finance.MapGet("/statements/export", async ([FromQuery] DateOnly from, [FromQuery] DateOnly to, [FromQuery] string format, IMediator mediator) =>
+        {
+            if (!Enum.TryParse<FinanceExportFormat>(format, ignoreCase: true, out var exportFormat))
+            {
+                return Results.BadRequest(new { error = "Invalid format. Use csv or pdf." });
+            }
+
+            return ToFileResult(await mediator.Send(new ExportFinanceStatementsQuery(from, to, exportFormat)));
+        });
         finance.MapGet("/parties/{partyKind}/{partyId:guid}/ledger", async (PartyKind partyKind, Guid partyId, IMediator mediator) =>
             (await mediator.Send(new GetPartyLedgerQuery(partyKind, partyId))).ToHttpResult());
 
@@ -80,6 +94,16 @@ public static class FinanceEndpointExtensions
             (await mediator.Send(new GetUnmatchedCardSettlementsQuery())).ToHttpResult());
 
         return builder;
+    }
+
+    private static IResult ToFileResult(Core.Domain.Result<ReportFileDto> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.ToProblemDetails();
+        }
+
+        return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
     }
 
     private sealed record SettleFinancialTitleBody(decimal Amount, string Method, DateTimeOffset? PaidAt);

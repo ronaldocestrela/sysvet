@@ -1,6 +1,10 @@
 using Clients.Infrastructure.Sync;
 using Core.Domain;
+using Finance.Application.Reports;
+using Finance.Application.Reports.Dtos;
+using Finance.Domain.Entities;
 using Finance.Domain.Enums;
+using Finance.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clients.Infrastructure.Finance;
@@ -35,11 +39,8 @@ public sealed class OfflineFinanceStore : IFinanceStore
 
     public async Task<Result<BalanceProjectionClientDto>> GetProjectionAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
     {
-        var titles = await _dbContext.FinancialTitles
-            .Include(t => t.Allocations)
-            .AsNoTracking()
-            .Where(t => t.DueDate >= from && t.DueDate <= to && t.Status != TitleStatus.Cancelled)
-            .ToListAsync(cancellationToken);
+        var titles = await ListForStatementsAsync(from, to, cancellationToken);
+        titles = titles.Where(t => t.Status != TitleStatus.Cancelled).ToList();
 
         decimal expectedReceivable = 0;
         decimal expectedPayable = 0;
@@ -48,19 +49,26 @@ public sealed class OfflineFinanceStore : IFinanceStore
 
         foreach (var title in titles)
         {
+            if (title.DueDate >= from && title.DueDate <= to)
+            {
+                if (title.Direction == TitleDirection.Receivable)
+                {
+                    expectedReceivable += title.OpenAmount;
+                }
+                else
+                {
+                    expectedPayable += title.OpenAmount;
+                }
+            }
+
+            var net = NetRealizedInPeriod(title, from, to);
             if (title.Direction == TitleDirection.Receivable)
             {
-                expectedReceivable += title.OpenAmount;
-                realizedReceivable += title.Allocations
-                    .Where(a => a.Kind == AllocationKind.Settlement)
-                    .Sum(a => a.Amount);
+                realizedReceivable += net;
             }
             else
             {
-                expectedPayable += title.OpenAmount;
-                realizedPayable += title.Allocations
-                    .Where(a => a.Kind == AllocationKind.Settlement)
-                    .Sum(a => a.Amount);
+                realizedPayable += net;
             }
         }
 
@@ -71,6 +79,23 @@ public sealed class OfflineFinanceStore : IFinanceStore
             RealizedReceivable = realizedReceivable,
             RealizedPayable = realizedPayable
         });
+    }
+
+    private static decimal NetRealizedInPeriod(FinancialTitle title, DateOnly from, DateOnly to)
+    {
+        decimal total = 0;
+        foreach (var allocation in title.Allocations)
+        {
+            var paidDate = DateOnly.FromDateTime(allocation.PaidAt.UtcDateTime);
+            if (paidDate < from || paidDate > to)
+            {
+                continue;
+            }
+
+            total += allocation.Kind == AllocationKind.Settlement ? allocation.Amount : -allocation.Amount;
+        }
+
+        return total;
     }
 
     public async Task<Result> SettleTitleAsync(Guid titleId, decimal amount, string method, CancellationToken cancellationToken = default)
@@ -103,4 +128,153 @@ public sealed class OfflineFinanceStore : IFinanceStore
         await _dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
+
+    public async Task<Result<CashFlowReportClientDto>> GetCashFlowAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        var titles = await ListForStatementsAsync(from, to, cancellationToken);
+        var statement = FinancialStatementCalculator.BuildCashFlow(from, to, titles);
+        if (statement.IsFailure)
+        {
+            return Result.Failure<CashFlowReportClientDto>(statement.Error);
+        }
+
+        var dto = FinanceReportMapper.ToDto(statement.Value);
+        return Result.Success(MapCashFlow(dto));
+    }
+
+    public async Task<Result<SimplifiedDreReportClientDto>> GetSimplifiedDreAsync(int year, int month, CancellationToken cancellationToken = default)
+    {
+        var from = new DateOnly(year, month, 1);
+        var to = from.AddMonths(1).AddDays(-1);
+        var titles = await ListForStatementsAsync(from, to, cancellationToken);
+        var categories = await _dbContext.FinancialCategories.AsNoTracking().ToDictionaryAsync(c => c.Id, cancellationToken);
+        var statement = FinancialStatementCalculator.BuildSimplifiedDre(year, month, titles, categories);
+        if (statement.IsFailure)
+        {
+            return Result.Failure<SimplifiedDreReportClientDto>(statement.Error);
+        }
+
+        return Result.Success(MapDre(FinanceReportMapper.ToDto(statement.Value)));
+    }
+
+    public async Task<Result<byte[]>> ExportStatementsCsvAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        var monthValidation = FinancialStatementCalculator.ValidateFullCalendarMonth(from, to);
+        if (monthValidation.IsFailure)
+        {
+            return Result.Failure<byte[]>(monthValidation.Error);
+        }
+
+        var cashFlow = await GetCashFlowAsync(from, to, cancellationToken);
+        if (cashFlow.IsFailure)
+        {
+            return Result.Failure<byte[]>(cashFlow.Error);
+        }
+
+        var dre = await GetSimplifiedDreAsync(from.Year, from.Month, cancellationToken);
+        if (dre.IsFailure)
+        {
+            return Result.Failure<byte[]>(dre.Error);
+        }
+
+        var apiCashFlow = MapToApiCashFlow(cashFlow.Value);
+        var apiDre = MapToApiDre(dre.Value);
+        return Result.Success(FinanceStatementCsvExporter.Export(apiCashFlow, apiDre));
+    }
+
+    private async Task<IReadOnlyList<FinancialTitle>> ListForStatementsAsync(
+        DateOnly from,
+        DateOnly to,
+        CancellationToken cancellationToken)
+    {
+        var allocations = await _dbContext.TitleAllocations.AsNoTracking().ToListAsync(cancellationToken);
+        var paidAllocationTitleIds = allocations
+            .Where(a =>
+            {
+                var paidDate = DateOnly.FromDateTime(a.PaidAt.UtcDateTime);
+                return paidDate >= from && paidDate <= to;
+            })
+            .Select(a => a.FinancialTitleId)
+            .Distinct()
+            .ToList();
+
+        return await _dbContext.FinancialTitles
+            .Include(t => t.Allocations)
+            .AsNoTracking()
+            .Where(t =>
+                (t.IssueDate >= from && t.IssueDate <= to)
+                || (t.DueDate >= from && t.DueDate <= to)
+                || paidAllocationTitleIds.Contains(t.Id))
+            .ToListAsync(cancellationToken);
+    }
+
+    private static CashFlowReportClientDto MapCashFlow(CashFlowReportDto dto) =>
+        new()
+        {
+            From = dto.From,
+            To = dto.To,
+            Days = dto.Days.Select(d => new CashFlowDayClientDto
+            {
+                Date = d.Date,
+                RealizedInflow = d.RealizedInflow,
+                RealizedOutflow = d.RealizedOutflow,
+                NetRealized = d.NetRealized,
+                ExpectedReceivable = d.ExpectedReceivable,
+                ExpectedPayable = d.ExpectedPayable
+            }).ToList(),
+            TotalRealizedInflow = dto.TotalRealizedInflow,
+            TotalRealizedOutflow = dto.TotalRealizedOutflow
+        };
+
+    private static SimplifiedDreReportClientDto MapDre(SimplifiedDreReportDto dto) =>
+        new()
+        {
+            Year = dto.Year,
+            Month = dto.Month,
+            Lines = dto.Lines.Select(l => new SimplifiedDreLineClientDto
+            {
+                CategoryCode = l.CategoryCode,
+                CategoryName = l.CategoryName,
+                Revenue = l.Revenue,
+                Expense = l.Expense
+            }).ToList(),
+            TotalRevenue = dto.TotalRevenue,
+            TotalExpense = dto.TotalExpense,
+            NetResult = dto.NetResult
+        };
+
+    private static CashFlowReportDto MapToApiCashFlow(CashFlowReportClientDto dto) =>
+        new()
+        {
+            From = dto.From,
+            To = dto.To,
+            Days = dto.Days.Select(d => new CashFlowDayDto
+            {
+                Date = d.Date,
+                RealizedInflow = d.RealizedInflow,
+                RealizedOutflow = d.RealizedOutflow,
+                NetRealized = d.NetRealized,
+                ExpectedReceivable = d.ExpectedReceivable,
+                ExpectedPayable = d.ExpectedPayable
+            }).ToList(),
+            TotalRealizedInflow = dto.TotalRealizedInflow,
+            TotalRealizedOutflow = dto.TotalRealizedOutflow
+        };
+
+    private static SimplifiedDreReportDto MapToApiDre(SimplifiedDreReportClientDto dto) =>
+        new()
+        {
+            Year = dto.Year,
+            Month = dto.Month,
+            Lines = dto.Lines.Select(l => new SimplifiedDreLineDto
+            {
+                CategoryCode = l.CategoryCode,
+                CategoryName = l.CategoryName,
+                Revenue = l.Revenue,
+                Expense = l.Expense
+            }).ToList(),
+            TotalRevenue = dto.TotalRevenue,
+            TotalExpense = dto.TotalExpense,
+            NetResult = dto.NetResult
+        };
 }

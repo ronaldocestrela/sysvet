@@ -1,0 +1,208 @@
+@page "/finance/reports"
+@using Clients.Infrastructure.Finance
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject IFinanceStore FinanceStore
+@inject FinanceReportsApiService ReportsApi
+@inject IConnectivityService Connectivity
+@inject IFileDownloadService FileDownload
+@inject IToastService Toast
+
+<div class="header-section d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="mb-0">Fluxo de caixa e DRE</h1>
+    <a class="btn btn-outline-secondary btn-sm" href="@AppRoutes.Finance">Voltar ao financeiro</a>
+</div>
+
+<div class="card mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label mb-0">Ano</label>
+            <input type="number" class="form-control" style="width:6rem" @bind="_year" min="2020" max="2100" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-0">Mês</label>
+            <input type="number" class="form-control" style="width:4rem" @bind="_month" min="1" max="12" />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="LoadAsync" disabled="@_loading">Atualizar</button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-primary" @onclick="ExportCsvAsync" disabled="@_loading">Exportar CSV</button>
+        </div>
+        @if (Connectivity.IsOnline)
+        {
+            <div class="col-auto">
+                <button class="btn btn-outline-primary" @onclick="ExportPdfAsync" disabled="@_loading">Exportar PDF</button>
+            </div>
+        }
+    </div>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Calculando demonstrativos...">
+    @if (_cashFlow is not null)
+    {
+        <div class="card mb-3">
+            <h5>Fluxo de caixa (@_cashFlow.From.ToString("MMMM yyyy"))</h5>
+            <p class="text-muted small mb-2">Regime de caixa — entradas e saídas realizadas por dia (AP/AR).</p>
+            <p class="mb-2">
+                Totais: entrada <strong>@_cashFlow.TotalRealizedInflow.ToString("C")</strong>,
+                saída <strong>@_cashFlow.TotalRealizedOutflow.ToString("C")</strong>,
+                líquido <strong>@((_cashFlow.TotalRealizedInflow - _cashFlow.TotalRealizedOutflow).ToString("C"))</strong>
+            </p>
+            @if (_activeCashFlowDays.Count == 0)
+            {
+                <p class="text-muted mb-0">Nenhum movimento realizado no período.</p>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th class="text-end">Entrada</th>
+                            <th class="text-end">Saída</th>
+                            <th class="text-end">Líquido</th>
+                            <th class="text-end">Prev. receber</th>
+                            <th class="text-end">Prev. pagar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in _activeCashFlowDays)
+                        {
+                            <tr>
+                                <td>@d.Date.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">@d.RealizedInflow.ToString("C")</td>
+                                <td class="text-end">@d.RealizedOutflow.ToString("C")</td>
+                                <td class="text-end">@d.NetRealized.ToString("C")</td>
+                                <td class="text-end">@d.ExpectedReceivable.ToString("C")</td>
+                                <td class="text-end">@d.ExpectedPayable.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+
+    @if (_dre is not null)
+    {
+        <div class="card mb-3">
+            <h5>DRE simplificada (@_dre.Month/@_dre.Year)</h5>
+            <p class="text-muted small mb-2">Competência por data de emissão do título; estornos no mês reduzem a linha.</p>
+            @if (_dre.Lines.Count == 0)
+            {
+                <p class="text-muted mb-0">Nenhuma receita ou despesa no mês.</p>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th class="text-end">Receita</th>
+                            <th class="text-end">Despesa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var line in _dre.Lines)
+                        {
+                            <tr>
+                                <td>@line.CategoryName <span class="text-muted">(@line.CategoryCode)</span></td>
+                                <td class="text-end">@line.Revenue.ToString("C")</td>
+                                <td class="text-end">@line.Expense.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th class="text-end">@_dre.TotalRevenue.ToString("C")</th>
+                            <th class="text-end">@_dre.TotalExpense.ToString("C")</th>
+                        </tr>
+                        <tr>
+                            <th>Resultado</th>
+                            <th colspan="2" class="text-end">@_dre.NetResult.ToString("C")</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            }
+        </div>
+    }
+</LoadingState>
+
+@code {
+    private bool _loading;
+    private int _year = DateTime.UtcNow.Year;
+    private int _month = DateTime.UtcNow.Month;
+    private CashFlowReportClientDto? _cashFlow;
+    private SimplifiedDreReportClientDto? _dre;
+    private List<CashFlowDayClientDto> _activeCashFlowDays = new();
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private (DateOnly From, DateOnly To, int Year, int Month) ParseMonth()
+    {
+        var from = new DateOnly(_year, _month, 1);
+        var to = from.AddMonths(1).AddDays(-1);
+        return (from, to, _year, _month);
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var (from, to, year, month) = ParseMonth();
+            var cashFlowResult = await FinanceStore.GetCashFlowAsync(from, to);
+            if (cashFlowResult.IsFailure)
+            {
+                Toast.Show(cashFlowResult.Error.Message, ToastType.Error);
+                return;
+            }
+
+            var dreResult = await FinanceStore.GetSimplifiedDreAsync(year, month);
+            if (dreResult.IsFailure)
+            {
+                Toast.Show(dreResult.Error.Message, ToastType.Error);
+                return;
+            }
+
+            _cashFlow = cashFlowResult.Value;
+            _dre = dreResult.Value;
+            _activeCashFlowDays = _cashFlow.Days
+                .Where(d => d.RealizedInflow != 0 || d.RealizedOutflow != 0 || d.ExpectedReceivable != 0 || d.ExpectedPayable != 0)
+                .ToList();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ExportCsvAsync()
+    {
+        var (from, to, _, _) = ParseMonth();
+        var result = await FinanceStore.ExportStatementsCsvAsync(from, to);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        await FileDownload.DownloadAsync($"finance-statements-{from:yyyy-MM}.csv", "text/csv", result.Value);
+    }
+
+    private async Task ExportPdfAsync()
+    {
+        var (from, to, _, _) = ParseMonth();
+        var result = await ReportsApi.ExportPdfAsync(from, to);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
+    }
+}

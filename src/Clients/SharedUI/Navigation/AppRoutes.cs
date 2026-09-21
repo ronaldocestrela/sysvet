@@ -80,6 +80,9 @@ public static class AppRoutes
     /// <summary>Card TEF reconciliation (online).</summary>
     public const string FinanceCardReconciliation = "/finance/card-reconciliation";
 
+    /// <summary>Cash flow and simplified income statement reports.</summary>
+    public const string FinanceReports = "/finance/reports";
+
     /// <summary>Point of sale terminal.</summary>
     public const string SalesPos = "/sales/pos";
 

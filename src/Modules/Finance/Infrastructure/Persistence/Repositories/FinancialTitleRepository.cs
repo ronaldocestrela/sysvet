@@ -124,6 +124,32 @@ public sealed class FinancialTitleRepository : IFinancialTitleRepository
         return await query.OrderBy(t => t.DueDate).ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<FinancialTitle>> ListForStatementsAsync(
+        DateOnly from,
+        DateOnly to,
+        CancellationToken cancellationToken)
+    {
+        var allocations = await _dbContext.TitleAllocations.AsNoTracking().ToListAsync(cancellationToken);
+        var titleIdsWithPaidAllocations = allocations
+            .Where(a =>
+            {
+                var paidDate = DateOnly.FromDateTime(a.PaidAt.UtcDateTime);
+                return paidDate >= from && paidDate <= to;
+            })
+            .Select(a => a.FinancialTitleId)
+            .Distinct()
+            .ToList();
+
+        return await _dbContext.FinancialTitles
+            .Include(t => t.Allocations)
+            .Where(t =>
+                (t.IssueDate >= from && t.IssueDate <= to)
+                || (t.DueDate >= from && t.DueDate <= to)
+                || titleIdsWithPaidAllocations.Contains(t.Id))
+            .OrderBy(t => t.DueDate)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<CardSettlementSnapshot>> ListCardSettlementSnapshotsAsync(CancellationToken cancellationToken)
     {
         var cardMethods = new[] { "DebitCard", "CreditCard" };

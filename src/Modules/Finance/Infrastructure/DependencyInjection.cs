@@ -7,6 +7,8 @@ using Finance.Domain.Repositories;
 using Finance.Infrastructure.Configuration;
 using Finance.Infrastructure.Persistence;
 using Finance.Infrastructure.Persistence.Repositories;
+using Finance.Application.Reports;
+using Finance.Infrastructure.Reports;
 using Finance.Infrastructure.Sync;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IFinancialCategoryRepository, FinancialCategoryRepository>();
         services.AddScoped<ICostCenterRepository, CostCenterRepository>();
         services.AddScoped<ICardReconciliationRepository, CardReconciliationRepository>();
+        services.AddScoped<IFinanceStatementPdfRenderer, QuestPdfFinanceStatementRenderer>();
 
         services.AddScoped<IFinanceUnitOfWork>(provider => provider.GetRequiredService<FinanceDbContext>());
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<FinanceDbContext>());

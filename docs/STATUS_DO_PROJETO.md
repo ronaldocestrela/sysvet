@@ -199,7 +199,13 @@ Iniciado o módulo de estoque.
 - Sync offline de movimentos; conciliação de cartão online-only; UI caixa + `/finance/card-reconciliation`.
 - Aceite: `CloseCashRegister_ExpectedBalance_MatchesCashSalesMinusDrops`; `ImportCardStatement_MatchesReceivableByNsu`.
 
-### 👉 **Próxima Ação: Fase 7.4 — Fluxo de caixa e demonstrativos**
+### Fase 7.4 — Fluxo de caixa e demonstrativos — Concluída (ADR-034)
+
+- Fluxo de caixa (regime de caixa) e DRE simplificada (competência por emissão) derivados de AP/AR.
+- API `cash-flow`, `dre`, `statements/export` (CSV/PDF); página `/finance/reports`; CSV offline + PDF online.
+- Aceite: `MonthlyStatements_MatchAccountsPayableReceivable`; `ExportMonthlyStatements_ReturnsCsv` / `_ReturnsPdf`.
+
+### 👉 **Próxima Ação: Fase 7.5 — NF-e e NFS-e**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 7.
 

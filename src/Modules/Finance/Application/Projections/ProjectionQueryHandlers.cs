@@ -18,7 +18,7 @@ public sealed class GetBalanceProjectionQueryHandler : IRequestHandler<GetBalanc
 
     public async Task<Result<BalanceProjectionDto>> Handle(GetBalanceProjectionQuery request, CancellationToken cancellationToken)
     {
-        var titles = await _titleRepository.ListAsync(null, null, null, null, request.From, request.To, cancellationToken);
+        var titles = await _titleRepository.ListForStatementsAsync(request.From, request.To, cancellationToken);
 
         decimal expectedReceivable = 0;
         decimal expectedPayable = 0;
@@ -27,23 +27,26 @@ public sealed class GetBalanceProjectionQueryHandler : IRequestHandler<GetBalanc
 
         foreach (var title in titles.Where(t => t.Status != TitleStatus.Cancelled))
         {
+            if (title.DueDate >= request.From && title.DueDate <= request.To)
+            {
+                if (title.Direction == TitleDirection.Receivable)
+                {
+                    expectedReceivable += title.OpenAmount;
+                }
+                else
+                {
+                    expectedPayable += title.OpenAmount;
+                }
+            }
+
+            var netRealized = NetRealizedInPeriod(title, request.From, request.To);
             if (title.Direction == TitleDirection.Receivable)
             {
-                expectedReceivable += title.OpenAmount;
-                realizedReceivable += title.Allocations
-                    .Where(a => a.Kind == AllocationKind.Settlement
-                        && DateOnly.FromDateTime(a.PaidAt.UtcDateTime) >= request.From
-                        && DateOnly.FromDateTime(a.PaidAt.UtcDateTime) <= request.To)
-                    .Sum(a => a.Amount);
+                realizedReceivable += netRealized;
             }
             else
             {
-                expectedPayable += title.OpenAmount;
-                realizedPayable += title.Allocations
-                    .Where(a => a.Kind == AllocationKind.Settlement
-                        && DateOnly.FromDateTime(a.PaidAt.UtcDateTime) >= request.From
-                        && DateOnly.FromDateTime(a.PaidAt.UtcDateTime) <= request.To)
-                    .Sum(a => a.Amount);
+                realizedPayable += netRealized;
             }
         }
 
@@ -56,6 +59,23 @@ public sealed class GetBalanceProjectionQueryHandler : IRequestHandler<GetBalanc
             RealizedReceivable = realizedReceivable,
             RealizedPayable = realizedPayable
         });
+    }
+
+    private static decimal NetRealizedInPeriod(Finance.Domain.Entities.FinancialTitle title, DateOnly from, DateOnly to)
+    {
+        decimal total = 0;
+        foreach (var allocation in title.Allocations)
+        {
+            var paidDate = DateOnly.FromDateTime(allocation.PaidAt.UtcDateTime);
+            if (paidDate < from || paidDate > to)
+            {
+                continue;
+            }
+
+            total += allocation.Kind == AllocationKind.Settlement ? allocation.Amount : -allocation.Amount;
+        }
+
+        return total;
     }
 }
 
