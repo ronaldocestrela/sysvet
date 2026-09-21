@@ -35,6 +35,17 @@ public class LocalOutboxDbContext : DbContext
             builder.OwnsOne(t => t.Cpf, cpf => cpf.Property(c => c.Number).HasColumnName("Cpf"));
             builder.OwnsOne(t => t.Email, email => email.Property(e => e.Address).HasColumnName("Email"));
             builder.OwnsOne(t => t.Phone, phone => phone.Property(p => p.Number).HasColumnName("Phone"));
+            builder.OwnsOne(t => t.Address, address =>
+            {
+                address.Property(a => a.Street).HasColumnName("AddressStreet");
+                address.Property(a => a.Number).HasColumnName("AddressNumber");
+                address.Property(a => a.Complement).HasColumnName("AddressComplement");
+                address.Property(a => a.District).HasColumnName("AddressDistrict");
+                address.Property(a => a.City).HasColumnName("AddressCity");
+                address.Property(a => a.State).HasColumnName("AddressState");
+                address.Property(a => a.PostalCode).HasColumnName("AddressPostalCode");
+                address.Property(a => a.IbgeCityCode).HasColumnName("AddressIbgeCityCode");
+            });
             builder.Metadata.FindNavigation(nameof(Tutor.Pets))?.SetPropertyAccessMode(PropertyAccessMode.Field);
         });
 
@@ -79,6 +90,17 @@ public class CentralDbContext : DbContext
             builder.OwnsOne(t => t.Cpf, cpf => cpf.Property(c => c.Number).HasColumnName("Cpf"));
             builder.OwnsOne(t => t.Email, email => email.Property(e => e.Address).HasColumnName("Email"));
             builder.OwnsOne(t => t.Phone, phone => phone.Property(p => p.Number).HasColumnName("Phone"));
+            builder.OwnsOne(t => t.Address, address =>
+            {
+                address.Property(a => a.Street).HasColumnName("AddressStreet");
+                address.Property(a => a.Number).HasColumnName("AddressNumber");
+                address.Property(a => a.Complement).HasColumnName("AddressComplement");
+                address.Property(a => a.District).HasColumnName("AddressDistrict");
+                address.Property(a => a.City).HasColumnName("AddressCity");
+                address.Property(a => a.State).HasColumnName("AddressState");
+                address.Property(a => a.PostalCode).HasColumnName("AddressPostalCode");
+                address.Property(a => a.IbgeCityCode).HasColumnName("AddressIbgeCityCode");
+            });
             builder.Metadata.FindNavigation(nameof(Tutor.Pets))?.SetPropertyAccessMode(PropertyAccessMode.Field);
         });
     }

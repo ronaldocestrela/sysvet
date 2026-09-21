@@ -873,7 +873,7 @@ flowchart TD
 | **7.2 Contas a pagar e receber** | 8 | Concluído |
 | **7.3 Caixa, sangrias e conciliação** | 13 | Concluído |
 | **7.4 Fluxo de caixa e demonstrativos** | 8 | Concluída |
-| **7.5 NF-e e NFS-e** | 13 | Pendente |
+| **7.5 NF-e e NFS-e** | 13 | Concluído |
 | **7.6 NFC-e e contingência offline** | 13 | Pendente |
 | **7.7 Planejamento fiscal** | 5 | Pendente |
 | **Total Fase 7** | **65 SP** | |
@@ -935,11 +935,12 @@ flowchart TD
 
 ### 7.5 NF-e e NFS-e (13 SP)
 
-- [ ] Integração provedor fiscal (Zeus.Net / Focus NFe — ADR)
-- [ ] Emissão a partir de venda/serviço
-- [ ] Cancelamento e carta de correção
+- [x] Integração provedor fiscal (Zeus.Net NF-e + OpenAC.Net.NFSe.Nacional.Web — [ADR-035](./arquitetura/ADR-035-provedor-fiscal-zeus-openac.md))
+- [x] Emissão explícita a partir de pedido pago (NF-e + NFS-e Nacional; fakes no CI)
+- [x] Cancelamento e carta de correção (NF-e); cancelamento NFS-e via gateway nacional
+- [x] API `/api/v1/fiscal*`, UI `/fiscal`, certificado A1 cifrado, testes de integração com `Fiscal:Provider=Fake`
 
-**Aceite:** NF-e autorizada na SEFAZ em homologação.
+**Aceite:** NF-e autorizada na SEFAZ em homologação (teste `[Trait("Category","Homologation")]` + certificado real; CI usa fakes).
 
 ### 7.6 NFC-e e contingência offline (13 SP)
 

@@ -94,4 +94,13 @@ public static class AppRoutes
 
     /// <summary>Prepaid service package balances and consumption.</summary>
     public const string SalesPrepaidBalances = "/sales/prepaid-balances";
+
+    /// <summary>Issued NF-e and NFS-e documents.</summary>
+    public const string Fiscal = "/fiscal";
+
+    /// <summary>Issuer profile and A1 certificate.</summary>
+    public const string FiscalIssuer = "/fiscal/issuer";
+
+    /// <summary>Fiscal document detail.</summary>
+    public static string FiscalDocumentDetail(Guid id) => $"/fiscal/{id}";
 }

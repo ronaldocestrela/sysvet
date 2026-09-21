@@ -15,6 +15,9 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
     public Cpf Cpf { get; private set; }
     public Phone Phone { get; private set; }
 
+    /// <summary>Optional address for NF-e recipient (enderDest).</summary>
+    public PostalAddress? Address { get; private set; }
+
     /// <inheritdoc />
     public bool IsDeleted { get; private set; }
 
@@ -77,6 +80,20 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
     /// <summary>
     /// Atualiza dados mutáveis do tutor (CPF permanece imutável após o cadastro).
     /// </summary>
+    /// <summary>Sets or clears the tutor postal address for fiscal documents.</summary>
+    public Result SetAddress(PostalAddress? address)
+    {
+        if (IsDeleted)
+        {
+            return Result.Failure(ErrorCodes.Tutor.AlreadyDeleted);
+        }
+
+        Address = address;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
+
+    /// <summary>Updates mutable tutor fields (CPF remains immutable).</summary>
     public Result Update(string name, Email email, Phone phone)
     {
         if (IsDeleted)

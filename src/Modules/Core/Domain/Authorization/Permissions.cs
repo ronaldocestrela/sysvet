@@ -56,6 +56,9 @@ public static class Permissions
     public const string FinanceRead = "Finance.Read";
     public const string FinanceWrite = "Finance.Write";
 
+    public const string FiscalRead = "Fiscal.Read";
+    public const string FiscalWrite = "Fiscal.Write";
+
     public const string AuditRead = "Audit.Read";
 
     /// <summary>
@@ -79,6 +82,7 @@ public static class Permissions
         SalesRead, SalesWrite,
         CashRegisterRead, CashRegisterWrite,
         FinanceRead, FinanceWrite,
+        FiscalRead, FiscalWrite,
         AuditRead
     ];
 
@@ -123,7 +127,8 @@ public static class Permissions
         ProductsRead, ProductsWrite,
         StockRead,
         PurchaseImportsRead, PurchaseImportsWrite,
-        FinanceRead, FinanceWrite
+        FinanceRead, FinanceWrite,
+        FiscalRead, FiscalWrite
     ];
 
     /// <summary>
@@ -135,6 +140,7 @@ public static class Permissions
         CashRegisterRead, CashRegisterWrite,
         ProductsRead,
         StockRead,
-        ClinicalQuotesRead
+        ClinicalQuotesRead,
+        FiscalRead, FiscalWrite
     ];
 }

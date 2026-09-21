@@ -18,6 +18,7 @@ public class Order : AggregateRoot
     public Guid SellerUserId { get; private set; }
     public decimal DiscountPercent { get; private set; }
     public FinanceIntegrationStatus FinanceIntegrationStatus { get; private set; } = FinanceIntegrationStatus.None;
+    public FiscalIntegrationStatus FiscalIntegrationStatus { get; private set; } = FiscalIntegrationStatus.None;
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? PaidAt { get; private set; }
 
@@ -296,6 +297,21 @@ public class Order : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success(true);
+    }
+
+    /// <summary>Updates fiscal linkage after NF-e/NFS-e emission.</summary>
+    public Result MarkFiscalLinked(bool partial)
+    {
+        if (Status != OrderStatus.Paid)
+        {
+            return Result.Failure(ErrorCodes.Order.InvalidStatus);
+        }
+
+        FiscalIntegrationStatus = partial
+            ? FiscalIntegrationStatus.Partial
+            : FiscalIntegrationStatus.Linked;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
     }
 
     /// <summary>

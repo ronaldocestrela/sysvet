@@ -44,6 +44,9 @@
 * [cite_start]`src/Modules/Veterinary/` - Prontuários, internações e vacinas[cite: 88].
 * [cite_start]`src/Modules/Petshop/` - Estética, banho e tosa[cite: 88].
 * [cite_start]`src/Modules/Sales/` - PDV offline e comissões[cite: 89].
+* `src/Modules/Inventory/` — Estoque, produtos, importação NF-e de compra.
+* `src/Modules/Finance/` — Contas a pagar/receber, caixa, conciliação, demonstrativos.
+* `src/Modules/Fiscal/` — Emissão NF-e (Zeus) e NFS-e Nacional (OpenAC Web); ADR-035.
 * [cite_start]`src/Modules/[NomeDoModulo]/Domain/` - Entidades, Value Objects e interfaces de repositório[cite: 89].
 * [cite_start]`src/Modules/[NomeDoModulo]/Application/` - Handlers CQRS, DTOs e validações[cite: 90].
 * [cite_start]`src/Modules/[NomeDoModulo]/Infrastructure/` - EF Core DbContext, Mapeamentos, Repositórios e Serviços externos[cite: 90].

@@ -4,13 +4,20 @@
 @using Clients.Infrastructure.Http
 @using Clients.Infrastructure.Sales
 @using SharedUI.Services
+@using Clients.Infrastructure.Fiscal
+@using SharedUI.Navigation
 @inject ISalesStore SalesStore
+@inject FiscalApiService FiscalApi
 @inject IToastService Toast
 @inject IJSRuntime Js
 
 <div class="header-section no-print">
     <h1>Comprovante de venda</h1>
     <button class="btn btn-outline" @onclick="PrintAsync">Imprimir</button>
+    @if (_order is not null && string.Equals(_order.Status, "Paid", StringComparison.OrdinalIgnoreCase))
+    {
+        <button class="btn btn-outline no-print" disabled="_issuingFiscal" @onclick="IssueFiscalAsync">Emitir nota</button>
+    }
     <a class="btn btn-primary" href="/sales/pos">Nova venda</a>
 </div>
 
@@ -98,6 +105,7 @@
     private SalesOrderDetailClientDto? _order;
     private SalesOrderSyncState _syncState;
     private bool _loading = true;
+    private bool _issuingFiscal;
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,4 +168,18 @@
     }
 
     private async Task PrintAsync() => await Js.InvokeVoidAsync("print");
+
+    private async Task IssueFiscalAsync()
+    {
+        _issuingFiscal = true;
+        var result = await FiscalApi.IssueFromOrderAsync(OrderId);
+        _issuingFiscal = false;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Nota(s) emitida(s).", ToastType.Success);
+    }
 }

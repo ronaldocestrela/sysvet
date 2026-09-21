@@ -1,35 +1,50 @@
-# `src/Modules/Fiscal/` — Módulo Fiscal
+# `src/Modules/Fiscal/` — Módulo Fiscal (Fase 7.5)
 
-Módulo responsável pela **emissão de documentos fiscais** brasileiros, especialmente NF-e (Nota Fiscal Eletrônica) e NFS-e (Nota Fiscal de Serviços Eletrônica), em conformidade com a legislação tributária brasileira.
+Emissão **online** de **NF-e (modelo 55)** via [Zeus.Net.NFe.NFCe](https://www.nuget.org/packages/Zeus.Net.NFe.NFCe/) e **NFS-e Padrão Nacional** via [OpenAC.Net.NFSe.Nacional.Web](https://www.nuget.org/packages/OpenAC.Net.NFSe.Nacional.Web/), a partir de pedido **pago** (emissão explícita).
 
 ## Status
 
-> 🔴 **Não iniciado.** As subpastas de camada existem mas estão vazias (apenas `.gitkeep` e arquivos de projeto).
+> **7.5 implementada** com gateways **Fake** (CI/dev) e registro **ZeusOpenAc** para homologação. DANFE: `FakeDanfeRenderer` (QuestPDF/Zeus DANFE em evolução).
 
-## Escopo de Negócio
+Ver [ADR-035](../../docs/arquitetura/ADR-035-provedor-fiscal-zeus-openac.md).
 
-Este módulo gerenciará:
-- **NF-e (produto)**: emissão para vendas de mercadorias (rações, acessórios, medicamentos)
-- **NFS-e (serviço)**: emissão para serviços prestados (consulta veterinária, banho, tosa)
-- **Cancelamento e inutilização**: cancelamento de notas dentro do prazo legal
-- **DANFE**: geração do documento auxiliar em PDF
-- **XML de notas**: armazenamento dos XMLs assinados para obrigações legais
-- **Tributação**: configuração de CFOP, CST, CSOSN, alíquotas de ICMS, PIS, COFINS por produto
+## Camadas
 
-## Estrutura de Camadas
-
-| Pasta | Responsabilidade |
+| Pasta | Conteúdo |
 |---|---|
-| [`Domain/`](./Domain/) | Entidades: `FiscalDocument`, `FiscalDocumentItem`. Value Objects: `TaxCode`, `AccessKey`. Enums: `DocumentType`, `DocumentStatus`. |
-| [`Application/`](./Application/) | Commands: `IssueFiscalDocument`, `CancelFiscalDocument`. Queries: `GetDocumentByAccessKey`, `GetPendingDocuments`. |
-| [`Infrastructure/`](./Infrastructure/) | `FiscalDbContext`, cliente de integração com SEFAZ (webservice SOAP), geração e assinatura de XML, geração de PDF do DANFE. |
+| [`Domain/`](./Domain/) | `IssuerProfile`, `FiscalDocument`, `FiscalDocumentItem`, `FiscalCorrectionLetter`, `FiscalTaxResolver`, VOs (`FiscalCnpj`, `Cfop`, …). |
+| [`Application/`](./Application/) | CQRS: `IssueFromOrder`, cancelamento, CC-e, issuer, downloads; portas `INfeGateway`, `INfseGateway`, `IDanfeRenderer`, `ICertificateProtector`. |
+| [`Infrastructure/`](./Infrastructure/) | `FiscalDbContext`, `ZeusNfeGateway`, `OpenAcNacionalWebNfseGateway`, fakes, `AesCertificateProtector`, OpenAC multi-tenant providers. |
 
-## Dependências
+## Configuração
 
-- Integra-se ao `Sales` (recebe dados do pedido para compor a nota)
-- Integra-se ao `Inventory` (dados dos produtos: NCM, CFOP, tributação)
-- Exige certificado digital A1/A3 para assinatura dos XMLs (configuração da `Infrastructure`)
+```json
+"Fiscal": {
+  "Provider": "Fake",
+  "CertificateEncryptionKey": "<min 32 chars, env/user-secrets>"
+}
+```
 
-## Atenção Regulatória
+- **Fake** (padrão): `FakeNfeGateway` / `FakeNfseGateway`.
+- **ZeusOpenAc**: Zeus NF-e + `AddOpenNFSeNacionalWebMultiTenant` (NFS-e ADN).
 
-> ⚠️ Este módulo envolve conformidade legal. Toda mudança de regra de tributação deve ser documentada com referência à legislação ou ao comunicado da SEFAZ correspondente.
+Certificado **A1** (PFX): blob `{schema}/fiscal/certificates/{issuerId}.pfx.enc`; senha cifrada no perfil.
+
+## API
+
+Rotas em [`FiscalEndpointExtensions`](../../API/Extensions/FiscalEndpointExtensions.cs): `/api/v1/fiscal/issuer`, `/api/v1/fiscal-documents/*`.
+
+Permissões: `Fiscal.Read`, `Fiscal.Write`. Menu: `fiscal`.
+
+## Integração
+
+- **Sales:** `GetPaidOrderFiscalSnapshotRequest`, `MarkOrderFiscalLinkedRequest`, `FiscalIntegrationStatus`.
+- **Inventory:** `GetProductsFiscalBasicsRequest` (NCM/origem).
+- **Core:** `GetTutorFiscalDestRequest` (`PostalAddress` no tutor).
+- **Blob (ADR-015):** XML/DANFE em `{schema}/fiscal/{yyyy}/{MM}/{documentId}.*`.
+
+Pedido misto: produtos/kits → NF-e; serviços/pacotes → NFS-e Nacional.
+
+## Fora desta fatia
+
+NFC-e/contingência (7.6), inutilização, relatórios 7.7, NFS-e municipal `OpenAC.Net.NFSe`, add-on comercial (9.3).

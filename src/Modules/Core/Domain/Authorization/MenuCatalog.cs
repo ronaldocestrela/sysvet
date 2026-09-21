@@ -28,6 +28,7 @@ public static class MenuCatalog
         ["prepaid-balances"] = Permissions.SalesRead,
         ["cash"] = Permissions.CashRegisterRead,
         ["finance"] = Permissions.FinanceRead,
+        ["fiscal"] = Permissions.FiscalRead,
         ["audit"] = Permissions.AuditRead
     };
 

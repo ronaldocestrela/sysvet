@@ -205,7 +205,13 @@ Iniciado o módulo de estoque.
 - API `cash-flow`, `dre`, `statements/export` (CSV/PDF); página `/finance/reports`; CSV offline + PDF online.
 - Aceite: `MonthlyStatements_MatchAccountsPayableReceivable`; `ExportMonthlyStatements_ReturnsCsv` / `_ReturnsPdf`.
 
-### 👉 **Próxima Ação: Fase 7.5 — NF-e e NFS-e**
+### Fase 7.5 — NF-e e NFS-e — Concluída (ADR-035)
+
+- NF-e (Zeus.Net) e NFS-e Padrão Nacional (`OpenAC.Net.NFSe.Nacional.Web`); emissão explícita de pedido pago; cancelamento + CC-e (NF-e).
+- `FiscalDbContext`, certificado A1 cifrado, API `/api/v1/fiscal*`, UI `/fiscal` + “Emitir nota” no comprovante; CI com `Fiscal:Provider=Fake`.
+- Aceite homologação SEFAZ: teste opcional com `FISCAL_HOMOLOGATION=1` (fora do CI).
+
+### 👉 **Próxima Ação: Fase 7.6 — NFC-e e contingência offline**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 7.
 

@@ -11,4 +11,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Zeus.Net.NFe.NFCe" Version="2026.8.18.2047" />
+    <PackageReference Include="OpenAC.Net.NFSe.Nacional.Web" Version="1.5.0.3" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+  </ItemGroup>
+
 </Project>

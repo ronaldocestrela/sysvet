@@ -27,5 +27,8 @@ internal static class IntegrationTestDatabaseHelper
 
         var financeContext = scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>();
         await financeContext.Database.MigrateAsync();
+
+        var fiscalContext = scope.ServiceProvider.GetRequiredService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>();
+        await fiscalContext.Database.MigrateAsync();
     }
 }

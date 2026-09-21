@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant UI as SharedUI
+    participant API as IssueFromOrder
+    participant Sales as GetPaidOrderSnapshot
+    participant Inv as GetProductFiscalBasics
+    participant Core as GetTutorDest
+    participant Dom as FiscalDocument
+    participant NFe as INfeGateway
+    participant NFSe as INfseGateway
+    participant Blob as IBlobStorage
+
+    UI->>API: POST /fiscal-documents/from-order
+    API->>Sales: pedido pago e itens
+    API->>Inv: NCM CEST origem
+    API->>Core: CPF nome endereco
+    API->>Dom: Draft NFe e ou NFSe
+    alt linhas produto
+        API->>NFe: Authorize
+        NFe-->>API: chave XML protocolo
+    end
+    alt linhas servico
+        API->>NFSe: Authorize DPS
+        NFSe-->>API: chave NFS-e XML
+    end
+    API->>Blob: XML e DANFE
+    API-->>UI: ids documentos

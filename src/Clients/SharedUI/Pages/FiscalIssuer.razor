@@ -1,0 +1,121 @@
+@page "/fiscal/issuer"
+@using Clients.Infrastructure.Fiscal
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject FiscalApiService FiscalApi
+@inject IToastService Toast
+
+<div class="header-section d-flex justify-content-between align-items-center">
+    <h1 class="mb-0">Emitente fiscal</h1>
+    <a class="btn btn-outline-secondary btn-sm" href="@AppRoutes.Fiscal">Documentos</a>
+</div>
+
+<LoadingState IsLoading="_loading">
+    <div class="card">
+        <p class="text-muted">Cadastro do CNPJ da clínica e certificado A1 (PFX) para NF-e e NFS-e Nacional.</p>
+        @if (_issuer?.HasCertificate == true)
+        {
+            <p class="text-success">Certificado A1 configurado.</p>
+        }
+        <div class="row g-2">
+            <div class="col-md-6"><label>Razão social</label><input class="form-control" @bind="_legalName" /></div>
+            <div class="col-md-6"><label>Nome fantasia</label><input class="form-control" @bind="_tradeName" /></div>
+            <div class="col-md-4"><label>CNPJ</label><input class="form-control" @bind="_cnpj" /></div>
+            <div class="col-md-4"><label>IE</label><input class="form-control" @bind="_ie" /></div>
+            <div class="col-md-4"><label>IM</label><input class="form-control" @bind="_im" /></div>
+            <div class="col-md-8"><label>Logradouro</label><input class="form-control" @bind="_street" /></div>
+            <div class="col-md-2"><label>Nº</label><input class="form-control" @bind="_number" /></div>
+            <div class="col-md-2"><label>UF</label><input class="form-control" @bind="_state" maxlength="2" /></div>
+            <div class="col-md-4"><label>Cidade</label><input class="form-control" @bind="_city" /></div>
+            <div class="col-md-4"><label>CEP</label><input class="form-control" @bind="_postalCode" /></div>
+            <div class="col-md-4"><label>IBGE</label><input class="form-control" type="number" @bind="_ibge" /></div>
+        </div>
+        <button class="btn btn-primary mt-3" disabled="_saving" @onclick="SaveIssuerAsync">Salvar emitente</button>
+        <hr />
+        <label>Certificado A1 (.pfx)</label>
+        <InputFile OnChange="OnCertificateSelected" accept=".pfx" />
+        <input class="form-control mt-2" type="password" placeholder="Senha do certificado" @bind="_certPassword" />
+        <button class="btn btn-outline-primary mt-2" disabled="_uploading || _certBytes is null" @onclick="UploadCertificateAsync">Enviar certificado</button>
+    </div>
+</LoadingState>
+
+@code {
+    private bool _loading = true;
+    private bool _saving;
+    private bool _uploading;
+    private string _legalName = "";
+    private string _tradeName = "";
+    private string _cnpj = "";
+    private string _ie = "";
+    private string _im = "";
+    private string _street = "";
+    private string _number = "";
+    private string _city = "";
+    private string _state = "SP";
+    private string _postalCode = "";
+    private int _ibge = 3550308;
+    private string _certPassword = "";
+    private byte[]? _certBytes;
+    private IssuerProfileClientDto? _issuer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await FiscalApi.GetIssuerAsync();
+        if (result.IsSuccess && result.Value is not null)
+        {
+            _issuer = result.Value;
+            _legalName = _issuer.LegalName;
+            _tradeName = _issuer.TradeName;
+            _cnpj = _issuer.Cnpj;
+        }
+
+        _loading = false;
+    }
+
+    private async Task SaveIssuerAsync()
+    {
+        _saving = true;
+        var result = await FiscalApi.UpsertIssuerAsync(new UpsertIssuerClientRequest(
+            _legalName, _tradeName, _cnpj, _ie, _im, "7500100",
+            _street, _number, null, "Centro", _city, _state, _postalCode, _ibge,
+            "", "0107", 2m, "Homologation"));
+        _saving = false;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Emitente salvo.", ToastType.Success);
+        await OnInitializedAsync();
+    }
+
+    private async Task OnCertificateSelected(InputFileChangeEventArgs e)
+    {
+        await using var stream = e.File.OpenReadStream(maxAllowedSize: 512_000);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        _certBytes = ms.ToArray();
+    }
+
+    private async Task UploadCertificateAsync()
+    {
+        if (_certBytes is null || string.IsNullOrWhiteSpace(_certPassword))
+        {
+            return;
+        }
+
+        _uploading = true;
+        var upload = await FiscalApi.UploadCertificateAsync(_certBytes, _certPassword);
+        _uploading = false;
+        if (upload.IsFailure)
+        {
+            Toast.Show(upload.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Certificado enviado.", ToastType.Success);
+        await OnInitializedAsync();
+    }
+}

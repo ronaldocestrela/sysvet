@@ -1,6 +1,7 @@
 using System.Linq;
 using Clients.Infrastructure.Crm;
 using Clients.Infrastructure.Finance;
+using Clients.Infrastructure.Fiscal;
 using Clients.Infrastructure.Sales;
 using Clients.Infrastructure.Persistence;
 using Clients.Infrastructure.Persistence.Repositories;
@@ -60,6 +61,7 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<IFinanceStore, OfflineFinanceStore>();
         services.AddScoped<FinanceReconciliationApiService>();
         services.AddScoped<FinanceReportsApiService>();
+        services.AddScoped<FiscalApiService>();
         services.AddScoped<IMedicalRecordStore, OfflineMedicalRecordStore>();
         services.AddScoped<IClinicalStore, OfflineClinicalStore>();
         services.AddScoped<IVaccineStore, OfflineVaccineStore>();

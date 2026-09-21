@@ -39,6 +39,18 @@ public sealed class OfflineTutorConfiguration : IEntityTypeConfiguration<Tutor>
             p.Property(x => x.Number).HasColumnName("Phone").IsRequired().HasMaxLength(20);
         });
 
+        builder.OwnsOne(t => t.Address, a =>
+        {
+            a.Property(x => x.Street).HasColumnName("AddressStreet").HasMaxLength(200);
+            a.Property(x => x.Number).HasColumnName("AddressNumber").HasMaxLength(20);
+            a.Property(x => x.Complement).HasColumnName("AddressComplement").HasMaxLength(100);
+            a.Property(x => x.District).HasColumnName("AddressDistrict").HasMaxLength(100);
+            a.Property(x => x.City).HasColumnName("AddressCity").HasMaxLength(100);
+            a.Property(x => x.State).HasColumnName("AddressState").HasMaxLength(2);
+            a.Property(x => x.PostalCode).HasColumnName("AddressPostalCode").HasMaxLength(8);
+            a.Property(x => x.IbgeCityCode).HasColumnName("AddressIbgeCityCode");
+        });
+
         builder.HasMany(t => t.Pets)
             .WithOne()
             .HasForeignKey(p => p.TutorId)

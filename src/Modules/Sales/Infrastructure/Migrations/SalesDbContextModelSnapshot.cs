@@ -224,6 +224,11 @@ namespace Sales.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FiscalIntegrationStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("TEXT");
 

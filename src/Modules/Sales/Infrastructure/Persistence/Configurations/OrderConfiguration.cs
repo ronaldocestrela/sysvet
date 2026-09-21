@@ -15,6 +15,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.Property(o => o.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(o => o.FinanceIntegrationStatus).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(o => o.FiscalIntegrationStatus).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(o => o.TutorId);
         builder.Property(o => o.PetId);
         builder.Property(o => o.SourceQuoteId);

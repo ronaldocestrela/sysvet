@@ -62,9 +62,18 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `Sales` | `SalesOptions` | Sales.Infrastructure |
 | `Petshop` | `PetshopOptions` | Petshop.Infrastructure |
 | `Finance` | `FinanceOptions` | Finance.Infrastructure |
+| `Fiscal` | `FiscalOptions` | Fiscal.Infrastructure |
 | `BlobStorage` | `BlobStorageOptions` | Core.Infrastructure |
 
-Fiscal ainda não possui persistência; não registra options de banco.
+### Fiscal (NF-e / NFS-e Nacional — ADR-035)
+
+| Chave | Default | Descrição |
+|-------|---------|-----------|
+| `Fiscal:Provider` | `Fake` | `Fake` (CI/dev) ou `ZeusOpenAc` (Zeus NF-e + OpenAC NFS-e ADN) |
+| `Fiscal:CertificateEncryptionKey` | — | AES para senha do PFX (mín. 32 caracteres; **user-secrets/env**, nunca no git) |
+| `Fiscal:ConnectionString` | *(opcional)* | Override de connection string do módulo |
+
+Exemplo em [`appsettings.Development.json`](../../src/API/appsettings.Development.json).
 
 ### Sales — terminal de pagamento (ADR-027)
 

@@ -27,7 +27,9 @@ public class ModuleRegistrationTests
                 ["JwtSettings:Secret"] = "module-registration-secret-16",
                 ["JwtSettings:Issuer"] = "sysvet-api",
                 ["JwtSettings:Audience"] = "sysvet-clients",
-                ["JwtSettings:ExpiryMinutes"] = "60"
+                ["JwtSettings:ExpiryMinutes"] = "60",
+                ["Fiscal:Provider"] = "Fake",
+                ["Fiscal:CertificateEncryptionKey"] = "dev-fiscal-cert-key-min-32-chars!!"
             })
             .Build();
 
@@ -84,7 +86,17 @@ public class ModuleRegistrationTests
     }
 
     [Fact]
-    public void AddApplicationModules_DoesNotThrowForPetshopAndFiscalStubs()
+    public void AddApplicationModules_ResolvesFiscalDbContext()
+    {
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var provider = scope.ServiceProvider;
+        provider.GetService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>().Should().NotBeNull();
+        provider.GetService<global::Fiscal.Domain.Repositories.IFiscalUnitOfWork>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddApplicationModules_DoesNotThrowForPetshopStub()
     {
         var act = () => BuildProvider();
         act.Should().NotThrow();

@@ -1,0 +1,112 @@
+@page "/fiscal"
+@page "/fiscal/{DocumentId:guid}"
+@using Clients.Infrastructure.Fiscal
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject FiscalApiService FiscalApi
+@inject IToastService Toast
+@inject NavigationManager Navigation
+
+<div class="header-section d-flex justify-content-between align-items-center">
+    <h1 class="mb-0">Documentos fiscais</h1>
+    <a class="btn btn-outline-primary btn-sm" href="@AppRoutes.FiscalIssuer">Emitente (A1)</a>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Carregando documentos...">
+    @if (DocumentId is Guid detailId && _detail is not null)
+    {
+        <div class="card mb-3">
+            <h5>@_detail.DocumentType · @_detail.Status</h5>
+            <p class="mb-1">Pedido: @_detail.SourceOrderId</p>
+            <p class="mb-1">Destinatário: @_detail.RecipientName</p>
+            @if (!string.IsNullOrWhiteSpace(_detail.AccessKey))
+            {
+                <p class="mb-1"><small>Chave: @_detail.AccessKey</small></p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_detail.RejectionReason))
+            {
+                <p class="text-danger">@_detail.RejectionReason</p>
+            }
+            <div class="d-flex gap-2">
+                <a class="btn btn-sm btn-outline-secondary" href="@AppRoutes.Fiscal">Voltar</a>
+                @if (string.Equals(_detail.DocumentType, "Nfe", StringComparison.OrdinalIgnoreCase))
+                {
+                    <a class="btn btn-sm btn-primary" href="@($"{Navigation.BaseUri.TrimEnd('/')}/api/v1/fiscal-documents/{detailId}/danfe")" target="_blank">DANFE</a>
+                }
+                <a class="btn btn-sm btn-outline-primary" href="@($"{Navigation.BaseUri.TrimEnd('/')}/api/v1/fiscal-documents/{detailId}/xml")" target="_blank">XML</a>
+            </div>
+        </div>
+    }
+    else if (_documents.Count == 0)
+    {
+        <p class="text-muted">Nenhum documento emitido. Use &quot;Emitir nota&quot; no comprovante de venda paga.</p>
+    }
+    else
+    {
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Pedido</th>
+                    <th>Total</th>
+                    <th>Autorizado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in _documents)
+                {
+                    <tr>
+                        <td>@d.DocumentType</td>
+                        <td>@d.Status</td>
+                        <td>@d.SourceOrderId.ToString()[..8]…</td>
+                        <td>@d.TotalAmount.ToString("C")</td>
+                        <td>@(d.AuthorizedAt?.LocalDateTime.ToString("g") ?? "—")</td>
+                        <td><a href="@AppRoutes.FiscalDocumentDetail(d.Id)">Detalhe</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</LoadingState>
+
+@code {
+    [Parameter] public Guid? DocumentId { get; set; }
+
+    private bool _loading = true;
+    private List<FiscalDocumentClientDto> _documents = [];
+    private FiscalDocumentDetailClientDto? _detail;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        if (DocumentId is Guid id)
+        {
+            var detailResult = await FiscalApi.GetDocumentAsync(id);
+            if (detailResult.IsSuccess)
+            {
+                _detail = detailResult.Value;
+            }
+            else
+            {
+                Toast.Show(detailResult.Error.Message, ToastType.Error);
+            }
+        }
+        else
+        {
+            var listResult = await FiscalApi.ListDocumentsAsync();
+            if (listResult.IsSuccess)
+            {
+                _documents = listResult.Value?.ToList() ?? [];
+            }
+            else
+            {
+                Toast.Show(listResult.Error.Message, ToastType.Error);
+            }
+        }
+
+        _loading = false;
+    }
+}

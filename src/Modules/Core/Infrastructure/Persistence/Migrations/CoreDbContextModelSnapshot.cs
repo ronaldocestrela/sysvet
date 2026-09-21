@@ -86,6 +86,7 @@ namespace Core.Infrastructure.Persistence.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("MaxDiscountPercent")
+                        .ValueGeneratedOnAdd()
                         .HasPrecision(5, 2)
                         .HasColumnType("TEXT")
                         .HasDefaultValue(0m);
@@ -593,6 +594,66 @@ namespace Core.Infrastructure.Persistence.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("TutorId");
                         });
+
+                    b.OwnsOne("Core.Domain.ValueObjects.PostalAddress", "Address", b1 =>
+                        {
+                            b1.Property<Guid>("TutorId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AddressCity");
+
+                            b1.Property<string>("Complement")
+                                .HasMaxLength(100)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AddressComplement");
+
+                            b1.Property<string>("District")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AddressDistrict");
+
+                            b1.Property<int>("IbgeCityCode")
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("AddressIbgeCityCode");
+
+                            b1.Property<string>("Number")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AddressNumber");
+
+                            b1.Property<string>("PostalCode")
+                                .IsRequired()
+                                .HasMaxLength(8)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AddressPostalCode");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasMaxLength(2)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AddressState");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AddressStreet");
+
+                            b1.HasKey("TutorId");
+
+                            b1.ToTable("Tutors", "dbo");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TutorId");
+                        });
+
+                    b.Navigation("Address");
 
                     b.Navigation("Cpf")
                         .IsRequired();

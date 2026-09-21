@@ -40,7 +40,7 @@ flowchart TB
     end
 
     subgraph stub_mod [Stub modules]
-        FiscalStub["Fiscal DI stub"]
+        FiscalMod["Fiscal NF-e NFS-e"]
     end
 
     Program --> Corr --> TenantMw
@@ -69,4 +69,4 @@ flowchart TB
     Program --> InvInf
     Program --> SalesInf
     Program --> FinInf
-    Program --> FiscalStub
+    Program --> FiscalMod
