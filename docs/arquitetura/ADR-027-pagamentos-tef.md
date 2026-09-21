@@ -25,7 +25,7 @@ As fases 6.1–6.2 entregaram PDV com split de pagamentos manual (sem NSU) e syn
 
 ## Consequências
 - Migrations Sales (`PaymentsTef`) e SQLite cliente (`OfflinePaymentsTef`).
-- `OrderPaymentRefundedEvent` publicado; sem consumer Finance até 7.2.
+- `OrderPaymentRefundedEvent` / `OrderReturnedEvent` revertem alocações do recebível da venda (Finance 7.2, ADR-032).
 - Adapters reais plugam em `IPaymentTerminal` sem alterar domínio/application.
 
 ## Confirmação no código

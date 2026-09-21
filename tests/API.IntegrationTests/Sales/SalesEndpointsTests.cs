@@ -18,6 +18,7 @@ using Sales.Application.Catalog;
 using Sales.Application.Orders.Commands;
 using Sales.Application.Orders.Dtos;
 using Sales.Application.Prepaid;
+using Finance.Domain.Enums;
 using Sales.Domain.Enums;
 using Xunit;
 
@@ -46,6 +47,9 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 
         var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
         await inventoryContext.Database.MigrateAsync();
+
+        var financeContext = scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>();
+        await financeContext.Database.MigrateAsync();
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Core.Infrastructure.Identity.AppUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -79,7 +83,7 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task PayOrder_ShouldDebitStockAndMarkFinancePending()
+    public async Task PayOrder_ShouldDebitStockAndMarkFinanceLinked()
     {
         var client = await CreateAuthenticatedClientAsync();
         var suffix = Guid.NewGuid().ToString()[..8];
@@ -161,11 +165,20 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         getOrder.EnsureSuccessStatusCode();
         var order = await getOrder.Content.ReadFromJsonAsync<OrderDetailDto>();
         order!.Status.Should().Be(OrderStatus.Paid);
-        order.FinanceIntegrationStatus.Should().Be(FinanceIntegrationStatus.Pending);
+        order.FinanceIntegrationStatus.Should().Be(FinanceIntegrationStatus.Linked);
         order.Payments.Should().HaveCount(2);
         order.Payments.Should().Contain(p => p.Method == PaymentMethod.Pix && !string.IsNullOrWhiteSpace(p.Nsu));
 
         using var scope = _factory.Services.CreateScope();
+        var financeContext = scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>();
+        var receivable = await financeContext.FinancialTitles
+            .Include(t => t.Allocations)
+            .FirstOrDefaultAsync(t => t.SourceId == orderId);
+        receivable.Should().NotBeNull();
+        receivable!.Direction.Should().Be(TitleDirection.Receivable);
+        receivable.Status.Should().Be(TitleStatus.Settled);
+        receivable.Allocations.Should().HaveCount(2);
+
         var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
         var saleMovements = await inventoryContext.StockMovements
             .IgnoreQueryFilters()

@@ -27,6 +27,7 @@ public static class MenuCatalog
         ["commission-rules"] = Permissions.SalesRead,
         ["prepaid-balances"] = Permissions.SalesRead,
         ["cash"] = Permissions.CashRegisterRead,
+        ["finance"] = Permissions.FinanceRead,
         ["audit"] = Permissions.AuditRead
     };
 

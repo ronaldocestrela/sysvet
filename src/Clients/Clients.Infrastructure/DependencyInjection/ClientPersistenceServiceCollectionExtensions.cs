@@ -1,5 +1,6 @@
 using System.Linq;
 using Clients.Infrastructure.Crm;
+using Clients.Infrastructure.Finance;
 using Clients.Infrastructure.Sales;
 using Clients.Infrastructure.Persistence;
 using Clients.Infrastructure.Persistence.Repositories;
@@ -56,6 +57,7 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<IPetStore, OfflinePetStore>();
         services.AddScoped<IAppointmentStore, OfflineAppointmentStore>();
         services.AddScoped<IGroomingStore, OfflineGroomingStore>();
+        services.AddScoped<IFinanceStore, OfflineFinanceStore>();
         services.AddScoped<IMedicalRecordStore, OfflineMedicalRecordStore>();
         services.AddScoped<IClinicalStore, OfflineClinicalStore>();
         services.AddScoped<IVaccineStore, OfflineVaccineStore>();

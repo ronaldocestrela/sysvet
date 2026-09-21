@@ -1,9 +1,13 @@
 using Core.Domain;
 using Core.Infrastructure.Configuration;
+using Core.Application.Sync;
 using Finance.Application;
+using Finance.Application.Titles.Commands;
 using Finance.Domain.Repositories;
 using Finance.Infrastructure.Configuration;
 using Finance.Infrastructure.Persistence;
+using Finance.Infrastructure.Persistence.Repositories;
+using Finance.Infrastructure.Sync;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -34,14 +38,21 @@ public static class DependencyInjection
             options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
+        services.AddScoped<IFinancialTitleRepository, FinancialTitleRepository>();
+        services.AddScoped<IFinancialCategoryRepository, FinancialCategoryRepository>();
+        services.AddScoped<ICostCenterRepository, CostCenterRepository>();
+
         services.AddScoped<IFinanceUnitOfWork>(provider => provider.GetRequiredService<FinanceDbContext>());
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<FinanceDbContext>());
         services.AddScoped<IDomainEventSource>(provider => provider.GetRequiredService<FinanceDbContext>());
 
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(FinanceModuleAssemblyMarker).Assembly));
+            cfg.RegisterServicesFromAssembly(typeof(CreateManualFinancialTitleCommand).Assembly));
 
-        services.AddValidatorsFromAssembly(typeof(FinanceModuleAssemblyMarker).Assembly);
+        services.AddValidatorsFromAssembly(typeof(CreateManualFinancialTitleCommand).Assembly);
+
+        services.AddScoped<ISyncPushHandler, FinanceSyncPushHandler>();
+        services.AddScoped<ISyncChangeFeedContributor, FinanceSyncChangeFeedContributor>();
 
         return services;
     }

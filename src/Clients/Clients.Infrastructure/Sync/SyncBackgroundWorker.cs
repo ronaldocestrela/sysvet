@@ -217,5 +217,8 @@ public class SyncBackgroundWorker : BackgroundService
         && page.GroomingAppointments.Count == 0
         && page.GroomingSlots.Count == 0
         && page.GroomingRecords.Count == 0
-        && page.GroomingServices.Count == 0;
+        && page.GroomingServices.Count == 0
+        && page.FinanceTitles.Count == 0
+        && page.FinanceCategories.Count == 0
+        && page.FinanceCostCenters.Count == 0;
 }

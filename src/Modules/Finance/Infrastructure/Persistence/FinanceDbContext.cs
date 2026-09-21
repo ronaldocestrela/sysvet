@@ -1,14 +1,20 @@
 using Core.Domain;
+using Finance.Domain.Entities;
 using Finance.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Finance.Infrastructure.Persistence;
 
 /// <summary>
-/// EF Core context for the Finance module (AP/AR and cash flow entities arrive in later phases).
+/// EF Core context for the Finance module (AP/AR titles and cash flow entities).
 /// </summary>
 public class FinanceDbContext : DbContext, IFinanceUnitOfWork, IDomainEventSource
 {
+    public DbSet<FinancialTitle> FinancialTitles => Set<FinancialTitle>();
+    public DbSet<TitleAllocation> TitleAllocations => Set<TitleAllocation>();
+    public DbSet<FinancialCategory> FinancialCategories => Set<FinancialCategory>();
+    public DbSet<CostCenter> CostCenters => Set<CostCenter>();
+
     private readonly ITenantContext _tenantContext;
 
     /// <summary>

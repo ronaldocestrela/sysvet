@@ -1,0 +1,121 @@
+@page "/finance"
+@using Clients.Infrastructure.Finance
+@using SharedUI.Components
+@using SharedUI.Services
+@inject IFinanceStore FinanceStore
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Contas a pagar e receber</h1>
+</div>
+
+<div class="card mb-3">
+    <h5>Previsto vs realizado (mês atual)</h5>
+    <LoadingState IsLoading="_projectionLoading">
+        @if (_projection is not null)
+        {
+            <p class="mb-1">A receber em aberto: <strong>@_projection.ExpectedReceivable.ToString("C")</strong> — realizado: @_projection.RealizedReceivable.ToString("C")</p>
+            <p class="mb-0">A pagar em aberto: <strong>@_projection.ExpectedPayable.ToString("C")</strong> — realizado: @_projection.RealizedPayable.ToString("C")</p>
+        }
+    </LoadingState>
+</div>
+
+<LoadingState IsLoading="_isLoading" Message="Carregando títulos...">
+    @if (_titles.Count == 0)
+    {
+        <p class="text-muted">Nenhum título local. Sincronize após vendas ou importação NF-e.</p>
+    }
+    else
+    {
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Vencimento</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Descrição</th>
+                    <th class="text-end">Valor</th>
+                    <th class="text-end">Em aberto</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in _titles)
+                {
+                    <tr>
+                        <td>@t.DueDate.ToString("dd/MM/yyyy")</td>
+                        <td>@t.Direction</td>
+                        <td>@t.Status</td>
+                        <td>@t.Description</td>
+                        <td class="text-end">@t.OriginalAmount.ToString("C")</td>
+                        <td class="text-end">@t.OpenAmount.ToString("C")</td>
+                        <td>
+                            @if (t.OpenAmount > 0 && t.Status is not "Settled" and not "Cancelled")
+                            {
+                                <button class="btn btn-sm btn-outline-success" @onclick="() => SettleAsync(t)">Baixar</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</LoadingState>
+
+@code {
+    private bool _isLoading;
+    private bool _projectionLoading;
+    private List<FinanceTitleListItemDto> _titles = new();
+    private BalanceProjectionClientDto? _projection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+        await LoadProjectionAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        var result = await FinanceStore.ListTitlesAsync();
+        if (result.IsSuccess)
+        {
+            _titles = result.Value!.ToList();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task LoadProjectionAsync()
+    {
+        _projectionLoading = true;
+        var from = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+        var to = from.AddMonths(1).AddDays(-1);
+        var result = await FinanceStore.GetProjectionAsync(from, to);
+        if (result.IsSuccess)
+        {
+            _projection = result.Value;
+        }
+
+        _projectionLoading = false;
+    }
+
+    private async Task SettleAsync(FinanceTitleListItemDto title)
+    {
+        var result = await FinanceStore.SettleTitleAsync(title.Id, title.OpenAmount, "Cash");
+        if (result.IsSuccess)
+        {
+            Toast.Show("Baixa enfileirada para sync.", ToastType.Success);
+            await LoadAsync();
+            await LoadProjectionAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+}

@@ -7,6 +7,8 @@ using Inventory.Domain.Enums;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
 using Sales.Domain.Entities;
+using Finance.Domain.Entities;
+using Finance.Domain.Enums;
 using Petshop.Domain.Entities;
 using Petshop.Domain.Enums;
 using Sales.Domain.Enums;
@@ -73,6 +75,21 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.GroomingServices)
             {
                 await UpsertGroomingServiceAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.FinanceCategories)
+            {
+                await UpsertFinanceCategoryAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.FinanceCostCenters)
+            {
+                await UpsertFinanceCostCenterAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.FinanceTitles)
+            {
+                await UpsertFinanceTitleAsync(dto, cancellationToken);
             }
 
             foreach (var dto in page.MedicalRecords)
@@ -1296,5 +1313,121 @@ public sealed class OfflineSyncPullApplier
         service.Update(dto.Name, serviceType, dto.DurationInMinutes, dto.PrepaidServiceCode, dto.IsActive);
         service.SetDefaultSupplies(dto.DefaultSupplies.Select(l => (l.ProductId, l.Quantity)));
         service.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertFinanceCategoryAsync(ClientSyncFinanceCategoryDto dto, CancellationToken cancellationToken)
+    {
+        var existing = await _dbContext.FinancialCategories.FindAsync([dto.Id], cancellationToken);
+        if (existing is null)
+        {
+            _dbContext.FinancialCategories.Add(FinancialCategory.RestoreFromSync(
+                dto.Id,
+                dto.Code,
+                dto.Name,
+                Enum.Parse<CategoryDirection>(dto.Direction, true),
+                dto.IsSystem,
+                dto.IsActive,
+                dto.UpdatedAt));
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        _dbContext.FinancialCategories.Remove(existing);
+        _dbContext.FinancialCategories.Add(FinancialCategory.RestoreFromSync(
+            dto.Id,
+            dto.Code,
+            dto.Name,
+            Enum.Parse<CategoryDirection>(dto.Direction, true),
+            dto.IsSystem,
+            dto.IsActive,
+            dto.UpdatedAt));
+    }
+
+    private async Task UpsertFinanceCostCenterAsync(ClientSyncFinanceCostCenterDto dto, CancellationToken cancellationToken)
+    {
+        var existing = await _dbContext.CostCenters.FindAsync([dto.Id], cancellationToken);
+        if (existing is null)
+        {
+            _dbContext.CostCenters.Add(CostCenter.RestoreFromSync(dto.Id, dto.Code, dto.Name, dto.IsActive, dto.UpdatedAt));
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        existing.Update(dto.Name, dto.IsActive);
+        existing.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertFinanceTitleAsync(ClientSyncFinanceTitleDto dto, CancellationToken cancellationToken)
+    {
+        var allocations = dto.Allocations
+            .Select(a => TitleAllocation.Restore(
+                a.Id,
+                a.FinancialTitleId,
+                a.Amount,
+                a.PaidAt,
+                a.Method,
+                a.CorrelationId,
+                Enum.Parse<AllocationKind>(a.Kind, true),
+                a.UpdatedAt))
+            .ToList();
+
+        var existing = await _dbContext.FinancialTitles
+            .Include(t => t.Allocations)
+            .FirstOrDefaultAsync(t => t.Id == dto.Id, cancellationToken);
+
+        if (existing is null)
+        {
+            _dbContext.FinancialTitles.Add(FinancialTitle.RestoreFromSync(
+                dto.Id,
+                Enum.Parse<TitleDirection>(dto.Direction, true),
+                Enum.Parse<TitleStatus>(dto.Status, true),
+                Enum.Parse<TitleSourceType>(dto.SourceType, true),
+                dto.SourceId,
+                dto.SourceInstallmentKey,
+                Enum.Parse<PartyKind>(dto.PartyKind, true),
+                dto.PartyId,
+                dto.CategoryId,
+                dto.CostCenterId,
+                dto.IssueDate,
+                dto.DueDate,
+                dto.OriginalAmount,
+                dto.Description,
+                dto.UpdatedAt,
+                allocations));
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        _dbContext.FinancialTitles.Remove(existing);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _dbContext.FinancialTitles.Add(FinancialTitle.RestoreFromSync(
+            dto.Id,
+            Enum.Parse<TitleDirection>(dto.Direction, true),
+            Enum.Parse<TitleStatus>(dto.Status, true),
+            Enum.Parse<TitleSourceType>(dto.SourceType, true),
+            dto.SourceId,
+            dto.SourceInstallmentKey,
+            Enum.Parse<PartyKind>(dto.PartyKind, true),
+            dto.PartyId,
+            dto.CategoryId,
+            dto.CostCenterId,
+            dto.IssueDate,
+            dto.DueDate,
+            dto.OriginalAmount,
+            dto.Description,
+            dto.UpdatedAt,
+            allocations));
     }
 }

@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Client
+    participant Sales
+    participant Finance
+    participant Inventory
+    Client->>Sales: PayOrder
+    Sales->>Finance: OrderPaidEvent
+    Finance->>Finance: FinancialTitle Receivable Settled
+    Finance->>Sales: MarkOrderFinanceLinkedRequest
+    Client->>Inventory: ConfirmPurchaseNfeImport
+    Inventory->>Finance: PurchaseInvoiceImportedEvent
+    Finance->>Finance: FinancialTitle Payable Open
+    Finance->>Inventory: MarkPurchaseInvoiceApLinkedRequest

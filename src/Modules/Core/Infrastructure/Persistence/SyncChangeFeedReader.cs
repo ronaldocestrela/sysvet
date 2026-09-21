@@ -97,6 +97,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var groomingSlots = new List<SyncGroomingSlotDto>();
         var groomingRecords = new List<SyncGroomingRecordDto>();
         var groomingServices = new List<SyncGroomingServiceDto>();
+        var financeTitles = new List<SyncFinanceTitleDto>();
+        var financeCategories = new List<SyncFinanceCategoryDto>();
+        var financeCostCenters = new List<SyncFinanceCostCenterDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -128,6 +131,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             groomingSlots.AddRange(modulePage.GroomingSlots);
             groomingRecords.AddRange(modulePage.GroomingRecords);
             groomingServices.AddRange(modulePage.GroomingServices);
+            financeTitles.AddRange(modulePage.FinanceTitles);
+            financeCategories.AddRange(modulePage.FinanceCategories);
+            financeCostCenters.AddRange(modulePage.FinanceCostCenters);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -166,6 +172,9 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             GroomingSlots = groomingSlots,
             GroomingRecords = groomingRecords,
             GroomingServices = groomingServices,
+            FinanceTitles = financeTitles,
+            FinanceCategories = financeCategories,
+            FinanceCostCenters = financeCostCenters,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

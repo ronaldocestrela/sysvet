@@ -45,8 +45,63 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncGroomingSlotDto> GroomingSlots { get; init; } = Array.Empty<ClientSyncGroomingSlotDto>();
     public IReadOnlyList<ClientSyncGroomingRecordDto> GroomingRecords { get; init; } = Array.Empty<ClientSyncGroomingRecordDto>();
     public IReadOnlyList<ClientSyncGroomingServiceDto> GroomingServices { get; init; } = Array.Empty<ClientSyncGroomingServiceDto>();
+    public IReadOnlyList<ClientSyncFinanceTitleDto> FinanceTitles { get; init; } = Array.Empty<ClientSyncFinanceTitleDto>();
+    public IReadOnlyList<ClientSyncFinanceCategoryDto> FinanceCategories { get; init; } = Array.Empty<ClientSyncFinanceCategoryDto>();
+    public IReadOnlyList<ClientSyncFinanceCostCenterDto> FinanceCostCenters { get; init; } = Array.Empty<ClientSyncFinanceCostCenterDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
+}
+
+public sealed class ClientSyncFinanceTitleDto
+{
+    public Guid Id { get; init; }
+    public string Direction { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string SourceType { get; init; } = string.Empty;
+    public Guid? SourceId { get; init; }
+    public string SourceInstallmentKey { get; init; } = string.Empty;
+    public string PartyKind { get; init; } = string.Empty;
+    public Guid? PartyId { get; init; }
+    public Guid CategoryId { get; init; }
+    public Guid? CostCenterId { get; init; }
+    public DateOnly IssueDate { get; init; }
+    public DateOnly DueDate { get; init; }
+    public decimal OriginalAmount { get; init; }
+    public string Description { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<ClientSyncTitleAllocationDto> Allocations { get; init; } = Array.Empty<ClientSyncTitleAllocationDto>();
+}
+
+public sealed class ClientSyncTitleAllocationDto
+{
+    public Guid Id { get; init; }
+    public Guid FinancialTitleId { get; init; }
+    public decimal Amount { get; init; }
+    public DateTimeOffset PaidAt { get; init; }
+    public string Method { get; init; } = string.Empty;
+    public Guid CorrelationId { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncFinanceCategoryDto
+{
+    public Guid Id { get; init; }
+    public string Code { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string Direction { get; init; } = string.Empty;
+    public bool IsSystem { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncFinanceCostCenterDto
+{
+    public Guid Id { get; init; }
+    public string Code { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
 }
 
 public sealed class ClientSyncGroomingAppointmentDto

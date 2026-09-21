@@ -870,7 +870,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **7.1 Módulo Finance — estrutura** | 5 | Concluído |
-| **7.2 Contas a pagar e receber** | 8 | Pendente |
+| **7.2 Contas a pagar e receber** | 8 | Concluído |
 | **7.3 Caixa, sangrias e conciliação** | 13 | Pendente |
 | **7.4 Fluxo de caixa e demonstrativos** | 8 | Pendente |
 | **7.5 NF-e e NFS-e** | 13 | Pendente |
@@ -888,11 +888,25 @@ flowchart TD
 
 ### 7.2 Contas a pagar e receber (8 SP)
 
-- [ ] Títulos AP/AR; categorias; centros de custo
-- [ ] Vínculo com vendas, compras (XML), clientes/fornecedores
-- [ ] Projeção saldo previsto vs realizado
+**Domain**
+- [x] `FinancialTitle`, `TitleAllocation`, `FinancialCategory`, `CostCenter`; factories venda/compra/manual; estorno de alocação
 
-**Aceite:** Venda gera AR; XML compra gera AP.
+**Application**
+- [x] `OrderPaidIntegrationHandler`, `PurchaseInvoiceImportedIntegrationHandler`, refund/return handlers
+- [x] Commands/queries títulos, catálogo, `GetBalanceProjectionQuery`, `GetPartyLedgerQuery`
+- [x] `MarkOrderFinanceLinkedRequest` / `MarkPurchaseInvoiceApLinkedRequest` (Core)
+
+**API**
+- [x] `/api/v1/financial-titles`, `/financial-categories`, `/cost-centers`, `/finance/projection`, ledger por party
+- [x] Permissões `Finance.Read` / `Finance.Write`; menu `finance`
+
+**Sync**
+- [x] `FinanceSyncChangeFeedContributor` + push `FinanceSyncPushHandler`; DTOs no pull Core/clients
+
+**Clients**
+- [x] SQLite offline + `IFinanceStore`; página `/finance` (SharedUI)
+
+**Aceite:** `PayOrder_ShouldDebitStockAndMarkFinanceLinked` (AR liquidado + `FinanceIntegrationStatus.Linked`); `ConfirmPurchaseXml_CreatesPayablesFromDuplicates` (AP + `ApIntegrationStatus.Linked`).
 
 ### 7.3 Caixa, sangrias e conciliação (13 SP)
 

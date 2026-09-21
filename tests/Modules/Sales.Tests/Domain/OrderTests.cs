@@ -151,6 +151,10 @@ public class OrderTests
         result.IsSuccess.Should().BeTrue();
         order.Status.Should().Be(OrderStatus.Paid);
         order.FinanceIntegrationStatus.Should().Be(FinanceIntegrationStatus.Pending);
+
+        var linked = order.MarkFinanceLinked();
+        linked.IsSuccess.Should().BeTrue();
+        order.FinanceIntegrationStatus.Should().Be(FinanceIntegrationStatus.Linked);
         order.PaidAt.Should().NotBeNull();
         order.Payments.Should().HaveCount(2);
         order.TotalAmount.Amount.Should().Be(100m);

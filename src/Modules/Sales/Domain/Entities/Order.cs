@@ -299,6 +299,26 @@ public class Order : AggregateRoot
     }
 
     /// <summary>
+    /// Marks finance integration complete after Finance creates the receivable title.
+    /// </summary>
+    public Result MarkFinanceLinked()
+    {
+        if (FinanceIntegrationStatus == FinanceIntegrationStatus.Linked)
+        {
+            return Result.Success();
+        }
+
+        if (FinanceIntegrationStatus != FinanceIntegrationStatus.Pending)
+        {
+            return Result.Failure(ErrorCodes.Order.FinanceLinkNotAllowed);
+        }
+
+        FinanceIntegrationStatus = FinanceIntegrationStatus.Linked;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
+
+    /// <summary>
     /// Records a partial or full refund against a payment line (estorno — does not restore stock).
     /// </summary>
     public Result<PaymentRefund> RefundPayment(Guid paymentId, decimal amount, string? refundNsu = null)

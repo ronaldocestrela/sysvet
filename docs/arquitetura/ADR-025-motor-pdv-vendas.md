@@ -21,7 +21,7 @@ A Fase 6.1 exige PDV online com carrinho (produto e serviço), split de pagament
 - **Pay pipeline:** `PayOrderCommandHandler` → domínio `Pay` → `Send(ConsumeStockForSaleRequest)` → persistência → `OrderPaidEvent` enriquecido (`TutorId`, pagamentos, `FinanceIntegrationStatus.Pending`) e, se `SourceQuoteId`, `ClinicalQuoteConvertedEvent` → Veterinary `MarkConverted`.
 - **Caixa:** saldo atual calculado na query (abertura + pagamentos `Cash` de pedidos pagos da sessão); sangria em 7.3.
 - **Clients (6.1):** checkout via HTTP (`SalesApiService`); catálogo local via `IInventoryStore`. A fila offline de vendas foi entregue na **6.2** ([ADR-026](./ADR-026-pdv-offline-sync.md)).
-- **Finance:** `FinanceIntegrationStatus.Pending` no pedido pago; AR materializado na 7.2 ao consumir `OrderPaidEvent`.
+- **Finance (7.2):** após pay, `OrderPaidEvent` gera recebível **liquidado** e `MarkOrderFinanceLinkedRequest` → `FinanceIntegrationStatus.Linked` (ADR-032).
 
 ## Consequências
 - Migration Sales: `Payments`, `TutorId`/`PetId`/`SourceQuoteId`, `OrderItem.Kind`, `ProductId` nullable.

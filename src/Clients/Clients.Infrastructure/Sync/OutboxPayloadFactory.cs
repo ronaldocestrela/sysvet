@@ -547,4 +547,19 @@ internal static class OutboxPayloadFactory
 
     public static string MarkNoShowGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string SettleFinancialTitle(
+        Guid titleId,
+        decimal amount,
+        string method,
+        DateTimeOffset? paidAt,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            TitleId = titleId,
+            Amount = amount,
+            Method = method,
+            PaidAt = paidAt,
+            IdempotencyKey = idempotencyKey
+        });
 }

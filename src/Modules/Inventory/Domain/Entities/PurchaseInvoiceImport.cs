@@ -112,4 +112,24 @@ public class PurchaseInvoiceImport : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
         return Result.Success();
     }
+
+    /// <summary>
+    /// Marks accounts payable linkage complete after Finance creates payable titles.
+    /// </summary>
+    public Result MarkApLinked()
+    {
+        if (ApIntegrationStatus == ApIntegrationStatus.Linked)
+        {
+            return Result.Success();
+        }
+
+        if (Status != PurchaseImportStatus.Confirmed)
+        {
+            return Result.Failure(ErrorCodes.PurchaseImport.ApLinkNotAllowed);
+        }
+
+        ApIntegrationStatus = ApIntegrationStatus.Linked;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
 }

@@ -74,6 +74,9 @@ public static class AppRoutes
     /// <summary>Purchase suggestions grouped by supplier.</summary>
     public const string PurchaseSuggestions = "/purchase-suggestions";
 
+    /// <summary>Accounts payable and receivable.</summary>
+    public const string Finance = "/finance";
+
     /// <summary>Point of sale terminal.</summary>
     public const string SalesPos = "/sales/pos";
 

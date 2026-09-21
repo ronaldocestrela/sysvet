@@ -161,6 +161,174 @@ namespace Clients.Infrastructure.Migrations
                     b.ToTable("Tutors", (string)null);
                 });
 
+            modelBuilder.Entity("Finance.Domain.Entities.CostCenter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CostCenters", (string)null);
+                });
+
+            modelBuilder.Entity("Finance.Domain.Entities.FinancialCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FinancialCategories", (string)null);
+                });
+
+            modelBuilder.Entity("Finance.Domain.Entities.FinancialTitle", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CostCenterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("IssueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("OriginalAmount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("PartyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PartyKind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceInstallmentKey")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FinancialTitles", (string)null);
+                });
+
+            modelBuilder.Entity("Finance.Domain.Entities.TitleAllocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("FinancialTitleId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("PaidAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FinancialTitleId");
+
+                    b.ToTable("TitleAllocations", (string)null);
+                });
+
             modelBuilder.Entity("Inventory.Domain.Entities.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2075,6 +2243,15 @@ namespace Clients.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Finance.Domain.Entities.TitleAllocation", b =>
+                {
+                    b.HasOne("Finance.Domain.Entities.FinancialTitle", null)
+                        .WithMany("Allocations")
+                        .HasForeignKey("FinancialTitleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Petshop.Domain.Entities.GroomingRecordSupplyLine", b =>
                 {
                     b.HasOne("Petshop.Domain.Entities.GroomingRecord", null)
@@ -2502,6 +2679,11 @@ namespace Clients.Infrastructure.Migrations
             modelBuilder.Entity("Core.Domain.Entities.Tutor", b =>
                 {
                     b.Navigation("Pets");
+                });
+
+            modelBuilder.Entity("Finance.Domain.Entities.FinancialTitle", b =>
+                {
+                    b.Navigation("Allocations");
                 });
 
             modelBuilder.Entity("Petshop.Domain.Entities.GroomingRecord", b =>

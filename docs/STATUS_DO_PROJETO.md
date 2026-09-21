@@ -182,11 +182,17 @@ Iniciado o módulo de estoque.
 
 ### Fase 7.1 — Módulo Finance (estrutura) — Concluída
 
-- `src/Modules/Finance/{Domain,Application,Infrastructure}`; `FinanceDbContext`, `AddFinanceModule`, `MapFinanceEndpoints` (stub).
+- `src/Modules/Finance/{Domain,Application,Infrastructure}`; `FinanceDbContext`, `AddFinanceModule`.
 - Migration `InitialFinance`; testes `FinanceDbContextTests`, `ModuleRegistrationTests`.
-- Schema lógico do módulo no tenant schema (ADR-003); AP/AR na 7.2.
+- Schema lógico do módulo no tenant schema (ADR-003).
 
-### 👉 **Próxima Ação: Fase 7.2 — Contas a pagar e receber**
+### Fase 7.2 — Contas a pagar e receber — Concluída (ADR-032)
+
+- Títulos AP/AR, categorias, centros de custo; integração `OrderPaidEvent` / `PurchaseInvoiceImportedEvent`.
+- Endpoints Finance; sync pull/push; clientes `/finance` + `IFinanceStore`.
+- Aceite: `PayOrder_ShouldDebitStockAndMarkFinanceLinked`, `ConfirmPurchaseXml_CreatesPayablesFromDuplicates`.
+
+### 👉 **Próxima Ação: Fase 7.3 — Caixa, sangrias e conciliação**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 7.
 

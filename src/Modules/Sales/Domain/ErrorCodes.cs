@@ -30,6 +30,7 @@ public static class ErrorCodes
         public static readonly Error ReturnExceedsRemainingQuantity = new("Order.ReturnExceedsRemainingQuantity", "Quantidade devolvida excede o saldo da linha.");
         public static readonly Error ReturnEmpty = new("Order.ReturnEmpty", "Informe ao menos uma linha para devolução.");
         public static readonly Error ReturnItemNotFound = new("Order.ReturnItemNotFound", "Linha do pedido não encontrada.");
+        public static readonly Error FinanceLinkNotAllowed = new("Order.FinanceLinkNotAllowed", "Integração financeira não está pendente para este pedido.");
     }
 
     public static class OrderItem

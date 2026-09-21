@@ -94,6 +94,7 @@ public static class ErrorCodes
         public static readonly Error FileTooLarge = new("PurchaseImport.FileTooLarge", "XML file exceeds the maximum allowed size.");
         public static readonly Error InvalidContentType = new("PurchaseImport.InvalidContentType", "Upload must be an XML file.");
         public static readonly Error LineNotFound = new("PurchaseImport.LineNotFound", "Import line was not found.");
+        public static readonly Error ApLinkNotAllowed = new("PurchaseImport.ApLinkNotAllowed", "Contas a pagar só podem ser vinculadas após confirmação da importação.");
     }
 
     public static class InventoryCount

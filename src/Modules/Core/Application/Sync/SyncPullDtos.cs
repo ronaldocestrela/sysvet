@@ -605,6 +605,58 @@ public sealed class SyncGroomingServiceSupplyLineDto
     public decimal Quantity { get; init; }
 }
 
+public sealed class SyncFinanceTitleDto
+{
+    public Guid Id { get; init; }
+    public string Direction { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string SourceType { get; init; } = string.Empty;
+    public Guid? SourceId { get; init; }
+    public string SourceInstallmentKey { get; init; } = string.Empty;
+    public string PartyKind { get; init; } = string.Empty;
+    public Guid? PartyId { get; init; }
+    public Guid CategoryId { get; init; }
+    public Guid? CostCenterId { get; init; }
+    public DateOnly IssueDate { get; init; }
+    public DateOnly DueDate { get; init; }
+    public decimal OriginalAmount { get; init; }
+    public string Description { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<SyncTitleAllocationDto> Allocations { get; init; } = Array.Empty<SyncTitleAllocationDto>();
+}
+
+public sealed class SyncTitleAllocationDto
+{
+    public Guid Id { get; init; }
+    public Guid FinancialTitleId { get; init; }
+    public decimal Amount { get; init; }
+    public DateTimeOffset PaidAt { get; init; }
+    public string Method { get; init; } = string.Empty;
+    public Guid CorrelationId { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class SyncFinanceCategoryDto
+{
+    public Guid Id { get; init; }
+    public string Code { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string Direction { get; init; } = string.Empty;
+    public bool IsSystem { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class SyncFinanceCostCenterDto
+{
+    public Guid Id { get; init; }
+    public string Code { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
 public sealed class PullChangesResult
 {
     public IReadOnlyList<SyncTutorDto> Tutors { get; init; } = Array.Empty<SyncTutorDto>();
@@ -635,6 +687,9 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncGroomingSlotDto> GroomingSlots { get; init; } = Array.Empty<SyncGroomingSlotDto>();
     public IReadOnlyList<SyncGroomingRecordDto> GroomingRecords { get; init; } = Array.Empty<SyncGroomingRecordDto>();
     public IReadOnlyList<SyncGroomingServiceDto> GroomingServices { get; init; } = Array.Empty<SyncGroomingServiceDto>();
+    public IReadOnlyList<SyncFinanceTitleDto> FinanceTitles { get; init; } = Array.Empty<SyncFinanceTitleDto>();
+    public IReadOnlyList<SyncFinanceCategoryDto> FinanceCategories { get; init; } = Array.Empty<SyncFinanceCategoryDto>();
+    public IReadOnlyList<SyncFinanceCostCenterDto> FinanceCostCenters { get; init; } = Array.Empty<SyncFinanceCostCenterDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

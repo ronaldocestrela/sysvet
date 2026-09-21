@@ -8,7 +8,6 @@ using Inventory.Domain.Enums;
 using Inventory.Tests.Fixtures;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -141,8 +140,7 @@ public class PurchaseImportEndpointsTests : IClassFixture<WebApplicationFactory<
         var coreContext = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
         await coreContext.Database.EnsureDeletedAsync();
         await coreContext.Database.EnsureCreatedAsync();
-        var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
-        await inventoryContext.Database.MigrateAsync();
+        await IntegrationTestDatabaseHelper.MigrateModuleDatabasesAsync(scope);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

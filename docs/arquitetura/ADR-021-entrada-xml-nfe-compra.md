@@ -18,7 +18,7 @@ A Fase 5.3 exige importação de XML de NF-e de entrada com mapeamento assistido
 - **Bounded context:** parser e orquestração em **Inventory** (`Application/PurchaseImports`). Fiscal permanece emissão.
 - **Fluxo em dois passos:** `ParsePurchaseNfeXml` persiste agregado `PurchaseInvoiceImport` em `Draft`, grava XML via `IBlobStorage` (`{schema}/purchases/{yyyy}/{MM}/{importId}.xml`). `ConfirmPurchaseNfeImport` aplica mapeamentos explícitos do usuário, cria lotes/movimentações `In`/`Purchase` com `CorrelationId` = import id, persiste `SupplierProductMapping` e confirma o agregado.
 - **Idempotência:** `AccessKey` (chNFe, 44 dígitos) única por tenant; reimportação de nota já confirmada retorna conflito.
-- **Contas a pagar (Fase 7):** após confirm, publicar `PurchaseInvoiceImportedEvent` em Core.Application; sem referência Inventory→Finance (ADR-001). Campo `ApIntegrationStatus = Pending` até consumer Finance 7.2.
+- **Contas a pagar (Fase 7.2):** após confirm, publicar `PurchaseInvoiceImportedEvent` em Core.Application; consumer Finance cria AP e envia `MarkPurchaseInvoiceApLinkedRequest` → `ApIntegrationStatus.Linked` (ADR-032).
 - **Permissões:** `PurchaseImports.Read` / `PurchaseImports.Write`. Recepção recebe Write sem `Stock.Write`.
 - **Sync offline:** importação é **online-first** (upload na API). Movimentações/produtos/lotes/fornecedores resultantes seguem sync existente; agregado de importação e XML **não** entram no pull nesta fase.
 

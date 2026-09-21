@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Inventory.Domain.Entities;
 using Sales.Domain.Entities;
+using Finance.Domain.Entities;
+using Finance.Domain.Enums;
 using Petshop.Domain.Entities;
 using Petshop.Domain.Enums;
 using Veterinary.Domain.Entities;
@@ -167,6 +169,18 @@ public class OfflineDbContext : DbContext
     /// <summary>Local grooming service catalog.</summary>
     public DbSet<GroomingService> GroomingServices => Set<GroomingService>();
 
+    /// <summary>Local financial titles (sync pull).</summary>
+    public DbSet<FinancialTitle> FinancialTitles => Set<FinancialTitle>();
+
+    /// <summary>Local title allocations.</summary>
+    public DbSet<TitleAllocation> TitleAllocations => Set<TitleAllocation>();
+
+    /// <summary>Local financial categories.</summary>
+    public DbSet<FinancialCategory> FinancialCategories => Set<FinancialCategory>();
+
+    /// <summary>Local cost centers.</summary>
+    public DbSet<CostCenter> CostCenters => Set<CostCenter>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -220,6 +234,10 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineGroomingSlotConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineGroomingRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineGroomingServiceConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineFinancialTitleConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineTitleAllocationConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineFinancialCategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineCostCenterConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
