@@ -41,7 +41,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | MAUI | **Concluído (3.3)** | Blazor Hybrid Android + Windows; JWT/CRM SharedUI; VetNexus branding; job `maui-publish` (Windows CI); ADR-013 |
 | SQLite / Sync offline | **Concluído (3.5–3.6 CRM)** | SQLite + outbox push/pull tutor/pet; PoC E2E em [`sync-poc.md`](arquitetura/sync-poc.md) |
 | CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test Linux, cobertura, artefato API, Dockerfile, publish MAUI (Windows runner) |
-| Módulos ausentes | **Pendente** | `Finance`, `Automations`, `Intelligence`, `TutorPortal`, `Platform` |
+| Módulos ausentes | **Pendente** | `Automations`, `Intelligence`, `TutorPortal`, `Platform` (`Finance`: estrutura 7.1 concluída) |
 
 **Progresso estimado:** ~10% da Fase 1 concluída (scaffold + API mínima + `Result<T>`).
 
@@ -58,13 +58,13 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | **Petshop** | Estética, banho e tosa |
 | **Sales** | PDV, comissões, pacotes |
 | **Inventory** | Estoque, compras, inventário |
+| **Finance** | Contas a pagar/receber, caixa, conciliação, fluxo de caixa (estrutura 7.1) |
 | **Fiscal** | NF-e, NFC-e, NFS-e (tenant-side) |
 
 ### A criar
 
 | Módulo | Responsabilidade | Referência |
 |--------|------------------|------------|
-| **Finance** | Contas a pagar/receber, caixa, conciliação, fluxo de caixa | `functions.md` § Financeiro |
 | **Automations** | Workers, filas, WhatsApp/SMS/e-mail, campanhas, NPS | `functions.md` § Automação |
 | **Intelligence** | Dashboards operacionais, curva ABC, produtividade | `functions.md` § Inteligência |
 | **TutorPortal** | App/portal do tutor, e-commerce, site do estabelecimento | `functions.md` § Portal |
@@ -869,7 +869,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **7.1 Módulo Finance — estrutura** | 5 | Pendente |
+| **7.1 Módulo Finance — estrutura** | 5 | Concluído |
 | **7.2 Contas a pagar e receber** | 8 | Pendente |
 | **7.3 Caixa, sangrias e conciliação** | 13 | Pendente |
 | **7.4 Fluxo de caixa e demonstrativos** | 8 | Pendente |
@@ -880,11 +880,11 @@ flowchart TD
 
 ### 7.1 Módulo Finance — estrutura (5 SP)
 
-- [ ] Criar `src/Modules/Finance/{Domain,Application,Infrastructure}`
-- [ ] Projetos de teste; referências na API e solução
-- [ ] Schema lógico `finance` no banco
+- [x] Criar `src/Modules/Finance/{Domain,Application,Infrastructure}`
+- [x] Projetos de teste; referências na API e solução
+- [x] Schema lógico `finance` no banco (`FinanceDbContext`, migration `InitialFinance`; schema SQL por tenant ADR-003)
 
-**Aceite:** Módulo compila e registra DI; migration inicial aplicada.
+**Aceite:** Módulo compila e registra DI; migration inicial aplicada (`ModuleRegistrationTests`, `FinanceDbContextTests`).
 
 ### 7.2 Contas a pagar e receber (8 SP)
 

@@ -9,7 +9,7 @@ flowchart TB
         OpenApi["OpenAPI Scalar dev"]
         ResultFilter["ResultEndpointFilter"]
         ResultExt["ResultExtensions"]
-        MapEndpoints["MapCore MapAuth MapVeterinary<br/>MapInventory MapSales MapPetshop MapFiscal"]
+        MapEndpoints["MapCore MapAuth MapVeterinary<br/>MapInventory MapSales MapPetshop MapFinance MapFiscal"]
     end
 
     subgraph core_mod [Core module]
@@ -35,8 +35,11 @@ flowchart TB
         OrderPaid["OrderPaidEvent"]
     end
 
+    subgraph fin_mod [Finance module]
+        FinInf["Infrastructure FinanceDbContext"]
+    end
+
     subgraph stub_mod [Stub modules]
-        PetshopStub["Petshop DI stub"]
         FiscalStub["Fiscal DI stub"]
     end
 
@@ -65,5 +68,5 @@ flowchart TB
     Program --> VetInf
     Program --> InvInf
     Program --> SalesInf
-    Program --> PetshopStub
+    Program --> FinInf
     Program --> FiscalStub

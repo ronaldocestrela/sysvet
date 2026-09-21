@@ -21,7 +21,7 @@ Propriedades críticas (`JwtSettings.Secret`, `TenancySettings.DefaultSchema`, `
 
 ### Connection strings e banco de dados
 
-Todos os DbContexts de módulo (Core, Veterinary, Inventory, Sales) resolvem a connection string via [`ModuleConnectionStringResolver`](../../src/Modules/Core/Infrastructure/Configuration/ModuleConnectionStringResolver.cs):
+Todos os DbContexts de módulo (Core, Veterinary, Inventory, Sales, Petshop, Finance) resolvem a connection string via [`ModuleConnectionStringResolver`](../../src/Modules/Core/Infrastructure/Configuration/ModuleConnectionStringResolver.cs):
 
 - Padrão: `ConnectionStrings:{Database:ConnectionStringName}` (nome padrão: `DefaultConnection`)
 - Override opcional por módulo: `{Module}:ConnectionString` (ex.: `Veterinary:ConnectionString`)
@@ -61,6 +61,7 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `Inventory` | `InventoryOptions` | Inventory.Infrastructure |
 | `Sales` | `SalesOptions` | Sales.Infrastructure |
 | `Petshop` | `PetshopOptions` | Petshop.Infrastructure |
+| `Finance` | `FinanceOptions` | Finance.Infrastructure |
 | `BlobStorage` | `BlobStorageOptions` | Core.Infrastructure |
 
 Fiscal ainda não possui persistência; não registra options de banco.

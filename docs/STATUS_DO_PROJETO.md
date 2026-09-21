@@ -180,7 +180,13 @@ Iniciado o módulo de estoque.
 - Status `ReadyForPickup`, endpoint `/ready`, SignalR no tenant, porta `ITutorNotificationChannel` (Null até Automations 8.1).
 - Aceite: `MarkReady_WhenAutomationsChannelEnabled_NotifiesTutor`.
 
-### 👉 **Próxima Ação: Fase 7 — Financeiro e Fiscal**
+### Fase 7.1 — Módulo Finance (estrutura) — Concluída
+
+- `src/Modules/Finance/{Domain,Application,Infrastructure}`; `FinanceDbContext`, `AddFinanceModule`, `MapFinanceEndpoints` (stub).
+- Migration `InitialFinance`; testes `FinanceDbContextTests`, `ModuleRegistrationTests`.
+- Schema lógico do módulo no tenant schema (ADR-003); AP/AR na 7.2.
+
+### 👉 **Próxima Ação: Fase 7.2 — Contas a pagar e receber**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 7.
 

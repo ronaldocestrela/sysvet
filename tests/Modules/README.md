@@ -11,6 +11,7 @@ Contém os projetos de **testes unitários** para cada módulo de negócio. A es
 | [`Petshop.Tests/`](./Petshop.Tests/) | `src/Modules/Petshop` | 🔴 Placeholder |
 | [`Sales.Tests/`](./Sales.Tests/) | `src/Modules/Sales` | Domain + Application (Order/Pay, handlers) |
 | [`Inventory.Tests/`](./Inventory.Tests/) | `src/Modules/Inventory` | 🔴 Placeholder |
+| [`Finance.Tests/`](./Finance.Tests/) | `src/Modules/Finance` | Infrastructure — migration baseline |
 | [`Fiscal.Tests/`](./Fiscal.Tests/) | `src/Modules/Fiscal` | 🔴 Placeholder |
 
 ## Regra de Espelhamento

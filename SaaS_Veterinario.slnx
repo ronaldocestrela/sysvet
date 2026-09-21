@@ -7,9 +7,8 @@
     <Project Path="src/Clients/BlazorWeb/BlazorWeb.csproj" />
     <Project Path="src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj" />
     <Project Path="src/Clients/MauiApp/MauiApp.csproj">
-      <Build Solution="Debug|*" Project="false" />
-      <Build Solution="Release|*" Project="false" />
       <Restore Solution="*|*" Project="false" />
+      <Build Project="false" />
     </Project>
     <Project Path="src/Clients/SharedUI/SharedUI.csproj" />
   </Folder>
@@ -23,6 +22,16 @@
   </Folder>
   <Folder Name="/src/Modules/Core/Infrastructure/">
     <Project Path="src/Modules/Core/Infrastructure/Core.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Finance/" />
+  <Folder Name="/src/Modules/Finance/Application/">
+    <Project Path="src/Modules/Finance/Application/Finance.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Finance/Domain/">
+    <Project Path="src/Modules/Finance/Domain/Finance.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Finance/Infrastructure/">
+    <Project Path="src/Modules/Finance/Infrastructure/Finance.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Fiscal/" />
   <Folder Name="/src/Modules/Fiscal/Application/">
@@ -81,6 +90,7 @@
   </Folder>
   <Folder Name="/tests/Modules/">
     <Project Path="tests/Modules/Core.Tests/Core.Tests.csproj" />
+    <Project Path="tests/Modules/Finance.Tests/Finance.Tests.csproj" />
     <Project Path="tests/Modules/Fiscal.Tests/Fiscal.Tests.csproj" />
     <Project Path="tests/Modules/Inventory.Tests/Inventory.Tests.csproj" />
     <Project Path="tests/Modules/Petshop.Tests/Petshop.Tests.csproj" />

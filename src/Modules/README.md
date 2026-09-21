@@ -11,6 +11,7 @@ Coração da aplicação. Contém todos os **módulos de domínio** isolados, ca
 | [`Petshop/`](./Petshop/README.md) | Agendamento de banho, tosa e serviços estéticos | 🔴 Não iniciado |
 | [`Sales/`](./Sales/README.md) | PDV (Ponto de Venda) com suporte offline, pedidos e comissões | 🔴 Não iniciado |
 | [`Inventory/`](./Inventory/README.md) | Controle de estoque de produtos e insumos | 🔴 Não iniciado |
+| [`Finance/`](./Finance/README.md) | Contas a pagar/receber, caixa, fluxo de caixa | 🟡 Estrutura (7.1) |
 | [`Fiscal/`](./Fiscal/README.md) | Emissão de notas fiscais e integração com sistemas fiscais brasileiros | 🔴 Não iniciado |
 
 ## Anatomia de um Módulo

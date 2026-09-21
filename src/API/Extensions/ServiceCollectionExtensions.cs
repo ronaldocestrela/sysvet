@@ -2,6 +2,7 @@ using API.Notifications;
 using API.Serialization;
 using Core.Infrastructure;
 using MediatR;
+using Finance.Infrastructure;
 using Fiscal.Infrastructure;
 using Inventory.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -49,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddInventoryModule(configuration);
         services.AddSalesModule(configuration);
         services.AddPetshopModule(configuration);
+        services.AddFinanceModule(configuration);
         services.AddFiscalModule(configuration);
 
         services.AddSignalR();

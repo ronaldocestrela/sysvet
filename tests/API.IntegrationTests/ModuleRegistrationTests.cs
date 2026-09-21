@@ -74,6 +74,16 @@ public class ModuleRegistrationTests
     }
 
     [Fact]
+    public void AddApplicationModules_ResolvesFinanceDbContext()
+    {
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var provider = scope.ServiceProvider;
+        provider.GetService<global::Finance.Infrastructure.Persistence.FinanceDbContext>().Should().NotBeNull();
+        provider.GetService<global::Finance.Domain.Repositories.IFinanceUnitOfWork>().Should().NotBeNull();
+    }
+
+    [Fact]
     public void AddApplicationModules_DoesNotThrowForPetshopAndFiscalStubs()
     {
         var act = () => BuildProvider();

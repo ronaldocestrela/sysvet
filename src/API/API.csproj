@@ -33,6 +33,8 @@
     <ProjectReference Include="..\Modules\Fiscal\Infrastructure\Fiscal.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Inventory\Application\Inventory.Application.csproj" />
     <ProjectReference Include="..\Modules\Inventory\Infrastructure\Inventory.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Finance\Application\Finance.Application.csproj" />
+    <ProjectReference Include="..\Modules\Finance\Infrastructure\Finance.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

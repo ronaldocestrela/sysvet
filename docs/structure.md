@@ -76,6 +76,11 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │       │   ├── Application/
 │       │   └── Infrastructure/
 │       │
+│       ├── Finance/                     
+│       │   ├── Domain/
+│       │   ├── Application/
+│       │   └── Infrastructure/
+│       │
 │       └── Fiscal/                     
 │           ├── Domain/
 │           ├── Application/

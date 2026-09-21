@@ -44,9 +44,9 @@ Provisionamento em massa de schemas, onboarding Super Admin e impersonation audi
 - Implementação scoped: [`DefaultTenantContext`](../../src/Modules/Core/Infrastructure/Tenancy/DefaultTenantContext.cs); options [`TenancySettings`](../../src/Modules/Core/Infrastructure/Tenancy/TenancySettings.cs).
 - Request pipeline: [`TenantClaimMiddleware`](../../src/Modules/Core/Infrastructure/Identity/TenantClaimMiddleware.cs) após `UseAuthentication()` em [`Program.cs`](../../src/API/Program.cs).
 - EF: [`TenantAwareModelCacheKeyFactory`](../../src/Modules/Core/Infrastructure/Persistence/TenantAwareModelCacheKeyFactory.cs) inclui `SchemaName` na chave de modelo.
-- DbContexts: `CoreDbContext`, `VeterinaryDbContext`, `InventoryDbContext`, `SalesDbContext` — `HasDefaultSchema` derivado de `ITenantContext` (migrations atuais geradas com schema `dbo` como baseline de design-time).
+- DbContexts: `CoreDbContext`, `VeterinaryDbContext`, `InventoryDbContext`, `SalesDbContext`, `PetshopDbContext`, `FinanceDbContext` — `HasDefaultSchema` derivado de `ITenantContext` (migrations atuais geradas com schema `dbo` como baseline de design-time).
 
-**Nota (roadmap / agents.md):** “schema lógico” de um módulo (ex. tabelas exclusivas do `CoreDbContext`, ADR-001) **não** é um schema SQL chamado `core`. O isolamento físico por tenant continua sendo `dbo` (design-time) ou `tenant_{guid}` em runtime.
+**Nota (roadmap / agents.md):** “schema lógico” de um módulo (ex. tabelas exclusivas do `FinanceDbContext`, ADR-001) **não** é um schema SQL chamado `finance`. O isolamento físico por tenant continua sendo `dbo` (design-time) ou `tenant_{guid}` em runtime.
 
 Documentação de config: [`configuracao.md`](./configuracao.md) (`TenancySettings:DefaultSchema`).
 

@@ -24,5 +24,8 @@ internal static class IntegrationTestDatabaseHelper
 
         var petshopContext = scope.ServiceProvider.GetRequiredService<global::Petshop.Infrastructure.Persistence.PetshopDbContext>();
         await petshopContext.Database.MigrateAsync();
+
+        var financeContext = scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>();
+        await financeContext.Database.MigrateAsync();
     }
 }
