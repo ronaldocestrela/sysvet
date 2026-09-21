@@ -58,6 +58,9 @@ public sealed class OfflineGroomingStore : IGroomingStore
     public Task<Result> StartAsync(Guid appointmentId, CancellationToken cancellationToken = default)
         => ApplyTransitionAsync(appointmentId, a => a.Start(), cancellationToken);
 
+    public Task<Result> MarkReadyAsync(Guid appointmentId, CancellationToken cancellationToken = default)
+        => ApplyTransitionAsync(appointmentId, a => a.MarkReady(), cancellationToken);
+
     public async Task<Result> CompleteAsync(Guid appointmentId, CancellationToken cancellationToken = default)
     {
         var appointment = await _dbContext.GroomingAppointments.FindAsync([appointmentId], cancellationToken);

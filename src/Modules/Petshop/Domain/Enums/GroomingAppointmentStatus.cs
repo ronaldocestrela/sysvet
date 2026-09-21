@@ -10,5 +10,6 @@ public enum GroomingAppointmentStatus
     Completed = 3,
     Cancelled = 4,
     NoShow = 5,
-    InProgress = 6
+    InProgress = 6,
+    ReadyForPickup = 7
 }

@@ -47,6 +47,9 @@ public static class PetshopEndpointExtensions
         appointments.MapPost("/{id:guid}/start", async (Guid id, HttpContext httpContext, IMediator mediator) =>
             (await mediator.Send(new StartGroomingAppointmentCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
+        appointments.MapPost("/{id:guid}/ready", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new MarkGroomingReadyCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
         appointments.MapPost("/{id:guid}/complete", async (Guid id, HttpContext httpContext, IMediator mediator) =>
             (await mediator.Send(new CompleteGroomingAppointmentCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 

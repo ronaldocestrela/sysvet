@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant Staff
+    participant API as Petshop_API
+    participant MediatR
+    participant Hub as SignalR_Hub
+    participant Channel as ITutorNotificationChannel
+
+    Staff->>API: POST grooming-appointments/id/ready
+    API->>API: MarkReady SaveChanges
+    API->>MediatR: DomainEventEnvelope
+    MediatR->>MediatR: GroomingStatusChangedEvent
+    MediatR->>Hub: tenant group broadcast
+    alt IsEnabled
+        MediatR->>Channel: NotifyGroomingStatusAsync
+    end

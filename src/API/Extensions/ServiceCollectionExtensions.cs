@@ -1,5 +1,7 @@
+using API.Notifications;
 using API.Serialization;
 using Core.Infrastructure;
+using MediatR;
 using Fiscal.Infrastructure;
 using Inventory.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -48,6 +50,10 @@ public static class ServiceCollectionExtensions
         services.AddSalesModule(configuration);
         services.AddPetshopModule(configuration);
         services.AddFiscalModule(configuration);
+
+        services.AddSignalR();
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GroomingRealtimeBroadcastHandler).Assembly));
+
         return services;
     }
 }

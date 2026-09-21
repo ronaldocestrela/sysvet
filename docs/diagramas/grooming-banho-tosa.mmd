@@ -4,6 +4,7 @@ sequenceDiagram
     participant Inv as Inventory
     participant Sales as Sales_Prepaid
 
+    Note over UI,API: Opcional POST .../ready (notifica tutor via ADR-031)
     UI->>API: POST grooming-appointments/complete
     API->>API: GroomingAppointment.Complete
     API->>Inv: ConsumeStockForGroomingRequest

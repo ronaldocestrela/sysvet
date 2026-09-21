@@ -25,6 +25,9 @@ public record ConfirmGroomingAppointmentCommand(Guid GroomingAppointmentId, Guid
 public record StartGroomingAppointmentCommand(Guid GroomingAppointmentId, Guid IdempotencyKey = default) : IIdempotentCommand;
 
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.GroomingWrite)]
+public record MarkGroomingReadyCommand(Guid GroomingAppointmentId, Guid IdempotencyKey = default) : IIdempotentCommand;
+
+[AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.GroomingWrite)]
 public record CompleteGroomingAppointmentCommand(Guid GroomingAppointmentId, Guid IdempotencyKey = default) : IIdempotentCommand;
 
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.GroomingWrite)]

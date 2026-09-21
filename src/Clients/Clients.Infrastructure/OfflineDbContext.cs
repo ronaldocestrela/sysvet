@@ -340,6 +340,9 @@ public class OfflineDbContext : DbContext
             GroomingAppointmentStatus.InProgress => (
                 "StartGroomingAppointmentCommand",
                 OutboxPayloadFactory.StartGroomingAppointment(appointment.Id, outboxId)),
+            GroomingAppointmentStatus.ReadyForPickup => (
+                "MarkGroomingReadyCommand",
+                OutboxPayloadFactory.MarkGroomingReady(appointment.Id, outboxId)),
             GroomingAppointmentStatus.Completed => (
                 "CompleteGroomingAppointmentCommand",
                 OutboxPayloadFactory.CompleteGroomingAppointment(appointment.Id, outboxId)),

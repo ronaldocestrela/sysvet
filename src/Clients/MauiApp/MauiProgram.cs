@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.Extensions.Configuration;
 using Clients.Infrastructure.DependencyInjection;
+using Clients.Infrastructure.Grooming;
 using SharedUI.DependencyInjection;
 using SharedUI.Http;
 using SharedUI.Services;
@@ -43,6 +44,15 @@ public static class MauiProgram
 		builder.Services.AddSingleton<SharedUI.Services.IBarcodeScannerService, MauiApp.Services.MauiBarcodeScannerService>();
 
 		builder.Services.AddSharedUI();
+		builder.Services.AddSingleton<IGroomingStatusRealtime>(sp =>
+		{
+			var tokenStorage = sp.GetRequiredService<ITokenStorage>();
+			var connectivity = sp.GetRequiredService<IConnectivityService>();
+			return new GroomingStatusRealtimeService(
+				() => sp.GetService<IHttpClientFactory>(),
+				() => tokenStorage.GetAccessTokenAsync(),
+				() => connectivity.IsOnline);
+		});
 		builder.Services.AddSingleton<INavigationService, MauiApp.Services.MauiNavigationService>();
 		builder.Services.AddSingleton<IConnectivityService, MauiApp.Services.MauiConnectivityService>();
 		builder.Services.AddSingleton<Clients.Infrastructure.Sync.ISyncConnectivity, SyncConnectivityAdapter>();

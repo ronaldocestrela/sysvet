@@ -36,6 +36,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-028](./ADR-028-comissoes-descontos-devolucoes-venda.md) | Comissões, descontos e devoluções de venda | Accepted |
 | [ADR-029](./ADR-029-pacotes-kits-prepagos.md) | Pacotes, kits e pré-pagos (PDV) | Accepted |
 | [ADR-030](./ADR-030-estetica-banho-tosa.md) | Estética banho e tosa (Petshop) | Accepted |
+| [ADR-031](./ADR-031-notificacoes-status-banho.md) | Notificações de status banho (SignalR + canal tutor) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

@@ -536,6 +536,9 @@ internal static class OutboxPayloadFactory
     public static string StartGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
 
+    public static string MarkGroomingReady(Guid groomingAppointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
+
     public static string CompleteGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
 

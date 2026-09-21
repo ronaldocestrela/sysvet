@@ -13,6 +13,8 @@ public interface IGroomingStore
 
     Task<Result> StartAsync(Guid appointmentId, CancellationToken cancellationToken = default);
 
+    Task<Result> MarkReadyAsync(Guid appointmentId, CancellationToken cancellationToken = default);
+
     Task<Result> CompleteAsync(Guid appointmentId, CancellationToken cancellationToken = default);
 
     Task<Result<IReadOnlyList<GroomingHistoryItemDto>>> GetPetHistoryAsync(Guid petId, CancellationToken cancellationToken = default);

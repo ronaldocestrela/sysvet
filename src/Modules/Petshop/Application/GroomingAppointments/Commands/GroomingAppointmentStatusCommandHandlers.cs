@@ -29,6 +29,16 @@ public sealed class StartGroomingAppointmentCommandHandler : IRequestHandler<Sta
         => GroomingAppointmentStatusTransitions.ApplyAsync(_repository, request.GroomingAppointmentId, a => a.Start(), cancellationToken);
 }
 
+public sealed class MarkGroomingReadyCommandHandler : IRequestHandler<MarkGroomingReadyCommand, Result>
+{
+    private readonly IGroomingAppointmentRepository _repository;
+
+    public MarkGroomingReadyCommandHandler(IGroomingAppointmentRepository repository) => _repository = repository;
+
+    public Task<Result> Handle(MarkGroomingReadyCommand request, CancellationToken cancellationToken)
+        => GroomingAppointmentStatusTransitions.ApplyAsync(_repository, request.GroomingAppointmentId, a => a.MarkReady(), cancellationToken);
+}
+
 /// <summary>
 /// Completes grooming: debits supplies, optionally consumes prepaid, finalizes the digital record.
 /// </summary>

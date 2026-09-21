@@ -34,17 +34,66 @@ public class GroomingAppointmentTests
     }
 
     [Fact]
-    public void Complete_WhenInProgress_ShouldRaiseGroomingCompleted()
+    public void MarkReady_WhenInProgress_ShouldRaiseGroomingReadyForPickup()
+    {
+        var appointment = CreateInProgress();
+
+        var result = appointment.MarkReady();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.Status.Should().Be(GroomingAppointmentStatus.ReadyForPickup);
+        appointment.DomainEvents.Should().ContainSingle(e => e is GroomingReadyForPickupDomainEvent);
+    }
+
+    [Fact]
+    public void MarkReady_WhenAlreadyReady_ShouldBeIdempotent()
+    {
+        var appointment = CreateInProgress();
+        appointment.MarkReady();
+        appointment.ClearDomainEvents();
+
+        var result = appointment.MarkReady();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.Status.Should().Be(GroomingAppointmentStatus.ReadyForPickup);
+        appointment.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Complete_WhenInProgress_ShouldRaiseReadyAndCompleted()
+    {
+        var appointment = CreateInProgress();
+
+        var result = appointment.Complete();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.Status.Should().Be(GroomingAppointmentStatus.Completed);
+        appointment.DomainEvents.OfType<GroomingReadyForPickupDomainEvent>().Should().ContainSingle();
+        appointment.DomainEvents.OfType<GroomingCompletedDomainEvent>().Should().ContainSingle();
+    }
+
+    [Fact]
+    public void Complete_WhenReadyForPickup_ShouldRaiseOnlyCompleted()
+    {
+        var appointment = CreateInProgress();
+        appointment.MarkReady();
+        appointment.ClearDomainEvents();
+
+        var result = appointment.Complete();
+
+        result.IsSuccess.Should().BeTrue();
+        appointment.DomainEvents.OfType<GroomingReadyForPickupDomainEvent>().Should().BeEmpty();
+        appointment.DomainEvents.OfType<GroomingCompletedDomainEvent>().Should().ContainSingle();
+    }
+
+    private static GroomingAppointment CreateInProgress()
     {
         var appointment = GroomingAppointment.Create(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
             DateTimeOffset.UtcNow.AddDays(1), 30, "").Value;
         appointment.Confirm();
         appointment.Start();
-
-        var result = appointment.Complete();
-
-        result.IsSuccess.Should().BeTrue();
-        appointment.DomainEvents.OfType<GroomingCompletedDomainEvent>().Should().ContainSingle();
+        appointment.ClearDomainEvents();
+        return appointment;
     }
 }

@@ -4,7 +4,7 @@ Módulo responsável pelos serviços de **estética animal**: banho, tosa, hidra
 
 ## Status
 
-Implementado (fase 6.6): agenda de groomers, ficha digital B&T por pet, baixa de insumos no estoque e integração com pacotes pré-pagos (ADR-029 via Core).
+Implementado (fases 6.6–6.7): agenda de groomers, ficha digital B&T, baixa de insumos, pacotes pré-pagos (ADR-029) e notificações de status / SignalR (ADR-031).
 
 ## Escopo de Negócio
 
@@ -13,6 +13,7 @@ Implementado (fase 6.6): agenda de groomers, ficha digital B&T por pet, baixa de
 - **Ficha digital**: `GroomingRecord` 1:1 com o agendamento, histórico por pet
 - **Estoque**: `ConsumeStockForGroomingRequest` (Core → Inventory) na conclusão
 - **Pré-pago**: `ConsumePrepaidServicePackageRequest` quando o serviço tem `PrepaidServiceCode`
+- **Notificações**: `MarkGroomingReady`, eventos → `GroomingStatusChangedEvent` (Core); hub `/hubs/grooming-status`
 
 ## Estrutura de Camadas
 
@@ -37,4 +38,5 @@ Implementado (fase 6.6): agenda de groomers, ficha digital B&T por pet, baixa de
 ## Referências
 
 - [ADR-030](../../docs/arquitetura/ADR-030-estetica-banho-tosa.md)
-- [Roadmap 6.6](../../docs/roadmap.md)
+- [ADR-031](../../docs/arquitetura/ADR-031-notificacoes-status-banho.md)
+- [Roadmap 6.6–6.7](../../docs/roadmap.md)

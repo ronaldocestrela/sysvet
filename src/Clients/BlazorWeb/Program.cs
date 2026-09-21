@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using BlazorWeb;
 using BlazorWeb.Services;
 using Clients.Infrastructure.DependencyInjection;
+using Clients.Infrastructure.Grooming;
 using Clients.Infrastructure.Persistence;
 using SharedUI.DependencyInjection;
 using SQLitePCL;
@@ -38,6 +39,15 @@ builder.Services.AddScoped<SharedUI.Services.IFileDownloadService, BlazorWeb.Ser
 builder.Services.AddSingleton<SharedUI.Services.IBarcodeScannerService, BlazorWeb.Services.WebBarcodeScannerService>();
 
 builder.Services.AddSharedUI();
+builder.Services.AddSingleton<IGroomingStatusRealtime>(sp =>
+{
+    var tokenStorage = sp.GetRequiredService<SharedUI.Services.ITokenStorage>();
+    var connectivity = sp.GetRequiredService<SharedUI.Services.IConnectivityService>();
+    return new GroomingStatusRealtimeService(
+        () => sp.GetService<IHttpClientFactory>(),
+        () => tokenStorage.GetAccessTokenAsync(),
+        () => connectivity.IsOnline);
+});
 builder.Services.AddSingleton<SharedUI.Services.INavigationService, WebNavigationService>();
 builder.Services.AddSingleton<SharedUI.Services.IConnectivityService, WebConnectivityService>();
 builder.Services.AddSingleton<Clients.Infrastructure.Sync.ISyncConnectivity, SharedUI.Services.SyncConnectivityAdapter>();

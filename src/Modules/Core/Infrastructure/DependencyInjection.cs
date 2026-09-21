@@ -12,6 +12,8 @@ using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
 using Core.Infrastructure.Persistence.Seeding;
 using Core.Infrastructure.Services;
+using Core.Application.Notifications;
+using Core.Infrastructure.Notifications;
 using Core.Infrastructure.Storage;
 using Core.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -87,6 +89,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<Core.Application.Common.Interfaces.ICurrentUser, HttpCurrentUser>();
         services.AddScoped<Core.Application.Common.Interfaces.IDomainEventDispatcher, MediatRDomainEventDispatcher>();
+        services.AddSingleton<ITutorNotificationChannel, NullTutorNotificationChannel>();
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IAccessTokenIssuer, JwtAccessTokenIssuer>();

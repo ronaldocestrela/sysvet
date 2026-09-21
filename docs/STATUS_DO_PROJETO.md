@@ -175,9 +175,14 @@ Iniciado o módulo de estoque.
 - API `/api/v1/grooming-*`; sync push/pull; clientes offline (`IGroomingStore`, `/grooming`).
 - Aceite: `CompleteGrooming_DebitsConfiguredSupplies` em `GroomingEndpointsTests`.
 
-### 👉 **Próxima Ação: Fase 6.7 — Notificações de status (banho)**
+### Fase 6.7 — Notificações de status (banho) — Concluída (ADR-031)
 
-Ver [`roadmap.md`](roadmap.md) § Fase 6.
+- Status `ReadyForPickup`, endpoint `/ready`, SignalR no tenant, porta `ITutorNotificationChannel` (Null até Automations 8.1).
+- Aceite: `MarkReady_WhenAutomationsChannelEnabled_NotifiesTutor`.
+
+### 👉 **Próxima Ação: Fase 7 — Financeiro e Fiscal**
+
+Ver [`roadmap.md`](roadmap.md) § Fase 7.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

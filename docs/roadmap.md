@@ -714,7 +714,7 @@ flowchart TD
 | **6.4 Comissões, descontos, devoluções** | 8 | Concluído |
 | **6.5 Pacotes, kits e pré-pagos** | 5 | Concluído |
 | **6.6 Estética — banho e tosa** | 13 | Concluído |
-| **6.7 Notificações de status (banho)** | 5 | Pendente |
+| **6.7 Notificações de status (banho)** | 5 | Concluído |
 | **Total Fase 6** | **65 SP** | |
 
 ### 6.1 Motor de vendas (PDV) (13 SP) — Concluído
@@ -838,12 +838,24 @@ flowchart TD
 
 **Aceite:** Conclusão do serviço baixa insumos configurados na ficha (`CompleteGrooming_DebitsConfiguredSupplies`).
 
-### 6.7 Notificações de status (banho) (5 SP)
+### 6.7 Notificações de status (banho) (5 SP) — Concluído
 
-- [ ] Eventos: início, em andamento, pronto para retirada
-- [ ] Integração com fila (Fase 8) ou SignalR para tempo real
+**Domain**
+- [x] `ReadyForPickup`, `MarkReady()`, `GroomingReadyForPickupDomainEvent`; `Complete` de `InProgress`/`ReadyForPickup`; ADR-031
 
-**Aceite:** Tutor recebe notificação ao marcar "pronto" (quando Automações ativo).
+**Application**
+- [x] `MarkGroomingReadyCommand`; `GroomingStatusChangedEvent`; `GroomingStatusChangedIntegrationHandler`; `GroomingTutorNotificationHandler` + `ITutorNotificationChannel`
+
+**API**
+- [x] `POST /api/v1/grooming-appointments/{id}/ready`; hub `/hubs/grooming-status`; JWT `access_token` em WebSockets
+
+**Sync**
+- [x] Outbox `MarkGroomingReadyCommand`; `IGroomingStore.MarkReadyAsync`
+
+**Clients**
+- [x] Botão **Pronto** em `/grooming`; `IGroomingStatusRealtime` (SignalR online)
+
+**Aceite:** `MarkReady_WhenAutomationsChannelEnabled_NotifiesTutor`; regressão `CompleteGrooming_DebitsConfiguredSupplies`.
 
 ---
 

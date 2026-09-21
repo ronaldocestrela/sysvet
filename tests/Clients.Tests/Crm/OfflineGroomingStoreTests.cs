@@ -60,6 +60,37 @@ public class OfflineGroomingStoreTests
     }
 
     [Fact]
+    public async Task MarkReadyAsync_EnqueuesMarkGroomingReadyCommand()
+    {
+        var (ctx, store) = CreateStore();
+        await using var _ = ctx;
+
+        var appointmentId = Guid.NewGuid();
+        var appointment = GroomingAppointment.RestoreFromSync(
+            appointmentId,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow.AddHours(1),
+            30,
+            "",
+            GroomingAppointmentStatus.InProgress,
+            DateTimeOffset.UtcNow);
+
+        ctx.SuppressOutbox = true;
+        ctx.GroomingAppointments.Add(appointment);
+        await ctx.SaveChangesAsync();
+        ctx.SuppressOutbox = false;
+
+        var result = await store.MarkReadyAsync(appointmentId);
+        result.IsSuccess.Should().BeTrue();
+
+        var message = await ctx.OutboxMessages.SingleAsync(m => m.Type == "MarkGroomingReadyCommand");
+        message.Payload.Should().Contain(appointmentId.ToString());
+    }
+
+    [Fact]
     public async Task CompleteAsync_DebitsStockAndEnqueuesCompleteCommand()
     {
         var (ctx, store) = CreateStore();

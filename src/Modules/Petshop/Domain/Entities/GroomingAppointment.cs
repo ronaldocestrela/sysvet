@@ -135,10 +135,37 @@ public sealed class GroomingAppointment : AggregateRoot
         return Result.Success();
     }
 
-    /// <summary>Completes an in-progress grooming session.</summary>
+    /// <summary>Marks the pet ready for tutor pickup while service is in progress.</summary>
+    public Result MarkReady()
+    {
+        if (Status == GroomingAppointmentStatus.ReadyForPickup)
+        {
+            return Result.Success();
+        }
+
+        if (Status != GroomingAppointmentStatus.InProgress)
+        {
+            return Result.Failure(ErrorCodes.GroomingAppointment.InvalidStatusTransition);
+        }
+
+        Status = GroomingAppointmentStatus.ReadyForPickup;
+        Raise(new GroomingReadyForPickupDomainEvent(Id, PetId, TutorId, DateTimeOffset.UtcNow));
+        Touch();
+        return Result.Success();
+    }
+
+    /// <summary>Completes grooming from in-progress (implicit ready) or ready-for-pickup.</summary>
     public Result Complete()
     {
-        if (Status != GroomingAppointmentStatus.InProgress)
+        if (Status == GroomingAppointmentStatus.InProgress)
+        {
+            var ready = MarkReady();
+            if (ready.IsFailure)
+            {
+                return ready;
+            }
+        }
+        else if (Status != GroomingAppointmentStatus.ReadyForPickup)
         {
             return Result.Failure(ErrorCodes.GroomingAppointment.InvalidStatusTransition);
         }

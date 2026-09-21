@@ -5,6 +5,8 @@
 @inject IGroomingStore GroomingStore
 @inject IPetStore PetStore
 @inject IToastService Toast
+@inject Clients.Infrastructure.Grooming.IGroomingStatusRealtime GroomingRealtime
+@implements IAsyncDisposable
 
 <div class="header-section">
     <h1>Agenda Banho &amp; Tosa</h1>
@@ -43,6 +45,11 @@
                             }
                             @if (item.Status == "InProgress")
                             {
+                                <button class="btn btn-sm btn-warning ms-1" @onclick="() => MarkReadyAsync(item.Id)">Pronto</button>
+                                <button class="btn btn-sm btn-success ms-1" @onclick="() => CompleteAsync(item.Id)">Concluir</button>
+                            }
+                            @if (item.Status == "ReadyForPickup")
+                            {
                                 <button class="btn btn-sm btn-success ms-1" @onclick="() => CompleteAsync(item.Id)">Concluir</button>
                             }
                         </div>
@@ -58,7 +65,14 @@
     private bool _isLoading;
     private List<GroomingAppointmentListItemDto> _appointments = new();
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        GroomingRealtime.StatusChanged += OnGroomingStatusChangedAsync;
+        await GroomingRealtime.ConnectAsync();
+        await LoadAsync();
+    }
+
+    private Task OnGroomingStatusChangedAsync() => InvokeAsync(LoadAsync);
 
     private async Task LoadAsync()
     {
@@ -87,6 +101,12 @@
         if (result.IsSuccess) await LoadAsync(); else Toast.Show(result.Error.Message, ToastType.Error);
     }
 
+    private async Task MarkReadyAsync(Guid id)
+    {
+        var result = await GroomingStore.MarkReadyAsync(id);
+        if (result.IsSuccess) await LoadAsync(); else Toast.Show(result.Error.Message, ToastType.Error);
+    }
+
     private async Task CompleteAsync(Guid id)
     {
         var result = await GroomingStore.CompleteAsync(id);
@@ -95,4 +115,10 @@
 
     private async Task PreviousDay() { _currentDate = _currentDate.AddDays(-1); await LoadAsync(); }
     private async Task NextDay() { _currentDate = _currentDate.AddDays(1); await LoadAsync(); }
+
+    public async ValueTask DisposeAsync()
+    {
+        GroomingRealtime.StatusChanged -= OnGroomingStatusChangedAsync;
+        await GroomingRealtime.DisconnectAsync();
+    }
 }

@@ -21,7 +21,7 @@ A fase 6.6 exige agenda de banhistas/tosadores, ficha digital B&T por pet e baix
 
 ## Consequências
 - Migration Petshop; sync push/pull; SQLite offline espelhando Veterinary/Sales.
-- Eventos `GroomingStarted` / `GroomingCompleted` para fase 6.7 (notificações).
+- Eventos `GroomingStarted` / `GroomingCompleted` / `GroomingReadyForPickup` — notificações na fase 6.7 (ADR-031).
 
 ## Confirmação no código
 - [`ConsumeStockForGroomingRequest`](../../src/Modules/Core/Application/IntegrationEvents/ConsumeStockForGroomingRequest.cs)

@@ -105,6 +105,18 @@ dotnet ef database update \
 
 Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Persistence/CoreDbContextFactory.cs) usa SQLite e schema `dbo` (baseline ADR-003). Em Development, o banco padrão é `sysvet.db` (`ConnectionStrings:DefaultConnection`).
 
+### Grooming — SignalR (ADR-031)
+
+| Item | Valor | Descrição |
+|------|-------|-----------|
+| Hub path | `/hubs/grooming-status` | Broadcast de `GroomingStatusChanged` por tenant |
+| Grupo | `tenant-{TenantId}` | Claim `TenantId` do JWT |
+| WebSocket auth | Query `access_token` | Mesmo JWT Bearer; ver [`JwtBearerOptionsConfiguration`](../../src/Modules/Core/Infrastructure/Identity/JwtBearerOptionsConfiguration.cs) |
+| Permissão hub | `Grooming.Read` | Conexão do backoffice |
+| Canal tutor | `ITutorNotificationChannel` | `NullTutorNotificationChannel` até módulo Automations (8.1) |
+
+Clientes Blazor/MAUI usam `IGroomingStatusRealtime` com o client HTTP `API` como base URL.
+
 ### Autenticação JWT (Fase 2.3)
 
 - **Login:** `POST /api/v1/auth/login` — body `{ "email", "password" }` → `{ accessToken, refreshToken, expiresInSeconds }`.

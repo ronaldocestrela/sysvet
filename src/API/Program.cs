@@ -1,4 +1,5 @@
 using API.Extensions;
+using API.Hubs;
 using API.Middlewares;
 using Core.Infrastructure.Identity;
 using Scalar.AspNetCore;
@@ -53,6 +54,8 @@ routes.MapInventoryEndpoints();
 routes.MapSalesEndpoints();
 routes.MapPetshopEndpoints();
 routes.MapFiscalEndpoints();
+
+app.MapHub<GroomingStatusHub>(GroomingStatusHub.HubPath);
 
 app.MapGet("/", () => "SysVet API is running!");
 

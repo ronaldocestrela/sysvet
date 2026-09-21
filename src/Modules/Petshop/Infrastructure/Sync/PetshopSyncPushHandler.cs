@@ -38,6 +38,9 @@ public sealed class PetshopSyncPushHandler : ISyncPushHandler
             nameof(StartGroomingAppointmentCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<StartGroomingAppointmentCommand>(message.Payload, JsonOptions),
                 message.Id),
+            nameof(MarkGroomingReadyCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<MarkGroomingReadyCommand>(message.Payload, JsonOptions),
+                message.Id),
             nameof(CompleteGroomingAppointmentCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<CompleteGroomingAppointmentCommand>(message.Payload, JsonOptions),
                 message.Id),
@@ -75,6 +78,8 @@ public sealed class PetshopSyncPushHandler : ISyncPushHandler
                 return await _mediator.Send(confirm, cancellationToken);
             case StartGroomingAppointmentCommand start:
                 return await _mediator.Send(start, cancellationToken);
+            case MarkGroomingReadyCommand ready:
+                return await _mediator.Send(ready, cancellationToken);
             case CompleteGroomingAppointmentCommand complete:
                 return await _mediator.Send(complete, cancellationToken);
             case CancelGroomingAppointmentCommand cancel:
@@ -104,6 +109,9 @@ public sealed class PetshopSyncPushHandler : ISyncPushHandler
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 
     private static StartGroomingAppointmentCommand? WithIdempotency(StartGroomingAppointmentCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static MarkGroomingReadyCommand? WithIdempotency(MarkGroomingReadyCommand? command, Guid idempotencyKey) =>
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 
     private static CompleteGroomingAppointmentCommand? WithIdempotency(CompleteGroomingAppointmentCommand? command, Guid idempotencyKey) =>
