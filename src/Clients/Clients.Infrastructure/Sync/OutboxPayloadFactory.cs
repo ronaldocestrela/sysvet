@@ -506,4 +506,42 @@ internal static class OutboxPayloadFactory
             AttendanceRef = attendanceRef,
             IdempotencyKey = idempotencyKey
         });
+
+    public static string ScheduleGroomingAppointment(
+        Guid id,
+        Guid tutorId,
+        Guid petId,
+        Guid groomerId,
+        Guid groomingServiceId,
+        DateTimeOffset date,
+        int durationInMinutes,
+        string notes,
+        Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Id = id,
+            TutorId = tutorId,
+            PetId = petId,
+            GroomerId = groomerId,
+            GroomingServiceId = groomingServiceId,
+            Date = date,
+            DurationInMinutes = durationInMinutes,
+            Notes = notes,
+            IdempotencyKey = idempotencyKey
+        });
+
+    public static string ConfirmGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string StartGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string CompleteGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string CancelGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
+
+    public static string MarkNoShowGroomingAppointment(Guid groomingAppointmentId, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { GroomingAppointmentId = groomingAppointmentId, IdempotencyKey = idempotencyKey });
 }

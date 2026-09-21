@@ -169,7 +169,13 @@ Iniciado o módulo de estoque.
 - Kits de produtos (explosão de estoque no pay); pacotes pré-pagos com saldo por pet; consumo via API/`ConsumePrepaidServicePackageRequest`.
 - Aceite: `PayPackageThenConsume_DecrementsRemainingUses` em `SalesEndpointsTests`.
 
-### 👉 **Próxima Ação: Fase 6.6 — Estética banho e tosa**
+### Fase 6.6 — Estética banho e tosa — Concluída (ADR-030)
+
+- Módulo Petshop: agenda groomers, ficha B&T, catálogo de serviços, baixa de insumos na conclusão.
+- API `/api/v1/grooming-*`; sync push/pull; clientes offline (`IGroomingStore`, `/grooming`).
+- Aceite: `CompleteGrooming_DebitsConfiguredSupplies` em `GroomingEndpointsTests`.
+
+### 👉 **Próxima Ação: Fase 6.7 — Notificações de status (banho)**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 6.
 

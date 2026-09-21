@@ -1,5 +1,6 @@
 using Core.Application.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -10,6 +11,8 @@ namespace Core.Infrastructure.Persistence.Seeding;
 /// </summary>
 public sealed class IdentityDataSeeder : IIdentityDataSeeder
 {
+    private const int MaxCreateAttempts = 3;
+
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly CoreDbContext _dbContext;
     private readonly ILogger<IdentityDataSeeder> _logger;
@@ -42,19 +45,66 @@ public sealed class IdentityDataSeeder : IIdentityDataSeeder
 
         foreach (var roleName in ApplicationRoles.All)
         {
+            await EnsureRoleExistsAsync(roleName, cancellationToken);
+        }
+    }
+
+    private async Task EnsureRoleExistsAsync(string roleName, CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; attempt <= MaxCreateAttempts; attempt++)
+        {
             if (await _roleManager.RoleExistsAsync(roleName))
             {
-                continue;
+                return;
             }
 
-            var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
-            if (!result.Succeeded)
+            try
             {
+                var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("Seeded Identity role {RoleName}.", roleName);
+                    return;
+                }
+
+                if (await _roleManager.RoleExistsAsync(roleName) ||
+                    result.Errors.Any(e => e.Code is "DuplicateRoleName" or "DuplicateRoleId"))
+                {
+                    return;
+                }
+
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to seed role '{roleName}': {errors}");
             }
+            catch (Exception ex) when (ex is not InvalidOperationException && IsRetryableSeedConflict(ex))
+            {
+                _dbContext.ChangeTracker.Clear();
 
-            _logger.LogInformation("Seeded Identity role {RoleName}.", roleName);
+                if (await _roleManager.RoleExistsAsync(roleName))
+                {
+                    return;
+                }
+
+                if (attempt == MaxCreateAttempts)
+                {
+                    throw;
+                }
+
+                await Task.Delay(50 * attempt, cancellationToken);
+            }
         }
+    }
+
+    private static bool IsRetryableSeedConflict(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is SqliteException sqlite)
+            {
+                return sqlite.SqliteErrorCode is 5 or 6 or 19;
+            }
+        }
+
+        return false;
     }
 }

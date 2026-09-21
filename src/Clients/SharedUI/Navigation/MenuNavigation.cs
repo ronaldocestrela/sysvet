@@ -15,6 +15,7 @@ public static class MenuNavigation
             ["tutors"] = new(AppRoutes.Tutors, "Tutores", "bi-people"),
             ["pets"] = new(AppRoutes.Pets, "Pets", "bi-heart"),
             ["appointments"] = new(AppRoutes.Appointments, "Agenda", "bi-calendar-event"),
+            ["grooming"] = new(AppRoutes.Grooming, "Banho & Tosa", "bi-scissors"),
             ["vaccines"] = new(AppRoutes.VaccineAlerts, "Alertas de vacina", "bi-exclamation-triangle"),
             ["hospitalizations"] = new(AppRoutes.Hospitalizations, "Internação", "bi-hospital"),
             ["quotes"] = new(AppRoutes.PendingQuoteConversions, "Orçamentos pendentes", "bi-receipt"),

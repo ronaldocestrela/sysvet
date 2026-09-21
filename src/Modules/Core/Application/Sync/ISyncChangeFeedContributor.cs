@@ -34,6 +34,10 @@ public sealed class SyncContributorChanges
     public IReadOnlyList<SyncProductKitDto> SalesProductKits { get; init; } = Array.Empty<SyncProductKitDto>();
     public IReadOnlyList<SyncServicePackageDto> SalesServicePackages { get; init; } = Array.Empty<SyncServicePackageDto>();
     public IReadOnlyList<SyncPrepaidBalanceDto> SalesPrepaidBalances { get; init; } = Array.Empty<SyncPrepaidBalanceDto>();
+    public IReadOnlyList<SyncGroomingAppointmentDto> GroomingAppointments { get; init; } = Array.Empty<SyncGroomingAppointmentDto>();
+    public IReadOnlyList<SyncGroomingSlotDto> GroomingSlots { get; init; } = Array.Empty<SyncGroomingSlotDto>();
+    public IReadOnlyList<SyncGroomingRecordDto> GroomingRecords { get; init; } = Array.Empty<SyncGroomingRecordDto>();
+    public IReadOnlyList<SyncGroomingServiceDto> GroomingServices { get; init; } = Array.Empty<SyncGroomingServiceDto>();
     public DateTimeOffset MaxUpdatedAt { get; init; }
     public bool HasMore { get; init; }
 }

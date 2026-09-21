@@ -60,9 +60,10 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `Veterinary` | `VeterinaryOptions` | Veterinary.Infrastructure |
 | `Inventory` | `InventoryOptions` | Inventory.Infrastructure |
 | `Sales` | `SalesOptions` | Sales.Infrastructure |
+| `Petshop` | `PetshopOptions` | Petshop.Infrastructure |
 | `BlobStorage` | `BlobStorageOptions` | Core.Infrastructure |
 
-Petshop e Fiscal ainda não possuem persistência; não registram options de banco.
+Fiscal ainda não possui persistência; não registra options de banco.
 
 ### Sales — terminal de pagamento (ADR-027)
 

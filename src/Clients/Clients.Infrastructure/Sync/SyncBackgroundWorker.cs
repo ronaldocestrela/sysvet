@@ -213,5 +213,9 @@ public class SyncBackgroundWorker : BackgroundService
         && page.SalesCommissionRules.Count == 0
         && page.SalesProductKits.Count == 0
         && page.SalesServicePackages.Count == 0
-        && page.SalesPrepaidBalances.Count == 0;
+        && page.SalesPrepaidBalances.Count == 0
+        && page.GroomingAppointments.Count == 0
+        && page.GroomingSlots.Count == 0
+        && page.GroomingRecords.Count == 0
+        && page.GroomingServices.Count == 0;
 }

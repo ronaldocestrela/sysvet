@@ -1,0 +1,98 @@
+@page "/grooming"
+@using SharedUI.Components
+@using SharedUI.Services
+@using Clients.Infrastructure.Crm
+@inject IGroomingStore GroomingStore
+@inject IPetStore PetStore
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1>Agenda Banho &amp; Tosa</h1>
+</div>
+
+<div class="calendar-container card">
+    <div class="calendar-header">
+        <button class="btn btn-sm" @onclick="PreviousDay">&lt; Anterior</button>
+        <h3>@_currentDate.ToString("dd/MM/yyyy")</h3>
+        <button class="btn btn-sm" @onclick="NextDay">Próximo &gt;</button>
+    </div>
+
+    <LoadingState IsLoading="_isLoading" Message="Carregando agenda...">
+        @if (_appointments.Count == 0)
+        {
+            <p class="text-muted">Nenhum agendamento para o dia (sincronize ou agende pela API).</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var item in _appointments)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@item.PetName</strong> — @item.Date.ToLocalTime().ToString("HH:mm")
+                            <span class="badge bg-secondary ms-2">@item.Status</span>
+                        </div>
+                        <div>
+                            @if (item.Status is "Scheduled" or "Confirmed")
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ConfirmAsync(item.Id)">Confirmar</button>
+                            }
+                            @if (item.Status == "Confirmed")
+                            {
+                                <button class="btn btn-sm btn-primary ms-1" @onclick="() => StartAsync(item.Id)">Iniciar</button>
+                            }
+                            @if (item.Status == "InProgress")
+                            {
+                                <button class="btn btn-sm btn-success ms-1" @onclick="() => CompleteAsync(item.Id)">Concluir</button>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </LoadingState>
+</div>
+
+@code {
+    private DateTimeOffset _currentDate = DateTimeOffset.UtcNow.Date;
+    private bool _isLoading;
+    private List<GroomingAppointmentListItemDto> _appointments = new();
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        var result = await GroomingStore.GetDailyAsync(null, _currentDate);
+        _isLoading = false;
+        if (result.IsSuccess)
+        {
+            _appointments = result.Value;
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+
+    private async Task ConfirmAsync(Guid id)
+    {
+        var result = await GroomingStore.ConfirmAsync(id);
+        if (result.IsSuccess) await LoadAsync(); else Toast.Show(result.Error.Message, ToastType.Error);
+    }
+
+    private async Task StartAsync(Guid id)
+    {
+        var result = await GroomingStore.StartAsync(id);
+        if (result.IsSuccess) await LoadAsync(); else Toast.Show(result.Error.Message, ToastType.Error);
+    }
+
+    private async Task CompleteAsync(Guid id)
+    {
+        var result = await GroomingStore.CompleteAsync(id);
+        if (result.IsSuccess) await LoadAsync(); else Toast.Show(result.Error.Message, ToastType.Error);
+    }
+
+    private async Task PreviousDay() { _currentDate = _currentDate.AddDays(-1); await LoadAsync(); }
+    private async Task NextDay() { _currentDate = _currentDate.AddDays(1); await LoadAsync(); }
+}

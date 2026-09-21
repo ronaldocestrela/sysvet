@@ -1,29 +1,40 @@
 # `src/Modules/Petshop/` — Módulo de Estética e Petshop
 
-Módulo responsável pelos serviços de **estética animal**: banho, tosa, hidratação e outros serviços de beleza pet. Gerencia a agenda do salão e o histórico de serviços por animal.
+Módulo responsável pelos serviços de **estética animal**: banho, tosa, hidratação e operação do salão.
 
 ## Status
 
-> 🔴 **Não iniciado.** As subpastas de camada existem mas estão vazias (apenas `.gitkeep` e arquivos de projeto).
+Implementado (fase 6.6): agenda de groomers, ficha digital B&T por pet, baixa de insumos no estoque e integração com pacotes pré-pagos (ADR-029 via Core).
 
 ## Escopo de Negócio
 
-Este módulo gerenciará:
-- **Agendamentos**: marcação de banho e tosa com horário, funcionário e tipo de serviço
-- **Pacotes de serviços**: banho simples, tosa higiênica, banho + tosa completa, hidratação
-- **Histórico**: registro dos serviços realizados por animal com observações (ex: "pelagem sensível")
-- **Fila de atendimento**: visualização da fila do dia em tempo real
-- **Notificações**: lembretes automáticos para tutores
+- **Agendamentos**: `GroomingAppointment` + `GroomingSlot` (banhistas/tosadores)
+- **Catálogo operacional**: `GroomingService` com receita padrão de insumos
+- **Ficha digital**: `GroomingRecord` 1:1 com o agendamento, histórico por pet
+- **Estoque**: `ConsumeStockForGroomingRequest` (Core → Inventory) na conclusão
+- **Pré-pago**: `ConsumePrepaidServicePackageRequest` quando o serviço tem `PrepaidServiceCode`
 
 ## Estrutura de Camadas
 
 | Pasta | Responsabilidade |
 |---|---|
-| [`Domain/`](./Domain/) | Entidades: `Appointment`, `GroomingService`. Enums: `ServiceType`, `AppointmentStatus`. Value Objects: `ServiceDuration`. |
-| [`Application/`](./Application/) | Commands: `ScheduleAppointment`, `CompleteService`, `CancelAppointment`. Queries: `GetDailySchedule`, `GetPetGroomingHistory`. |
-| [`Infrastructure/`](./Infrastructure/) | `PetshopDbContext`, repositórios. |
+| [`Domain/`](./Domain/) | Agregados, enums, repositórios, eventos de domínio |
+| [`Application/`](./Application/) | CQRS: agenda, slots, ficha, catálogo |
+| [`Infrastructure/`](./Infrastructure/) | `PetshopDbContext`, repositórios, sync, DI |
 
 ## Dependências
 
-- Referencia `Core.Domain` para `Pet` e `Tutor` via Id
-- Integra-se ao módulo `Sales` para cobrança e consumo de pacotes pré-pagos via `ConsumePrepaidServicePackageRequest` (ADR-029) ao concluir o serviço
+- Referencia `Core.Domain` / `Core.Application` (CRM por Id, contratos de integração)
+- **Não** referencia Sales, Inventory ou Veterinary diretamente (ADR-001, ADR-030)
+
+## API (Scalar)
+
+- `/api/v1/grooming-appointments`
+- `/api/v1/grooming-slots`
+- `/api/v1/grooming-services`
+- `/api/v1/pets/{petId}/grooming-history`
+
+## Referências
+
+- [ADR-030](../../docs/arquitetura/ADR-030-estetica-banho-tosa.md)
+- [Roadmap 6.6](../../docs/roadmap.md)

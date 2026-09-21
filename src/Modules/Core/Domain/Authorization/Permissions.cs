@@ -23,6 +23,9 @@ public static class Permissions
     public const string AppointmentsRead = "Appointments.Read";
     public const string AppointmentsWrite = "Appointments.Write";
 
+    public const string GroomingRead = "Grooming.Read";
+    public const string GroomingWrite = "Grooming.Write";
+
     public const string MedicalRecordsRead = "MedicalRecords.Read";
     public const string MedicalRecordsWrite = "MedicalRecords.Write";
 
@@ -62,6 +65,7 @@ public static class Permissions
         TutorsRead, TutorsWrite, TutorsDelete,
         PetsRead, PetsWrite, PetsDelete,
         AppointmentsRead, AppointmentsWrite,
+        GroomingRead, GroomingWrite,
         MedicalRecordsRead, MedicalRecordsWrite,
         HospitalizationsRead, HospitalizationsWrite,
         VaccinesRead, VaccinesWrite,
@@ -92,6 +96,7 @@ public static class Permissions
         TutorsRead, TutorsWrite, TutorsDelete,
         PetsRead, PetsWrite, PetsDelete,
         AppointmentsRead, AppointmentsWrite,
+        GroomingRead, GroomingWrite,
         MedicalRecordsRead, MedicalRecordsWrite,
         HospitalizationsRead, HospitalizationsWrite,
         VaccinesRead, VaccinesWrite,
@@ -107,6 +112,7 @@ public static class Permissions
         TutorsRead, TutorsWrite,
         PetsRead, PetsWrite,
         AppointmentsRead, AppointmentsWrite,
+        GroomingRead, GroomingWrite,
         HospitalizationsRead,
         VaccinesRead,
         ClinicalQuotesRead, ClinicalQuotesWrite,

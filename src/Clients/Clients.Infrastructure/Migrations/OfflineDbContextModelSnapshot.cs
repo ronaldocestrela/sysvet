@@ -400,6 +400,218 @@ namespace Clients.Infrastructure.Migrations
                     b.ToTable("Suppliers", (string)null);
                 });
 
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingAppointment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DurationInMinutes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("GroomerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("GroomingServiceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GroomingAppointments", (string)null);
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CoatNotes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("GroomerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("GroomingAppointmentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GroomingRecords", (string)null);
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingRecordSupplyLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("GroomingRecordId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomingRecordId");
+
+                    b.ToTable("GroomingRecordSupplyLine");
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingService", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DurationInMinutes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PrepaidServiceCode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("ServiceType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GroomingServices", (string)null);
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingServiceSupplyLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("GroomingServiceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomingServiceId");
+
+                    b.ToTable("GroomingServiceSupplyLine");
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingSlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("GroomerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GroomingSlots", (string)null);
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.CashRegister", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1863,6 +2075,24 @@ namespace Clients.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingRecordSupplyLine", b =>
+                {
+                    b.HasOne("Petshop.Domain.Entities.GroomingRecord", null)
+                        .WithMany("SupplyLines")
+                        .HasForeignKey("GroomingRecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingServiceSupplyLine", b =>
+                {
+                    b.HasOne("Petshop.Domain.Entities.GroomingService", null)
+                        .WithMany("DefaultSupplies")
+                        .HasForeignKey("GroomingServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Sales.Domain.Entities.CashRegister", b =>
                 {
                     b.OwnsOne("Sales.Domain.ValueObjects.Money", "ClosingBalance", b1 =>
@@ -2272,6 +2502,16 @@ namespace Clients.Infrastructure.Migrations
             modelBuilder.Entity("Core.Domain.Entities.Tutor", b =>
                 {
                     b.Navigation("Pets");
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingRecord", b =>
+                {
+                    b.Navigation("SupplyLines");
+                });
+
+            modelBuilder.Entity("Petshop.Domain.Entities.GroomingService", b =>
+                {
+                    b.Navigation("DefaultSupplies");
                 });
 
             modelBuilder.Entity("Sales.Domain.Entities.Order", b =>

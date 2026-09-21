@@ -713,7 +713,7 @@ flowchart TD
 | **6.3 Pagamentos e TEF** | 13 | Concluído |
 | **6.4 Comissões, descontos, devoluções** | 8 | Concluído |
 | **6.5 Pacotes, kits e pré-pagos** | 5 | Concluído |
-| **6.6 Estética — banho e tosa** | 13 | Pendente |
+| **6.6 Estética — banho e tosa** | 13 | Concluído |
 | **6.7 Notificações de status (banho)** | 5 | Pendente |
 | **Total Fase 6** | **65 SP** | |
 
@@ -819,13 +819,24 @@ flowchart TD
 
 **Aceite:** Pacote banho decrementa saldo a cada atendimento (`PayPackageThenConsume_DecrementsRemainingUses`).
 
-### 6.6 Estética — banho e tosa (13 SP)
+### 6.6 Estética — banho e tosa (13 SP) — Concluído
 
-- [ ] Agenda banhistas/tosadores
-- [ ] Ficha digital B&T vinculada ao histórico do pet
-- [ ] Consumo automático de insumos (shampoo, etc.) no estoque
+**Domain**
+- [x] `GroomingAppointment`, `GroomingSlot`, `GroomingRecord`, `GroomingService`; eventos `GroomingStarted`/`GroomingCompleted`; ADR-030
 
-**Aceite:** Conclusão do serviço baixa insumos configurados na ficha.
+**Application**
+- [x] Agenda/slots/catálogo/ficha; `CompleteGroomingAppointment` → `ConsumeStockForGroomingRequest` + `ConsumePrepaidServicePackageRequest` (opcional)
+
+**API**
+- [x] `PetshopDbContext` + migration `InitialPetshop`; `/api/v1/grooming-*`, `/api/v1/pets/{petId}/grooming-history`
+
+**Sync**
+- [x] `PetshopSyncPushHandler` + change feed grooming; pull DTOs; SQLite offline + migration `AddOfflineGrooming`
+
+**Clients**
+- [x] `IGroomingStore`/`OfflineGroomingStore`; páginas `/grooming` e histórico do pet; menu `grooming`
+
+**Aceite:** Conclusão do serviço baixa insumos configurados na ficha (`CompleteGrooming_DebitsConfiguredSupplies`).
 
 ### 6.7 Notificações de status (banho) (5 SP)
 

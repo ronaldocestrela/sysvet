@@ -43,4 +43,7 @@ public static class StockMovementReasons
 
     /// <summary>Physical inventory count adjustment after approval.</summary>
     public const string InventoryCount = "InventoryCount";
+
+    /// <summary>Petshop grooming service supply consumption.</summary>
+    public const string Grooming = "Grooming";
 }

@@ -41,8 +41,77 @@ public sealed class ClientPullChangesResult
     public IReadOnlyList<ClientSyncProductKitDto> SalesProductKits { get; init; } = Array.Empty<ClientSyncProductKitDto>();
     public IReadOnlyList<ClientSyncServicePackageDto> SalesServicePackages { get; init; } = Array.Empty<ClientSyncServicePackageDto>();
     public IReadOnlyList<ClientSyncPrepaidBalanceDto> SalesPrepaidBalances { get; init; } = Array.Empty<ClientSyncPrepaidBalanceDto>();
+    public IReadOnlyList<ClientSyncGroomingAppointmentDto> GroomingAppointments { get; init; } = Array.Empty<ClientSyncGroomingAppointmentDto>();
+    public IReadOnlyList<ClientSyncGroomingSlotDto> GroomingSlots { get; init; } = Array.Empty<ClientSyncGroomingSlotDto>();
+    public IReadOnlyList<ClientSyncGroomingRecordDto> GroomingRecords { get; init; } = Array.Empty<ClientSyncGroomingRecordDto>();
+    public IReadOnlyList<ClientSyncGroomingServiceDto> GroomingServices { get; init; } = Array.Empty<ClientSyncGroomingServiceDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
+}
+
+public sealed class ClientSyncGroomingAppointmentDto
+{
+    public Guid Id { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid PetId { get; init; }
+    public Guid GroomerId { get; init; }
+    public Guid GroomingServiceId { get; init; }
+    public DateTimeOffset Date { get; init; }
+    public int DurationInMinutes { get; init; }
+    public string Notes { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public string RowVersion { get; init; } = string.Empty;
+}
+
+public sealed class ClientSyncGroomingSlotDto
+{
+    public Guid Id { get; init; }
+    public Guid GroomerId { get; init; }
+    public DateTimeOffset Date { get; init; }
+    public TimeSpan StartTime { get; init; }
+    public TimeSpan EndTime { get; init; }
+    public bool IsAvailable { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class ClientSyncGroomingRecordDto
+{
+    public Guid Id { get; init; }
+    public Guid GroomingAppointmentId { get; init; }
+    public Guid GroomerId { get; init; }
+    public Guid TutorId { get; init; }
+    public Guid PetId { get; init; }
+    public string CoatNotes { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<ClientSyncGroomingRecordSupplyLineDto> SupplyLines { get; init; } = Array.Empty<ClientSyncGroomingRecordSupplyLineDto>();
+}
+
+public sealed class ClientSyncGroomingRecordSupplyLineDto
+{
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public decimal Quantity { get; init; }
+}
+
+public sealed class ClientSyncGroomingServiceDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string ServiceType { get; init; } = string.Empty;
+    public int DurationInMinutes { get; init; }
+    public string? PrepaidServiceCode { get; init; }
+    public bool IsActive { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public IReadOnlyList<ClientSyncGroomingServiceSupplyLineDto> DefaultSupplies { get; init; } = Array.Empty<ClientSyncGroomingServiceSupplyLineDto>();
+}
+
+public sealed class ClientSyncGroomingServiceSupplyLineDto
+{
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public decimal Quantity { get; init; }
 }
 
 /// <summary>Tutor row from sync pull.</summary>

@@ -7,6 +7,8 @@ using Inventory.Domain.Enums;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
 using Sales.Domain.Entities;
+using Petshop.Domain.Entities;
+using Petshop.Domain.Enums;
 using Sales.Domain.Enums;
 using Veterinary.Domain.ValueObjects;
 
@@ -51,6 +53,26 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.ScheduleSlots)
             {
                 await UpsertScheduleSlotAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.GroomingAppointments)
+            {
+                await UpsertGroomingAppointmentAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.GroomingSlots)
+            {
+                await UpsertGroomingSlotAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.GroomingRecords)
+            {
+                await UpsertGroomingRecordAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.GroomingServices)
+            {
+                await UpsertGroomingServiceAsync(dto, cancellationToken);
             }
 
             foreach (var dto in page.MedicalRecords)
@@ -1132,5 +1154,147 @@ public sealed class OfflineSyncPullApplier
         _dbContext.Entry(existing).Property(b => b.RemainingUses).CurrentValue = dto.RemainingUses;
         _dbContext.Entry(existing).Property(b => b.PurchasedUses).CurrentValue = dto.PurchasedUses;
         existing.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertGroomingAppointmentAsync(ClientSyncGroomingAppointmentDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<GroomingAppointmentStatus>(dto.Status, out var status))
+        {
+            return;
+        }
+
+        var appointment = await _dbContext.GroomingAppointments.FindAsync([dto.Id], cancellationToken);
+        if (appointment is null)
+        {
+            _dbContext.GroomingAppointments.Add(GroomingAppointment.RestoreFromSync(
+                dto.Id,
+                dto.TutorId,
+                dto.PetId,
+                dto.GroomerId,
+                dto.GroomingServiceId,
+                dto.Date,
+                dto.DurationInMinutes,
+                dto.Notes,
+                status,
+                dto.UpdatedAt));
+            return;
+        }
+
+        if (dto.UpdatedAt <= appointment.UpdatedAt)
+        {
+            return;
+        }
+
+        appointment.ApplySyncSnapshot(dto.Date, dto.DurationInMinutes, dto.Notes, status, dto.UpdatedAt);
+    }
+
+    private async Task UpsertGroomingSlotAsync(ClientSyncGroomingSlotDto dto, CancellationToken cancellationToken)
+    {
+        var slot = await _dbContext.GroomingSlots.FindAsync([dto.Id], cancellationToken);
+        if (slot is null)
+        {
+            slot = new GroomingSlot(dto.Id, dto.GroomerId, dto.Date, dto.StartTime, dto.EndTime);
+            slot.UpdatedAt = dto.UpdatedAt;
+            if (!dto.IsAvailable)
+            {
+                slot.Block();
+            }
+
+            _dbContext.GroomingSlots.Add(slot);
+            return;
+        }
+
+        if (dto.UpdatedAt <= slot.UpdatedAt)
+        {
+            return;
+        }
+
+        if (dto.IsAvailable)
+        {
+            slot.Unblock();
+        }
+        else
+        {
+            slot.Block();
+        }
+
+        slot.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertGroomingRecordAsync(ClientSyncGroomingRecordDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<GroomingRecordStatus>(dto.Status, out var status))
+        {
+            return;
+        }
+
+        var record = await _dbContext.GroomingRecords
+            .Include(r => r.SupplyLines)
+            .FirstOrDefaultAsync(r => r.Id == dto.Id, cancellationToken);
+
+        if (record is null)
+        {
+            var created = GroomingRecord.Create(dto.Id, dto.GroomingAppointmentId, dto.GroomerId, dto.TutorId, dto.PetId);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            created.Value.UpdateCoatNotes(dto.CoatNotes);
+            created.Value.SetSupplyLines(dto.SupplyLines.Select(l => (l.ProductId, l.Quantity)));
+            if (status == GroomingRecordStatus.Finalized)
+            {
+                created.Value.FinalizeRecord();
+            }
+
+            created.Value.UpdatedAt = dto.UpdatedAt;
+            _dbContext.GroomingRecords.Add(created.Value);
+            return;
+        }
+
+        if (dto.UpdatedAt <= record.UpdatedAt)
+        {
+            return;
+        }
+
+        record.UpdateCoatNotes(dto.CoatNotes);
+        record.SetSupplyLines(dto.SupplyLines.Select(l => (l.ProductId, l.Quantity)));
+        record.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertGroomingServiceAsync(ClientSyncGroomingServiceDto dto, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<GroomingServiceType>(dto.ServiceType, out var serviceType))
+        {
+            return;
+        }
+
+        var service = await _dbContext.GroomingServices
+            .Include(s => s.DefaultSupplies)
+            .FirstOrDefaultAsync(s => s.Id == dto.Id, cancellationToken);
+
+        if (service is null)
+        {
+            var created = GroomingService.Create(dto.Id, dto.Name, serviceType, dto.DurationInMinutes, dto.PrepaidServiceCode);
+            if (created.IsFailure)
+            {
+                return;
+            }
+
+            created.Value.SetDefaultSupplies(dto.DefaultSupplies.Select(l => (l.ProductId, l.Quantity)));
+            created.Value.Update(dto.Name, serviceType, dto.DurationInMinutes, dto.PrepaidServiceCode, dto.IsActive);
+            created.Value.UpdatedAt = dto.UpdatedAt;
+            _dbContext.GroomingServices.Add(created.Value);
+            return;
+        }
+
+        if (dto.UpdatedAt <= service.UpdatedAt)
+        {
+            return;
+        }
+
+        service.Update(dto.Name, serviceType, dto.DurationInMinutes, dto.PrepaidServiceCode, dto.IsActive);
+        service.SetDefaultSupplies(dto.DefaultSupplies.Select(l => (l.ProductId, l.Quantity)));
+        service.UpdatedAt = dto.UpdatedAt;
     }
 }

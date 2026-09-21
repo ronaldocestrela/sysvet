@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant UI as Client_UI
+    participant API as Petshop_API
+    participant Inv as Inventory
+    participant Sales as Sales_Prepaid
+
+    UI->>API: POST grooming-appointments/complete
+    API->>API: GroomingAppointment.Complete
+    API->>Inv: ConsumeStockForGroomingRequest
+    Inv-->>API: Result Success
+    API->>Sales: ConsumePrepaidServicePackageRequest
+    Note over Sales: NotFound ou saldo zero ignora
+    API->>API: GroomingRecord.Finalize
+    API-->>UI: 200 OK

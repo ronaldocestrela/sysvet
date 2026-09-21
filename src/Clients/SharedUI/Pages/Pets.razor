@@ -32,6 +32,7 @@
                 <td>
                     <button class="btn btn-sm btn-info" @onclick="() => EditPet(pet)">Editar</button>
                     <button class="btn btn-sm btn-outline" @onclick="() => OpenMedicalRecord(pet.Id)">Prontuário</button>
+                    <button class="btn btn-sm btn-outline ms-1" @onclick="() => OpenGroomingHistory(pet.Id)">Banho &amp; Tosa</button>
                     <button class="btn btn-sm btn-outline" @onclick="() => OpenVaccinationCard(pet.Id)">Carteira</button>
                 </td>
             </RowTemplate>
@@ -162,6 +163,9 @@
 
     private void OpenMedicalRecord(Guid petId) =>
         Navigation.NavigateTo(AppRoutes.PetMedicalRecords(petId));
+
+    private void OpenGroomingHistory(Guid petId) =>
+        Navigation.NavigateTo(AppRoutes.PetGroomingHistory(petId));
 
     private void OpenVaccinationCard(Guid petId) =>
         Navigation.NavigateTo(AppRoutes.PetVaccinationCard(petId));

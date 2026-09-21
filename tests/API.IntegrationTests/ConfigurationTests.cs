@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace API.IntegrationTests;
 
+[Collection("IntegrationTests")]
 public class ConfigurationTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;

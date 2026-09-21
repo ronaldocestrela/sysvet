@@ -1,0 +1,50 @@
+@page "/pets/{petId:guid}/grooming-history"
+@using SharedUI.Services
+@using Clients.Infrastructure.Crm
+@inject IGroomingStore GroomingStore
+@inject IToastService Toast
+
+<h1>Histórico Banho &amp; Tosa</h1>
+
+<LoadingState IsLoading="_isLoading" Message="Carregando histórico...">
+    @if (_items.Count == 0)
+    {
+        <p class="text-muted">Nenhum atendimento registrado.</p>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var item in _items)
+            {
+                <li class="list-group-item">
+                    <div><strong>@item.Date.ToLocalTime().ToString("g")</strong> — @item.Status</div>
+                    @if (!string.IsNullOrWhiteSpace(item.CoatNotes))
+                    {
+                        <div class="text-muted small">@item.CoatNotes</div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</LoadingState>
+
+@code {
+    [Parameter] public Guid PetId { get; set; }
+    private bool _isLoading = true;
+    private IReadOnlyList<GroomingHistoryItemDto> _items = Array.Empty<GroomingHistoryItemDto>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        var result = await GroomingStore.GetPetHistoryAsync(PetId);
+        _isLoading = false;
+        if (result.IsSuccess)
+        {
+            _items = result.Value;
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+}

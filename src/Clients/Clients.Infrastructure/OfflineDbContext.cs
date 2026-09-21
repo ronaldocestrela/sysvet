@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Inventory.Domain.Entities;
 using Sales.Domain.Entities;
+using Petshop.Domain.Entities;
+using Petshop.Domain.Enums;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Enums;
 
@@ -153,6 +155,18 @@ public class OfflineDbContext : DbContext
     /// <summary>Local prepaid balances (sync pull + optimistic pay/consume).</summary>
     public DbSet<PrepaidBalance> PrepaidBalances => Set<PrepaidBalance>();
 
+    /// <summary>Local grooming appointments (sync pull + outbox).</summary>
+    public DbSet<GroomingAppointment> GroomingAppointments => Set<GroomingAppointment>();
+
+    /// <summary>Local groomer schedule slots.</summary>
+    public DbSet<GroomingSlot> GroomingSlots => Set<GroomingSlot>();
+
+    /// <summary>Local grooming digital records.</summary>
+    public DbSet<GroomingRecord> GroomingRecords => Set<GroomingRecord>();
+
+    /// <summary>Local grooming service catalog.</summary>
+    public DbSet<GroomingService> GroomingServices => Set<GroomingService>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -202,6 +216,10 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineKitComponentConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineServicePackageConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflinePrepaidBalanceConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineGroomingAppointmentConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineGroomingSlotConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineGroomingRecordConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineGroomingServiceConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);
@@ -270,6 +288,76 @@ public class OfflineDbContext : DbContext
         {
             EnqueueVaccineDoseOutbox(entry, vaccineDose, outboxMessages);
         }
+        else if (entry.Entity is GroomingAppointment groomingAppointment)
+        {
+            EnqueueGroomingAppointmentOutbox(entry, groomingAppointment, outboxMessages);
+        }
+    }
+
+    private static void EnqueueGroomingAppointmentOutbox(
+        EntityEntry entry,
+        GroomingAppointment appointment,
+        ICollection<OutboxMessage> outboxMessages)
+    {
+        var outboxId = Guid.NewGuid();
+
+        if (entry.State == EntityState.Added)
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = outboxId,
+                Type = "ScheduleGroomingAppointmentCommand",
+                Payload = OutboxPayloadFactory.ScheduleGroomingAppointment(
+                    appointment.Id,
+                    appointment.TutorId,
+                    appointment.PetId,
+                    appointment.GroomerId,
+                    appointment.GroomingServiceId,
+                    appointment.Date,
+                    appointment.DurationInMinutes,
+                    appointment.Notes,
+                    outboxId)
+            });
+            return;
+        }
+
+        if (entry.State != EntityState.Modified)
+        {
+            return;
+        }
+
+        var statusProperty = entry.Property(nameof(GroomingAppointment.Status));
+        if (!statusProperty.IsModified)
+        {
+            return;
+        }
+
+        var (type, payload) = appointment.Status switch
+        {
+            GroomingAppointmentStatus.Confirmed => (
+                "ConfirmGroomingAppointmentCommand",
+                OutboxPayloadFactory.ConfirmGroomingAppointment(appointment.Id, outboxId)),
+            GroomingAppointmentStatus.InProgress => (
+                "StartGroomingAppointmentCommand",
+                OutboxPayloadFactory.StartGroomingAppointment(appointment.Id, outboxId)),
+            GroomingAppointmentStatus.Completed => (
+                "CompleteGroomingAppointmentCommand",
+                OutboxPayloadFactory.CompleteGroomingAppointment(appointment.Id, outboxId)),
+            GroomingAppointmentStatus.Cancelled => (
+                "CancelGroomingAppointmentCommand",
+                OutboxPayloadFactory.CancelGroomingAppointment(appointment.Id, outboxId)),
+            GroomingAppointmentStatus.NoShow => (
+                "MarkNoShowGroomingAppointmentCommand",
+                OutboxPayloadFactory.MarkNoShowGroomingAppointment(appointment.Id, outboxId)),
+            _ => (null, null)
+        };
+
+        if (type is null || payload is null)
+        {
+            return;
+        }
+
+        outboxMessages.Add(new OutboxMessage { Id = outboxId, Type = type, Payload = payload });
     }
 
     private static void EnqueueVaccineDoseOutbox(EntityEntry entry, VaccineDose dose, ICollection<OutboxMessage> outboxMessages)

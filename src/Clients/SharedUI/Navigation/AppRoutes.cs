@@ -38,6 +38,12 @@ public static class AppRoutes
     /// <summary>Clinical appointments.</summary>
     public const string Appointments = "/appointments";
 
+    /// <summary>Grooming salon agenda.</summary>
+    public const string Grooming = "/grooming";
+
+    /// <summary>Pet grooming service history.</summary>
+    public static string PetGroomingHistory(Guid petId) => $"/pets/{petId}/grooming-history";
+
     /// <summary>Hospitalizations.</summary>
     public const string Hospitalizations = "/hospitalizations";
 

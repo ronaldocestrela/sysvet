@@ -35,6 +35,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-027](./ADR-027-pagamentos-tef.md) | Pagamentos TEF (PoC), NSU e estorno | Accepted |
 | [ADR-028](./ADR-028-comissoes-descontos-devolucoes-venda.md) | Comissões, descontos e devoluções de venda | Accepted |
 | [ADR-029](./ADR-029-pacotes-kits-prepagos.md) | Pacotes, kits e pré-pagos (PDV) | Accepted |
+| [ADR-030](./ADR-030-estetica-banho-tosa.md) | Estética banho e tosa (Petshop) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

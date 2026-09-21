@@ -93,6 +93,10 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var salesProductKits = new List<SyncProductKitDto>();
         var salesServicePackages = new List<SyncServicePackageDto>();
         var salesPrepaidBalances = new List<SyncPrepaidBalanceDto>();
+        var groomingAppointments = new List<SyncGroomingAppointmentDto>();
+        var groomingSlots = new List<SyncGroomingSlotDto>();
+        var groomingRecords = new List<SyncGroomingRecordDto>();
+        var groomingServices = new List<SyncGroomingServiceDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -120,6 +124,10 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             salesProductKits.AddRange(modulePage.SalesProductKits);
             salesServicePackages.AddRange(modulePage.SalesServicePackages);
             salesPrepaidBalances.AddRange(modulePage.SalesPrepaidBalances);
+            groomingAppointments.AddRange(modulePage.GroomingAppointments);
+            groomingSlots.AddRange(modulePage.GroomingSlots);
+            groomingRecords.AddRange(modulePage.GroomingRecords);
+            groomingServices.AddRange(modulePage.GroomingServices);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -154,6 +162,10 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             SalesProductKits = salesProductKits,
             SalesServicePackages = salesServicePackages,
             SalesPrepaidBalances = salesPrepaidBalances,
+            GroomingAppointments = groomingAppointments,
+            GroomingSlots = groomingSlots,
+            GroomingRecords = groomingRecords,
+            GroomingServices = groomingServices,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };
