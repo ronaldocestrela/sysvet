@@ -18,6 +18,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.FiscalIntegrationStatus).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(o => o.TutorId);
         builder.Property(o => o.PetId);
+        builder.Property(o => o.ConsumerCpf).HasMaxLength(14);
         builder.Property(o => o.SourceQuoteId);
         builder.Property(o => o.SellerUserId).IsRequired();
         builder.Property(o => o.DiscountPercent).HasPrecision(5, 2);

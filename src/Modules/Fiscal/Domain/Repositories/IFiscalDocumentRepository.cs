@@ -15,6 +15,12 @@ public interface IFiscalDocumentRepository
         FiscalDocumentType type,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Finds the latest document for order and type (any non-cancelled status).</summary>
+    Task<FiscalDocument?> GetByOrderAndTypeAsync(
+        Guid orderId,
+        FiscalDocumentType type,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Lists documents with optional filters.</summary>
     Task<IReadOnlyList<FiscalDocument>> ListAsync(
         Guid? orderId,

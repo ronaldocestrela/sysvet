@@ -4,5 +4,6 @@ namespace Fiscal.Domain.Enums;
 public enum FiscalDocumentType
 {
     Nfe = 0,
-    Nfse = 1
+    Nfse = 1,
+    Nfce = 2
 }

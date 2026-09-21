@@ -14,6 +14,7 @@ public class Order : AggregateRoot
     public OrderStatus Status { get; private set; } = OrderStatus.Draft;
     public Guid? TutorId { get; private set; }
     public Guid? PetId { get; private set; }
+    public string? ConsumerCpf { get; private set; }
     public Guid? SourceQuoteId { get; private set; }
     public Guid SellerUserId { get; private set; }
     public decimal DiscountPercent { get; private set; }
@@ -96,6 +97,21 @@ public class Order : AggregateRoot
         }
 
         return Result.Success(new Order(id, cashRegisterId, tutorId, petId, sourceQuoteId, sellerUserId));
+    }
+
+    /// <summary>Sets optional consumer CPF/CNPJ for NFC-e at PDV while still in draft.</summary>
+    public Result<bool> SetConsumerCpf(string? cpfOrCnpj)
+    {
+        if (Status != OrderStatus.Draft)
+        {
+            return Result.Failure<bool>(ErrorCodes.Order.NotDraft);
+        }
+
+        ConsumerCpf = string.IsNullOrWhiteSpace(cpfOrCnpj)
+            ? null
+            : new string(cpfOrCnpj.Where(char.IsDigit).ToArray());
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success(true);
     }
 
     /// <summary>Applies order-level discount percent while still in draft.</summary>
@@ -297,6 +313,19 @@ public class Order : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success(true);
+    }
+
+    /// <summary>Marks fiscal integration pending after NFC-e contingency at PDV.</summary>
+    public Result MarkFiscalPending()
+    {
+        if (Status != OrderStatus.Paid)
+        {
+            return Result.Failure(ErrorCodes.Order.InvalidStatus);
+        }
+
+        FiscalIntegrationStatus = FiscalIntegrationStatus.Pending;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
     }
 
     /// <summary>Updates fiscal linkage after NF-e/NFS-e emission.</summary>

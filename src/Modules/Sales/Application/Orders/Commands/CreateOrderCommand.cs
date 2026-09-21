@@ -19,6 +19,7 @@ public class CreateOrderCommand : ICommand<Guid>, IIdempotentCommand<Guid>
     public Guid? SourceQuoteId { get; set; }
     public Guid? SellerUserId { get; set; }
     public decimal DiscountPercent { get; set; }
+    public string? ConsumerCpf { get; set; }
     public List<CreateOrderItemDto> Items { get; set; } = new();
     public Guid IdempotencyKey { get; set; }
 }

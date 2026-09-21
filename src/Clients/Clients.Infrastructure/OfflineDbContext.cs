@@ -133,6 +133,15 @@ public class OfflineDbContext : DbContext
     /// <summary>Local POS orders (Fase 6.2).</summary>
     public DbSet<Order> Orders => Set<Order>();
 
+    /// <summary>Cached fiscal issuer for NFC-e offline (7.6).</summary>
+    public DbSet<Fiscal.OfflineFiscalIssuerCache> FiscalIssuerCache => Set<Fiscal.OfflineFiscalIssuerCache>();
+
+    /// <summary>Local NFC-e numbering sequence.</summary>
+    public DbSet<Fiscal.OfflineFiscalSequence> FiscalSequences => Set<Fiscal.OfflineFiscalSequence>();
+
+    /// <summary>Local NFC-e documents mirror.</summary>
+    public DbSet<Fiscal.OfflineFiscalDocument> FiscalDocuments => Set<Fiscal.OfflineFiscalDocument>();
+
     /// <summary>Local order lines.</summary>
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
@@ -239,6 +248,9 @@ public class OfflineDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineTitleAllocationConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineFinancialCategoryConfiguration());
         modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineCostCenterConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineFiscalIssuerCacheConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineFiscalSequenceConfiguration());
+        modelBuilder.ApplyConfiguration(new Persistence.Configurations.OfflineFiscalDocumentConfiguration());
 
         modelBuilder.Entity<Tutor>().HasQueryFilter(t => !t.IsDeleted);
         modelBuilder.Entity<Pet>().HasQueryFilter(p => !p.IsDeleted);

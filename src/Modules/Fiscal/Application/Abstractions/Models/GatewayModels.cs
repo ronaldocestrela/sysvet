@@ -103,3 +103,52 @@ public enum FiscalProviderMode
     Fake = 0,
     ZeusOpenAc = 1
 }
+
+/// <summary>NFC-e transmission payload.</summary>
+public sealed class NfceTransmitRequest
+{
+    public IssuerProfile Issuer { get; init; } = null!;
+    public FiscalDocument Document { get; init; } = null!;
+    public string SignedXml { get; init; } = string.Empty;
+    public byte[] CertificatePfx { get; init; } = Array.Empty<byte>();
+    public string CertificatePassword { get; init; } = string.Empty;
+}
+
+public sealed class NfceTransmitResult
+{
+    public bool Success { get; init; }
+    public string? Protocol { get; init; }
+    public string? AuthorizedXml { get; init; }
+    public string? RejectionReason { get; init; }
+}
+
+public sealed class NfceStatusRequest
+{
+    public IssuerProfile Issuer { get; init; } = null!;
+    public string AccessKey { get; init; } = string.Empty;
+    public byte[] CertificatePfx { get; init; } = Array.Empty<byte>();
+    public string CertificatePassword { get; init; } = string.Empty;
+}
+
+public sealed class NfceStatusResult
+{
+    public bool Authorized { get; init; }
+    public string? Protocol { get; init; }
+    public string? RejectionReason { get; init; }
+}
+
+public sealed class NfceCancelRequest
+{
+    public IssuerProfile Issuer { get; init; } = null!;
+    public FiscalDocument Document { get; init; } = null!;
+    public byte[] CertificatePfx { get; init; } = Array.Empty<byte>();
+    public string CertificatePassword { get; init; } = string.Empty;
+    public string Justification { get; init; } = string.Empty;
+}
+
+public sealed class NfceCancelResult
+{
+    public bool Success { get; init; }
+    public string? Protocol { get; init; }
+    public string? RejectionReason { get; init; }
+}

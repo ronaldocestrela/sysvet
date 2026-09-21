@@ -220,5 +220,7 @@ public class SyncBackgroundWorker : BackgroundService
         && page.GroomingServices.Count == 0
         && page.FinanceTitles.Count == 0
         && page.FinanceCategories.Count == 0
-        && page.FinanceCostCenters.Count == 0;
+        && page.FinanceCostCenters.Count == 0
+        && page.FiscalIssuers.Count == 0
+        && page.FiscalDocuments.Count == 0;
 }

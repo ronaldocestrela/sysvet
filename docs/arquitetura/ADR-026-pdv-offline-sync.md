@@ -20,7 +20,7 @@ A Fase 6.1 entregou o motor PDV **online-only** (ADR-025). Clínicas precisam co
 - **Pay local:** pedido `Paid` + débito otimista de lotes/saldo local (FEFO); **sem** `RegisterStockMovementCommand` na outbox — o servidor cria movimento `Sale` em `ConsumeStockForSaleRequest` no pay.
 - **Conflito:** `Order.InsufficientStock` / `ProductBalance.InsufficientFunds` = falha **permanente** (dead-letter); venda permanece paga localmente; operador resolve manualmente (devoluções 6.4).
 - **Plugin sync:** `SalesSyncPushHandler` + `SalesSyncChangeFeedContributor`; pull LWW por `UpdatedAt`.
-- **NFC-e / sequência fiscal:** Fase 7.6.
+- **NFC-e / sequência fiscal:** implementado na 7.6 ([ADR-036](./ADR-036-nfce-contingencia-offline.md)): outbox `TransmitNfceCommand` após pay, série por dispositivo, pull de status.
 
 ## Consequências
 - Domain: `Order.Create(id, …)`, `CashRegister.Open(id, …)`.
@@ -30,5 +30,5 @@ A Fase 6.1 entregou o motor PDV **online-only** (ADR-025). Clínicas precisam co
 
 ## Relacionados
 - [ADR-002](./ADR-002-estrategia-de-sync.md), [ADR-025](./ADR-025-motor-pdv-vendas.md)
-- [`docs/diagramas/pdv-offline-sync.mmd`](../diagramas/pdv-offline-sync.mmd)
+- [`docs/diagramas/pdv-offline-sync.mmd`](../diagramas/pdv-offline-sync.mmd), [`docs/diagramas/fiscal-nfce-contingencia.mmd`](../diagramas/fiscal-nfce-contingencia.mmd)
 - [`docs/roadmap.md`](../roadmap.md) § 6.2

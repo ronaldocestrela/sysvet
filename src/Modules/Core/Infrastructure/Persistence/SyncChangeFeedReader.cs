@@ -100,6 +100,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
         var financeTitles = new List<SyncFinanceTitleDto>();
         var financeCategories = new List<SyncFinanceCategoryDto>();
         var financeCostCenters = new List<SyncFinanceCostCenterDto>();
+        var fiscalIssuers = new List<SyncFiscalIssuerDto>();
+        var fiscalDocuments = new List<SyncFiscalDocumentDto>();
         var hasMoreModules = false;
 
         foreach (var contributor in _contributors)
@@ -134,6 +136,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             financeTitles.AddRange(modulePage.FinanceTitles);
             financeCategories.AddRange(modulePage.FinanceCategories);
             financeCostCenters.AddRange(modulePage.FinanceCostCenters);
+            fiscalIssuers.AddRange(modulePage.FiscalIssuers);
+            fiscalDocuments.AddRange(modulePage.FiscalDocuments);
             if (modulePage.MaxUpdatedAt > maxUpdated)
             {
                 maxUpdated = modulePage.MaxUpdatedAt;
@@ -175,6 +179,8 @@ public sealed class SyncChangeFeedReader : ISyncChangeFeedReader
             FinanceTitles = financeTitles,
             FinanceCategories = financeCategories,
             FinanceCostCenters = financeCostCenters,
+            FiscalIssuers = fiscalIssuers,
+            FiscalDocuments = fiscalDocuments,
             NextSince = maxUpdated,
             HasMore = hasMoreTutors || hasMorePets || hasMoreModules
         };

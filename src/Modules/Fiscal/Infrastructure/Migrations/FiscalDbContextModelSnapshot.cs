@@ -82,6 +82,9 @@ namespace Fiscal.Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("EmissionType")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("NfeNumber")
                         .HasColumnType("INTEGER");
 
@@ -94,6 +97,10 @@ namespace Fiscal.Infrastructure.Migrations
 
                     b.Property<string>("Protocol")
                         .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("QrCodeUrl")
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RecipientCpf")
@@ -275,6 +282,13 @@ namespace Fiscal.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NfeSeries")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("NextNfceNumber")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NfceSeries")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Number")

@@ -98,7 +98,7 @@ public sealed class PetshopSyncPushHandler : ISyncPushHandler
             case DefineGroomingDailyAvailabilityCommand defineSlots:
                 return await _mediator.Send(defineSlots, cancellationToken);
             default:
-                return Result.Failure(new Error("Sync.UnknownCommand", "Unsupported Petshop sync command."));
+                return Result.Failure(new Error("Sync.HandlerMismatch", "Not a petshop sync command."));
         }
     }
 

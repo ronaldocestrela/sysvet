@@ -1,3 +1,4 @@
+using Clients.Infrastructure.Fiscal;
 using Core.Domain;
 using Core.Domain.Entities;
 using Core.Domain.ValueObjects;
@@ -190,6 +191,16 @@ public sealed class OfflineSyncPullApplier
             foreach (var dto in page.SalesPrepaidBalances)
             {
                 await UpsertSalesPrepaidBalanceAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.FiscalIssuers)
+            {
+                await UpsertFiscalIssuerAsync(dto, cancellationToken);
+            }
+
+            foreach (var dto in page.FiscalDocuments)
+            {
+                await UpsertFiscalDocumentAsync(dto, cancellationToken);
             }
 
             var state = await _dbContext.SyncState.FindAsync([1], cancellationToken)
@@ -1440,5 +1451,62 @@ public sealed class OfflineSyncPullApplier
             dto.Description,
             dto.UpdatedAt,
             allocations));
+    }
+
+    private async Task UpsertFiscalIssuerAsync(ClientSyncFiscalIssuerDto dto, CancellationToken cancellationToken)
+    {
+        var row = await _dbContext.FiscalIssuerCache.FirstOrDefaultAsync(cancellationToken);
+        if (row is null)
+        {
+            row = new OfflineFiscalIssuerCache { Id = dto.Id };
+            _dbContext.FiscalIssuerCache.Add(row);
+        }
+
+        row.LegalName = dto.LegalName;
+        row.TradeName = dto.TradeName;
+        row.Cnpj = dto.Cnpj;
+        row.State = dto.State;
+        row.IbgeCityCode = dto.IbgeCityCode;
+        row.NfceSeries = dto.NfceSeries;
+        row.HasCertificate = dto.HasCertificate;
+        row.UpdatedAt = dto.UpdatedAt;
+    }
+
+    private async Task UpsertFiscalDocumentAsync(ClientSyncFiscalDocumentDto dto, CancellationToken cancellationToken)
+    {
+        var existing = await _dbContext.FiscalDocuments.FirstOrDefaultAsync(d => d.Id == dto.Id, cancellationToken);
+        if (existing is null)
+        {
+            _dbContext.FiscalDocuments.Add(new OfflineFiscalDocument
+            {
+                Id = dto.Id,
+                OrderId = dto.SourceOrderId,
+                DocumentType = dto.DocumentType,
+                Status = dto.Status,
+                AccessKey = dto.AccessKey,
+                Protocol = dto.Protocol,
+                QrCodeUrl = dto.QrCodeUrl,
+                NfeNumber = dto.NfeNumber,
+                NfeSeries = dto.NfeSeries,
+                RecipientName = dto.RecipientName,
+                RecipientCpf = dto.RecipientCpf,
+                EmissionType = dto.EmissionType,
+                UpdatedAt = dto.UpdatedAt,
+                AuthorizedAt = dto.AuthorizedAt
+            });
+            return;
+        }
+
+        if (dto.UpdatedAt <= existing.UpdatedAt)
+        {
+            return;
+        }
+
+        existing.Status = dto.Status;
+        existing.AccessKey = dto.AccessKey;
+        existing.Protocol = dto.Protocol;
+        existing.QrCodeUrl = dto.QrCodeUrl;
+        existing.UpdatedAt = dto.UpdatedAt;
+        existing.AuthorizedAt = dto.AuthorizedAt;
     }
 }

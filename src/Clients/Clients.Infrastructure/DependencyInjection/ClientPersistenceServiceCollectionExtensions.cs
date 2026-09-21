@@ -62,6 +62,8 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<FinanceReconciliationApiService>();
         services.AddScoped<FinanceReportsApiService>();
         services.AddScoped<FiscalApiService>();
+        services.AddScoped<OfflineFiscalNfceService>();
+        services.AddScoped<IFiscalStore, OfflineFiscalStore>();
         services.AddScoped<IMedicalRecordStore, OfflineMedicalRecordStore>();
         services.AddScoped<IClinicalStore, OfflineClinicalStore>();
         services.AddScoped<IVaccineStore, OfflineVaccineStore>();

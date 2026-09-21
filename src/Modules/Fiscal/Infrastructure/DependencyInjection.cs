@@ -46,6 +46,7 @@ public static class DependencyInjection
 
         services.AddScoped<ICertificateProtector, AesCertificateProtector>();
         services.AddScoped<IDanfeRenderer, FakeDanfeRenderer>();
+        services.AddScoped<INfceDanfeRenderer, FakeNfceDanfeRenderer>();
 
         var provider = configuration.GetSection(FiscalOptions.SectionName).GetValue<string>(nameof(FiscalOptions.Provider)) ?? "Fake";
         if (string.Equals(provider, "ZeusOpenAc", StringComparison.OrdinalIgnoreCase))
@@ -57,12 +58,17 @@ public static class DependencyInjection
             });
             services.AddScoped<INfeGateway, ZeusNfeGateway>();
             services.AddScoped<INfseGateway, OpenAcNacionalWebNfseGateway>();
+            services.AddScoped<INfceGateway, ZeusNfceGateway>();
         }
         else
         {
             services.AddScoped<INfeGateway, FakeNfeGateway>();
             services.AddScoped<INfseGateway, FakeNfseGateway>();
+            services.AddScoped<INfceGateway, FakeNfceGateway>();
         }
+
+        services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.FiscalSyncPushHandler>();
+        services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.FiscalSyncChangeFeedContributor>();
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(IssueFromOrderCommand).Assembly));

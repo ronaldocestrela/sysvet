@@ -27,6 +27,23 @@ public sealed partial record NfeAccessKey
         return Result.Success(new NfeAccessKey(digits));
     }
 
+    /// <summary>Validates a 44-digit key whose model segment (positions 21–22) is 65 (NFC-e).</summary>
+    public static Result<NfeAccessKey> CreateForNfce(string? raw)
+    {
+        var result = Create(raw);
+        if (result.IsFailure)
+        {
+            return result;
+        }
+
+        if (result.Value.Value.Substring(20, 2) != "65")
+        {
+            return Result.Failure<NfeAccessKey>(ErrorCodes.AccessKey.InvalidModel);
+        }
+
+        return result;
+    }
+
     [GeneratedRegex(@"^\d{44}$")]
     private static partial Regex KeyDigits();
 }

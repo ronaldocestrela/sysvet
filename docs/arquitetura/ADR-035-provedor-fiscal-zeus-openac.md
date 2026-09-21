@@ -8,7 +8,7 @@ Accepted
 
 ## Contexto
 
-A Fase 7.5 exige emissão de NF-e (produto) e NFS-e (serviço) a partir de vendas pagas, cancelamento e carta de correção (NF-e), com aceite de NF-e autorizada na SEFAZ em homologação. O módulo Fiscal era stub; Inventory trata apenas entrada de compra (ADR-021). NFC-e e contingência offline ficam na 7.6 (ADR-026).
+A Fase 7.5 exige emissão de NF-e (produto) e NFS-e (serviço) a partir de vendas pagas, cancelamento e carta de correção (NF-e), com aceite de NF-e autorizada na SEFAZ em homologação. O módulo Fiscal era stub; Inventory trata apenas entrada de compra (ADR-021). NFC-e modelo 65 e contingência offline no PDV ficaram na 7.6 ([ADR-036](./ADR-036-nfce-contingencia-offline.md)) via porta `INfceGateway` separada de `INfeGateway`.
 
 ## Opções consideradas
 

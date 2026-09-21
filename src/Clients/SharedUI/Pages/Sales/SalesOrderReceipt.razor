@@ -5,9 +5,11 @@
 @using Clients.Infrastructure.Sales
 @using SharedUI.Services
 @using Clients.Infrastructure.Fiscal
+@using OfflineFiscalDocument = Clients.Infrastructure.Fiscal.OfflineFiscalDocument
 @using SharedUI.Navigation
 @inject ISalesStore SalesStore
 @inject FiscalApiService FiscalApi
+@inject IFiscalStore FiscalStore
 @inject IToastService Toast
 @inject IJSRuntime Js
 
@@ -54,6 +56,26 @@
                 </tbody>
             </table>
             <p><strong>Total:</strong> @_order.TotalAmount.ToString("C")</p>
+            @if (_nfceDocs.Any())
+            {
+                <h4>NFC-e</h4>
+                <ul class="payment-list">
+                    @foreach (var doc in _nfceDocs)
+                    {
+                        <li>
+                            <strong>@doc.Status</strong>
+                            @if (!string.IsNullOrWhiteSpace(doc.AccessKey))
+                            {
+                                <span class="text-muted"> · Chave @doc.AccessKey</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(doc.QrCodeUrl))
+                            {
+                                <div class="text-muted small">QR: @doc.QrCodeUrl</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
             <h4>Pagamentos</h4>
             <ul class="payment-list">
                 @foreach (var p in _order.Payments)
@@ -106,6 +128,7 @@
     private SalesOrderSyncState _syncState;
     private bool _loading = true;
     private bool _issuingFiscal;
+    private IReadOnlyList<OfflineFiscalDocument> _nfceDocs = Array.Empty<OfflineFiscalDocument>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,6 +147,22 @@
         else
         {
             Toast.Show(result.Error.Message, ToastType.Error);
+        }
+
+        _nfceDocs = await FiscalStore.GetDocumentsByOrderAsync(OrderId);
+        var fiscalList = await FiscalApi.ListDocumentsAsync(OrderId);
+        if (fiscalList.IsSuccess && fiscalList.Value.Count > 0 && _nfceDocs.Count == 0)
+        {
+            _nfceDocs = fiscalList.Value.Select(d => new OfflineFiscalDocument
+            {
+                Id = d.Id,
+                OrderId = d.SourceOrderId,
+                DocumentType = d.DocumentType,
+                Status = d.Status,
+                AccessKey = d.AccessKey,
+                UpdatedAt = d.CreatedAt,
+                AuthorizedAt = d.AuthorizedAt
+            }).ToList();
         }
 
         _loading = false;

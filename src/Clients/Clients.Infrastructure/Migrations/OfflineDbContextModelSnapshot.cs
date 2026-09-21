@@ -70,6 +70,131 @@ namespace Clients.Infrastructure.Migrations
                     b.ToTable("SyncState", (string)null);
                 });
 
+            modelBuilder.Entity("Clients.Infrastructure.Fiscal.OfflineFiscalIssuerCache", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TradeName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Cnpj")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("IbgeCityCode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NfceSeries")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("HasCertificate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EncryptedPfxBase64")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EncryptedCertificatePassword")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FiscalIssuerCache", (string)null);
+                });
+
+            modelBuilder.Entity("Clients.Infrastructure.Fiscal.OfflineFiscalSequence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("NfceSeries")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("NextNfceNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FiscalSequences", (string)null);
+                });
+
+            modelBuilder.Entity("Clients.Infrastructure.Fiscal.OfflineFiscalDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AccessKey")
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Protocol")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("QrCodeUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SignedXml")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("NfeNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("NfeSeries")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RecipientName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RecipientCpf")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EmissionType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("AuthorizedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("FiscalDocuments", (string)null);
+                });
+
             modelBuilder.Entity("Core.Domain.Entities.Pet", b =>
                 {
                     b.Property<Guid>("Id")
@@ -958,6 +1083,10 @@ namespace Clients.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("CashRegisterId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConsumerCpf")
+                        .HasMaxLength(14)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("CreatedAt")

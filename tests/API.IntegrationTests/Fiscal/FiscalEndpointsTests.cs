@@ -189,22 +189,11 @@ public class FiscalEndpointsTests : IClassFixture<WebApplicationFactory<Program>
     private async Task<HttpClient> CreateAuthenticatedClientAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        foreach (var migrate in new Func<Task>[]
-                 {
-                     async () =>
-                     {
-                         var ctx = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
-                         await ctx.Database.EnsureDeletedAsync();
-                         await ctx.Database.MigrateAsync();
-                     },
-                     async () => await scope.ServiceProvider.GetRequiredService<global::Sales.Infrastructure.Persistence.SalesDbContext>().Database.MigrateAsync(),
-                     async () => await scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>().Database.MigrateAsync(),
-                     async () => await scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>().Database.MigrateAsync(),
-                     async () => await scope.ServiceProvider.GetRequiredService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>().Database.MigrateAsync()
-                 })
-        {
-            await migrate();
-        }
+        var core = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
+        await core.Database.EnsureDeletedAsync();
+        await IntegrationTestDatabaseHelper.ResetModuleDatabasesAsync(scope);
+        await core.Database.MigrateAsync();
+        await IntegrationTestDatabaseHelper.MigrateModuleDatabasesAsync(scope);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Core.Infrastructure.Identity.AppUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

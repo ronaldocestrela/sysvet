@@ -469,6 +469,7 @@ internal static class OutboxPayloadFactory
         Guid? petId,
         Guid? sourceQuoteId,
         decimal discountPercent,
+        string? consumerCpf,
         IReadOnlyList<object> items,
         Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new
@@ -479,9 +480,13 @@ internal static class OutboxPayloadFactory
             PetId = petId,
             SourceQuoteId = sourceQuoteId,
             DiscountPercent = discountPercent,
+            ConsumerCpf = consumerCpf,
             Items = items,
             IdempotencyKey = idempotencyKey
         });
+
+    public static string TransmitNfce(object payload, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(payload);
 
     public static string PayOrder(
         Guid orderId,

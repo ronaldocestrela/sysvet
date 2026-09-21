@@ -3,6 +3,7 @@
 @using SharedUI.Services
 @using Clients.Infrastructure.Crm
 @using Clients.Infrastructure.Http
+@using Clients.Infrastructure.Fiscal
 @using Clients.Infrastructure.Sales
 @inject ISalesStore SalesStore
 @inject ISalesApiService SalesApi
@@ -14,6 +15,7 @@
 @inject INavigationService Navigation
 @inject IConnectivityService Connectivity
 @inject IAuthState AuthState
+@inject IFiscalStore FiscalStore
 
 <div class="pos-container">
     <div class="header-container">
@@ -85,6 +87,14 @@
                             <option value="@t.Id">@t.Name</option>
                         }
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>CPF consumidor (NFC-e, opcional)</label>
+                    <input class="form-control" placeholder="000.000.000-00" @bind="_consumerCpf" />
+                </div>
+                <div class="form-group">
+                    <label>Série NFC-e deste caixa</label>
+                    <input type="number" min="1" max="999" class="form-control" @bind="_nfceSeries" @bind:after="SaveNfceSeriesAsync" />
                 </div>
                 <div class="form-group">
                     <label>Pet (opcional)</label>
@@ -181,6 +191,8 @@
     private string _serviceDescription = string.Empty;
     private decimal _servicePrice;
     private decimal _discountPercent;
+    private string _consumerCpf = string.Empty;
+    private int _nfceSeries = 1;
 
     private decimal Subtotal => _cart.Sum(i => i.Quantity * i.UnitPrice);
     private decimal NetTotal => Math.Round(Subtotal - Subtotal * Math.Clamp(_discountPercent, 0, 100) / 100m, 2);
@@ -201,6 +213,9 @@
         {
             _openRegister = register.Value;
         }
+
+        await FiscalStore.RefreshPosBundleAsync();
+        _nfceSeries = await FiscalStore.GetDeviceNfceSeriesAsync();
 
         var products = await InventoryStore.ListProductsAsync();
         if (products.IsSuccess)
@@ -374,6 +389,7 @@
             PetId = petId,
             SourceQuoteId = QuoteId,
             DiscountPercent = _discountPercent,
+            ConsumerCpf = string.IsNullOrWhiteSpace(_consumerCpf) ? null : _consumerCpf,
             Items = _cart
         }, _payments);
 
@@ -387,5 +403,10 @@
         Toast.Show("Venda concluída!", ToastType.Success);
         Navigation.NavigateTo($"/sales/orders/{sale.Value}/receipt");
         _isLoading = false;
+    }
+
+    private async Task SaveNfceSeriesAsync()
+    {
+        await FiscalStore.SetDeviceNfceSeriesAsync(_nfceSeries);
     }
 }

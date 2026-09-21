@@ -1,3 +1,4 @@
+using Clients.Infrastructure.Fiscal;
 using Clients.Infrastructure.Http;
 using Clients.Infrastructure.Sync;
 using Core.Domain;
@@ -17,17 +18,20 @@ public sealed partial class OfflineSalesStore : ISalesStore
     private readonly SyncWakeSignal _wakeSignal;
     private readonly ISyncConnectivity _connectivity;
     private readonly IPaymentTerminal _paymentTerminal;
+    private readonly OfflineFiscalNfceService _fiscalNfceService;
 
     public OfflineSalesStore(
         OfflineDbContext dbContext,
         SyncWakeSignal wakeSignal,
         ISyncConnectivity connectivity,
-        IPaymentTerminal paymentTerminal)
+        IPaymentTerminal paymentTerminal,
+        OfflineFiscalNfceService fiscalNfceService)
     {
         _dbContext = dbContext;
         _wakeSignal = wakeSignal;
         _connectivity = connectivity;
         _paymentTerminal = paymentTerminal;
+        _fiscalNfceService = fiscalNfceService;
     }
 
     /// <inheritdoc />
@@ -283,11 +287,22 @@ public sealed partial class OfflineSalesStore : ISalesStore
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(request.ConsumerCpf))
+        {
+            order.SetConsumerCpf(request.ConsumerCpf);
+        }
+
         var payResult = order.Pay(paymentEntities);
         if (payResult.IsFailure)
         {
             return Result.Failure<Guid>(payResult.Error);
         }
+
+        await _fiscalNfceService.TryEnqueueContingencyNfceAsync(
+            order,
+            request.ConsumerCpf,
+            request.TutorId,
+            cancellationToken);
 
         foreach (var item in order.Items.Where(i => i.Kind == OrderItemKind.Package))
         {
@@ -354,6 +369,7 @@ public sealed partial class OfflineSalesStore : ISalesStore
                 request.PetId,
                 request.SourceQuoteId,
                 request.DiscountPercent,
+                request.ConsumerCpf,
                 itemPayloads,
                 createOutboxId),
             createOutboxId);

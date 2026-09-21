@@ -18,6 +18,14 @@ namespace Sales.Infrastructure.Migrations
                 maxLength: 20,
                 nullable: false,
                 defaultValue: "");
+
+            migrationBuilder.AddColumn<string>(
+                name: "ConsumerCpf",
+                schema: "dbo",
+                table: "Orders",
+                type: "TEXT",
+                maxLength: 14,
+                nullable: true);
         }
 
         /// <inheritdoc />
@@ -25,6 +33,11 @@ namespace Sales.Infrastructure.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "FiscalIntegrationStatus",
+                schema: "dbo",
+                table: "Orders");
+
+            migrationBuilder.DropColumn(
+                name: "ConsumerCpf",
                 schema: "dbo",
                 table: "Orders");
         }

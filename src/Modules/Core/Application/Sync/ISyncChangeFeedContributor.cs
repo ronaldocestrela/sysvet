@@ -41,6 +41,8 @@ public sealed class SyncContributorChanges
     public IReadOnlyList<SyncFinanceTitleDto> FinanceTitles { get; init; } = Array.Empty<SyncFinanceTitleDto>();
     public IReadOnlyList<SyncFinanceCategoryDto> FinanceCategories { get; init; } = Array.Empty<SyncFinanceCategoryDto>();
     public IReadOnlyList<SyncFinanceCostCenterDto> FinanceCostCenters { get; init; } = Array.Empty<SyncFinanceCostCenterDto>();
+    public IReadOnlyList<SyncFiscalIssuerDto> FiscalIssuers { get; init; } = Array.Empty<SyncFiscalIssuerDto>();
+    public IReadOnlyList<SyncFiscalDocumentDto> FiscalDocuments { get; init; } = Array.Empty<SyncFiscalDocumentDto>();
     public DateTimeOffset MaxUpdatedAt { get; init; }
     public bool HasMore { get; init; }
 }

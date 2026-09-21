@@ -672,6 +672,40 @@ public sealed class SyncFinanceCostCenterDto
     public DateTimeOffset UpdatedAt { get; init; }
 }
 
+public sealed class SyncFiscalIssuerDto
+{
+    public Guid Id { get; init; }
+    public string LegalName { get; init; } = string.Empty;
+    public string TradeName { get; init; } = string.Empty;
+    public string Cnpj { get; init; } = string.Empty;
+    public string State { get; init; } = string.Empty;
+    public int IbgeCityCode { get; init; }
+    public int NfceSeries { get; init; }
+    public int NfeSeries { get; init; }
+    public string Environment { get; init; } = string.Empty;
+    public bool HasCertificate { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+}
+
+public sealed class SyncFiscalDocumentDto
+{
+    public Guid Id { get; init; }
+    public string DocumentType { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public Guid SourceOrderId { get; init; }
+    public string? AccessKey { get; init; }
+    public string? Protocol { get; init; }
+    public string? RejectionReason { get; init; }
+    public string? EmissionType { get; init; }
+    public string? QrCodeUrl { get; init; }
+    public int? NfeNumber { get; init; }
+    public int? NfeSeries { get; init; }
+    public string RecipientName { get; init; } = string.Empty;
+    public string? RecipientCpf { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
+    public DateTimeOffset? AuthorizedAt { get; init; }
+}
+
 public sealed class PullChangesResult
 {
     public IReadOnlyList<SyncTutorDto> Tutors { get; init; } = Array.Empty<SyncTutorDto>();
@@ -705,6 +739,8 @@ public sealed class PullChangesResult
     public IReadOnlyList<SyncFinanceTitleDto> FinanceTitles { get; init; } = Array.Empty<SyncFinanceTitleDto>();
     public IReadOnlyList<SyncFinanceCategoryDto> FinanceCategories { get; init; } = Array.Empty<SyncFinanceCategoryDto>();
     public IReadOnlyList<SyncFinanceCostCenterDto> FinanceCostCenters { get; init; } = Array.Empty<SyncFinanceCostCenterDto>();
+    public IReadOnlyList<SyncFiscalIssuerDto> FiscalIssuers { get; init; } = Array.Empty<SyncFiscalIssuerDto>();
+    public IReadOnlyList<SyncFiscalDocumentDto> FiscalDocuments { get; init; } = Array.Empty<SyncFiscalDocumentDto>();
     public DateTimeOffset NextSince { get; init; }
     public bool HasMore { get; init; }
 }

@@ -105,6 +105,15 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         }
 
         var order = orderResult.Value;
+        if (!string.IsNullOrWhiteSpace(request.ConsumerCpf))
+        {
+            var cpfResult = order.SetConsumerCpf(request.ConsumerCpf);
+            if (cpfResult.IsFailure)
+            {
+                return Result.Failure<Guid>(cpfResult.Error);
+            }
+        }
+
         if (request.DiscountPercent > 0)
         {
             var discount = order.ApplyDiscount(request.DiscountPercent);

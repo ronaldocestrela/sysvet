@@ -8,5 +8,6 @@ public enum FiscalDocumentStatus
     Authorized = 2,
     Rejected = 3,
     Denied = 4,
-    Cancelled = 5
+    Cancelled = 5,
+    ContingencyIssued = 6
 }

@@ -28,6 +28,9 @@ public static class FiscalEndpointExtensions
         issuer.MapPut("/", async (HttpContext httpContext, [FromBody] UpsertIssuerProfileCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());
 
+        issuer.MapGet("/pos-bundle", async (IMediator mediator) =>
+            (await mediator.Send(new GetFiscalPosBundleQuery())).ToHttpResult());
+
         issuer.MapPost("/certificate", async (HttpContext httpContext, HttpRequest request, IMediator mediator) =>
         {
             if (!request.HasFormContentType)
@@ -64,6 +67,15 @@ public static class FiscalEndpointExtensions
 
         documents.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
             (await mediator.Send(new GetFiscalDocumentByIdQuery(id))).ToHttpResult());
+
+        documents.MapPost("/nfce/transmit", async (HttpContext httpContext, [FromBody] TransmitNfceCommand command, IMediator mediator) =>
+        {
+            EndpointIdempotency.ReadKey(httpContext);
+            return (await mediator.Send(command)).ToHttpResult();
+        });
+
+        documents.MapPost("/{id:guid}/reconcile", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new ReconcileNfceStatusCommand(id))).ToHttpResult());
 
         documents.MapPost("/from-order", async (HttpContext httpContext, [FromBody] IssueFromOrderBody body, IMediator mediator) =>
         {

@@ -13,6 +13,7 @@ internal sealed class OfflineSalesOrderConfiguration : IEntityTypeConfiguration<
         builder.Property(o => o.Status).HasConversion<string>();
         builder.Property(o => o.FinanceIntegrationStatus).HasConversion<string>();
         builder.Property(o => o.SellerUserId).IsRequired();
+        builder.Property(o => o.ConsumerCpf).HasMaxLength(14);
         builder.Property(o => o.DiscountPercent);
         builder.Ignore(o => o.SubtotalAmount);
         builder.Ignore(o => o.DiscountAmount);

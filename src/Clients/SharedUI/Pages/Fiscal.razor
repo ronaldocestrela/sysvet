@@ -8,10 +8,36 @@
 @inject IToastService Toast
 @inject NavigationManager Navigation
 
-<div class="header-section d-flex justify-content-between align-items-center">
+<div class="header-section d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h1 class="mb-0">Documentos fiscais</h1>
     <a class="btn btn-outline-primary btn-sm" href="@AppRoutes.FiscalIssuer">Emitente (A1)</a>
 </div>
+
+@if (DocumentId is null)
+{
+    <div class="d-flex gap-2 mb-3 flex-wrap align-items-end">
+        <div>
+            <label class="form-label small mb-0">Tipo</label>
+            <select class="form-select form-select-sm" @bind="_typeFilter">
+                <option value="">Todos</option>
+                <option value="Nfce">NFC-e</option>
+                <option value="Nfe">NF-e</option>
+                <option value="Nfse">NFS-e</option>
+            </select>
+        </div>
+        <div>
+            <label class="form-label small mb-0">Status</label>
+            <select class="form-select form-select-sm" @bind="_statusFilter">
+                <option value="">Todos</option>
+                <option value="ContingencyIssued">Contingência</option>
+                <option value="Transmitting">Transmitindo</option>
+                <option value="Authorized">Autorizada</option>
+                <option value="Rejected">Rejeitada</option>
+            </select>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ReloadListAsync">Filtrar</button>
+    </div>
+}
 
 <LoadingState IsLoading="_loading" Message="Carregando documentos...">
     @if (DocumentId is Guid detailId && _detail is not null)
@@ -28,19 +54,26 @@
             {
                 <p class="text-danger">@_detail.RejectionReason</p>
             }
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <a class="btn btn-sm btn-outline-secondary" href="@AppRoutes.Fiscal">Voltar</a>
                 @if (string.Equals(_detail.DocumentType, "Nfe", StringComparison.OrdinalIgnoreCase))
                 {
                     <a class="btn btn-sm btn-primary" href="@($"{Navigation.BaseUri.TrimEnd('/')}/api/v1/fiscal-documents/{detailId}/danfe")" target="_blank">DANFE</a>
                 }
                 <a class="btn btn-sm btn-outline-primary" href="@($"{Navigation.BaseUri.TrimEnd('/')}/api/v1/fiscal-documents/{detailId}/xml")" target="_blank">XML</a>
+                @if (string.Equals(_detail.DocumentType, "Nfce", StringComparison.OrdinalIgnoreCase)
+                     && _detail.Status is "ContingencyIssued" or "Transmitting")
+                {
+                    <button type="button" class="btn btn-sm btn-warning" disabled="_reconciling" @onclick="() => ReconcileAsync(detailId)">
+                        Consultar SEFAZ
+                    </button>
+                }
             </div>
         </div>
     }
     else if (_documents.Count == 0)
     {
-        <p class="text-muted">Nenhum documento emitido. Use &quot;Emitir nota&quot; no comprovante de venda paga.</p>
+        <p class="text-muted">Nenhum documento emitido. Use &quot;Emitir nota&quot; no comprovante de venda paga ou emita NFC-e no PDV.</p>
     }
     else
     {
@@ -56,7 +89,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var d in _documents)
+                @foreach (var d in FilteredDocuments)
                 {
                     <tr>
                         <td>@d.DocumentType</td>
@@ -64,7 +97,14 @@
                         <td>@d.SourceOrderId.ToString()[..8]…</td>
                         <td>@d.TotalAmount.ToString("C")</td>
                         <td>@(d.AuthorizedAt?.LocalDateTime.ToString("g") ?? "—")</td>
-                        <td><a href="@AppRoutes.FiscalDocumentDetail(d.Id)">Detalhe</a></td>
+                        <td class="text-nowrap">
+                            <a href="@AppRoutes.FiscalDocumentDetail(d.Id)">Detalhe</a>
+                            @if (string.Equals(d.DocumentType, "Nfce", StringComparison.OrdinalIgnoreCase)
+                                 && d.Status is "ContingencyIssued" or "Transmitting")
+                            {
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-2" @onclick="() => ReconcileAsync(d.Id)">Reconciliar</button>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -76,8 +116,16 @@
     [Parameter] public Guid? DocumentId { get; set; }
 
     private bool _loading = true;
+    private bool _reconciling;
+    private string _typeFilter = string.Empty;
+    private string _statusFilter = string.Empty;
     private List<FiscalDocumentClientDto> _documents = [];
     private FiscalDocumentDetailClientDto? _detail;
+
+    private IEnumerable<FiscalDocumentClientDto> FilteredDocuments =>
+        _documents.Where(d =>
+            (string.IsNullOrWhiteSpace(_typeFilter) || string.Equals(d.DocumentType, _typeFilter, StringComparison.OrdinalIgnoreCase))
+            && (string.IsNullOrWhiteSpace(_statusFilter) || string.Equals(d.Status, _statusFilter, StringComparison.OrdinalIgnoreCase)));
 
     protected override async Task OnParametersSetAsync()
     {
@@ -96,17 +144,48 @@
         }
         else
         {
-            var listResult = await FiscalApi.ListDocumentsAsync();
-            if (listResult.IsSuccess)
-            {
-                _documents = listResult.Value?.ToList() ?? [];
-            }
-            else
-            {
-                Toast.Show(listResult.Error.Message, ToastType.Error);
-            }
+            await ReloadListAsync();
         }
 
         _loading = false;
+    }
+
+    private async Task ReloadListAsync()
+    {
+        var listResult = await FiscalApi.ListDocumentsAsync(status: string.IsNullOrWhiteSpace(_statusFilter) ? null : _statusFilter);
+        if (listResult.IsSuccess)
+        {
+            _documents = listResult.Value?.ToList() ?? [];
+        }
+        else
+        {
+            Toast.Show(listResult.Error.Message, ToastType.Error);
+        }
+    }
+
+    private async Task ReconcileAsync(Guid documentId)
+    {
+        _reconciling = true;
+        var result = await FiscalApi.ReconcileNfceAsync(documentId);
+        _reconciling = false;
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Status atualizado com a SEFAZ.", ToastType.Success);
+        if (DocumentId is Guid id && id == documentId)
+        {
+            var detailResult = await FiscalApi.GetDocumentAsync(documentId);
+            if (detailResult.IsSuccess)
+            {
+                _detail = detailResult.Value;
+            }
+        }
+        else
+        {
+            await ReloadListAsync();
+        }
     }
 }

@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Pos as PosTerminal
+    participant Sales as OfflineSalesStore
+    participant Fiscal as OfflineFiscalNfceService
+    participant Sqlite as OfflineDbContext
+    participant Worker as SyncBackgroundWorker
+    participant Api as PushSyncBatch
+    participant Sefaz as INfceGateway
+
+    Pos->>Sales: CreateAndPayOrder
+    Sales->>Sqlite: Order Paid plus stock
+    alt issuer and A1 cached
+        Sales->>Fiscal: TryEnqueueContingencyNfce
+        Fiscal->>Sqlite: FiscalDocument ContingencyIssued
+        Fiscal->>Sqlite: Outbox TransmitNfce after Pay
+    end
+    Sales->>Sqlite: Outbox CreateOrder then PayOrder
+    Sales->>Worker: RequestSyncIfOnline
+    Worker->>Api: FIFO Create Pay TransmitNfce
+    Api->>Sefaz: XML contingencia tpEmis 9
+    Sefaz-->>Api: Authorized or Rejected

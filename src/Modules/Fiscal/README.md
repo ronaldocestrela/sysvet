@@ -1,19 +1,19 @@
-# `src/Modules/Fiscal/` — Módulo Fiscal (Fase 7.5)
+# `src/Modules/Fiscal/` — Módulo Fiscal (Fases 7.5–7.6)
 
-Emissão **online** de **NF-e (modelo 55)** via [Zeus.Net.NFe.NFCe](https://www.nuget.org/packages/Zeus.Net.NFe.NFCe/) e **NFS-e Padrão Nacional** via [OpenAC.Net.NFSe.Nacional.Web](https://www.nuget.org/packages/OpenAC.Net.NFSe.Nacional.Web/), a partir de pedido **pago** (emissão explícita).
+Emissão **online** de **NF-e (modelo 55)** e **NFS-e Padrão Nacional** a partir de pedido **pago** (emissão explícita). **NFC-e (modelo 65)** no PDV offline em contingência (`tpEmis=9`) com transmissão via sync.
 
 ## Status
 
-> **7.5 implementada** com gateways **Fake** (CI/dev) e registro **ZeusOpenAc** para homologação. DANFE: `FakeDanfeRenderer` (QuestPDF/Zeus DANFE em evolução).
+> **7.5 + 7.6 implementadas** com gateways **Fake** (CI/dev) e registro **ZeusOpenAc** para homologação. NFC-e: `INfceGateway`, `TransmitNfceCommand`, sync push/pull.
 
-Ver [ADR-035](../../docs/arquitetura/ADR-035-provedor-fiscal-zeus-openac.md).
+Ver [ADR-035](../../docs/arquitetura/ADR-035-provedor-fiscal-zeus-openac.md), [ADR-036](../../docs/arquitetura/ADR-036-nfce-contingencia-offline.md).
 
 ## Camadas
 
 | Pasta | Conteúdo |
 |---|---|
 | [`Domain/`](./Domain/) | `IssuerProfile`, `FiscalDocument`, `FiscalDocumentItem`, `FiscalCorrectionLetter`, `FiscalTaxResolver`, VOs (`FiscalCnpj`, `Cfop`, …). |
-| [`Application/`](./Application/) | CQRS: `IssueFromOrder`, cancelamento, CC-e, issuer, downloads; portas `INfeGateway`, `INfseGateway`, `IDanfeRenderer`, `ICertificateProtector`. |
+| [`Application/`](./Application/) | CQRS: `IssueFromOrder`, `TransmitNfce`, `ReconcileNfce`, cancelamento, CC-e, issuer, downloads; portas `INfeGateway`, `INfceGateway`, `INfseGateway`, `IDanfeRenderer`, `INfceDanfeRenderer`, `ICertificateProtector`. |
 | [`Infrastructure/`](./Infrastructure/) | `FiscalDbContext`, `ZeusNfeGateway`, `OpenAcNacionalWebNfseGateway`, fakes, `AesCertificateProtector`, OpenAC multi-tenant providers. |
 
 ## Configuração
@@ -47,4 +47,4 @@ Pedido misto: produtos/kits → NF-e; serviços/pacotes → NFS-e Nacional.
 
 ## Fora desta fatia
 
-NFC-e/contingência (7.6), inutilização, relatórios 7.7, NFS-e municipal `OpenAC.Net.NFSe`, add-on comercial (9.3).
+Inutilização, relatórios 7.7, NFS-e municipal `OpenAC.Net.NFSe`, add-on comercial (9.3), Zeus NFC-e real (após Fake verde).

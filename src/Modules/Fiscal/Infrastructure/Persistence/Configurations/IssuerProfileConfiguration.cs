@@ -36,5 +36,6 @@ internal sealed class IssuerProfileConfiguration : IEntityTypeConfiguration<Issu
         builder.Property(x => x.CertificateBlobKey).HasMaxLength(500);
         builder.Property(x => x.EncryptedCertificatePassword).HasMaxLength(500);
         builder.Property(x => x.NextNfeNumber).IsConcurrencyToken();
+        builder.Property(x => x.NextNfceNumber).IsConcurrencyToken();
     }
 }

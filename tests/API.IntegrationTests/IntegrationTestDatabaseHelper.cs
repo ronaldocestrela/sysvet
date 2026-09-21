@@ -11,6 +11,22 @@ internal static class IntegrationTestDatabaseHelper
     /// <summary>
     /// Migrates module schemas used by sync pull/push (Veterinary, Inventory, Sales).
     /// </summary>
+    public static async Task ResetModuleDatabasesAsync(IServiceScope scope)
+    {
+        foreach (var ctx in new DbContext[]
+                 {
+                     scope.ServiceProvider.GetRequiredService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Sales.Infrastructure.Persistence.SalesDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Petshop.Infrastructure.Persistence.PetshopDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>()
+                 })
+        {
+            await ctx.Database.EnsureDeletedAsync();
+        }
+    }
+
     public static async Task MigrateModuleDatabasesAsync(IServiceScope scope)
     {
         var vetContext = scope.ServiceProvider.GetRequiredService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>();

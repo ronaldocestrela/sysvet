@@ -29,6 +29,8 @@ public sealed class IssuerProfile : AggregateRoot
     public decimal DefaultIssRate { get; private set; }
     public int NfeSeries { get; private set; } = 1;
     public long NextNfeNumber { get; private set; } = 1;
+    public int NfceSeries { get; private set; } = 1;
+    public long NextNfceNumber { get; private set; } = 1;
     public int DpsSeries { get; private set; } = 1;
     public long NextDpsNumber { get; private set; } = 1;
     public FiscalEnvironment Environment { get; private set; } = FiscalEnvironment.Homologation;
@@ -151,6 +153,9 @@ public sealed class IssuerProfile : AggregateRoot
 
     /// <summary>Reserves the next NF-e number atomically at persistence layer.</summary>
     public long ConsumeNextNfeNumber() => NextNfeNumber++;
+
+    /// <summary>Reserves the next NFC-e number atomically at persistence layer.</summary>
+    public long ConsumeNextNfceNumber() => NextNfceNumber++;
 
     /// <summary>Reserves the next DPS number.</summary>
     public long ConsumeNextDpsNumber() => NextDpsNumber++;

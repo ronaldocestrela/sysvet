@@ -23,6 +23,8 @@ public sealed class FiscalDocument : AggregateRoot
     public string RecipientName { get; private set; } = string.Empty;
     public string? RecipientCpf { get; private set; }
     public string? RecipientUf { get; private set; }
+    public FiscalEmissionType? EmissionType { get; private set; }
+    public string? QrCodeUrl { get; private set; }
 
     private readonly List<FiscalDocumentItem> _items = new();
     public IReadOnlyCollection<FiscalDocumentItem> Items => _items.AsReadOnly();
@@ -78,7 +80,7 @@ public sealed class FiscalDocument : AggregateRoot
         string csosn,
         int merchandiseOrigin)
     {
-        if (DocumentType != FiscalDocumentType.Nfe)
+        if (DocumentType is not (FiscalDocumentType.Nfe or FiscalDocumentType.Nfce))
         {
             return Result.Failure(ErrorCodes.Document.InvalidTransition);
         }
@@ -115,7 +117,7 @@ public sealed class FiscalDocument : AggregateRoot
     /// <summary>Marks document as transmitting to authority.</summary>
     public Result BeginTransmission()
     {
-        if (Status != FiscalDocumentStatus.Draft && Status != FiscalDocumentStatus.Rejected)
+        if (Status is not (FiscalDocumentStatus.Draft or FiscalDocumentStatus.Rejected or FiscalDocumentStatus.ContingencyIssued))
         {
             return Result.Failure(ErrorCodes.Document.InvalidTransition);
         }
@@ -127,6 +129,47 @@ public sealed class FiscalDocument : AggregateRoot
 
         Status = FiscalDocumentStatus.Transmitting;
         RejectionReason = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
+
+    /// <summary>Records NFC-e signed in contingency (tpEmis=9) before SEFAZ transmission.</summary>
+    public Result MarkContingencyIssued(
+        string accessKey,
+        string xmlBlobKey,
+        string? qrCodeUrl,
+        int nfeNumber,
+        int nfeSeries,
+        FiscalEmissionType emissionType)
+    {
+        if (DocumentType != FiscalDocumentType.Nfce)
+        {
+            return Result.Failure(ErrorCodes.Document.InvalidTransition);
+        }
+
+        if (Status != FiscalDocumentStatus.Draft)
+        {
+            return Result.Failure(ErrorCodes.Document.InvalidTransition);
+        }
+
+        if (_items.Count == 0)
+        {
+            return Result.Failure(ErrorCodes.Document.NoLines);
+        }
+
+        var keyResult = ValueObjects.NfeAccessKey.CreateForNfce(accessKey);
+        if (keyResult.IsFailure)
+        {
+            return Result.Failure(keyResult.Error);
+        }
+
+        AccessKey = keyResult.Value.Value;
+        XmlBlobKey = xmlBlobKey;
+        QrCodeUrl = qrCodeUrl;
+        NfeNumber = nfeNumber;
+        NfeSeries = nfeSeries;
+        EmissionType = emissionType;
+        Status = FiscalDocumentStatus.ContingencyIssued;
         UpdatedAt = DateTimeOffset.UtcNow;
         return Result.Success();
     }

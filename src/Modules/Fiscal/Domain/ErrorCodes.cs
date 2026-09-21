@@ -33,6 +33,7 @@ public static class ErrorCodes
     public static class AccessKey
     {
         public static readonly Error Invalid = new("Fiscal.AccessKey.Invalid", "Access key must contain 44 digits.");
+        public static readonly Error InvalidModel = new("Fiscal.AccessKey.InvalidModel", "Access key model must be 65 for NFC-e.");
     }
 
     public static class Cnpj

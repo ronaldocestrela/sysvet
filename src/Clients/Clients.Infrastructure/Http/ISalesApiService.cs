@@ -69,6 +69,7 @@ public sealed class CreateSalesOrderClientRequest
     public Guid? PetId { get; init; }
     public Guid? SourceQuoteId { get; init; }
     public decimal DiscountPercent { get; init; }
+    public string? ConsumerCpf { get; init; }
     public List<SalesOrderItemClientDto> Items { get; init; } = new();
 }
 

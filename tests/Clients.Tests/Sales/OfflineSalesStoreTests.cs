@@ -1,6 +1,7 @@
 using Clients.Infrastructure;
 using Clients.Infrastructure.Http;
 using Clients.Infrastructure.Persistence;
+using Clients.Infrastructure.Fiscal;
 using Clients.Infrastructure.Sales;
 using Clients.Infrastructure.Sync;
 using FluentAssertions;
@@ -23,9 +24,14 @@ public class OfflineSalesStoreTests
             .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
         var db = new OfflineDbContext(options, new NoOpSqliteFilePersistence());
-        db.Database.MigrateAsync().GetAwaiter().GetResult();
+        db.Database.EnsureCreatedAsync().GetAwaiter().GetResult();
         var connectivity = new FakeOfflineConnectivity();
-        var store = new OfflineSalesStore(db, new SyncWakeSignal(), connectivity, new SimulatedPaymentTerminal());
+        var store = new OfflineSalesStore(
+            db,
+            new SyncWakeSignal(),
+            connectivity,
+            new SimulatedPaymentTerminal(),
+            new OfflineFiscalNfceService(db));
         return (db, store);
     }
 

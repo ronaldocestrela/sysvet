@@ -874,7 +874,7 @@ flowchart TD
 | **7.3 Caixa, sangrias e conciliação** | 13 | Concluído |
 | **7.4 Fluxo de caixa e demonstrativos** | 8 | Concluída |
 | **7.5 NF-e e NFS-e** | 13 | Concluído |
-| **7.6 NFC-e e contingência offline** | 13 | Pendente |
+| **7.6 NFC-e e contingência offline** | 13 | Concluída |
 | **7.7 Planejamento fiscal** | 5 | Pendente |
 | **Total Fase 7** | **65 SP** | |
 
@@ -944,9 +944,9 @@ flowchart TD
 
 ### 7.6 NFC-e e contingência offline (13 SP)
 
-- [ ] NFC-e consumidor; fila offline na venda PDV
-- [ ] Transmissão automática ao recuperar rede
-- [ ] Reconciliação status SEFAZ
+- [x] NFC-e consumidor; fila offline na venda PDV ([ADR-036](./arquitetura/ADR-036-nfce-contingencia-offline.md))
+- [x] Transmissão automática ao recuperar rede (`TransmitNfceCommand` na outbox FIFO)
+- [x] Reconciliação status SEFAZ (`POST .../reconcile` + pull sync)
 
 **Aceite:** Venda offline emite NFC-e em contingência; transmite após sync.
 

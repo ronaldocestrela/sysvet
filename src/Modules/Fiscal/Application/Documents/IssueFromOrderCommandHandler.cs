@@ -86,10 +86,23 @@ public sealed class IssueFromOrderCommandHandler : IRequestHandler<IssueFromOrde
             }
         }
 
-        var nfeLines = snapshot.Lines.Where(l => OrderFiscalLineKind.IsNfeLine(l.Kind)).ToList();
+        var existingNfce = await _documentRepository.GetByOrderAndTypeAsync(request.OrderId, FiscalDocumentType.Nfce, cancellationToken);
+        var skipNfeBecauseNfce = existingNfce is not null
+            && existingNfce.Status is FiscalDocumentStatus.Authorized
+                or FiscalDocumentStatus.ContingencyIssued
+                or FiscalDocumentStatus.Transmitting;
+
+        var nfeLines = skipNfeBecauseNfce
+            ? []
+            : snapshot.Lines.Where(l => OrderFiscalLineKind.IsNfeLine(l.Kind)).ToList();
         var nfseLines = snapshot.Lines.Where(l => OrderFiscalLineKind.IsNfseLine(l.Kind)).ToList();
         if (nfeLines.Count == 0 && nfseLines.Count == 0)
         {
+            if (existingNfce is not null)
+            {
+                return Result.Success<IReadOnlyList<Guid>>([existingNfce.Id]);
+            }
+
             return Result.Failure<IReadOnlyList<Guid>>(Fiscal.Domain.ErrorCodes.Document.NoLines);
         }
 
@@ -200,10 +213,18 @@ public sealed class IssueFromOrderCommandHandler : IRequestHandler<IssueFromOrde
                 ? basic2.MerchandiseOrigin
                 : 0;
             var cfop = FiscalTaxResolver.ResolveProductCfop(issuer.State, recipientUf);
-            doc.AddProductItem(line.ProductId, line.Description, line.Quantity, line.UnitPrice, ncm, cfop, FiscalTaxResolver.DefaultCsosn, origin);
+            var add = doc.AddProductItem(line.ProductId, line.Description, line.Quantity, line.UnitPrice, ncm, cfop, FiscalTaxResolver.DefaultCsosn, origin);
+            if (add.IsFailure)
+            {
+                return Result.Failure<Guid>(add.Error);
+            }
         }
 
-        doc.BeginTransmission();
+        var begin = doc.BeginTransmission();
+        if (begin.IsFailure)
+        {
+            return Result.Failure<Guid>(begin.Error);
+        }
         _documentRepository.Add(doc);
         await _fiscalUnitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -254,7 +275,12 @@ public sealed class IssueFromOrderCommandHandler : IRequestHandler<IssueFromOrde
             }
         }
 
-        doc.MarkAuthorized(auth.AccessKey, auth.Protocol ?? "FAKE", xmlKey, danfeKey, nfeNumber, issuer.NfeSeries, null);
+        var authorized = doc.MarkAuthorized(auth.AccessKey, auth.Protocol ?? "FAKE", xmlKey, danfeKey, nfeNumber, issuer.NfeSeries, null);
+        if (authorized.IsFailure)
+        {
+            return Result.Failure<Guid>(authorized.Error);
+        }
+
         _documentRepository.Update(doc);
         _issuerRepository.Update(issuer);
         return Result.Success(doc.Id);

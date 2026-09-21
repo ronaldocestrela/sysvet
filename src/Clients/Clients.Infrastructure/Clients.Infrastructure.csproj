@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\Modules\Petshop\Domain\Petshop.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Finance\Domain\Finance.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Finance\Application\Finance.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Fiscal\Application\Fiscal.Application.csproj" />
   </ItemGroup>
 
 </Project>

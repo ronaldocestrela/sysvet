@@ -23,6 +23,8 @@ internal sealed class FiscalDocumentConfiguration : IEntityTypeConfiguration<Fis
         builder.Property(x => x.RecipientCpf).HasMaxLength(11);
         builder.Property(x => x.RecipientUf).HasMaxLength(2);
         builder.Property(x => x.NfseNumber).HasMaxLength(50);
+        builder.Property(x => x.EmissionType).HasConversion<int?>();
+        builder.Property(x => x.QrCodeUrl).HasMaxLength(2000);
         builder.Ignore(x => x.TotalAmount);
 
         builder.HasIndex(x => new { x.SourceOrderId, x.DocumentType, x.Status });

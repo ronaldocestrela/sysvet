@@ -212,6 +212,10 @@ namespace Sales.Infrastructure.Migrations
                     b.Property<Guid>("CashRegisterId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ConsumerCpf")
+                        .HasMaxLength(14)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 

@@ -5,13 +5,16 @@ sequenceDiagram
     participant Worker as SyncBackgroundWorker
     participant Api as PushSyncBatch
     participant Pay as PayOrderCommand
+    participant Fiscal as TransmitNfceCommand
 
     Pos->>Store: PayOrder local
     Store->>Sqlite: Order Paid plus lot debit
-    Store->>Sqlite: Outbox CreateOrder then PayOrder
+    Note over Store,Sqlite: NFC-e contingencia ver ADR-036
+    Store->>Sqlite: Outbox CreateOrder PayOrder TransmitNfce
     Store->>Worker: RequestSync
     Worker->>Api: FIFO push
     Api->>Pay: Create then Pay
+    Api->>Fiscal: Transmit NFC-e assinada
     Pay->>Pay: ConsumeStockForSaleRequest
     alt stock ok
         Pay-->>Worker: ProcessedIds

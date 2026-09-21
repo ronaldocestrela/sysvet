@@ -32,6 +32,21 @@ public sealed class FiscalDocumentRepository : IFiscalDocumentRepository
                      && d.Status == FiscalDocumentStatus.Authorized,
                 cancellationToken);
 
+    public async Task<FiscalDocument?> GetByOrderAndTypeAsync(
+        Guid orderId,
+        FiscalDocumentType type,
+        CancellationToken cancellationToken = default)
+    {
+        var matches = await _dbContext.FiscalDocuments
+            .Include(d => d.Items)
+            .Where(d => d.SourceOrderId == orderId
+                        && d.DocumentType == type
+                        && d.Status != FiscalDocumentStatus.Cancelled)
+            .ToListAsync(cancellationToken);
+
+        return matches.OrderByDescending(d => d.UpdatedAt).FirstOrDefault();
+    }
+
     public async Task<IReadOnlyList<FiscalDocument>> ListAsync(
         Guid? orderId,
         FiscalDocumentStatus? status,
@@ -48,7 +63,8 @@ public sealed class FiscalDocumentRepository : IFiscalDocumentRepository
             query = query.Where(d => d.Status == status.Value);
         }
 
-        return await query.OrderByDescending(d => d.UpdatedAt).ToListAsync(cancellationToken);
+        var list = await query.ToListAsync(cancellationToken);
+        return list.OrderByDescending(d => d.UpdatedAt).ToList();
     }
 
     public void Add(FiscalDocument document) => _dbContext.FiscalDocuments.Add(document);

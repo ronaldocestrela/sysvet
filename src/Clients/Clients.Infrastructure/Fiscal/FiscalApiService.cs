@@ -10,23 +10,81 @@ public sealed class FiscalApiService
     private readonly Http.ApiClient _apiClient;
     private readonly HttpClient _httpClient;
     private readonly Sync.ISyncConnectivity _connectivity;
+    private readonly IFiscalStore _fiscalStore;
 
-    public FiscalApiService(Http.ApiClient apiClient, HttpClient httpClient, Sync.ISyncConnectivity connectivity)
+    public FiscalApiService(
+        Http.ApiClient apiClient,
+        HttpClient httpClient,
+        Sync.ISyncConnectivity connectivity,
+        IFiscalStore fiscalStore)
     {
         _apiClient = apiClient;
         _httpClient = httpClient;
         _connectivity = connectivity;
+        _fiscalStore = fiscalStore;
     }
 
-    public Task<Result<IReadOnlyList<FiscalDocumentClientDto>>> ListDocumentsAsync(Guid? orderId = null, CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<FiscalDocumentClientDto>>> ListDocumentsAsync(
+        Guid? orderId = null,
+        string? status = null,
+        CancellationToken cancellationToken = default)
     {
         if (!_connectivity.IsOnline)
         {
-            return Task.FromResult(Result.Failure<IReadOnlyList<FiscalDocumentClientDto>>(OfflineError()));
+            if (orderId is null)
+            {
+                return Result.Success<IReadOnlyList<FiscalDocumentClientDto>>(Array.Empty<FiscalDocumentClientDto>());
+            }
+
+            var local = await _fiscalStore.GetDocumentsByOrderAsync(orderId.Value, cancellationToken);
+            return Result.Success<IReadOnlyList<FiscalDocumentClientDto>>(local.Select(d => new FiscalDocumentClientDto(
+                d.Id,
+                d.DocumentType,
+                d.Status,
+                d.OrderId,
+                d.AccessKey,
+                0m,
+                d.UpdatedAt,
+                d.AuthorizedAt)).ToList());
         }
 
-        var query = orderId is null ? string.Empty : $"?orderId={orderId}";
-        return _apiClient.GetAsync<IReadOnlyList<FiscalDocumentClientDto>>($"/api/v1/fiscal-documents{query}", cancellationToken);
+        var queryParts = new List<string>();
+        if (orderId is Guid oid)
+        {
+            queryParts.Add($"orderId={oid}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            queryParts.Add($"status={Uri.EscapeDataString(status)}");
+        }
+
+        var query = queryParts.Count == 0 ? string.Empty : "?" + string.Join('&', queryParts);
+        return await _apiClient.GetAsync<IReadOnlyList<FiscalDocumentClientDto>>($"/api/v1/fiscal-documents{query}", cancellationToken);
+    }
+
+    public Task<Result<bool>> ReconcileNfceAsync(Guid documentId, CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return Task.FromResult(Result.Failure<bool>(OfflineError()));
+        }
+
+        return _apiClient.PostAsync<object, bool>(
+            $"/api/v1/fiscal-documents/{documentId}/reconcile",
+            new { },
+            idempotencyKey: Guid.NewGuid(),
+            cancellationToken: cancellationToken);
+    }
+
+    public Task<Result<FiscalPosBundleClientDto?>> GetPosBundleAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connectivity.IsOnline)
+        {
+            return Task.FromResult(Result.Failure<FiscalPosBundleClientDto?>(OfflineError()));
+        }
+
+        return _apiClient.GetAsync<FiscalPosBundleClientDto?>("/api/v1/fiscal/issuer/pos-bundle", cancellationToken);
     }
 
     public Task<Result<FiscalDocumentDetailClientDto?>> GetDocumentAsync(Guid id, CancellationToken cancellationToken = default)
@@ -127,6 +185,20 @@ public sealed record FiscalDocumentDetailClientDto(
     string? RejectionReason,
     string RecipientName,
     decimal TotalAmount);
+
+public sealed record FiscalPosBundleClientDto(
+    Guid IssuerId,
+    string LegalName,
+    string TradeName,
+    string Cnpj,
+    string State,
+    int IbgeCityCode,
+    int NfceSeries,
+    int NfeSeries,
+    string Environment,
+    bool HasCertificate,
+    string? EncryptedPfxBase64,
+    string? EncryptedCertificatePassword);
 
 public sealed record IssuerProfileClientDto(
     Guid Id,

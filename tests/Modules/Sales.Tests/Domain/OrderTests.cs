@@ -280,6 +280,24 @@ public class OrderTests
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Order.ReturnNotAllowed");
     }
+
+    [Fact]
+    public void SetConsumerCpf_OnDraft_StoresDigitsOnly()
+    {
+        var order = CreateDraftOrder();
+        order.SetConsumerCpf("529.982.247-25").IsSuccess.Should().BeTrue();
+        order.ConsumerCpf.Should().Be("52998224725");
+    }
+
+    [Fact]
+    public void MarkFiscalPending_WhenPaid_SetsPendingStatus()
+    {
+        var order = CreateDraftOrder();
+        order.AddProductItem(Guid.NewGuid(), "Ração", 1m, 10m);
+        order.Pay([Payment.Create(PaymentMethod.Cash, 10m).Value]);
+        order.MarkFiscalPending().IsSuccess.Should().BeTrue();
+        order.FiscalIntegrationStatus.Should().Be(FiscalIntegrationStatus.Pending);
+    }
 }
 
 public class MoneyTests

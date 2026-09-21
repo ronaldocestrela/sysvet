@@ -211,7 +211,13 @@ Iniciado o módulo de estoque.
 - `FiscalDbContext`, certificado A1 cifrado, API `/api/v1/fiscal*`, UI `/fiscal` + “Emitir nota” no comprovante; CI com `Fiscal:Provider=Fake`.
 - Aceite homologação SEFAZ: teste opcional com `FISCAL_HOMOLOGATION=1` (fora do CI).
 
-### 👉 **Próxima Ação: Fase 7.6 — NFC-e e contingência offline**
+### Fase 7.6 — NFC-e e contingência offline — Concluída (ADR-036)
+
+- NFC-e modelo 65 no PDV: contingência `tpEmis=9`, XML assinado localmente, QR/cupom no comprovante, outbox `TransmitNfceCommand` após pay.
+- Cache A1 + emitente via `GET /api/v1/fiscal/issuer/pos-bundle`; sync push/pull fiscal; reconciliação SEFAZ.
+- Aceite: `OfflineSale_EmitsNfceInContingency_TransmitsAfterSync` (CI com `FakeNfceGateway`).
+
+### 👉 **Próxima Ação: Fase 7.7 — Planejamento fiscal**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 7.
 
