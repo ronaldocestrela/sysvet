@@ -22,6 +22,7 @@ public sealed record IssuerProfileDto(
     string Phone,
     string NationalServiceTaxCode,
     decimal DefaultIssRate,
+    int TaxRegimeCode,
     int NfeSeries,
     long NextNfeNumber,
     int DpsSeries,

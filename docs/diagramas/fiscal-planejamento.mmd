@@ -1,0 +1,28 @@
+flowchart TB
+  subgraph data [Fiscal persistido]
+    Docs[FiscalDocument plus Items]
+    Issuer[IssuerProfile]
+  end
+  subgraph domain [Fiscal.Domain]
+    Calc[FiscalPlanningCalculator]
+    Tables[TaxRegimeTables]
+  end
+  subgraph outputs [Saidas]
+    Period[PeriodTaxReport]
+    Sim[RegimeSimulation]
+    File[CSV or PDF]
+  end
+  subgraph delivery [Entrega]
+    API["GET fiscal/planning export"]
+    UI["/fiscal/planning"]
+  end
+  Docs --> Calc
+  Issuer --> Calc
+  Tables --> Calc
+  Calc --> Period
+  Calc --> Sim
+  Period --> API
+  Sim --> API
+  API --> UI
+  Period --> File
+  Sim --> File

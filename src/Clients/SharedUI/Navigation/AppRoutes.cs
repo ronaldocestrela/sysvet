@@ -101,6 +101,9 @@ public static class AppRoutes
     /// <summary>Issuer profile and A1 certificate.</summary>
     public const string FiscalIssuer = "/fiscal/issuer";
 
+    /// <summary>Tax planning reports and regime simulation.</summary>
+    public const string FiscalPlanning = "/fiscal/planning";
+
     /// <summary>Fiscal document detail.</summary>
     public static string FiscalDocumentDetail(Guid id) => $"/fiscal/{id}";
 }

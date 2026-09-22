@@ -40,4 +40,12 @@ public static class ErrorCodes
     {
         public static readonly Error Invalid = new("Fiscal.Cnpj.Invalid", "CNPJ must contain 14 digits.");
     }
+
+    /// <summary>Validation errors for fiscal planning reports.</summary>
+    public static class Report
+    {
+        public static readonly Error InvalidDateRange = new("Fiscal.Report.InvalidDateRange", "Start date cannot be after end date.");
+        public static readonly Error RangeTooLarge = new("Fiscal.Report.RangeTooLarge", "Report range cannot exceed 366 days.");
+        public static readonly Error ExportNotFullMonth = new("Fiscal.Report.ExportNotFullMonth", "Monthly export requires a full calendar month.");
+    }
 }

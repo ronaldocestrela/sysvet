@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="QuestPDF" Version="2025.7.0" />
     <PackageReference Include="Zeus.Net.NFe.NFCe" Version="2026.8.18.2047" />
     <PackageReference Include="OpenAC.Net.NFSe.Nacional.Web" Version="1.5.0.3" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />

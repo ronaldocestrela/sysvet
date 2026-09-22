@@ -217,9 +217,15 @@ Iniciado o módulo de estoque.
 - Cache A1 + emitente via `GET /api/v1/fiscal/issuer/pos-bundle`; sync push/pull fiscal; reconciliação SEFAZ.
 - Aceite: `OfflineSale_EmitsNfceInContingency_TransmitsAfterSync` (CI com `FakeNfceGateway`).
 
-### 👉 **Próxima Ação: Fase 7.7 — Planejamento fiscal**
+### Fase 7.7 — Planejamento fiscal — Concluída (ADR-037)
 
-Ver [`roadmap.md`](roadmap.md) § Fase 7.
+- Apuração por período (autorização/cancelamento), CFOP, ISS estimado; simulação Simples vs Presumido (gerencial).
+- API `GET /api/v1/fiscal/planning` e `/planning/export` (CSV/PDF); UI `/fiscal/planning` (online-only).
+- Aceite: `PeriodTaxReport_MatchesAuthorizedDocuments`; `ExportFiscalPlanning_ReturnsCsv` / `_ReturnsPdf`.
+
+### 👉 **Próxima Ação: Fase 8.1 — Módulo Automations**
+
+Ver [`roadmap.md`](roadmap.md) § Fase 8.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

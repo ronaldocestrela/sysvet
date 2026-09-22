@@ -1,6 +1,7 @@
 using Core.Domain;
 using Fiscal.Application.Documents;
 using Fiscal.Application.Issuer;
+using Fiscal.Application.Planning;
 using Fiscal.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -57,6 +58,19 @@ public static class FiscalEndpointExtensions
             return (await mediator.Send(new UploadIssuerCertificateCommand(ms.ToArray(), password))).ToHttpResult();
         });
 
+        var planning = builder.MapGroup("/api/v1/fiscal/planning").RequireAuthorization().WithTags("Fiscal");
+        planning.MapGet("/", async ([FromQuery] DateOnly from, [FromQuery] DateOnly to, IMediator mediator) =>
+            (await mediator.Send(new GetFiscalPlanningQuery(from, to))).ToHttpResult());
+        planning.MapGet("/export", async ([FromQuery] DateOnly from, [FromQuery] DateOnly to, [FromQuery] string format, IMediator mediator) =>
+        {
+            if (!Enum.TryParse<FiscalExportFormat>(format, ignoreCase: true, out var exportFormat))
+            {
+                return Results.BadRequest(new { error = "Invalid format. Use csv or pdf." });
+            }
+
+            return ToPlanningFileResult(await mediator.Send(new ExportFiscalPlanningQuery(from, to, exportFormat)));
+        });
+
         var documents = builder.MapGroup("/api/v1/fiscal-documents").RequireAuthorization().WithTags("Fiscal");
 
         documents.MapGet("/", async (
@@ -102,6 +116,16 @@ public static class FiscalEndpointExtensions
             ToFileResult(await mediator.Send(new DownloadFiscalDanfeQuery(id))));
 
         return builder;
+    }
+
+    private static IResult ToPlanningFileResult(Result<FiscalPlanningReportFileDto> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.ToProblemDetails();
+        }
+
+        return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
     }
 
     private static IResult ToFileResult(Result<FiscalFileDownloadDto?> result)

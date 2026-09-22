@@ -1,0 +1,185 @@
+@page "/fiscal/planning"
+@using Clients.Infrastructure.Fiscal
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject FiscalPlanningApiService PlanningApi
+@inject IConnectivityService Connectivity
+@inject IFileDownloadService FileDownload
+@inject IToastService Toast
+
+<div class="header-section d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="mb-0">Planejamento fiscal</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary btn-sm" href="@AppRoutes.Fiscal">Documentos</a>
+        <a class="btn btn-outline-primary btn-sm" href="@AppRoutes.FiscalIssuer">Emitente</a>
+    </div>
+</div>
+
+@if (!Connectivity.IsOnline)
+{
+    <div class="alert alert-warning">Relatórios tributários e simulação exigem conexão online com a API.</div>
+}
+
+<div class="card mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label mb-0">Ano</label>
+            <input type="number" class="form-control" style="width:6rem" @bind="_year" min="2020" max="2100" />
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-0">Mês</label>
+            <input type="number" class="form-control" style="width:4rem" @bind="_month" min="1" max="12" />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="LoadAsync" disabled="@(_loading || !Connectivity.IsOnline)">Atualizar</button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-primary" @onclick="ExportCsvAsync" disabled="@(_loading || !Connectivity.IsOnline)">Exportar CSV</button>
+        </div>
+        @if (Connectivity.IsOnline)
+        {
+            <div class="col-auto">
+                <button class="btn btn-outline-primary" @onclick="ExportPdfAsync" disabled="@_loading">Exportar PDF</button>
+            </div>
+        }
+    </div>
+</div>
+
+<LoadingState IsLoading="_loading" Message="Calculando relatório fiscal...">
+    @if (_report is not null)
+    {
+        <div class="card mb-3">
+            <h5>Apuração do período (@_report.Period.From.ToString("MMMM yyyy"))</h5>
+            <p class="text-muted small mb-2">Competência por data de autorização SEFAZ/ADN.</p>
+            <ul class="mb-2">
+                <li>Mercadorias (NF-e/NFC-e): <strong>@_report.Period.GoodsRevenue.ToString("C")</strong></li>
+                <li>Serviços (NFS-e): <strong>@_report.Period.ServicesRevenue.ToString("C")</strong></li>
+                <li>Receita bruta: <strong>@_report.Period.TotalGrossRevenue.ToString("C")</strong></li>
+                <li>ISS estimado (@_report.Simulation.IssRatePercent.ToString("0.##")%): <strong>@_report.Period.EstimatedIss.ToString("C")</strong></li>
+                <li>Documentos: @_report.Period.AuthorizedDocumentCount autorizadas, @_report.Period.CancelledDocumentCount cancelamentos</li>
+            </ul>
+            @if (_report.Period.CfopBreakdown.Count > 0)
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>CFOP</th>
+                            <th class="text-end">Valor</th>
+                            <th class="text-end">Linhas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var line in _report.Period.CfopBreakdown)
+                        {
+                            <tr>
+                                <td>@line.Cfop</td>
+                                <td class="text-end">@line.GrossAmount.ToString("C")</td>
+                                <td class="text-end">@line.DocumentCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <div class="card mb-3">
+            <h5>Simulação Simples vs Presumido</h5>
+            <p class="text-muted small">CRT emitente: @_report.Simulation.TaxRegimeCode (1 = Simples Nacional).</p>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <h6>Simples Nacional</h6>
+                        <p class="mb-1">Estimado no período: <strong>@_report.Simulation.SimplesEstimatedTax.ToString("C")</strong></p>
+                        <p class="mb-0 text-muted small">Alíquota efetiva: @((_report.Simulation.SimplesEffectiveRate * 100).ToString("0.00"))%</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <h6>Lucro Presumido</h6>
+                        <p class="mb-1">Estimado no período: <strong>@_report.Simulation.PresumidoEstimatedTax.ToString("C")</strong></p>
+                        <p class="mb-0 text-muted small">Alíquota efetiva: @((_report.Simulation.PresumidoEffectiveRate * 100).ToString("0.00"))%</p>
+                    </div>
+                </div>
+            </div>
+            <p class="mt-3 mb-1">Sugestão gerencial: <strong>@_report.Simulation.SuggestedRegime</strong></p>
+            <p class="text-muted small mb-0">RBT12 mercadorias: @_report.Simulation.Rbt12Goods.ToString("C") · RBT12 serviços: @_report.Simulation.Rbt12Services.ToString("C")</p>
+            <p class="text-muted small mt-2 mb-0">@_report.Simulation.Disclaimer</p>
+        </div>
+    }
+</LoadingState>
+
+@code {
+    private bool _loading;
+    private int _year = DateTime.UtcNow.Year;
+    private int _month = DateTime.UtcNow.Month;
+    private FiscalPlanningReportClientDto? _report;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Connectivity.IsOnline)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private (DateOnly From, DateOnly To) ParseMonth()
+    {
+        var from = new DateOnly(_year, _month, 1);
+        var to = from.AddMonths(1).AddDays(-1);
+        return (from, to);
+    }
+
+    private async Task LoadAsync()
+    {
+        if (!Connectivity.IsOnline)
+        {
+            Toast.Show("Conecte-se à API para carregar o planejamento fiscal.", ToastType.Warning);
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var (from, to) = ParseMonth();
+            var result = await PlanningApi.GetPlanningAsync(from, to);
+            if (result.IsFailure)
+            {
+                Toast.Show(result.Error.Message, ToastType.Error);
+                return;
+            }
+
+            _report = result.Value;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ExportCsvAsync()
+    {
+        var (from, to) = ParseMonth();
+        var result = await PlanningApi.ExportCsvAsync(from, to);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
+    }
+
+    private async Task ExportPdfAsync()
+    {
+        var (from, to) = ParseMonth();
+        var result = await PlanningApi.ExportPdfAsync(from, to);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
+    }
+}

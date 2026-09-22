@@ -3,6 +3,7 @@ using Core.Infrastructure.Configuration;
 using Fiscal.Application.Abstractions;
 using Fiscal.Application.Documents;
 using Fiscal.Application.Issuer;
+using Fiscal.Application.Planning;
 using Fiscal.Domain.Repositories;
 using Fiscal.Infrastructure.Configuration;
 using Fiscal.Infrastructure.Gateways;
@@ -47,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<ICertificateProtector, AesCertificateProtector>();
         services.AddScoped<IDanfeRenderer, FakeDanfeRenderer>();
         services.AddScoped<INfceDanfeRenderer, FakeNfceDanfeRenderer>();
+        services.AddScoped<IFiscalPlanningPdfRenderer, QuestPdfFiscalPlanningRenderer>();
 
         var provider = configuration.GetSection(FiscalOptions.SectionName).GetValue<string>(nameof(FiscalOptions.Provider)) ?? "Fake";
         if (string.Equals(provider, "ZeusOpenAc", StringComparison.OrdinalIgnoreCase))

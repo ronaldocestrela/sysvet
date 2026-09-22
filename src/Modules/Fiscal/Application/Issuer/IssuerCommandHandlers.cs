@@ -122,6 +122,7 @@ public sealed class GetIssuerProfileQueryHandler : IRequestHandler<GetIssuerProf
             profile.Phone,
             profile.NationalServiceTaxCode,
             profile.DefaultIssRate,
+            profile.TaxRegimeCode,
             profile.NfeSeries,
             profile.NextNfeNumber,
             profile.DpsSeries,

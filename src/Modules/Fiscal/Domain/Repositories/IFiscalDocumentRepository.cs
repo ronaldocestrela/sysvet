@@ -27,6 +27,14 @@ public interface IFiscalDocumentRepository
         FiscalDocumentStatus? status,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Loads documents for planning reports: RBT12 window through <paramref name="to"/> plus period cancellations.
+    /// </summary>
+    Task<IReadOnlyList<FiscalDocument>> ListForPlanningAsync(
+        DateOnly from,
+        DateOnly to,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Adds a new document.</summary>
     void Add(FiscalDocument document);
 

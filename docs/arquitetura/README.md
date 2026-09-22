@@ -42,6 +42,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-034](./ADR-034-fluxo-caixa-demonstrativos.md) | Fluxo de caixa e DRE simplificada (7.4) | Accepted |
 | [ADR-035](./ADR-035-provedor-fiscal-zeus-openac.md) | NF-e Zeus + NFS-e Nacional OpenAC (7.5) | Accepted |
 | [ADR-036](./ADR-036-nfce-contingencia-offline.md) | NFC-e contingência offline PDV (7.6) | Accepted |
+| [ADR-037](./ADR-037-planejamento-fiscal.md) | Planejamento fiscal e simulação de regime (7.7) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

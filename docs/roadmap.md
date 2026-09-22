@@ -875,7 +875,7 @@ flowchart TD
 | **7.4 Fluxo de caixa e demonstrativos** | 8 | Concluída |
 | **7.5 NF-e e NFS-e** | 13 | Concluído |
 | **7.6 NFC-e e contingência offline** | 13 | Concluída |
-| **7.7 Planejamento fiscal** | 5 | Pendente |
+| **7.7 Planejamento fiscal** | 5 | Concluída |
 | **Total Fase 7** | **65 SP** | |
 
 ### 7.1 Módulo Finance — estrutura (5 SP)
@@ -952,10 +952,20 @@ flowchart TD
 
 ### 7.7 Planejamento fiscal (5 SP)
 
-- [ ] Relatórios tributários por período
-- [ ] Simulação de enquadramento (Simples vs Presumido — escopo inicial)
+- [x] Relatórios tributários por período
+- [x] Simulação de enquadramento (Simples vs Presumido — escopo inicial)
 
-**Aceite:** Relatório fiscal exportável para contabilidade.
+**Domain**
+- [x] `FiscalPlanningCalculator`, `TaxRegimeTables`, `ErrorCodes.Report` (ADR-037)
+
+**Application / API**
+- [x] `GetFiscalPlanningQuery`, `ExportFiscalPlanningQuery`; CSV + PDF QuestPDF
+- [x] `GET /api/v1/fiscal/planning`, `/planning/export`; `ListForPlanningAsync`
+
+**Clients**
+- [x] Página `/fiscal/planning` (online); link em `/fiscal`
+
+**Aceite:** Relatório fiscal exportável para contabilidade (`PeriodTaxReport_MatchesAuthorizedDocuments`; `ExportFiscalPlanning_ReturnsCsv` / `_ReturnsPdf`).
 
 ---
 
