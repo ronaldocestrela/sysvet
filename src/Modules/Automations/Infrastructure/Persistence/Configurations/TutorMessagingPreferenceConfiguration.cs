@@ -14,5 +14,6 @@ internal sealed class TutorMessagingPreferenceConfiguration : IEntityTypeConfigu
         builder.Property(p => p.TutorId).IsRequired();
         builder.Property(p => p.WhatsAppEnabled).IsRequired();
         builder.Property(p => p.EmailEnabled).IsRequired();
+        builder.Property(p => p.MarketingEnabled).IsRequired().HasDefaultValue(true);
     }
 }

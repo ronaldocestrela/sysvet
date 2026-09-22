@@ -55,6 +55,7 @@ internal static class IntegrationTestDatabaseHelper
         var automationsContext = scope.ServiceProvider.GetRequiredService<global::Automations.Infrastructure.Persistence.AutomationsDbContext>();
         await automationsContext.Database.MigrateAsync();
         await EnsureAutomations821SchemaAsync(automationsContext);
+        await EnsureAutomations83SchemaAsync(automationsContext);
     }
 
     private static async Task EnsureAutomations821SchemaAsync(global::Automations.Infrastructure.Persistence.AutomationsDbContext context)
@@ -80,6 +81,60 @@ internal static class IntegrationTestDatabaseHelper
                 RowVersion BLOB NOT NULL
             );
             CREATE UNIQUE INDEX IF NOT EXISTS IX_TutorMessagingPreferences_TutorId ON TutorMessagingPreferences (TutorId);
+            """);
+    }
+
+    private static async Task EnsureAutomations83SchemaAsync(global::Automations.Infrastructure.Persistence.AutomationsDbContext context)
+    {
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync("ALTER TABLE TutorMessagingPreferences ADD COLUMN MarketingEnabled INTEGER NOT NULL DEFAULT 1;");
+        }
+        catch
+        {
+            // Column already exists.
+        }
+
+        await context.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS Campaigns (
+                Id TEXT NOT NULL PRIMARY KEY,
+                Name TEXT NOT NULL,
+                SegmentKind TEXT NOT NULL,
+                Status TEXT NOT NULL,
+                TemplateCode TEXT NOT NULL,
+                InactiveDays INTEGER NOT NULL,
+                CooldownDays INTEGER NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS CampaignRuns (
+                Id TEXT NOT NULL PRIMARY KEY,
+                CampaignId TEXT NOT NULL,
+                StartedAt TEXT NOT NULL,
+                AudienceCount INTEGER NOT NULL,
+                EnqueuedCount INTEGER NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL,
+                FOREIGN KEY (CampaignId) REFERENCES Campaigns (Id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS IX_CampaignRuns_CampaignId ON CampaignRuns (CampaignId);
+            CREATE TABLE IF NOT EXISTS NpsInvites (
+                Id TEXT NOT NULL PRIMARY KEY,
+                TutorId TEXT NOT NULL,
+                TokenHash TEXT NOT NULL,
+                ExpiresAt TEXT NOT NULL,
+                Status TEXT NOT NULL,
+                Score INTEGER NULL,
+                Comment TEXT NULL,
+                RespondedAt TEXT NULL,
+                SourceType TEXT NOT NULL,
+                SourceId TEXT NOT NULL,
+                CampaignId TEXT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_NpsInvites_SourceType_SourceId ON NpsInvites (SourceType, SourceId);
+            CREATE INDEX IF NOT EXISTS IX_NpsInvites_TutorId ON NpsInvites (TutorId);
             """);
     }
 

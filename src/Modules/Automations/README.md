@@ -4,13 +4,14 @@ Fila durável de mensagens outbound (WhatsApp/e-mail), templates por canal, lemb
 
 ## Status
 
-> **Fases 8.1 e 8.2 concluídas.** Outbox SQL, `OutboxProcessor`, `ReminderScheduler`, opt-out tutor, horário comercial, SMTP + Evolution API (`Provider=Live`). SMS adiado.
+> **Fases 8.1–8.3 concluídas.** Outbox SQL, lembretes, campanhas inativos, NPS pós-atendimento, opt-out canal + marketing, SMTP + Evolution (`Provider=Live`). SMS adiado.
 
 ## Escopo entregue
 
 - Agregados `MessageTemplate`, `MessageJob`, `JobAttemptLog`, `TutorMessagingPreference`, `AutomationsSettings`
 - Gatilhos: vacina D-7, consulta D-1, aniversário pet, retorno (`MedicalRecord.FollowUpOn`)
-- API `/api/v1/automations` (templates, jobs, settings, preferências tutor)
+- Campanhas segmentadas, NPS tokenizado, relatório de retorno
+- API `/api/v1/automations` (templates, jobs, campanhas, NPS) e `/api/v1/public/nps`
 - Canal tutor `EnqueueingTutorNotificationChannel` (banho/tosa)
 
 ## Estrutura

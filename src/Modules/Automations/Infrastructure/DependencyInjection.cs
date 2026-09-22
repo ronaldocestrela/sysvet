@@ -1,4 +1,5 @@
 using Automations.Application.Abstractions;
+using Automations.Application.Campaigns;
 using Automations.Application.Jobs;
 using Automations.Application.Jobs.Commands;
 using Automations.Application.Reminders;
@@ -9,6 +10,8 @@ using Automations.Infrastructure.Notifications;
 using Automations.Infrastructure.Persistence.Repositories;
 using Automations.Infrastructure.Persistence.Seeding;
 using Automations.Infrastructure.Reminders;
+using Automations.Infrastructure.Campaigns;
+using Automations.Infrastructure.Nps;
 using Automations.Infrastructure.Workers;
 using Automations.Infrastructure.Persistence;
 using Core.Application.Notifications;
@@ -63,6 +66,13 @@ public static class DependencyInjection
         services.AddScoped<MessageJobProcessor>();
         services.AddScoped<ReminderPlanner>();
         services.AddScoped<ReminderScanService>();
+        services.AddScoped<CampaignDispatcher>();
+        services.AddScoped<InactiveCampaignAudienceResolver>();
+        services.AddScoped<CampaignScanService>();
+        services.AddScoped<ITutorVisitReadPort, TutorVisitReadPort>();
+        services.AddScoped<INpsSurveyTokenService, NpsSurveyTokenService>();
+        services.AddScoped<ICampaignRepository, CampaignRepository>();
+        services.AddScoped<INpsInviteRepository, NpsInviteRepository>();
 
         services.AddScoped<IReminderCandidateSource, VaccineReminderCandidateSource>();
         services.AddScoped<IReminderCandidateSource, AppointmentReminderCandidateSource>();
@@ -79,6 +89,7 @@ public static class DependencyInjection
 
         services.AddHostedService<OutboxProcessor>();
         services.AddHostedService<ReminderScheduler>();
+        services.AddHostedService<CampaignScheduler>();
         services.AddHostedService<AutomationsTemplateSeedHostedService>();
         services.AddHostedService<AutomationsSettingsSeedHostedService>();
 

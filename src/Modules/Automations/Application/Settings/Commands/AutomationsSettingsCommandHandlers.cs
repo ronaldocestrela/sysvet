@@ -121,7 +121,8 @@ public sealed class GetTutorMessagingPreferenceQueryHandler : IRequestHandler<Ge
         {
             TutorId = pref.TutorId,
             WhatsAppEnabled = pref.WhatsAppEnabled,
-            EmailEnabled = pref.EmailEnabled
+            EmailEnabled = pref.EmailEnabled,
+            MarketingEnabled = pref.MarketingEnabled
         });
     }
 }
@@ -147,7 +148,8 @@ public sealed class UpdateTutorMessagingPreferenceCommandHandler : IRequestHandl
             var created = TutorMessagingPreference.Create(
                 request.TutorId,
                 request.WhatsAppEnabled,
-                request.EmailEnabled);
+                request.EmailEnabled,
+                request.MarketingEnabled);
             if (created.IsFailure)
             {
                 return Result.Failure(created.Error);
@@ -157,7 +159,7 @@ public sealed class UpdateTutorMessagingPreferenceCommandHandler : IRequestHandl
         }
         else
         {
-            var update = existing.Update(request.WhatsAppEnabled, request.EmailEnabled);
+            var update = existing.Update(request.WhatsAppEnabled, request.EmailEnabled, request.MarketingEnabled);
             if (update.IsFailure)
             {
                 return update;

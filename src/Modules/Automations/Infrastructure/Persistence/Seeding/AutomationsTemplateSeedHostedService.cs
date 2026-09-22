@@ -66,6 +66,12 @@ public sealed class AutomationsTemplateSeedHostedService : IHostedService
             await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "reminder.followup", "Olá {{TutorName}}, retorno do {{PetName}} agendado para {{WhenLocal}}.");
             await EnsureTemplateAsync(templates, MessageChannel.Email, "reminder.followup", "Olá {{TutorName}}, retorno do {{PetName}} agendado para {{WhenLocal}}.", "Lembrete de retorno");
 
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "campaign.inactive", "Olá {{TutorName}}, sentimos sua falta! Sua última visita foi em {{LastVisitLocal}}.");
+            await EnsureTemplateAsync(templates, MessageChannel.Email, "campaign.inactive", "Olá {{TutorName}}, sentimos sua falta! Sua última visita foi em {{LastVisitLocal}}.", "Volte a nos visitar");
+
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "nps.request", "Olá {{TutorName}}, como foi o atendimento do {{PetName}}? Responda: {{SurveyUrl}}");
+            await EnsureTemplateAsync(templates, MessageChannel.Email, "nps.request", "Olá {{TutorName}}, avalie o atendimento do {{PetName}}: {{SurveyUrl}}", "Pesquisa de satisfação");
+
             await uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Automations templates seeded when missing.");

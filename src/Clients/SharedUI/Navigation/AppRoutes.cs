@@ -95,8 +95,11 @@ public static class AppRoutes
     /// <summary>Prepaid service package balances and consumption.</summary>
     public const string SalesPrepaidBalances = "/sales/prepaid-balances";
 
-    /// <summary>Issued NF-e and NFS-e documents.</summary>
+    /// <summary>Automations, campaigns and message jobs.</summary>
     public const string Automations = "/automations";
+
+    /// <summary>Public NPS survey (tokenized, no login).</summary>
+    public static string NpsSurvey(string token) => $"/nps/{token}";
 
     public const string Fiscal = "/fiscal";
 

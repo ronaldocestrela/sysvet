@@ -26,6 +26,7 @@ public sealed record UpdateTutorMessagingPreferenceCommand(
     Guid TutorId,
     bool WhatsAppEnabled,
     bool EmailEnabled,
+    bool MarketingEnabled = true,
     Guid IdempotencyKey = default) : ICommand, IIdempotentCommand;
 
 /// <summary>

@@ -1,0 +1,20 @@
+flowchart TD
+    Launch[LaunchCampaign inactive]
+    Scan[CampaignScheduler]
+    Visits[ITutorVisitReadPort]
+    Disp[CampaignDispatcher]
+    Invite[NpsInvite + token]
+    Jobs[MessageJobs]
+    Worker[OutboxProcessor]
+    Public[Public NPS API]
+    Report[NpsReport / ReturnFrequency]
+
+    Launch --> Visits
+    Visits --> Disp
+    Scan --> Visits
+    Scan --> Invite
+    Invite --> Disp
+    Disp --> Jobs
+    Worker --> Jobs
+    Public --> Invite
+    Invite --> Report

@@ -41,6 +41,26 @@ public class AutomationsOptions
     public int ReminderScanIntervalMinutes { get; set; } = 15;
 
     /// <summary>
+    /// Interval between post-appointment NPS scans in minutes.
+    /// </summary>
+    public int CampaignScanIntervalMinutes { get; set; } = 15;
+
+    /// <summary>
+    /// Public client base URL used to build NPS survey links.
+    /// </summary>
+    public string PublicBaseUrl { get; set; } = "http://localhost:5173";
+
+    /// <summary>
+    /// HMAC signing key for public NPS tokens.
+    /// </summary>
+    public string NpsTokenSigningKey { get; set; } = "dev-nps-signing-key-change-in-production";
+
+    /// <summary>
+    /// Days until an NPS invite expires.
+    /// </summary>
+    public int NpsInviteExpiryDays { get; set; } = 7;
+
+    /// <summary>
     /// IANA time zone for reminder date windows.
     /// </summary>
     public string TimeZoneId { get; set; } = "America/Sao_Paulo";

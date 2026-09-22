@@ -33,6 +33,8 @@ public static class MauiProgram
 		builder.Services.AddHttpClient("API", client => client.BaseAddress = new Uri(apiBaseUrl))
 			.AddHttpMessageHandler<AuthHandler>();
 
+		builder.Services.AddHttpClient("PublicApi", client => client.BaseAddress = new Uri(apiBaseUrl));
+
 		builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
 		builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 		builder.Services.AddScoped<Clients.Infrastructure.Http.IWardUnitApiService, Clients.Infrastructure.Http.WardUnitApiService>();

@@ -19,4 +19,5 @@ public sealed class TutorMessagingPreferenceDto
     public Guid TutorId { get; init; }
     public bool WhatsAppEnabled { get; init; }
     public bool EmailEnabled { get; init; }
+    public bool MarketingEnabled { get; init; }
 }

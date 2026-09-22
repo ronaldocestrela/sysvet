@@ -56,6 +56,7 @@ routes.MapPetshopEndpoints();
 routes.MapFinanceEndpoints();
 routes.MapFiscalEndpoints();
 routes.MapAutomationsEndpoints();
+routes.MapAutomationsPublicNpsEndpoints();
 
 app.MapHub<GroomingStatusHub>(GroomingStatusHub.HubPath);
 

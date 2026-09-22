@@ -91,10 +91,10 @@ public sealed class MessageJobProcessor
             return;
         }
 
-        if (!await IsChannelAllowedForTutorAsync(job.Channel, tokens, cancellationToken))
+        if (!await IsChannelAllowedForTutorAsync(job.Channel, job.TemplateCode, tokens, cancellationToken))
         {
             var finishedAt = DateTimeOffset.UtcNow;
-            job.MarkDeadLetter("Tutor opted out of this channel.", startedAt, finishedAt);
+            job.MarkDeadLetter("Tutor opted out of this channel or marketing.", startedAt, finishedAt);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -144,6 +144,7 @@ public sealed class MessageJobProcessor
 
     private async Task<bool> IsChannelAllowedForTutorAsync(
         MessageChannel channel,
+        string templateCode,
         IReadOnlyDictionary<string, string> tokens,
         CancellationToken cancellationToken)
     {
@@ -154,6 +155,11 @@ public sealed class MessageJobProcessor
 
         var pref = await _preferenceRepository.GetByTutorIdAsync(tutorId, cancellationToken)
                    ?? TutorMessagingPreference.DefaultFor(tutorId);
+
+        if (MarketingMessageClassifier.RequiresMarketingConsent(templateCode) && !pref.MarketingEnabled)
+        {
+            return false;
+        }
 
         return channel switch
         {

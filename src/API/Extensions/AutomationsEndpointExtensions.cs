@@ -1,7 +1,11 @@
+using Automations.Application.Campaigns.Commands;
+using Automations.Application.Campaigns.Queries;
 using Automations.Application.Jobs.Commands;
 using Automations.Application.Jobs.Queries;
+using Automations.Application.Nps.Queries;
 using Automations.Application.Settings.Commands;
 using Automations.Application.Templates.Commands;
+using Automations.Domain.Enums;
 using Automations.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -67,7 +71,57 @@ public static class AutomationsEndpointExtensions
                 tutorId,
                 body.WhatsAppEnabled,
                 body.EmailEnabled,
+                body.MarketingEnabled,
                 EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        group.MapGet("/campaigns", async (IMediator mediator) =>
+            (await mediator.Send(new ListCampaignsQuery())).ToHttpResult());
+
+        group.MapGet("/campaigns/{id:guid}", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new GetCampaignByIdQuery(id))).ToHttpResult());
+
+        group.MapPost("/campaigns", async (HttpContext httpContext, [FromBody] CreateCampaignBody body, IMediator mediator) =>
+            (await mediator.Send(new CreateCampaignCommand(
+                body.Name,
+                body.SegmentKind,
+                body.TemplateCode,
+                body.InactiveDays,
+                body.CooldownDays,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        group.MapPut("/campaigns/{id:guid}", async (
+            Guid id,
+            HttpContext httpContext,
+            [FromBody] UpdateCampaignBody body,
+            IMediator mediator) =>
+            (await mediator.Send(new UpdateCampaignCommand(
+                id,
+                body.Name,
+                body.TemplateCode,
+                body.Status,
+                body.InactiveDays,
+                body.CooldownDays,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        group.MapPost("/campaigns/{id:guid}/launch", async (Guid id, HttpContext httpContext, IMediator mediator) =>
+            (await mediator.Send(new LaunchCampaignCommand(id, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        group.MapGet("/campaigns/{id:guid}/runs", async (Guid id, IMediator mediator) =>
+            (await mediator.Send(new ListCampaignRunsQuery(id))).ToHttpResult());
+
+        group.MapGet("/nps/report", async ([FromQuery] DateTimeOffset? from, [FromQuery] DateTimeOffset? to, IMediator mediator) =>
+        {
+            var end = to ?? DateTimeOffset.UtcNow;
+            var start = from ?? end.AddDays(-30);
+            return (await mediator.Send(new GetNpsReportQuery(start, end))).ToHttpResult();
+        });
+
+        group.MapGet("/reports/return-frequency", async ([FromQuery] DateTimeOffset? from, [FromQuery] DateTimeOffset? to, IMediator mediator) =>
+        {
+            var end = to ?? DateTimeOffset.UtcNow;
+            var start = from ?? end.AddDays(-30);
+            return (await mediator.Send(new GetReturnFrequencyReportQuery(start, end))).ToHttpResult();
+        });
 
         return builder;
     }
@@ -80,5 +134,19 @@ public static class AutomationsEndpointExtensions
         string BusinessEnd,
         IReadOnlyList<string> BusinessDays);
 
-    private sealed record UpdateTutorPreferenceBody(bool WhatsAppEnabled, bool EmailEnabled);
+    private sealed record UpdateTutorPreferenceBody(bool WhatsAppEnabled, bool EmailEnabled, bool MarketingEnabled);
+
+    private sealed record CreateCampaignBody(
+        string Name,
+        CampaignSegmentKind SegmentKind,
+        string? TemplateCode,
+        int InactiveDays,
+        int CooldownDays);
+
+    private sealed record UpdateCampaignBody(
+        string Name,
+        string TemplateCode,
+        CampaignStatus Status,
+        int InactiveDays,
+        int CooldownDays);
 }

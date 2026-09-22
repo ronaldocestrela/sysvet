@@ -19,4 +19,12 @@ public interface IMessageJobRepository
     Task<IReadOnlyList<MessageJob>> ListDueAsync(int batchSize, DateTimeOffset now, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<MessageJob>> ListAsync(MessageJobStatus? status, int take, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Whether any job with the idempotency prefix was updated on or after <paramref name="since"/>.
+    /// </summary>
+    Task<bool> ExistsIdempotencyKeyPrefixSinceAsync(
+        string prefix,
+        DateTimeOffset since,
+        CancellationToken cancellationToken = default);
 }

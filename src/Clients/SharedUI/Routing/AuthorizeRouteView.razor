@@ -60,7 +60,8 @@ else
 
     private bool IsPublicRoute() =>
         RouteData.PageType == typeof(Pages.Login) ||
-        RouteData.PageType == typeof(Pages.NotFound);
+        RouteData.PageType == typeof(Pages.NotFound) ||
+        RouteData.PageType == typeof(Pages.NpsSurvey);
 
     private bool IsLoginRoute() => RouteData.PageType == typeof(Pages.Login);
 

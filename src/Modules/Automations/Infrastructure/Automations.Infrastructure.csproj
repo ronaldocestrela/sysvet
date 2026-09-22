@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Application\Automations.Application.csproj" />
     <ProjectReference Include="..\..\Core\Infrastructure\Core.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Veterinary\Infrastructure\Veterinary.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Petshop\Infrastructure\Petshop.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

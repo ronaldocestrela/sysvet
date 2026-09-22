@@ -234,7 +234,13 @@ Iniciado o módulo de estoque.
 - Provedores: SMTP + Evolution API (`Automations:Provider` Fake/Live); SMS não enfileirado.
 - Aceite: `VaccineReminder_EnqueuedSevenDaysBefore_WhenUpcoming`; opt-out respeitado.
 
-### 👉 **Próxima Ação: Fase 8.3 — Campanhas e NPS**
+### Fase 8.3 — Campanhas e NPS — Concluída (ADR-040)
+
+- Campanhas `Inactive90Days` (launch manual) e `PostAppointment` (scan NPS); `MarketingEnabled` em preferências tutor.
+- API campanhas/NPS + público `/api/v1/public/nps/{token}`; UI `/automations` e `/nps/{token}`.
+- Aceite: `Campaign_EnqueuedForInactiveSegment_WhenLastVisitOlderThan90Days`; `NpsResponse_RecordedAndReportable`.
+
+### 👉 **Próxima Ação: Fase 8.4 — Módulo TutorPortal — base**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 8.
 

@@ -64,7 +64,7 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork, IDomainEven
     {
         foreach (var entry in ChangeTracker.Entries<Entity>())
         {
-            if (entry.State is EntityState.Added or EntityState.Modified)
+            if (entry.State == EntityState.Modified)
             {
                 entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
             }

@@ -1,0 +1,105 @@
+@page "/nps/{Token}"
+@using System.Net.Http.Json
+@inject IHttpClientFactory HttpClientFactory
+
+<div class="header-section">
+    <h1 class="mb-0">Pesquisa de satisfação</h1>
+    <p class="text-muted small mb-0">Sua opinião ajuda a melhorar o atendimento.</p>
+</div>
+
+@if (_loading)
+{
+    <p>Carregando...</p>
+}
+else if (!_canRespond)
+{
+    <div class="alert alert-info">@_statusMessage</div>
+}
+else
+{
+    <div class="card">
+        <p>Olá, <strong>@_tutorName</strong>! De 0 a 10, o quanto você recomendaria nossa clínica?</p>
+        <div class="mb-3">
+            <input type="range" min="0" max="10" @bind="_score" @bind:event="oninput" class="form-range" />
+            <div class="small text-muted">Nota selecionada: @_score</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Comentário (opcional)</label>
+            <textarea class="form-control" rows="3" @bind="_comment"></textarea>
+        </div>
+        <button class="btn btn-primary" disabled="@_submitting" @onclick="SubmitAsync">Enviar resposta</button>
+    </div>
+}
+
+@code {
+    [Parameter] public string Token { get; set; } = string.Empty;
+
+    private bool _loading = true;
+    private bool _canRespond;
+    private bool _submitting;
+    private string _tutorName = string.Empty;
+    private string _statusMessage = string.Empty;
+    private int _score = 10;
+    private string? _comment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("PublicApi");
+            var response = await client.GetAsync($"/api/v1/public/nps/{Token}");
+            if (response.IsSuccessStatusCode)
+            {
+                var preview = await response.Content.ReadFromJsonAsync<NpsPreview>();
+                if (preview is not null)
+                {
+                    _tutorName = preview.TutorName;
+                    _canRespond = preview.CanRespond;
+                    _statusMessage = preview.Status;
+                }
+            }
+            else
+            {
+                _statusMessage = "Link inválido ou expirado.";
+            }
+        }
+        catch
+        {
+            _statusMessage = "Não foi possível carregar a pesquisa.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        _submitting = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("PublicApi");
+            var response = await client.PostAsJsonAsync($"/api/v1/public/nps/{Token}", new { score = _score, comment = _comment });
+            if (response.IsSuccessStatusCode)
+            {
+                _canRespond = false;
+                _statusMessage = "Obrigado! Sua resposta foi registrada.";
+            }
+            else
+            {
+                _statusMessage = "Não foi possível enviar. Tente novamente.";
+            }
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private sealed class NpsPreview
+    {
+        public string TutorName { get; set; } = string.Empty;
+        public bool CanRespond { get; set; }
+        public string Status { get; set; } = string.Empty;
+    }
+}

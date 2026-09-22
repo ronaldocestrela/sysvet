@@ -14,6 +14,9 @@ public class AutomationsDbContext : DbContext, IAutomationsUnitOfWork, IDomainEv
     public DbSet<MessageJob> MessageJobs => Set<MessageJob>();
     public DbSet<TutorMessagingPreference> TutorMessagingPreferences => Set<TutorMessagingPreference>();
     public DbSet<AutomationsSettings> AutomationsSettings => Set<AutomationsSettings>();
+    public DbSet<Campaign> Campaigns => Set<Campaign>();
+    public DbSet<CampaignRun> CampaignRuns => Set<CampaignRun>();
+    public DbSet<NpsInvite> NpsInvites => Set<NpsInvite>();
     private readonly ITenantContext _tenantContext;
 
     /// <summary>

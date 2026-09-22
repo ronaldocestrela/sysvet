@@ -59,6 +59,50 @@
         }
     </div>
 
+    <div class="card mb-3">
+        <h5>Campanhas e NPS</h5>
+        <p class="small text-muted">Inativos 90 dias (lançamento manual) e NPS pós-atendimento (automático quando campanha ativa).</p>
+        <button class="btn btn-sm btn-outline-primary mb-2" @onclick="CreateInactiveCampaignAsync">Criar campanha inativos</button>
+        <button class="btn btn-sm btn-outline-secondary mb-2 ms-1" @onclick="CreateNpsCampaignAsync">Criar campanha NPS (ativar)</button>
+        @if (_campaigns.Count == 0)
+        {
+            <p class="text-muted mb-0">Nenhuma campanha cadastrada.</p>
+        }
+        else
+        {
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Segmento</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _campaigns)
+                    {
+                        <tr>
+                            <td>@c.Name</td>
+                            <td>@c.SegmentKind</td>
+                            <td>@c.Status</td>
+                            <td>
+                                @if (c.SegmentKind == 1)
+                                {
+                                    <button class="btn btn-link btn-sm p-0" @onclick="() => LaunchCampaignAsync(c.Id)">Lançar</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        @if (_npsReport is not null)
+        {
+            <p class="small mb-0 mt-2">NPS (30 dias): @_npsReport.NpsScore — @_npsReport.TotalResponses resposta(s)</p>
+        }
+    </div>
+
     <div class="card">
         <h5>Jobs recentes</h5>
         @if (_jobs.Count == 0)
@@ -97,6 +141,8 @@
     private AutomationsSettingsClientDto? _settings;
     private List<MessageTemplateClientDto> _templates = new();
     private List<MessageJobClientDto> _jobs = new();
+    private List<CampaignClientDto> _campaigns = new();
+    private NpsReportClientDto? _npsReport;
 
     protected override async Task OnInitializedAsync()
     {
@@ -138,10 +184,71 @@
             {
                 Toast.Show(jobs.Error.Message, ToastType.Warning);
             }
+
+            var campaigns = await AutomationsApi.ListCampaignsAsync();
+            if (campaigns.IsSuccess)
+            {
+                _campaigns = campaigns.Value.ToList();
+            }
+
+            var nps = await AutomationsApi.GetNpsReportAsync();
+            if (nps.IsSuccess)
+            {
+                _npsReport = nps.Value;
+            }
         }
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task CreateInactiveCampaignAsync()
+    {
+        var result = await AutomationsApi.CreateCampaignAsync(new CreateCampaignClientRequest
+        {
+            Name = "Reativação inativos",
+            SegmentKind = 1
+        });
+        if (result.IsSuccess)
+        {
+            Toast.Show("Campanha criada.", ToastType.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+
+    private async Task CreateNpsCampaignAsync()
+    {
+        var result = await AutomationsApi.CreateCampaignAsync(new CreateCampaignClientRequest
+        {
+            Name = "NPS pós-atendimento",
+            SegmentKind = 2
+        });
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Campanha NPS criada (rascunho). Ative via API se necessário.", ToastType.Success);
+        await LoadAsync();
+    }
+
+    private async Task LaunchCampaignAsync(Guid campaignId)
+    {
+        var result = await AutomationsApi.LaunchCampaignAsync(campaignId);
+        if (result.IsSuccess)
+        {
+            Toast.Show($"Lançamento: {result.Value.EnqueuedCount} job(s) enfileirado(s).", ToastType.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
         }
     }
 }

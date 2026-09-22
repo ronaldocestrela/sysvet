@@ -130,6 +130,9 @@ Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Pers
 | Scan lembretes | `Automations:ReminderScanIntervalMinutes` | `ReminderScheduler` |
 | Horário comercial | `Automations:BusinessHours` / DB `AutomationsSettings` | Adia jobs via `MessageJob.DeferUntil` |
 | SMTP / Evolution | `Automations:Smtp`, `Automations:Evolution` | Segredos via User Secrets / env |
+| Campanhas / NPS 8.3 | `Automations:CampaignScanIntervalMinutes` | `CampaignScheduler` (NPS pós-atendimento) |
+| Link NPS | `Automations:PublicBaseUrl` | Base do PWA para `SurveyUrl` |
+| Token NPS | `Automations:NpsTokenSigningKey`, `NpsInviteExpiryDays` | API pública `/api/v1/public/nps` |
 
 Clientes Blazor/MAUI usam `IGroomingStatusRealtime` com o client HTTP `API` como base URL.
 

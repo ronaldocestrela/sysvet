@@ -56,4 +56,17 @@ public sealed class MessageJobRepository : IMessageJobRepository
             .Take(take)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<bool> ExistsIdempotencyKeyPrefixSinceAsync(
+        string prefix,
+        DateTimeOffset since,
+        CancellationToken cancellationToken = default)
+    {
+        var keys = await _dbContext.MessageJobs
+            .AsNoTracking()
+            .Select(j => new { j.IdempotencyKey, j.UpdatedAt })
+            .ToListAsync(cancellationToken);
+
+        return keys.Any(j => j.UpdatedAt >= since && j.IdempotencyKey.StartsWith(prefix, StringComparison.Ordinal));
+    }
 }

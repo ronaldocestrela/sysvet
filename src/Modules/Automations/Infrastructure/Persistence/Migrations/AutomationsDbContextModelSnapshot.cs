@@ -172,6 +172,142 @@ namespace Automations.Infrastructure.Persistence.Migrations
                     b.ToTable("AutomationsSettings", "dbo");
                 });
 
+            modelBuilder.Entity("Automations.Domain.Entities.Campaign", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CooldownDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("InactiveDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("SegmentKind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TemplateCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Campaigns", "dbo");
+                });
+
+            modelBuilder.Entity("Automations.Domain.Entities.CampaignRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AudienceCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EnqueuedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("CampaignRuns", "dbo");
+                });
+
+            modelBuilder.Entity("Automations.Domain.Entities.NpsInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CampaignId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("RespondedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TutorId");
+
+                    b.HasIndex("SourceType", "SourceId")
+                        .IsUnique();
+
+                    b.ToTable("NpsInvites", "dbo");
+                });
+
             modelBuilder.Entity("Automations.Domain.Entities.TutorMessagingPreference", b =>
                 {
                     b.Property<Guid>("Id")
@@ -180,6 +316,11 @@ namespace Automations.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("EmailEnabled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<bool>("MarketingEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
@@ -257,6 +398,20 @@ namespace Automations.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Automations.Domain.Entities.MessageJob", b =>
                 {
                     b.Navigation("AttemptLogs");
+                });
+
+            modelBuilder.Entity("Automations.Domain.Entities.CampaignRun", b =>
+                {
+                    b.HasOne("Automations.Domain.Entities.Campaign", null)
+                        .WithMany("Runs")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Automations.Domain.Entities.Campaign", b =>
+                {
+                    b.Navigation("Runs");
                 });
 #pragma warning restore 612, 618
         }

@@ -981,7 +981,7 @@ flowchart TD
 |--------|-----|--------|
 | **8.1 Módulo Automations — workers e filas** | 8 | Concluído |
 | **8.2 Lembretes WhatsApp/SMS/e-mail** | 8 | Concluído |
-| **8.3 Campanhas e NPS** | 8 | Pendente |
+| **8.3 Campanhas e NPS** | 8 | Concluído |
 | **8.4 Módulo TutorPortal — base** | 5 | Pendente |
 | **8.5 App do tutor (login, vacinas, exames)** | 13 | Pendente |
 | **8.6 Autoagendamento pelo tutor** | 8 | Pendente |
@@ -1007,11 +1007,11 @@ flowchart TD
 
 ### 8.3 Campanhas e NPS (8 SP)
 
-- [ ] Campanhas segmentadas (inativos 90 dias, pós-atendimento)
-- [ ] Pesquisa NPS com score e comentários
-- [ ] Frequência de retorno por cliente
+- [x] Campanhas segmentadas (inativos 90 dias, pós-atendimento)
+- [x] Pesquisa NPS com score e comentários
+- [x] Frequência de retorno por cliente
 
-**Aceite:** Campanha dispara para segmento; NPS registrado e reportável.
+**Aceite:** Campanha dispara para segmento; NPS registrado e reportável (`Campaign_EnqueuedForInactiveSegment_WhenLastVisitOlderThan90Days`; `NpsResponse_RecordedAndReportable`; ADR-040).
 
 ### 8.4 Módulo TutorPortal — base (5 SP)
 
