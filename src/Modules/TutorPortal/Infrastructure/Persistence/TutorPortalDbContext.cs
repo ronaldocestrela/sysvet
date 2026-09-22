@@ -12,6 +12,9 @@ public class TutorPortalDbContext : DbContext, ITutorPortalUnitOfWork, IDomainEv
 {
     public DbSet<TutorPortalAccount> TutorPortalAccounts => Set<TutorPortalAccount>();
 
+    /// <summary>Web Push subscriptions for tutor portal users.</summary>
+    public DbSet<TutorPushSubscription> TutorPushSubscriptions => Set<TutorPushSubscription>();
+
     private readonly ITenantContext _tenantContext;
 
     /// <summary>

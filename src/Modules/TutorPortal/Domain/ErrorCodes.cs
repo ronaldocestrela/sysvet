@@ -32,4 +32,33 @@ public static class ErrorCodes
         /// </summary>
         public static readonly Error WrongPortal = new("TutorPortal.WrongPortal", "Use the tutor portal to sign in with this account.");
     }
+
+    /// <summary>
+    /// Pet access errors for tutor-scoped health APIs.
+    /// </summary>
+    public static class Pet
+    {
+        /// <summary>
+        /// Pet is missing, deleted, or not linked to the authenticated tutor.
+        /// </summary>
+        public static readonly Error NotFound = new("TutorPortal.Pet.NotFound", "Pet not found.");
+    }
+
+    /// <summary>
+    /// Web Push subscription validation errors.
+    /// </summary>
+    public static class Push
+    {
+        /// <summary>Identity user is missing for push registration.</summary>
+        public static readonly Error InvalidUser = new("TutorPortal.Push.InvalidUser", "Invalid user for push subscription.");
+
+        /// <summary>Push endpoint URL is invalid.</summary>
+        public static readonly Error InvalidEndpoint = new("TutorPortal.Push.InvalidEndpoint", "Invalid push endpoint.");
+
+        /// <summary>Subscription keys are missing.</summary>
+        public static readonly Error InvalidKeys = new("TutorPortal.Push.InvalidKeys", "Invalid push subscription keys.");
+
+        /// <summary>No subscription exists for the user and endpoint.</summary>
+        public static readonly Error NotFound = new("TutorPortal.Push.NotFound", "Push subscription not found.");
+    }
 }

@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using TutorPortal.Application.Auth.Commands;
 using TutorPortal.Application.Auth.Queries;
+using TutorPortal.Application.PetHealth.Queries;
+using TutorPortal.Application.Push.Commands;
+using TutorPortal.Application.Push.Queries;
 
 namespace API.Extensions;
 
@@ -34,6 +37,28 @@ public static class TutorPortalEndpointExtensions
         group.MapGet("/me", async (IMediator mediator) =>
             (await mediator.Send(new GetTutorPortalMeQuery())).ToHttpResult())
             .RequireAuthorization(AuthorizationPolicies.TutorPortal);
+
+        var petsGroup = group.MapGroup("/pets").RequireAuthorization(AuthorizationPolicies.TutorPortal);
+
+        petsGroup.MapGet("/{petId:guid}/vaccination-card", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new GetTutorVaccinationCardQuery(petId))).ToHttpResult());
+
+        petsGroup.MapGet("/{petId:guid}/exams", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new ListTutorPetExamsQuery(petId))).ToHttpResult());
+
+        petsGroup.MapGet("/{petId:guid}/timeline", async (Guid petId, IMediator mediator) =>
+            (await mediator.Send(new ListTutorPetTimelineQuery(petId))).ToHttpResult());
+
+        var pushGroup = group.MapGroup("/push").RequireAuthorization(AuthorizationPolicies.TutorPortal);
+
+        pushGroup.MapGet("/vapid-public-key", async (IMediator mediator) =>
+            (await mediator.Send(new GetTutorPushVapidPublicKeyQuery())).ToHttpResult());
+
+        pushGroup.MapPost("/subscribe", async ([FromBody] SubscribeTutorPushCommand command, IMediator mediator) =>
+            (await mediator.Send(command)).ToHttpResult());
+
+        pushGroup.MapPost("/unsubscribe", async ([FromBody] UnsubscribeTutorPushCommand command, IMediator mediator) =>
+            (await mediator.Send(command)).ToHttpResult());
 
         return builder;
     }

@@ -1,0 +1,15 @@
+flowchart LR
+  tutorPwa[TutorPortalWeb]
+  api["API tutor-portal"]
+  guard[TutorPetAccessGuard]
+  port[ITutorPetHealthReadPort]
+  vetDb[VeterinaryDbContext]
+  petDb[PetshopDbContext]
+  pushDb[TutorPushSubscriptions]
+
+  tutorPwa -->|"JWT Tutor"| api
+  api --> guard
+  guard --> port
+  port --> vetDb
+  port --> petDb
+  api --> pushDb

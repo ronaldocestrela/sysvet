@@ -1,0 +1,54 @@
+@page "/pets/{petId:guid}/exams"
+@inject TutorPortalApiService Api
+@inject IToastService Toast
+
+<h1 class="h5 mb-3">Histórico de exames</h1>
+
+<LoadingState IsLoading="_loading">
+    @if (_exams.Count == 0 && !_loading)
+    {
+        <p class="text-muted">Nenhum exame registrado.</p>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var exam in _exams)
+            {
+                <li class="list-group-item">
+                    <strong>@exam.Name</strong> · @exam.Category
+                    <div class="small text-muted">@exam.OccurredAt.LocalDateTime.ToString("g") · @exam.Status</div>
+                    @if (!string.IsNullOrWhiteSpace(exam.ResultSummary))
+                    {
+                        <div class="mt-1">@exam.ResultSummary</div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</LoadingState>
+
+<p class="mt-3"><a href="@($"/pets/{PetId}")">← Voltar ao pet</a></p>
+
+@code {
+    [Parameter] public Guid PetId { get; set; }
+
+    private List<TutorPetExamDto> _exams = [];
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        var result = await Api.GetExamsAsync(PetId);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            _exams = [];
+        }
+        else
+        {
+            _exams = result.Value ?? [];
+        }
+
+        _loading = false;
+    }
+}

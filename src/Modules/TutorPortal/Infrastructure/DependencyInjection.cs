@@ -12,7 +12,10 @@ using TutorPortal.Application.Auth;
 using TutorPortal.Application.Auth.Commands;
 using TutorPortal.Domain.Repositories;
 using TutorPortal.Infrastructure.Configuration;
+using TutorPortal.Application.PetHealth;
 using TutorPortal.Infrastructure.Crm;
+using TutorPortal.Infrastructure.PetHealth;
+using TutorPortal.Infrastructure.Push;
 using TutorPortal.Infrastructure.Persistence;
 using TutorPortal.Infrastructure.Persistence.Repositories;
 
@@ -29,6 +32,7 @@ public static class DependencyInjection
     public static IServiceCollection AddTutorPortalModule(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddValidatedOptions<TutorPortalOptions>(configuration, TutorPortalOptions.SectionName);
+        services.AddSingleton<ITutorPushSettings, TutorPushSettingsAdapter>();
 
         services.AddDbContext<TutorPortalDbContext>((serviceProvider, options) =>
         {
@@ -40,11 +44,26 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ITutorPortalAccountRepository, TutorPortalAccountRepository>();
+        services.AddScoped<ITutorPushSubscriptionRepository, TutorPushSubscriptionRepository>();
         services.AddScoped<ITutorPortalUnitOfWork>(sp => sp.GetRequiredService<TutorPortalDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<TutorPortalDbContext>());
         services.AddScoped<IDomainEventSource>(sp => sp.GetRequiredService<TutorPortalDbContext>());
         services.AddScoped<ICrmTutorLookup, CrmTutorLookup>();
         services.AddScoped<TutorPortalAuthService>();
+        services.AddScoped<TutorPortalUserResolver>();
+        services.AddScoped<TutorPetAccessGuard>();
+        services.AddScoped<ITutorPetHealthReadPort, TutorPetHealthReadPort>();
+
+        var tutorPortalOptions = configuration.GetSection(TutorPortalOptions.SectionName).Get<TutorPortalOptions>();
+        if (!string.IsNullOrWhiteSpace(tutorPortalOptions?.VapidPublicKey)
+            && !string.IsNullOrWhiteSpace(tutorPortalOptions.VapidPrivateKey))
+        {
+            services.AddScoped<ITutorPushSender, WebPushTutorPushSender>();
+        }
+        else
+        {
+            services.AddSingleton<ITutorPushSender, FakeTutorPushSender>();
+        }
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterTutorCommand).Assembly));
         services.AddValidatorsFromAssembly(typeof(RegisterTutorCommand).Assembly);

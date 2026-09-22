@@ -1,5 +1,8 @@
 @page "/"
+@using Microsoft.JSInterop
 @inject TutorPortalApiService Api
+@inject IJSRuntime Js
+@implements IAsyncDisposable
 
 @if (_loading)
 {
@@ -19,7 +22,9 @@ else if (_me is not null)
         <ul class="list-group">
             @foreach (var pet in _me.Pets)
             {
-                <li class="list-group-item">@pet.Name</li>
+                <li class="list-group-item">
+                    <a href="@($"/pets/{pet.Id}")" class="text-decoration-none">@pet.Name</a>
+                </li>
             }
         </ul>
     }
@@ -29,14 +34,47 @@ else if (_me is not null)
     private TutorPortalMeDto? _me;
     private bool _loading = true;
 
+    private DotNetObjectReference<HomePage>? _dotNetRef;
+
     protected override async Task OnInitializedAsync()
     {
         var result = await Api.GetMeAsync();
         if (result.IsSuccess)
         {
             _me = result.Value;
+            await TryRegisterPushAsync();
         }
 
         _loading = false;
+    }
+
+    private async Task TryRegisterPushAsync()
+    {
+        var vapid = await Api.GetVapidPublicKeyAsync();
+        if (vapid.IsFailure || string.IsNullOrWhiteSpace(vapid.Value))
+        {
+            return;
+        }
+
+        _dotNetRef = DotNetObjectReference.Create(this);
+        await Js.InvokeVoidAsync("tutorPortalPush.register", vapid.Value, _dotNetRef);
+    }
+
+    [JSInvokable]
+    public async Task OnPushSubscriptionAsync(string endpoint, string p256dh, string auth)
+    {
+        await Api.SubscribePushAsync(new TutorPushSubscribeRequest
+        {
+            Endpoint = endpoint,
+            P256dh = p256dh,
+            Auth = auth,
+            UserAgent = null
+        });
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+        return ValueTask.CompletedTask;
     }
 }

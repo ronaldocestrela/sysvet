@@ -1,0 +1,39 @@
+@page "/pets/{petId:guid}"
+@inject TutorPortalApiService Api
+
+@if (_loading)
+{
+    <LoadingState />
+}
+else if (_petName is not null)
+{
+    <h1 class="h4">@_petName</h1>
+    <nav class="nav nav-pills flex-column flex-sm-row gap-2 mt-3">
+        <a class="nav-link" href="@($"/pets/{PetId}/vaccines")">Vacinas</a>
+        <a class="nav-link" href="@($"/pets/{PetId}/exams")">Exames</a>
+        <a class="nav-link" href="@($"/pets/{PetId}/timeline")">Atendimentos</a>
+    </nav>
+}
+else
+{
+    <p class="text-muted">Pet não encontrado.</p>
+}
+
+@code {
+    [Parameter] public Guid PetId { get; set; }
+
+    private string? _petName;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        var me = await Api.GetMeAsync();
+        if (me.IsSuccess)
+        {
+            _petName = me.Value.Pets.FirstOrDefault(p => p.Id == PetId)?.Name;
+        }
+
+        _loading = false;
+    }
+}

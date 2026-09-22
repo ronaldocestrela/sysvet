@@ -983,7 +983,7 @@ flowchart TD
 | **8.2 Lembretes WhatsApp/SMS/e-mail** | 8 | Concluído |
 | **8.3 Campanhas e NPS** | 8 | Concluído |
 | **8.4 Módulo TutorPortal — base** | 5 | Concluído |
-| **8.5 App do tutor (login, vacinas, exames)** | 13 | Pendente |
+| **8.5 App do tutor (login, vacinas, exames)** | 13 | Concluído |
 | **8.6 Autoagendamento pelo tutor** | 8 | Pendente |
 | **8.7 Site do estabelecimento** | 8 | Pendente |
 | **8.8 E-commerce e marketplaces** | 21 | Pendente |
@@ -1022,12 +1022,12 @@ flowchart TD
 
 ### 8.5 App do tutor (13 SP)
 
-- [ ] PWA ou MAUI: carteira vacinação, histórico exames, timeline atendimentos
-- [ ] Push notification (quando disponível)
+- [x] PWA ou MAUI: carteira vacinação, histórico exames, timeline atendimentos
+- [x] Push notification (quando disponível)
 
 **Referência:** `functions.md` — Portal do Tutor.
 
-**Aceite:** Tutor visualiza vacinas e exames do pet autorizado.
+**Aceite:** Tutor visualiza vacinas e exames do pet autorizado (`Tutor_ViewsVaccinesAndExams_OfAuthorizedPet`; ADR-042).
 
 ### 8.6 Autoagendamento pelo tutor (8 SP)
 

@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\TutorPortal.Application.csproj" />
     <ProjectReference Include="..\..\Core\Infrastructure\Core.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Veterinary\Infrastructure\Veterinary.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Petshop\Infrastructure\Petshop.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,5 +12,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WebPush" Version="1.0.12" />
+  </ItemGroup>
 
 </Project>

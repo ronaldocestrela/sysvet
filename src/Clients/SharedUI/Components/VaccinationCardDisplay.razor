@@ -1,0 +1,95 @@
+@using Microsoft.JSInterop
+
+<div class="card print-area" id="vaccination-card">
+    <h2>@PetName</h2>
+    <p><strong>Espécie:</strong> @Species · <strong>Raça:</strong> @Breed</p>
+    <p><strong>Tutor:</strong> @TutorName</p>
+    @if (BirthDate is not null)
+    {
+        <p><strong>Nascimento:</strong> @BirthDate.Value.ToString("dd/MM/yyyy")</p>
+    }
+
+    <h3>Doses aplicadas</h3>
+    @if (AppliedDoses.Count == 0)
+    {
+        <p class="muted">Nenhuma dose registrada.</p>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr><th>Vacina</th><th>Lote</th><th>Aplicada em</th><th>Próxima</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var dose in AppliedDoses)
+                {
+                    <tr>
+                        <td>@dose.Name</td>
+                        <td>@dose.BatchNumber</td>
+                        <td>@dose.AppliedAt.LocalDateTime.ToString("g")</td>
+                        <td>@(dose.NextDueDate?.LocalDateTime.ToString("g") ?? "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (SuggestedDoses.Count > 0)
+    {
+        <h3>Sugeridas pelo protocolo</h3>
+        <ul>
+            @foreach (var s in SuggestedDoses)
+            {
+                <li>@s.ProtocolName — @s.Label</li>
+            }
+        </ul>
+    }
+</div>
+
+@if (ShowPrintButton)
+{
+    <div class="no-print mt-3">
+        <button type="button" class="btn btn-outline" @onclick="PrintAsync">Imprimir / PDF</button>
+    </div>
+}
+
+<style>
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { border: 1px solid var(--color-border); padding: var(--spacing-sm); text-align: left; }
+    .muted { color: var(--color-text-muted); }
+    @@media print {
+        .no-print { display: none !important; }
+        .print-area { box-shadow: none; border: none; }
+    }
+</style>
+
+@code {
+    [Parameter] public string PetName { get; set; } = string.Empty;
+    [Parameter] public string Species { get; set; } = string.Empty;
+    [Parameter] public string Breed { get; set; } = string.Empty;
+    [Parameter] public DateOnly? BirthDate { get; set; }
+    [Parameter] public string TutorName { get; set; } = string.Empty;
+    [Parameter] public IReadOnlyList<VaccinationCardDoseRow> AppliedDoses { get; set; } = Array.Empty<VaccinationCardDoseRow>();
+    [Parameter] public IReadOnlyList<VaccinationCardSuggestedRow> SuggestedDoses { get; set; } = Array.Empty<VaccinationCardSuggestedRow>();
+    [Parameter] public bool ShowPrintButton { get; set; } = true;
+
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private Task PrintAsync() => Js.InvokeVoidAsync("print").AsTask();
+
+    /// <summary>Applied dose row for display.</summary>
+    public sealed class VaccinationCardDoseRow
+    {
+        public string Name { get; init; } = string.Empty;
+        public string BatchNumber { get; init; } = string.Empty;
+        public DateTimeOffset AppliedAt { get; init; }
+        public DateTimeOffset? NextDueDate { get; init; }
+    }
+
+    /// <summary>Suggested protocol row for display.</summary>
+    public sealed class VaccinationCardSuggestedRow
+    {
+        public string ProtocolName { get; init; } = string.Empty;
+        public string Label { get; init; } = string.Empty;
+    }
+}

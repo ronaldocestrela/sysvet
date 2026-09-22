@@ -245,7 +245,13 @@ Iniciado o módulo de estoque.
 - `src/Modules/TutorPortal/`, role `Tutor`, `TutorPortalAccount`, API `/api/v1/tutor-portal/`, client `TutorPortalWeb`.
 - Aceite: `Tutor_AuthenticatesSeparatelyFromClinicStaff`; isolamento staff/tutor nos testes de integração.
 
-### 👉 **Próxima Ação: Fase 8.5 — App do tutor (login, vacinas, exames)**
+### Fase 8.5 — App do tutor — Concluída (ADR-042)
+
+- API `/api/v1/tutor-portal/pets/{id}/vaccination-card|exams|timeline`; push subscribe + VAPID opcional.
+- `TutorPortalWeb`: hub do pet, carteira read-only (SharedUI), exames, timeline; Web Push no SW quando configurado.
+- Aceite: `Tutor_ViewsVaccinesAndExams_OfAuthorizedPet`; isolamento staff/tutor.
+
+### 👉 **Próxima Ação: Fase 8.6 — Autoagendamento pelo tutor**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 8.
 

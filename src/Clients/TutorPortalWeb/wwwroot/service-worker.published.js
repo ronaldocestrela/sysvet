@@ -24,6 +24,25 @@ async function onActivate(event) {
         .map(key => caches.delete(key)));
 }
 
+self.addEventListener('push', event => {
+    let data = { title: 'Portal do Tutor', body: 'Nova notificação' };
+    try {
+        if (event.data) {
+            data = event.data.json();
+        }
+    } catch (_) { /* ignore */ }
+
+    event.waitUntil(self.registration.showNotification(data.title || 'Portal do Tutor', {
+        body: data.body || '',
+        icon: 'icon-192.png'
+    }));
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    event.waitUntil(clients.openWindow('/'));
+});
+
 async function onFetch(event) {
     let cachedResponse = null;
     if (event.request.method === 'GET') {
