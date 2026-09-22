@@ -1,17 +1,20 @@
 using Automations.Application.Abstractions;
 using Automations.Application.Jobs;
 using Automations.Application.Jobs.Commands;
+using Automations.Application.Reminders;
 using Automations.Domain.Repositories;
 using Automations.Infrastructure.Channels;
 using Automations.Infrastructure.Configuration;
 using Automations.Infrastructure.Notifications;
-using Automations.Infrastructure.Persistence;
 using Automations.Infrastructure.Persistence.Repositories;
 using Automations.Infrastructure.Persistence.Seeding;
+using Automations.Infrastructure.Reminders;
 using Automations.Infrastructure.Workers;
+using Automations.Infrastructure.Persistence;
 using Core.Application.Notifications;
 using Core.Domain;
 using Core.Infrastructure.Configuration;
+using Core.Infrastructure.Persistence;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -46,12 +49,25 @@ public static class DependencyInjection
 
         services.AddScoped<IMessageJobRepository, MessageJobRepository>();
         services.AddScoped<IMessageTemplateRepository, MessageTemplateRepository>();
+        services.AddScoped<ITutorMessagingPreferenceRepository, TutorMessagingPreferenceRepository>();
+        services.AddScoped<IAutomationsSettingsRepository, AutomationsSettingsRepository>();
         services.AddScoped<IAutomationsUnitOfWork>(sp => sp.GetRequiredService<AutomationsDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AutomationsDbContext>());
         services.AddScoped<IDomainEventSource>(sp => sp.GetRequiredService<AutomationsDbContext>());
 
-        services.AddScoped<IOutboundMessageSender, LoggingOutboundMessageSender>();
+        services.AddScoped<FakeOutboundMessageSender>();
+        services.AddScoped<SmtpEmailGateway>();
+        services.AddHttpClient<EvolutionWhatsAppGateway>();
+        services.AddScoped<IOutboundMessageSender, ChannelOutboundMessageSender>();
+        services.AddScoped<IAutomationsDeliveryPolicy, BusinessHoursDeliveryPolicy>();
         services.AddScoped<MessageJobProcessor>();
+        services.AddScoped<ReminderPlanner>();
+        services.AddScoped<ReminderScanService>();
+
+        services.AddScoped<IReminderCandidateSource, VaccineReminderCandidateSource>();
+        services.AddScoped<IReminderCandidateSource, AppointmentReminderCandidateSource>();
+        services.AddScoped<IReminderCandidateSource, BirthdayReminderCandidateSource>();
+        services.AddScoped<IReminderCandidateSource, FollowUpReminderCandidateSource>();
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(EnqueueMessageJobCommand).Assembly));
@@ -62,7 +78,9 @@ public static class DependencyInjection
         services.AddScoped<ITutorNotificationChannel, EnqueueingTutorNotificationChannel>();
 
         services.AddHostedService<OutboxProcessor>();
+        services.AddHostedService<ReminderScheduler>();
         services.AddHostedService<AutomationsTemplateSeedHostedService>();
+        services.AddHostedService<AutomationsSettingsSeedHostedService>();
 
         return services;
     }

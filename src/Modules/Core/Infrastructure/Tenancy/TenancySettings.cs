@@ -17,4 +17,9 @@ public class TenancySettings
     /// </summary>
     [Required]
     public string DefaultSchema { get; set; } = "dbo";
+
+    /// <summary>
+    /// When set, used as <see cref="ITenantContext.TenantId"/> for background workers and design-time scopes (single-tenant dev until Platform 9.x).
+    /// </summary>
+    public Guid? SingleTenantId { get; set; }
 }

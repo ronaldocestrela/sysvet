@@ -20,6 +20,8 @@ public sealed class LoggingOutboundMessageSender : IOutboundMessageSender
         string? subject,
         string body,
         string payloadJson,
+        string? toPhone = null,
+        string? toEmail = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(

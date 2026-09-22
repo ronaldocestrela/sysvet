@@ -38,6 +38,7 @@ O provider EF Core é definido em `Database:Provider` (`Sqlite` ou `SqlServer`).
 | `JwtSettings:Audience` | Sim | Sim (JSON ou env) | Audiência do token |
 | `JwtSettings:RefreshExpiryDays` | Sim (default 7) | Sim | Validade do refresh token (dias) |
 | `TenancySettings:DefaultSchema` | Sim (default `dbo`) | Sim | Schema fallback (ADR-003) |
+| `TenancySettings:SingleTenantId` | Não | Dev/staging | Tenant fixo para workers (lembretes/outbox) até varredura multi-tenant (9.x) |
 | `Database:Provider` | `Sqlite` | `SqlServer` | Provider EF Core |
 | `Database:ConnectionStringName` | `DefaultConnection` | `DefaultConnection` | Nome da entrada em `ConnectionStrings` |
 
@@ -125,6 +126,10 @@ Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Pers
 | Permissão hub | `Grooming.Read` | Conexão do backoffice |
 | Canal tutor | `ITutorNotificationChannel` | `EnqueueingTutorNotificationChannel` quando Automations registrado (ADR-038) |
 | Automations worker | `Automations:PollIntervalSeconds` | Outbox SQL + `OutboxProcessor` (8.1) |
+| Lembretes 8.2 | `Automations:Provider` | `Fake` (CI) ou `Live` (SMTP + Evolution — ADR-039) |
+| Scan lembretes | `Automations:ReminderScanIntervalMinutes` | `ReminderScheduler` |
+| Horário comercial | `Automations:BusinessHours` / DB `AutomationsSettings` | Adia jobs via `MessageJob.DeferUntil` |
+| SMTP / Evolution | `Automations:Smtp`, `Automations:Evolution` | Segredos via User Secrets / env |
 
 Clientes Blazor/MAUI usam `IGroomingStatusRealtime` com o client HTTP `API` como base URL.
 

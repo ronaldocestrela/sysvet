@@ -33,6 +33,7 @@ public sealed class MedicalRecordDto
     public VitalSignsDto? VitalSigns { get; init; }
     public string Diagnosis { get; init; } = string.Empty;
     public string Conduct { get; init; } = string.Empty;
+    public DateOnly? FollowUpOn { get; init; }
     public string Status { get; init; } = string.Empty;
     public DateTimeOffset UpdatedAt { get; init; }
     public DateTimeOffset? AppointmentDate { get; init; }

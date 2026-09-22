@@ -1,9 +1,12 @@
 @page "/tutors"
 @using SharedUI.Components
 @using SharedUI.Services
+@using Clients.Infrastructure.Automations
 @using Clients.Infrastructure.Http
 @using Clients.Infrastructure.Crm
 @inject ITutorStore TutorStore
+@inject AutomationsApiService AutomationsApi
+@inject IConnectivityService Connectivity
 @inject IToastService Toast
 
 <div class="header-section">
@@ -25,7 +28,7 @@
                 <td>@tutor.Email</td>
                 <td>@tutor.Phone</td>
                 <td>
-                    <button class="btn btn-sm btn-info" @onclick="() => EditTutor(tutor)">Editar</button>
+                    <button class="btn btn-sm btn-info" @onclick="async () => await EditTutor(tutor)">Editar</button>
                 </td>
             </RowTemplate>
         </DataGrid>
@@ -46,6 +49,21 @@
         <FormField Label="Telefone">
             <input type="tel" @bind="_currentTutor.Phone" class="form-control" />
         </FormField>
+        @if (_editingTutor is not null && Connectivity.IsOnline)
+        {
+            <hr class="my-3" />
+            <p class="small text-muted mb-2">Lembretes transacionais (vacina, consulta, retorno). SMS não disponível.</p>
+            <FormField Label="WhatsApp">
+                <input type="checkbox" @bind="_whatsAppEnabled" class="form-check-input" id="tutor-pref-wa" />
+            </FormField>
+            <FormField Label="E-mail">
+                <input type="checkbox" @bind="_emailEnabled" class="form-check-input" id="tutor-pref-email" />
+            </FormField>
+        }
+        else if (_editingTutor is not null && !Connectivity.IsOnline)
+        {
+            <p class="small text-muted mt-2 mb-0">Preferências de lembrete só podem ser alteradas online.</p>
+        }
     </ChildContent>
     <FooterTemplate>
         <button class="btn" @onclick="CloseModal">Cancelar</button>
@@ -59,6 +77,8 @@
     private bool _isLoading;
     private TutorDto? _editingTutor;
     private TutorDto _currentTutor = new();
+    private bool _whatsAppEnabled = true;
+    private bool _emailEnabled = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,7 +114,7 @@
         _showModal = true;
     }
 
-    private void EditTutor(TutorDto tutor)
+    private async Task EditTutor(TutorDto tutor)
     {
         _editingTutor = tutor;
         _currentTutor = new TutorDto
@@ -105,6 +125,18 @@
             Cpf = tutor.Cpf,
             Phone = tutor.Phone
         };
+        _whatsAppEnabled = true;
+        _emailEnabled = true;
+        if (Connectivity.IsOnline)
+        {
+            var prefResult = await AutomationsApi.GetTutorPreferencesAsync(tutor.Id);
+            if (prefResult.IsSuccess)
+            {
+                _whatsAppEnabled = prefResult.Value.WhatsAppEnabled;
+                _emailEnabled = prefResult.Value.EmailEnabled;
+            }
+        }
+
         _showModal = true;
     }
 
@@ -147,6 +179,23 @@
             {
                 Toast.Show(result.Error.Message, ToastType.Error);
                 return;
+            }
+
+            if (Connectivity.IsOnline)
+            {
+                var prefResult = await AutomationsApi.UpdateTutorPreferencesAsync(
+                    _currentTutor.Id,
+                    new TutorMessagingPreferenceClientDto
+                    {
+                        TutorId = _currentTutor.Id,
+                        WhatsAppEnabled = _whatsAppEnabled,
+                        EmailEnabled = _emailEnabled
+                    });
+                if (prefResult.IsFailure)
+                {
+                    Toast.Show(prefResult.Error.Message, ToastType.Error);
+                    return;
+                }
             }
         }
 

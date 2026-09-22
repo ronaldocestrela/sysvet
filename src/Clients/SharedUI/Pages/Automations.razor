@@ -9,7 +9,7 @@
 
 <div class="header-section">
     <h1 class="mb-0">Automações</h1>
-    <p class="text-muted small mb-0">Templates e fila de mensagens (online).</p>
+    <p class="text-muted small mb-0">Templates, lembretes (WhatsApp/e-mail) e fila de mensagens. SMS não disponível nesta versão.</p>
 </div>
 
 @if (!Connectivity.IsOnline)
@@ -18,6 +18,15 @@
 }
 
 <LoadingState IsLoading="_loading" Message="Carregando automações...">
+    <div class="card mb-3">
+        <h5>Horário comercial</h5>
+        @if (_settings is not null)
+        {
+            <p class="small text-muted mb-2">@_settings.TimeZoneId — @_settings.BusinessStart às @_settings.BusinessEnd</p>
+            <p class="small mb-0">Dias: @string.Join(", ", _settings.BusinessDays)</p>
+        }
+    </div>
+
     <div class="card mb-3">
         <h5>Templates</h5>
         @if (_templates.Count == 0)
@@ -85,6 +94,7 @@
 
 @code {
     private bool _loading;
+    private AutomationsSettingsClientDto? _settings;
     private List<MessageTemplateClientDto> _templates = new();
     private List<MessageJobClientDto> _jobs = new();
 
@@ -103,6 +113,12 @@
         _loading = true;
         try
         {
+            var settings = await AutomationsApi.GetSettingsAsync();
+            if (settings.IsSuccess)
+            {
+                _settings = settings.Value;
+            }
+
             var templates = await AutomationsApi.ListTemplatesAsync();
             if (templates.IsSuccess)
             {

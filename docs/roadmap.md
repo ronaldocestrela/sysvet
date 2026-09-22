@@ -980,7 +980,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **8.1 Módulo Automations — workers e filas** | 8 | Concluído |
-| **8.2 Lembretes WhatsApp/SMS/e-mail** | 8 | Pendente |
+| **8.2 Lembretes WhatsApp/SMS/e-mail** | 8 | Concluído |
 | **8.3 Campanhas e NPS** | 8 | Pendente |
 | **8.4 Módulo TutorPortal — base** | 5 | Pendente |
 | **8.5 App do tutor (login, vacinas, exames)** | 13 | Pendente |
@@ -999,11 +999,11 @@ flowchart TD
 
 ### 8.2 Lembretes WhatsApp/SMS/e-mail (8 SP)
 
-- [ ] Gatilhos: vacina, retorno, aniversário pet, consulta amanhã
-- [ ] Opt-in/opt-out; horário comercial
-- [ ] Integração provedor (Twilio, Z-API, SendGrid — ADR)
+- [x] Gatilhos: vacina, retorno, aniversário pet, consulta amanhã
+- [x] Opt-in/opt-out; horário comercial
+- [x] Integração provedor (SMTP + Evolution API — [ADR-039](./arquitetura/ADR-039-lembretes-smtp-evolution.md); SMS adiado)
 
-**Aceite:** Lembrete de vacina dispara 7 dias antes; opt-out respeitado.
+**Aceite:** Lembrete de vacina dispara 7 dias antes; opt-out respeitado (`VaccineReminder_EnqueuedSevenDaysBefore_WhenUpcoming`; `VaccineReminder_NotEnqueued_WhenWhatsAppAndEmailOptedOut`).
 
 ### 8.3 Campanhas e NPS (8 SP)
 

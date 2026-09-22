@@ -1,0 +1,22 @@
+flowchart TD
+    Scheduler[ReminderScheduler]
+    Sources[Vaccine_Appointment_Birthday_FollowUp]
+    Prefs[TutorMessagingPreference]
+    Hours[BusinessHours]
+    Jobs[MessageJobs]
+    Worker[OutboxProcessor]
+    Disp[ChannelOutboundMessageSender]
+    Evo[EvolutionWhatsAppGateway]
+    Smtp[SmtpEmailGateway]
+    Fake[FakeOutboundMessageSender]
+
+    Sources --> Scheduler
+    Prefs --> Scheduler
+    Scheduler --> Jobs
+    Worker --> Hours
+    Hours -->|defer| Jobs
+    Worker --> Disp
+    Disp -->|Live WhatsApp| Evo
+    Disp -->|Live Email| Smtp
+    Disp -->|Fake| Fake
+    Disp -->|Sms| Reject[Result_Failure]

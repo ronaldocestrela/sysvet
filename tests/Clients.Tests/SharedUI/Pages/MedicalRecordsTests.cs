@@ -109,6 +109,9 @@ public class MedicalRecordsTests : BunitContext
         public Task<Result> SetConductAsync(Guid medicalRecordId, string conduct, CancellationToken cancellationToken = default)
             => Task.FromResult(Result.Success());
 
+        public Task<Result> SetFollowUpOnAsync(Guid medicalRecordId, DateOnly? followUpOn, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
+
         public Task<Result> FinalizeAsync(Guid medicalRecordId, CancellationToken cancellationToken = default)
             => Task.FromResult(Result.Success());
     }

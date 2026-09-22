@@ -425,7 +425,8 @@ public sealed class OfflineSyncPullApplier
                 status,
                 dto.UpdatedAt,
                 vitalSigns,
-                evolution);
+                evolution,
+                dto.FollowUpOn);
             _dbContext.MedicalRecords.Add(created);
             return;
         }
@@ -435,7 +436,7 @@ public sealed class OfflineSyncPullApplier
             return;
         }
 
-        record.ApplySyncSnapshot(dto.Anamnesis, dto.Diagnosis, dto.Prescription, status, vitalSigns, dto.UpdatedAt, evolution);
+        record.ApplySyncSnapshot(dto.Anamnesis, dto.Diagnosis, dto.Prescription, status, vitalSigns, dto.UpdatedAt, evolution, dto.FollowUpOn);
     }
 
     private async Task UpsertPrescriptionTemplateAsync(ClientSyncPrescriptionTemplateDto dto, CancellationToken cancellationToken)

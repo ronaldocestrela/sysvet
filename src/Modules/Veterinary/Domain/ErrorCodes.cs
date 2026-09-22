@@ -79,6 +79,7 @@ public static class ErrorCodes
         public static readonly Error InvalidAnamnesis = new("MedicalRecord.InvalidAnamnesis", "Anamnesis exceeds maximum length.");
         public static readonly Error InvalidDiagnosis = new("MedicalRecord.InvalidDiagnosis", "Diagnosis exceeds maximum length.");
         public static readonly Error InvalidConduct = new("MedicalRecord.InvalidConduct", "Conduct exceeds maximum length.");
+        public static readonly Error InvalidFollowUpDate = new("MedicalRecord.InvalidFollowUpDate", "Follow-up date cannot be in the past.");
     }
 
     public static class VaccineDose

@@ -98,6 +98,9 @@ public static class VeterinaryEndpointExtensions
         recordsGroup.MapPatch("/{id:guid}/conduct", async (Guid id, HttpContext httpContext, [FromBody] ConductRequest body, IMediator mediator) =>
             (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.SetConductCommand(id, body.Conduct, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
+        recordsGroup.MapPatch("/{id:guid}/follow-up", async (Guid id, HttpContext httpContext, [FromBody] FollowUpRequest body, IMediator mediator) =>
+            (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.SetFollowUpOnCommand(id, body.FollowUpOn, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
         recordsGroup.MapPost("/{id:guid}/evolution", async (Guid id, HttpContext httpContext, [FromBody] EvolutionNoteRequest body, IMediator mediator) =>
             (await mediator.Send(new Veterinary.Application.MedicalRecords.Commands.AddEvolutionNoteCommand(id, body.Text, body.NoteId, body.RecordedAt, EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
 
@@ -373,6 +376,8 @@ public static class VeterinaryEndpointExtensions
 
     /// <summary>Conduct update body.</summary>
     public record ConductRequest(string Conduct);
+
+    public record FollowUpRequest(DateOnly? FollowUpOn);
 
     /// <summary>Evolution note append body.</summary>
     public record EvolutionNoteRequest(string Text, Guid NoteId = default, DateTimeOffset? RecordedAt = null);

@@ -17,7 +17,7 @@ A Fase 4.4 exige protocolos tenant-scoped por espécie/idade, registro de doses 
 ## Decisão
 - **Protocolos** no catálogo clínico (`VaccineProtocol` / `VaccineProtocolDose`), filtro por `PetSpecies` e faixa etária quando `Pet.BirthDate` existe.
 - **Próxima dose** informada ou calculada por `NextDoseIntervalInDays`; registro livre (nome/lote) continua permitido.
-- **Alertas** como projeção CQRS (`Overdue` / `Upcoming`, horizon default 7 dias); sem worker na 4.4.
+- **Alertas** como projeção CQRS (`Overdue` / `Upcoming`, horizon default 7 dias); disparo automático na 8.2 via `ReminderScheduler` ([ADR-039](./ADR-039-lembretes-smtp-evolution.md)).
 - **Exportação** via `GetVaccinationCard` + CSS print na SharedUI.
 - **Sync:** protocolos pull-only; doses com outbox no client (espelho templates 4.3).
 

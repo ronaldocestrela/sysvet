@@ -16,5 +16,7 @@ public interface IOutboundMessageSender
         string? subject,
         string body,
         string payloadJson,
+        string? toPhone = null,
+        string? toEmail = null,
         CancellationToken cancellationToken = default);
 }

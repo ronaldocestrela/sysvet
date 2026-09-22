@@ -12,6 +12,8 @@ public class AutomationsDbContext : DbContext, IAutomationsUnitOfWork, IDomainEv
 {
     public DbSet<MessageTemplate> MessageTemplates => Set<MessageTemplate>();
     public DbSet<MessageJob> MessageJobs => Set<MessageJob>();
+    public DbSet<TutorMessagingPreference> TutorMessagingPreferences => Set<TutorMessagingPreference>();
+    public DbSet<AutomationsSettings> AutomationsSettings => Set<AutomationsSettings>();
     private readonly ITenantContext _tenantContext;
 
     /// <summary>

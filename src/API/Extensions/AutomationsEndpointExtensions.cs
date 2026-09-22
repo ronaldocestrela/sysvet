@@ -1,5 +1,6 @@
 using Automations.Application.Jobs.Commands;
 using Automations.Application.Jobs.Queries;
+using Automations.Application.Settings.Commands;
 using Automations.Application.Templates.Commands;
 using Automations.Domain.Enums;
 using MediatR;
@@ -43,8 +44,41 @@ public static class AutomationsEndpointExtensions
         group.MapPost("/jobs", async (HttpContext httpContext, [FromBody] EnqueueMessageJobCommand command, IMediator mediator) =>
             (await mediator.Send(command with { IdempotencyKey = EndpointIdempotency.ReadKey(httpContext) })).ToHttpResult());
 
+        group.MapGet("/settings", async (IMediator mediator) =>
+            (await mediator.Send(new GetAutomationsSettingsQuery())).ToHttpResult());
+
+        group.MapPut("/settings", async (HttpContext httpContext, [FromBody] UpdateAutomationsSettingsBody body, IMediator mediator) =>
+            (await mediator.Send(new UpdateAutomationsSettingsCommand(
+                body.TimeZoneId,
+                body.BusinessStart,
+                body.BusinessEnd,
+                body.BusinessDays,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
+        group.MapGet("/tutors/{tutorId:guid}/preferences", async (Guid tutorId, IMediator mediator) =>
+            (await mediator.Send(new GetTutorMessagingPreferenceQuery(tutorId))).ToHttpResult());
+
+        group.MapPut("/tutors/{tutorId:guid}/preferences", async (
+            Guid tutorId,
+            HttpContext httpContext,
+            [FromBody] UpdateTutorPreferenceBody body,
+            IMediator mediator) =>
+            (await mediator.Send(new UpdateTutorMessagingPreferenceCommand(
+                tutorId,
+                body.WhatsAppEnabled,
+                body.EmailEnabled,
+                EndpointIdempotency.ReadKey(httpContext)))).ToHttpResult());
+
         return builder;
     }
 
     private sealed record UpdateMessageTemplateBody(string Body, string? Subject, bool IsActive);
+
+    private sealed record UpdateAutomationsSettingsBody(
+        string TimeZoneId,
+        string BusinessStart,
+        string BusinessEnd,
+        IReadOnlyList<string> BusinessDays);
+
+    private sealed record UpdateTutorPreferenceBody(bool WhatsAppEnabled, bool EmailEnabled);
 }

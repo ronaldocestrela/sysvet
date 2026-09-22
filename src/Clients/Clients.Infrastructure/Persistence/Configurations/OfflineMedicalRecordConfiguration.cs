@@ -16,6 +16,7 @@ internal sealed class OfflineMedicalRecordConfiguration : IEntityTypeConfigurati
         builder.Property(m => m.Diagnosis).HasMaxLength(2000);
         builder.Property(m => m.Prescription).HasMaxLength(2000);
         builder.Property(m => m.Status).HasConversion<int>();
+        builder.Property(m => m.FollowUpOn);
 
         builder.OwnsOne(m => m.VitalSigns, vitals =>
         {

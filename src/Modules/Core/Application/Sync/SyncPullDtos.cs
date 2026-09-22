@@ -84,6 +84,7 @@ public sealed class SyncMedicalRecordDto
     public string Diagnosis { get; init; } = string.Empty;
     public string Prescription { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
+    public DateOnly? FollowUpOn { get; init; }
     public decimal? VitalWeightKg { get; init; }
     public decimal? VitalTemperatureC { get; init; }
     public int? VitalHeartRateBpm { get; init; }

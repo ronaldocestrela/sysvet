@@ -23,4 +23,19 @@ public static class ErrorCodes
         public static readonly Error InvalidPayload = new("MessageJob.InvalidPayload", "Payload do job é inválido.");
         public static readonly Error DuplicateIdempotency = new("MessageJob.DuplicateIdempotency", "Job já enfileirado para esta chave de idempotência.");
     }
+
+    public static class Channel
+    {
+        public static readonly Error SmsNotSupported = new("MessageChannel.SmsNotSupported", "SMS não está disponível nesta versão.");
+    }
+
+    public static class Preference
+    {
+        public static readonly Error InvalidTutor = new("TutorMessagingPreference.InvalidTutor", "TutorId é obrigatório.");
+    }
+
+    public static class Settings
+    {
+        public static readonly Error InvalidBusinessHours = new("AutomationsSettings.InvalidBusinessHours", "Horário comercial inválido.");
+    }
 }

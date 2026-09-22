@@ -18,6 +18,7 @@ public class EnqueueingTutorNotificationChannelTests
         await using var ctx = await CreateContextAsync();
         var channel = new EnqueueingTutorNotificationChannel(
             new MessageJobRepository(ctx),
+            new TutorMessagingPreferenceRepository(ctx),
             ctx);
 
         await channel.NotifyGroomingStatusAsync(
@@ -45,7 +46,7 @@ public class EnqueueingTutorNotificationChannelTests
             .Options;
         var ctx = new AutomationsDbContext(options, new TestTenantContext());
         await ctx.Database.OpenConnectionAsync();
-        await ctx.Database.MigrateAsync();
+        await ctx.Database.EnsureCreatedAsync();
         return ctx;
     }
 

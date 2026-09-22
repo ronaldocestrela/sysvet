@@ -45,11 +45,9 @@ public class AppointmentRepository : IAppointmentRepository
             query = query.Where(a => a.VeterinarianId == veterinarianId.Value);
         }
 
-        var candidates = await query
-            .Where(a => a.Date >= dayStart && a.Date < dayEnd)
-            .ToListAsync(cancellationToken);
-
-        return candidates;
+        // SQLite cannot translate DateTimeOffset range filters; filter in memory after narrowing by vet when possible.
+        var candidates = await query.ToListAsync(cancellationToken);
+        return candidates.Where(a => a.Date >= dayStart && a.Date < dayEnd);
     }
 
     public async Task<bool> HasOverlappingAsync(

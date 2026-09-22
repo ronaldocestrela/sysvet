@@ -73,6 +73,9 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
             nameof(SetConductCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<SetConductCommand>(message.Payload, JsonOptions),
                 message.Id),
+            nameof(SetFollowUpOnCommand) => WithIdempotency(
+                JsonSerializer.Deserialize<SetFollowUpOnCommand>(message.Payload, JsonOptions),
+                message.Id),
             nameof(FinalizeMedicalRecordCommand) => WithIdempotency(
                 JsonSerializer.Deserialize<FinalizeMedicalRecordCommand>(message.Payload, JsonOptions),
                 message.Id),
@@ -174,6 +177,8 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
                 return await _mediator.Send(setDiagnosis, cancellationToken);
             case SetConductCommand setConduct:
                 return await _mediator.Send(setConduct, cancellationToken);
+            case SetFollowUpOnCommand setFollowUp:
+                return await _mediator.Send(setFollowUp, cancellationToken);
             case FinalizeMedicalRecordCommand finalize:
                 return await _mediator.Send(finalize, cancellationToken);
             case RequestClinicalExamCommand requestExam:
@@ -281,6 +286,9 @@ public sealed class VeterinarySyncPushHandler : ISyncPushHandler
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 
     private static SetConductCommand? WithIdempotency(SetConductCommand? command, Guid idempotencyKey) =>
+        command is null ? null : command with { IdempotencyKey = idempotencyKey };
+
+    private static SetFollowUpOnCommand? WithIdempotency(SetFollowUpOnCommand? command, Guid idempotencyKey) =>
         command is null ? null : command with { IdempotencyKey = idempotencyKey };
 
     private static FinalizeMedicalRecordCommand? WithIdempotency(FinalizeMedicalRecordCommand? command, Guid idempotencyKey) =>

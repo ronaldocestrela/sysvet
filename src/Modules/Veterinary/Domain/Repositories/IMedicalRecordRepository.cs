@@ -14,4 +14,7 @@ public interface IMedicalRecordRepository
     Task AddAsync(MedicalRecord medicalRecord, CancellationToken cancellationToken = default);
 
     void Update(MedicalRecord medicalRecord);
+
+    /// <summary>Finalized records with follow-up on the given local calendar date.</summary>
+    Task<IReadOnlyList<MedicalRecord>> ListFinalizedWithFollowUpOnAsync(DateOnly followUpOn, CancellationToken cancellationToken = default);
 }

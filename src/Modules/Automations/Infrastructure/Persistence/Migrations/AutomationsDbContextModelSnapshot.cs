@@ -130,6 +130,78 @@ namespace Automations.Infrastructure.Persistence.Migrations
                     b.ToTable("MessageJobs", "dbo");
                 });
 
+            modelBuilder.Entity("Automations.Domain.Entities.AutomationsSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("BusinessEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BusinessDaysJson")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("BusinessStart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("AutomationsSettings", "dbo");
+                });
+
+            modelBuilder.Entity("Automations.Domain.Entities.TutorMessagingPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("WhatsAppEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TutorId")
+                        .IsUnique();
+
+                    b.ToTable("TutorMessagingPreferences", "dbo");
+                });
+
             modelBuilder.Entity("Automations.Domain.Entities.MessageTemplate", b =>
                 {
                     b.Property<Guid>("Id")

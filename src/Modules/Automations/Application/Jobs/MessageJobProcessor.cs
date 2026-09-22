@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Automations.Application.Abstractions;
 using Automations.Domain.Entities;
+using Automations.Domain.Enums;
 using Automations.Domain.Repositories;
 using Automations.Domain.Services;
 using Core.Domain;
@@ -15,17 +16,23 @@ public sealed class MessageJobProcessor
     private readonly IMessageJobRepository _jobRepository;
     private readonly IMessageTemplateRepository _templateRepository;
     private readonly IOutboundMessageSender _sender;
+    private readonly IAutomationsDeliveryPolicy _deliveryPolicy;
+    private readonly ITutorMessagingPreferenceRepository _preferenceRepository;
     private readonly IAutomationsUnitOfWork _unitOfWork;
 
     public MessageJobProcessor(
         IMessageJobRepository jobRepository,
         IMessageTemplateRepository templateRepository,
         IOutboundMessageSender sender,
+        IAutomationsDeliveryPolicy deliveryPolicy,
+        ITutorMessagingPreferenceRepository preferenceRepository,
         IAutomationsUnitOfWork unitOfWork)
     {
         _jobRepository = jobRepository;
         _templateRepository = templateRepository;
         _sender = sender;
+        _deliveryPolicy = deliveryPolicy;
+        _preferenceRepository = preferenceRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -59,11 +66,18 @@ public sealed class MessageJobProcessor
         job.Claim(now);
         var startedAt = now;
 
-        var template = await _templateRepository.GetByCodeAndChannelAsync(job.TemplateCode, job.Channel, cancellationToken);
-        if (template is null || !template.IsActive)
+        if (job.Channel == MessageChannel.Sms)
         {
             var finishedAt = DateTimeOffset.UtcNow;
-            job.ScheduleRetry("Template not found or inactive.", startedAt, finishedAt, finishedAt);
+            job.MarkDeadLetter(Automations.Domain.ErrorCodes.Channel.SmsNotSupported.Message, startedAt, finishedAt);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        var policy = await _deliveryPolicy.EvaluateAsync(now, cancellationToken);
+        if (!policy.CanDeliver)
+        {
+            job.DeferUntil(policy.DeferUntil);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return;
         }
@@ -77,6 +91,23 @@ public sealed class MessageJobProcessor
             return;
         }
 
+        if (!await IsChannelAllowedForTutorAsync(job.Channel, tokens, cancellationToken))
+        {
+            var finishedAt = DateTimeOffset.UtcNow;
+            job.MarkDeadLetter("Tutor opted out of this channel.", startedAt, finishedAt);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        var template = await _templateRepository.GetByCodeAndChannelAsync(job.TemplateCode, job.Channel, cancellationToken);
+        if (template is null || !template.IsActive)
+        {
+            var finishedAt = DateTimeOffset.UtcNow;
+            job.ScheduleRetry("Template not found or inactive.", startedAt, finishedAt, finishedAt);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
         var rendered = MessageTemplateRenderer.Render(template.Body, tokens);
         if (rendered.IsFailure)
         {
@@ -86,11 +117,16 @@ public sealed class MessageJobProcessor
             return;
         }
 
+        tokens.TryGetValue("ToPhone", out var toPhone);
+        tokens.TryGetValue("ToEmail", out var toEmail);
+
         var sendResult = await _sender.SendAsync(
             job.Channel,
             template.Subject,
             rendered.Value,
             job.PayloadJson,
+            toPhone,
+            toEmail,
             cancellationToken);
 
         var endAt = DateTimeOffset.UtcNow;
@@ -104,6 +140,27 @@ public sealed class MessageJobProcessor
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<bool> IsChannelAllowedForTutorAsync(
+        MessageChannel channel,
+        IReadOnlyDictionary<string, string> tokens,
+        CancellationToken cancellationToken)
+    {
+        if (!tokens.TryGetValue("TutorId", out var tutorIdRaw) || !Guid.TryParse(tutorIdRaw, out var tutorId))
+        {
+            return true;
+        }
+
+        var pref = await _preferenceRepository.GetByTutorIdAsync(tutorId, cancellationToken)
+                   ?? TutorMessagingPreference.DefaultFor(tutorId);
+
+        return channel switch
+        {
+            MessageChannel.WhatsApp => pref.WhatsAppEnabled,
+            MessageChannel.Email => pref.EmailEnabled,
+            _ => false
+        };
     }
 
     private static IReadOnlyDictionary<string, string>? ParsePayloadTokens(string payloadJson)

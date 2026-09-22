@@ -44,6 +44,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-036](./ADR-036-nfce-contingencia-offline.md) | NFC-e contingência offline PDV (7.6) | Accepted |
 | [ADR-037](./ADR-037-planejamento-fiscal.md) | Planejamento fiscal e simulação de regime (7.7) | Accepted |
 | [ADR-038](./ADR-038-automations-outbox.md) | Automations — outbox SQL e worker (8.1) | Accepted |
+| [ADR-039](./ADR-039-lembretes-smtp-evolution.md) | Lembretes SMTP + Evolution API (8.2) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

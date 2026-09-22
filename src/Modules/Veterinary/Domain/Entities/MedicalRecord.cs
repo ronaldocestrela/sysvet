@@ -45,6 +45,9 @@ public class MedicalRecord : AggregateRoot
     /// <summary>Draft allows edits; finalized is immutable.</summary>
     public MedicalRecordStatus Status { get; private set; }
 
+    /// <summary>Optional follow-up visit date (local calendar) for reminder automation.</summary>
+    public DateOnly? FollowUpOn { get; private set; }
+
     /// <summary>Append-only evolution entries for this consultation.</summary>
     public IReadOnlyCollection<EvolutionNote> EvolutionNotes => _evolutionNotes.AsReadOnly();
 
@@ -86,7 +89,8 @@ public class MedicalRecord : AggregateRoot
         MedicalRecordStatus status,
         DateTimeOffset updatedAt,
         VitalSigns? vitalSigns,
-        IEnumerable<(Guid NoteId, Guid AuthorId, string Text, DateTimeOffset RecordedAt)> evolutionNotes)
+        IEnumerable<(Guid NoteId, Guid AuthorId, string Text, DateTimeOffset RecordedAt)> evolutionNotes,
+        DateOnly? followUpOn = null)
     {
         var record = new MedicalRecord(id, appointmentId, veterinarianId, tutorId, petId)
         {
@@ -95,7 +99,8 @@ public class MedicalRecord : AggregateRoot
             Prescription = prescription,
             Status = status,
             VitalSigns = vitalSigns,
-            UpdatedAt = updatedAt
+            UpdatedAt = updatedAt,
+            FollowUpOn = followUpOn
         };
 
         foreach (var note in evolutionNotes)
@@ -120,7 +125,8 @@ public class MedicalRecord : AggregateRoot
         MedicalRecordStatus status,
         VitalSigns? vitalSigns,
         DateTimeOffset updatedAt,
-        IEnumerable<(Guid NoteId, Guid AuthorId, string Text, DateTimeOffset RecordedAt)> evolutionNotes)
+        IEnumerable<(Guid NoteId, Guid AuthorId, string Text, DateTimeOffset RecordedAt)> evolutionNotes,
+        DateOnly? followUpOn = null)
     {
         if (Status == MedicalRecordStatus.Finalized && status == MedicalRecordStatus.Draft)
         {
@@ -130,6 +136,7 @@ public class MedicalRecord : AggregateRoot
         Anamnesis = anamnesis;
         Diagnosis = diagnosis;
         Prescription = prescription;
+        FollowUpOn = followUpOn;
         Status = status;
         VitalSigns = vitalSigns;
         UpdatedAt = updatedAt;
@@ -253,6 +260,24 @@ public class MedicalRecord : AggregateRoot
         }
 
         Prescription += string.IsNullOrEmpty(Prescription) ? prescription : "\n" + prescription;
+        Touch();
+        return Result.Success(true);
+    }
+
+    /// <summary>Sets or clears the follow-up date while the record is still a draft.</summary>
+    public Result<bool> SetFollowUpOn(DateOnly? followUpOn)
+    {
+        if (!EnsureDraft())
+        {
+            return Result.Failure<bool>(ErrorCodes.MedicalRecord.Finalized);
+        }
+
+        if (followUpOn is not null && followUpOn.Value < DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            return Result.Failure<bool>(ErrorCodes.MedicalRecord.InvalidFollowUpDate);
+        }
+
+        FollowUpOn = followUpOn;
         Touch();
         return Result.Success(true);
     }

@@ -1,6 +1,9 @@
 using Bunit;
+using Clients.Infrastructure.Automations;
 using Clients.Infrastructure.Crm;
 using Clients.Infrastructure.Http;
+using Clients.Infrastructure.Sync;
+using Clients.Tests.Fakes;
 using Core.Domain;
 using Microsoft.Extensions.DependencyInjection;
 using SharedUI.Pages;
@@ -15,6 +18,10 @@ public class TutorsTests : BunitContext
     {
         Services.AddSingleton<ITutorStore, FakeTutorStore>();
         Services.AddSingleton<IToastService, ToastService>();
+        Services.AddSingleton<IConnectivityService>(_ => new FakeConnectivityService(ConnectivityStatus.Offline));
+        Services.AddSingleton(_ => new AutomationsApiService(
+            new ApiClient(new HttpClient { BaseAddress = new Uri("http://localhost/") }),
+            new OfflineSyncConnectivity()));
     }
 
     [Fact]
@@ -60,5 +67,16 @@ public class TutorsTests : BunitContext
 
         public Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
             => Task.FromResult(Result.Success());
+    }
+
+    private sealed class OfflineSyncConnectivity : ISyncConnectivity
+    {
+        public bool IsOnline => false;
+        public event EventHandler? OnlineStateChanged
+        {
+            add { }
+            remove { }
+        }
+        public void SetSyncing(bool isSyncing) { }
     }
 }

@@ -30,6 +30,7 @@ public static class MedicalRecordMapper
                 },
             Diagnosis = record.Diagnosis,
             Conduct = record.Prescription,
+            FollowUpOn = record.FollowUpOn,
             Status = record.Status.ToString(),
             UpdatedAt = record.UpdatedAt,
             AppointmentDate = appointmentDate,

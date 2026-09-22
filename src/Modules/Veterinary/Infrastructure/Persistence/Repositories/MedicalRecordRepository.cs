@@ -45,4 +45,14 @@ public class MedicalRecordRepository : IMedicalRecordRepository
     {
         _dbContext.MedicalRecords.Update(medicalRecord);
     }
+
+    public async Task<IReadOnlyList<MedicalRecord>> ListFinalizedWithFollowUpOnAsync(
+        DateOnly followUpOn,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.MedicalRecords
+            .AsNoTracking()
+            .Where(m => m.Status == MedicalRecordStatus.Finalized && m.FollowUpOn == followUpOn)
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -51,11 +51,24 @@ public sealed class AutomationsTemplateSeedHostedService : IHostedService
             var templates = scope.ServiceProvider.GetRequiredService<IMessageTemplateRepository>();
             var uow = scope.ServiceProvider.GetRequiredService<IAutomationsUnitOfWork>();
 
-            await EnsureTemplateAsync(templates, "grooming.started", "Olá {{TutorName}}, o banho do {{PetName}} foi iniciado.");
-            await EnsureTemplateAsync(templates, "grooming.ready", "Olá {{TutorName}}, o {{PetName}} está pronto para retirada!");
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "grooming.started", "Olá {{TutorName}}, o banho do {{PetName}} foi iniciado.");
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "grooming.ready", "Olá {{TutorName}}, o {{PetName}} está pronto para retirada!");
+
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "reminder.vaccine", "Olá {{TutorName}}, a vacina {{VaccineName}} do {{PetName}} vence em {{WhenLocal}}.");
+            await EnsureTemplateAsync(templates, MessageChannel.Email, "reminder.vaccine", "Olá {{TutorName}}, a vacina {{VaccineName}} do {{PetName}} vence em {{WhenLocal}}.", "Lembrete de vacina");
+
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "reminder.appointment", "Olá {{TutorName}}, consulta do {{PetName}} amanhã às {{WhenLocal}}.");
+            await EnsureTemplateAsync(templates, MessageChannel.Email, "reminder.appointment", "Olá {{TutorName}}, consulta do {{PetName}} amanhã às {{WhenLocal}}.", "Consulta amanhã");
+
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "reminder.birthday", "Feliz aniversário {{PetName}}! 🎂");
+            await EnsureTemplateAsync(templates, MessageChannel.Email, "reminder.birthday", "Feliz aniversário {{PetName}}!", "Aniversário do pet");
+
+            await EnsureTemplateAsync(templates, MessageChannel.WhatsApp, "reminder.followup", "Olá {{TutorName}}, retorno do {{PetName}} agendado para {{WhenLocal}}.");
+            await EnsureTemplateAsync(templates, MessageChannel.Email, "reminder.followup", "Olá {{TutorName}}, retorno do {{PetName}} agendado para {{WhenLocal}}.", "Lembrete de retorno");
+
             await uow.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Automations grooming templates seeded when missing.");
+            _logger.LogInformation("Automations templates seeded when missing.");
         }
         catch (Exception ex)
         {
@@ -68,15 +81,17 @@ public sealed class AutomationsTemplateSeedHostedService : IHostedService
 
     private static async Task EnsureTemplateAsync(
         IMessageTemplateRepository repository,
+        MessageChannel channel,
         string code,
-        string body)
+        string body,
+        string? subject = null)
     {
-        if (await repository.GetByCodeAndChannelAsync(code, MessageChannel.WhatsApp, CancellationToken.None) is not null)
+        if (await repository.GetByCodeAndChannelAsync(code, channel, CancellationToken.None) is not null)
         {
             return;
         }
 
-        var created = MessageTemplate.Create(code, MessageChannel.WhatsApp, body);
+        var created = MessageTemplate.Create(code, channel, body, subject);
         if (created.IsSuccess)
         {
             repository.Add(created.Value);

@@ -1934,6 +1934,9 @@ namespace Clients.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateOnly?>("FollowUpOn")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("PetId")
                         .HasColumnType("TEXT");
 

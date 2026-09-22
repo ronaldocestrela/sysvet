@@ -21,6 +21,8 @@ public interface IMedicalRecordStore
 
     Task<Result> SetConductAsync(Guid medicalRecordId, string conduct, CancellationToken cancellationToken = default);
 
+    Task<Result> SetFollowUpOnAsync(Guid medicalRecordId, DateOnly? followUpOn, CancellationToken cancellationToken = default);
+
     Task<Result> FinalizeAsync(Guid medicalRecordId, CancellationToken cancellationToken = default);
 }
 
@@ -44,6 +46,7 @@ public sealed class MedicalRecordDetailDto
     public string Anamnesis { get; init; } = string.Empty;
     public string Diagnosis { get; init; } = string.Empty;
     public string Conduct { get; init; } = string.Empty;
+    public DateOnly? FollowUpOn { get; init; }
     public string Status { get; init; } = string.Empty;
     public VitalSignsInputDto? VitalSigns { get; init; }
     public IReadOnlyList<EvolutionNoteItemDto> EvolutionNotes { get; init; } = Array.Empty<EvolutionNoteItemDto>();

@@ -44,7 +44,8 @@ public sealed class MessageJob : AggregateRoot
         Guid? sourceId = null,
         int maxAttempts = DefaultMaxAttempts,
         Guid? id = null,
-        DateTimeOffset? now = null)
+        DateTimeOffset? now = null,
+        DateTimeOffset? nextAttemptAt = null)
     {
         if (tenantId == Guid.Empty)
         {
@@ -73,10 +74,24 @@ public sealed class MessageJob : AggregateRoot
             Status = MessageJobStatus.Pending,
             AttemptCount = 0,
             MaxAttempts = maxAttempts <= 0 ? DefaultMaxAttempts : maxAttempts,
-            NextAttemptAt = clock,
+            NextAttemptAt = nextAttemptAt ?? clock,
             SourceType = sourceType,
             SourceId = sourceId
         });
+    }
+
+    /// <summary>
+    /// Postpones delivery without counting as a failed attempt (e.g. outside business hours).
+    /// </summary>
+    public void DeferUntil(DateTimeOffset when)
+    {
+        if (Status is MessageJobStatus.Succeeded or MessageJobStatus.DeadLetter)
+        {
+            return;
+        }
+
+        Status = MessageJobStatus.Pending;
+        NextAttemptAt = when;
     }
 
     /// <summary>

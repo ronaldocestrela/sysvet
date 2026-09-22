@@ -228,7 +228,13 @@ Iniciado o módulo de estoque.
 - `src/Modules/Automations/`, outbox SQL, `OutboxProcessor`, templates por canal, API `/api/v1/automations`, UI `/automations`.
 - `EnqueueingTutorNotificationChannel`; aceite `EnqueueJob_ThenProcessor_SucceedsWithAttemptLog`.
 
-### 👉 **Próxima Ação: Fase 8.2 — Lembretes WhatsApp/SMS/e-mail**
+### Fase 8.2 — Lembretes WhatsApp/e-mail — Concluída (ADR-039)
+
+- `ReminderScheduler`, gatilhos vacina D-7 / consulta D-1 / aniversário / retorno (`FollowUpOn`), opt-out tutor, horário comercial.
+- Provedores: SMTP + Evolution API (`Automations:Provider` Fake/Live); SMS não enfileirado.
+- Aceite: `VaccineReminder_EnqueuedSevenDaysBefore_WhenUpcoming`; opt-out respeitado.
+
+### 👉 **Próxima Ação: Fase 8.3 — Campanhas e NPS**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 8.
 

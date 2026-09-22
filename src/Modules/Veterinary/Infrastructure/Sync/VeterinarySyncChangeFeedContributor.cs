@@ -326,6 +326,7 @@ public sealed class VeterinarySyncChangeFeedContributor : ISyncChangeFeedContrib
             Diagnosis = record.Diagnosis,
             Prescription = record.Prescription,
             Status = record.Status.ToString(),
+            FollowUpOn = record.FollowUpOn,
             VitalWeightKg = record.VitalSigns?.WeightKg,
             VitalTemperatureC = record.VitalSigns?.TemperatureC,
             VitalHeartRateBpm = record.VitalSigns?.HeartRateBpm,

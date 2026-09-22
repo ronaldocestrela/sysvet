@@ -55,10 +55,8 @@ public class MedicalRecordEndpointsTests : IClassFixture<WebApplicationFactory<P
         using var scope = _factory.Services.CreateScope();
         var coreContext = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
         await coreContext.Database.EnsureDeletedAsync();
-        await coreContext.Database.EnsureCreatedAsync();
-
-        var vetContext = scope.ServiceProvider.GetRequiredService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>();
-        await vetContext.Database.MigrateAsync();
+        await coreContext.Database.MigrateAsync();
+        await IntegrationTestDatabaseHelper.MigrateModuleDatabasesAsync(scope);
 
         var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<Core.Infrastructure.Identity.AppUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole>>();
@@ -71,7 +69,12 @@ public class MedicalRecordEndpointsTests : IClassFixture<WebApplicationFactory<P
         var user = await userManager.FindByEmailAsync("vet-records@sysvet.com");
         if (user is null)
         {
-            user = new Core.Infrastructure.Identity.AppUser { UserName = "vet-records@sysvet.com", Email = "vet-records@sysvet.com", TenantId = Guid.NewGuid() };
+            user = new Core.Infrastructure.Identity.AppUser
+            {
+                UserName = "vet-records@sysvet.com",
+                Email = "vet-records@sysvet.com",
+                TenantId = IntegrationTestDatabaseHelper.SingleTenantId
+            };
             await userManager.CreateAsync(user, "Password123!");
             await userManager.AddToRoleAsync(user, "Admin");
         }

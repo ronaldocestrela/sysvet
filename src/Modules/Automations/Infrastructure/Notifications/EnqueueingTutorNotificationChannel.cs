@@ -14,13 +14,16 @@ namespace Automations.Infrastructure.Notifications;
 public sealed class EnqueueingTutorNotificationChannel : ITutorNotificationChannel
 {
     private readonly IMessageJobRepository _jobRepository;
+    private readonly ITutorMessagingPreferenceRepository _preferenceRepository;
     private readonly IAutomationsUnitOfWork _unitOfWork;
 
     public EnqueueingTutorNotificationChannel(
         IMessageJobRepository jobRepository,
+        ITutorMessagingPreferenceRepository preferenceRepository,
         IAutomationsUnitOfWork unitOfWork)
     {
         _jobRepository = jobRepository;
+        _preferenceRepository = preferenceRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -42,11 +45,20 @@ public sealed class EnqueueingTutorNotificationChannel : ITutorNotificationChann
             return;
         }
 
+        var pref = await _preferenceRepository.GetByTutorIdAsync(notification.TutorId, cancellationToken)
+                   ?? TutorMessagingPreference.DefaultFor(notification.TutorId);
+        if (!pref.WhatsAppEnabled)
+        {
+            return;
+        }
+
         var payload = JsonSerializer.Serialize(new Dictionary<string, string>
         {
+            ["TutorId"] = notification.TutorId.ToString("N"),
             ["TutorName"] = notification.TutorName,
             ["PetName"] = notification.PetName,
-            ["TutorPhone"] = notification.TutorPhone
+            ["TutorPhone"] = notification.TutorPhone,
+            ["ToPhone"] = notification.TutorPhone
         });
 
         var idempotencyKey = $"grooming:{notification.GroomingAppointmentId:N}:{(int)notification.Kind}";

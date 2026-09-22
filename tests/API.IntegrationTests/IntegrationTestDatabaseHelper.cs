@@ -8,6 +8,9 @@ namespace API.IntegrationTests;
 /// </summary>
 internal static class IntegrationTestDatabaseHelper
 {
+    /// <summary>Matches <c>TenancySettings:SingleTenantId</c> in integration test configuration.</summary>
+    internal static readonly Guid SingleTenantId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
     /// <summary>
     /// Migrates module schemas used by sync pull/push (Veterinary, Inventory, Sales).
     /// </summary>
@@ -32,6 +35,7 @@ internal static class IntegrationTestDatabaseHelper
     {
         var vetContext = scope.ServiceProvider.GetRequiredService<global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext>();
         await vetContext.Database.MigrateAsync();
+        await EnsureMedicalRecordFollowUpColumnAsync(vetContext);
 
         var inventoryContext = scope.ServiceProvider.GetRequiredService<global::Inventory.Infrastructure.Persistence.InventoryDbContext>();
         await inventoryContext.Database.MigrateAsync();
@@ -50,5 +54,44 @@ internal static class IntegrationTestDatabaseHelper
 
         var automationsContext = scope.ServiceProvider.GetRequiredService<global::Automations.Infrastructure.Persistence.AutomationsDbContext>();
         await automationsContext.Database.MigrateAsync();
+        await EnsureAutomations821SchemaAsync(automationsContext);
+    }
+
+    private static async Task EnsureAutomations821SchemaAsync(global::Automations.Infrastructure.Persistence.AutomationsDbContext context)
+    {
+        await context.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS AutomationsSettings (
+                Id TEXT NOT NULL PRIMARY KEY,
+                Key TEXT NOT NULL,
+                TimeZoneId TEXT NOT NULL,
+                BusinessStart TEXT NOT NULL,
+                BusinessEnd TEXT NOT NULL,
+                BusinessDaysJson TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_AutomationsSettings_Key ON AutomationsSettings (Key);
+            CREATE TABLE IF NOT EXISTS TutorMessagingPreferences (
+                Id TEXT NOT NULL PRIMARY KEY,
+                TutorId TEXT NOT NULL,
+                WhatsAppEnabled INTEGER NOT NULL,
+                EmailEnabled INTEGER NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_TutorMessagingPreferences_TutorId ON TutorMessagingPreferences (TutorId);
+            """);
+    }
+
+    private static async Task EnsureMedicalRecordFollowUpColumnAsync(global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext context)
+    {
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync("ALTER TABLE MedicalRecords ADD COLUMN FollowUpOn TEXT NULL;");
+        }
+        catch
+        {
+            // Column already exists.
+        }
     }
 }

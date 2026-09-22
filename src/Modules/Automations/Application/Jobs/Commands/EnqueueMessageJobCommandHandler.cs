@@ -1,4 +1,5 @@
 using Automations.Domain.Entities;
+using Automations.Domain.Enums;
 using Automations.Domain.Repositories;
 using Core.Domain;
 using MediatR;
@@ -21,6 +22,11 @@ public sealed class EnqueueMessageJobCommandHandler : IRequestHandler<EnqueueMes
 
     public async Task<Result<Guid>> Handle(EnqueueMessageJobCommand request, CancellationToken cancellationToken)
     {
+        if (request.Channel == MessageChannel.Sms)
+        {
+            return Result.Failure<Guid>(Automations.Domain.ErrorCodes.Channel.SmsNotSupported);
+        }
+
         var idempotencyKey = request.IdempotencyKey == Guid.Empty
             ? string.Empty
             : request.IdempotencyKey.ToString("N");

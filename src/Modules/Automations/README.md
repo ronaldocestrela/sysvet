@@ -1,27 +1,27 @@
 # `src/Modules/Automations/` — Módulo Automações
 
-Fila durável de mensagens outbound (WhatsApp/SMS/e-mail), templates por canal e worker com retry ([`docs/roadmap.md`](../../../docs/roadmap.md) § 8.1, [ADR-038](../../../docs/arquitetura/ADR-038-automations-outbox.md)).
+Fila durável de mensagens outbound (WhatsApp/e-mail), templates por canal, lembretes e worker com retry ([`docs/roadmap.md`](../../../docs/roadmap.md) § 8.1–8.2, [ADR-038](../../../docs/arquitetura/ADR-038-automations-outbox.md), [ADR-039](../../../docs/arquitetura/ADR-039-lembretes-smtp-evolution.md)).
 
 ## Status
 
-> **Fase 8.1 concluída.** Outbox SQL, `OutboxProcessor`, templates, API `/api/v1/automations`, canal tutor `EnqueueingTutorNotificationChannel`. Provedores externos na 8.2.
+> **Fases 8.1 e 8.2 concluídas.** Outbox SQL, `OutboxProcessor`, `ReminderScheduler`, opt-out tutor, horário comercial, SMTP + Evolution API (`Provider=Live`). SMS adiado.
 
-## Escopo entregue (8.1)
+## Escopo entregue
 
-- Agregados `MessageTemplate`, `MessageJob`, `JobAttemptLog`
-- Worker in-process + `LoggingOutboundMessageSender`
-- Substitui `NullTutorNotificationChannel` quando o módulo está registrado
-- Permissões `Automations.Read` / `Automations.Write`; menu `automations`
+- Agregados `MessageTemplate`, `MessageJob`, `JobAttemptLog`, `TutorMessagingPreference`, `AutomationsSettings`
+- Gatilhos: vacina D-7, consulta D-1, aniversário pet, retorno (`MedicalRecord.FollowUpOn`)
+- API `/api/v1/automations` (templates, jobs, settings, preferências tutor)
+- Canal tutor `EnqueueingTutorNotificationChannel` (banho/tosa)
 
 ## Estrutura
 
 | Pasta | Responsabilidade |
 |---|---|
-| [`Domain/`](./Domain/) | Entidades, renderer de tokens, repositórios |
-| [`Application/`](./Application/) | CQRS, `MessageJobProcessor`, porta `IOutboundMessageSender` |
-| [`Infrastructure/`](./Infrastructure/) | EF, worker, seed de templates grooming, DI |
+| [`Domain/`](./Domain/) | Entidades, `BusinessHours`, renderer de tokens |
+| [`Application/`](./Application/) | CQRS, `ReminderPlanner`, `MessageJobProcessor` |
+| [`Infrastructure/`](./Infrastructure/) | EF, workers, gateways SMTP/Evolution, fontes de candidatos |
 
 ## Referências
 
 - [`docs/functions.md`](../../../docs/functions.md) § Automação/Marketing
-- [`docs/arquitetura/ADR-031-notificacoes-status-banho.md`](../../../docs/arquitetura/ADR-031-notificacoes-status-banho.md)
+- [`docs/diagramas/automations-lembretes.mmd`](../../../docs/diagramas/automations-lembretes.mmd)

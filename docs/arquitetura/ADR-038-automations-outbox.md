@@ -20,11 +20,11 @@ A Fase 8.1 exige módulo `Automations` com fila durável, worker, retry, log e t
 1. Criar `src/Modules/Automations/` (Domain/Application/Infrastructure) com agregados `MessageTemplate`, `MessageJob` (+ `JobAttemptLog`).
 2. Fila = tabelas `MessageJobs` / `MessageTemplates` no `AutomationsDbContext`; worker `OutboxProcessor` (`BackgroundService`) no processo da API.
 3. Retry exponencial (base 30s × 2^attempt); dead-letter após `MaxAttempts` (default 5); cada tentativa gera `JobAttemptLog`.
-4. `IOutboundMessageSender` na Application; 8.1 usa `LoggingOutboundMessageSender` (sem Twilio/SendGrid — Fase 8.2).
+4. `IOutboundMessageSender` na Application; 8.1 usa `LoggingOutboundMessageSender`; provedores reais na 8.2 ([ADR-039](./ADR-039-lembretes-smtp-evolution.md)).
 5. `EnqueueingTutorNotificationChannel` implementa `ITutorNotificationChannel` e enfileira jobs via `EnqueueMessageJobCommand`.
 6. Core registra `NullTutorNotificationChannel` com `TryAddSingleton`; Automations registra canal real depois (last-wins).
 
-**Fora de 8.1:** opt-in/opt-out, horário comercial, provedores externos, varredura multi-schema (Platform 9.1).
+**Fora de 8.1 (entregue na 8.2 — ADR-039):** opt-in/opt-out, horário comercial, SMTP/Evolution. **Fora de 8.2:** varredura multi-schema (Platform 9.1).
 
 ## Consequências
 

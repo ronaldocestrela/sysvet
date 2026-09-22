@@ -60,6 +60,49 @@ public class AutomationsEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         persisted!.Status.Should().Be(MessageJobStatus.Pending);
     }
 
+    [Fact]
+    public async Task EnqueueJob_SmsChannel_ReturnsBadRequest()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var enqueueResponse = await client.PostAsJsonAsync(
+            "/api/v1/automations/jobs",
+            new
+            {
+                channel = (int)MessageChannel.Sms,
+                templateCode = "test.sms",
+                payloadJson = """{"Name":"Cliente"}"""
+            });
+
+        enqueueResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task VaccineReminder_NotEnqueued_WhenWhatsAppAndEmailOptedOut()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var core = scope.ServiceProvider.GetRequiredService<Core.Infrastructure.Persistence.CoreDbContext>();
+        var tutor = Core.Domain.Entities.Tutor.Create(
+            "Opt Out Tutor",
+            Core.Domain.ValueObjects.Email.Create("optout@test.com").Value,
+            Core.Domain.ValueObjects.Cpf.Create("52998224725").Value,
+            Core.Domain.ValueObjects.Phone.Create("11999998888").Value).Value;
+        core.Tutors.Add(tutor);
+        await core.SaveChangesAsync();
+
+        var prefResponse = await client.PutAsJsonAsync(
+            $"/api/v1/automations/tutors/{tutor.Id}/preferences",
+            new { whatsAppEnabled = false, emailEnabled = false });
+        prefResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+
+        var automations = scope.ServiceProvider.GetRequiredService<AutomationsDbContext>();
+        var scan = scope.ServiceProvider.GetRequiredService<global::Automations.Infrastructure.Reminders.ReminderScanService>();
+        await scan.ScanAsync(CancellationToken.None);
+
+        var jobs = await automations.MessageJobs.Where(j => j.PayloadJson.Contains(tutor.Id.ToString("N"))).ToListAsync();
+        jobs.Should().BeEmpty();
+    }
+
     private async Task<HttpClient> CreateAuthenticatedClientAsync()
     {
         using var scope = _factory.Services.CreateAsyncScope();
@@ -76,7 +119,12 @@ public class AutomationsEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         }
 
         var email = $"automations-{Guid.NewGuid():N}@sysvet.com";
-        var user = new Core.Infrastructure.Identity.AppUser { UserName = email, Email = email, TenantId = Guid.NewGuid() };
+        var user = new Core.Infrastructure.Identity.AppUser
+        {
+            UserName = email,
+            Email = email,
+            TenantId = IntegrationTestDatabaseHelper.SingleTenantId
+        };
         await userManager.CreateAsync(user, "Password123!");
         await userManager.AddToRoleAsync(user, "Admin");
 

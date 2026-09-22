@@ -201,6 +201,25 @@ public sealed class OfflineMedicalRecordStore : IMedicalRecordStore
     }
 
     /// <inheritdoc />
+    public async Task<Result> SetFollowUpOnAsync(Guid medicalRecordId, DateOnly? followUpOn, CancellationToken cancellationToken = default)
+    {
+        var record = await FindRecordAsync(medicalRecordId, cancellationToken);
+        if (record is null)
+        {
+            return Result.Failure(new Error("MedicalRecord.NotFound", "Medical record not found locally."));
+        }
+
+        var update = record.SetFollowUpOn(followUpOn);
+        if (update.IsFailure)
+        {
+            return Result.Failure(update.Error);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
     public async Task<Result> FinalizeAsync(Guid medicalRecordId, CancellationToken cancellationToken = default)
     {
         var record = await FindRecordAsync(medicalRecordId, cancellationToken);
@@ -231,6 +250,7 @@ public sealed class OfflineMedicalRecordStore : IMedicalRecordStore
             Anamnesis = record.Anamnesis,
             Diagnosis = record.Diagnosis,
             Conduct = record.Prescription,
+            FollowUpOn = record.FollowUpOn,
             Status = record.Status.ToString(),
             VitalSigns = record.VitalSigns is null
                 ? null

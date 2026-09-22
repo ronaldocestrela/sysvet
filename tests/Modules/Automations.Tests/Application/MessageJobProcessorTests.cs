@@ -1,5 +1,6 @@
 using Automations.Application.Abstractions;
 using Automations.Application.Jobs;
+using Automations.Domain.Repositories;
 using Automations.Domain.Entities;
 using Automations.Domain.Enums;
 using Automations.Domain.Repositories;
@@ -82,19 +83,37 @@ public class MessageJobProcessorTests
             .Returns(template);
 
         var uow = Substitute.For<IAutomationsUnitOfWork>();
-        var processor = new MessageJobProcessor(jobRepo, templateRepo, sender, uow);
+        var policy = Substitute.For<IAutomationsDeliveryPolicy>();
+        policy.EvaluateAsync(Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(new DeliveryPolicyResult(true, DateTimeOffset.UtcNow));
+        var prefs = Substitute.For<ITutorMessagingPreferenceRepository>();
+        var processor = new MessageJobProcessor(jobRepo, templateRepo, sender, policy, prefs, uow);
         return (processor, jobRepo, uow);
     }
 
     private sealed class SuccessSender : IOutboundMessageSender
     {
-        public Task<Result> SendAsync(MessageChannel channel, string? subject, string body, string payloadJson, CancellationToken cancellationToken = default) =>
+        public Task<Result> SendAsync(
+            MessageChannel channel,
+            string? subject,
+            string body,
+            string payloadJson,
+            string? toPhone = null,
+            string? toEmail = null,
+            CancellationToken cancellationToken = default) =>
             Task.FromResult(Result.Success());
     }
 
     private sealed class FailingSender : IOutboundMessageSender
     {
-        public Task<Result> SendAsync(MessageChannel channel, string? subject, string body, string payloadJson, CancellationToken cancellationToken = default) =>
+        public Task<Result> SendAsync(
+            MessageChannel channel,
+            string? subject,
+            string body,
+            string payloadJson,
+            string? toPhone = null,
+            string? toEmail = null,
+            CancellationToken cancellationToken = default) =>
             Task.FromResult(Result.Failure(new Error("Test.SendFailed", "Simulated failure")));
     }
 }

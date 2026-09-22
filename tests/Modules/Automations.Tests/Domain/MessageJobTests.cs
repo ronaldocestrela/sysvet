@@ -46,6 +46,24 @@ public class MessageJobTests
     }
 
     [Fact]
+    public void DeferUntil_DoesNotIncrementAttemptCount()
+    {
+        var job = MessageJob.Enqueue(
+            Guid.NewGuid(),
+            MessageChannel.WhatsApp,
+            "reminder.vaccine",
+            "{}",
+            "key-defer",
+            now: Now).Value;
+
+        job.DeferUntil(Now.AddHours(2));
+
+        job.AttemptCount.Should().Be(0);
+        job.Status.Should().Be(MessageJobStatus.Pending);
+        job.NextAttemptAt.Should().Be(Now.AddHours(2));
+    }
+
+    [Fact]
     public void MarkDeadLetter_WhenMaxAttemptsReached()
     {
         var job = MessageJob.Enqueue(

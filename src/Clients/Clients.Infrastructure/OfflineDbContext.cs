@@ -554,6 +554,16 @@ public class OfflineDbContext : DbContext
             });
         }
 
+        if (PropertyModified(entry, nameof(MedicalRecord.FollowUpOn)))
+        {
+            outboxMessages.Add(new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = "SetFollowUpOnCommand",
+                Payload = OutboxPayloadFactory.SetFollowUpOn(record.Id, record.FollowUpOn, Guid.NewGuid())
+            });
+        }
+
         if (record.VitalSigns is not null &&
             entry.Properties.Any(p => p.IsModified && p.Metadata.Name.StartsWith("Vital", StringComparison.Ordinal)))
         {

@@ -36,6 +36,8 @@ internal sealed class MedicalRecordConfiguration : IEntityTypeConfiguration<Medi
             .IsRequired()
             .HasConversion<int>();
 
+        builder.Property(m => m.FollowUpOn);
+
         builder.OwnsOne(m => m.VitalSigns, vitals =>
         {
             vitals.Property(v => v.WeightKg).HasColumnName("VitalWeightKg");

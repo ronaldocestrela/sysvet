@@ -139,6 +139,9 @@ internal static class OutboxPayloadFactory
     public static string SetConduct(Guid medicalRecordId, string conduct, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, Conduct = conduct, IdempotencyKey = idempotencyKey });
 
+    public static string SetFollowUpOn(Guid medicalRecordId, DateOnly? followUpOn, Guid idempotencyKey) =>
+        System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, FollowUpOn = followUpOn, IdempotencyKey = idempotencyKey });
+
     public static string FinalizeMedicalRecord(Guid medicalRecordId, Guid idempotencyKey) =>
         System.Text.Json.JsonSerializer.Serialize(new { MedicalRecordId = medicalRecordId, IdempotencyKey = idempotencyKey });
 

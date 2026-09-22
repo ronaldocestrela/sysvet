@@ -13,7 +13,12 @@ public sealed class DefaultTenantContext : ITenantContext
     /// </summary>
     public DefaultTenantContext(IOptions<TenancySettings> tenancySettings)
     {
-        SchemaName = tenancySettings.Value.DefaultSchema;
+        var settings = tenancySettings.Value;
+        SchemaName = settings.DefaultSchema;
+        if (settings.SingleTenantId is { } tenantId && tenantId != Guid.Empty)
+        {
+            TenantId = tenantId;
+        }
     }
 
     /// <summary>

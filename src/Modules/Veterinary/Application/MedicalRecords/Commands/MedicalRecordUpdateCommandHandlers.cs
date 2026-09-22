@@ -228,3 +228,43 @@ public sealed class FinalizeMedicalRecordCommandHandler : IRequestHandler<Finali
         return Result.Success();
     }
 }
+
+/// <summary>Handles follow-up date updates on draft medical records.</summary>
+public sealed class SetFollowUpOnCommandHandler : IRequestHandler<SetFollowUpOnCommand, Result>
+{
+    private readonly IMedicalRecordRepository _repository;
+    private readonly IAuditLogger _auditLogger;
+    private readonly ITenantContext _tenantContext;
+
+    public SetFollowUpOnCommandHandler(IMedicalRecordRepository repository, IAuditLogger auditLogger, ITenantContext tenantContext)
+    {
+        _repository = repository;
+        _auditLogger = auditLogger;
+        _tenantContext = tenantContext;
+    }
+
+    public async Task<Result> Handle(SetFollowUpOnCommand request, CancellationToken cancellationToken)
+    {
+        var record = await _repository.GetByIdAsync(request.MedicalRecordId, cancellationToken);
+        if (record is null)
+        {
+            return Result.Failure(Veterinary.Domain.ErrorCodes.MedicalRecord.NotFound);
+        }
+
+        var update = record.SetFollowUpOn(request.FollowUpOn);
+        if (update.IsFailure)
+        {
+            return Result.Failure(update.Error);
+        }
+
+        _repository.Update(record);
+        await MedicalRecordAuditHelper.LogAsync(
+            _auditLogger,
+            _tenantContext,
+            record.Id,
+            "SetFollowUpOn",
+            $"followUpOn={request.FollowUpOn}",
+            cancellationToken);
+        return Result.Success();
+    }
+}

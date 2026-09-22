@@ -57,6 +57,9 @@
             <FormField Label="Conduta">
                 <textarea class="form-control" rows="2" @bind="_selectedConduct" disabled="@(_selected.Status != "Draft")"></textarea>
             </FormField>
+            <FormField Label="Data de retorno">
+                <input type="date" class="form-control" @bind="_selectedFollowUp" disabled="@(_selected.Status != "Draft")" />
+            </FormField>
 
             @if (_selected.Status == "Draft")
             {
@@ -206,6 +209,7 @@
     private string _selectedAnamnesis = string.Empty;
     private string _selectedDiagnosis = string.Empty;
     private string _selectedConduct = string.Empty;
+    private DateOnly? _selectedFollowUp;
     private string _newEvolution = string.Empty;
     private string _newExamName = string.Empty;
     private string _newExamCategory = "Laboratory";
@@ -268,6 +272,7 @@
         _selectedAnamnesis = _selected.Anamnesis;
         _selectedDiagnosis = _selected.Diagnosis;
         _selectedConduct = _selected.Conduct;
+        _selectedFollowUp = _selected.FollowUpOn;
         await LoadClinicalArtifactsAsync(_selected.AppointmentId);
     }
 
@@ -421,8 +426,9 @@
         var anamnesis = await MedicalRecordStore.UpdateAnamnesisAsync(_selected.Id, _selectedAnamnesis);
         var diagnosis = await MedicalRecordStore.SetDiagnosisAsync(_selected.Id, _selectedDiagnosis);
         var conduct = await MedicalRecordStore.SetConductAsync(_selected.Id, _selectedConduct);
+        var followUp = await MedicalRecordStore.SetFollowUpOnAsync(_selected.Id, _selectedFollowUp);
 
-        if (anamnesis.IsFailure || diagnosis.IsFailure || conduct.IsFailure)
+        if (anamnesis.IsFailure || diagnosis.IsFailure || conduct.IsFailure || followUp.IsFailure)
         {
             Toast.Show("Falha ao salvar rascunho.", ToastType.Error);
             return;

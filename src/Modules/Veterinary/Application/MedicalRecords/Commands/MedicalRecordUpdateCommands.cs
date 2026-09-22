@@ -43,3 +43,7 @@ public record SetConductCommand(Guid MedicalRecordId, string Conduct, Guid Idemp
 /// <summary>Finalizes a medical record (immutable afterward).</summary>
 [AuthorizeRequest(AuthorizationPolicies.Veterinarian, Permissions.MedicalRecordsWrite)]
 public record FinalizeMedicalRecordCommand(Guid MedicalRecordId, Guid IdempotencyKey = default) : IIdempotentCommand;
+
+/// <summary>Sets or clears follow-up date on a draft medical record.</summary>
+[AuthorizeRequest(AuthorizationPolicies.Veterinarian, Permissions.MedicalRecordsWrite)]
+public record SetFollowUpOnCommand(Guid MedicalRecordId, DateOnly? FollowUpOn, Guid IdempotencyKey = default) : IIdempotentCommand;

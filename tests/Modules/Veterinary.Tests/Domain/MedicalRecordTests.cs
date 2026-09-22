@@ -47,6 +47,30 @@ public class MedicalRecordTests
     }
 
     [Fact]
+    public void SetFollowUpOn_WhenDraft_UpdatesDate()
+    {
+        var record = MedicalRecord.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()).Value;
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
+
+        var result = record.SetFollowUpOn(date);
+
+        result.IsSuccess.Should().BeTrue();
+        record.FollowUpOn.Should().Be(date);
+    }
+
+    [Fact]
+    public void SetFollowUpOn_WhenFinalized_ReturnsFailure()
+    {
+        var record = MedicalRecord.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()).Value;
+        record.FinalizeRecord();
+
+        var result = record.SetFollowUpOn(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("MedicalRecord.Finalized");
+    }
+
+    [Fact]
     public void FinalizeRecord_WhenAlreadyFinalized_ReturnsFailure()
     {
         var record = MedicalRecord.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()).Value;
