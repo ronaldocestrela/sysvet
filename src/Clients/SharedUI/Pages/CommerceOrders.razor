@@ -1,0 +1,103 @@
+@page "/commerce/orders"
+@using Clients.Infrastructure.Commerce
+@using SharedUI.Components
+@using SharedUI.Services
+@inject CommerceApiService CommerceApi
+@inject IToastService Toast
+
+<h1>Pedidos online</h1>
+
+@if (_loading)
+{
+    <LoadingState IsLoading="true" />
+}
+else if (_orders.Count == 0)
+{
+    <p class="text-muted">Nenhum pedido online.</p>
+}
+else
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Canal</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in _orders)
+            {
+                <tr>
+                    <td>@order.BuyerName<br /><small>@order.BuyerPhone</small></td>
+                    <td>@order.Channel</td>
+                    <td>@order.Status</td>
+                    <td>R$ @order.TotalAmount.ToString("N2")</td>
+                    <td class="text-nowrap">
+                        @if (order.Status == "Confirmed")
+                        {
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => ReadyAsync(order.Id)">Pronto</button>
+                        }
+                        @if (order.Status is "Confirmed" or "ReadyForPickup")
+                        {
+                            <button class="btn btn-sm btn-outline-success" @onclick="() => CompleteAsync(order.Id)">Concluir</button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => CancelAsync(order.Id)">Cancelar</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private bool _loading = true;
+    private List<OnlineOrderClientDto> _orders = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+        _loading = false;
+    }
+
+    private async Task ReloadAsync()
+    {
+        var result = await CommerceApi.ListOrdersAsync();
+        if (result.IsSuccess)
+        {
+            _orders = result.Value.ToList();
+        }
+    }
+
+    private async Task ReadyAsync(Guid id)
+    {
+        var result = await CommerceApi.MarkReadyAsync(id);
+        if (result.IsSuccess)
+        {
+            Toast.Show("Pedido pronto para retirada.", ToastType.Success);
+            await ReloadAsync();
+        }
+    }
+
+    private async Task CompleteAsync(Guid id)
+    {
+        var result = await CommerceApi.CompleteAsync(id);
+        if (result.IsSuccess)
+        {
+            Toast.Show("Pedido concluído.", ToastType.Success);
+            await ReloadAsync();
+        }
+    }
+
+    private async Task CancelAsync(Guid id)
+    {
+        var result = await CommerceApi.CancelAsync(id);
+        if (result.IsSuccess)
+        {
+            Toast.Show("Pedido cancelado.", ToastType.Success);
+            await ReloadAsync();
+        }
+    }
+}

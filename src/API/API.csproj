@@ -41,6 +41,8 @@
     <ProjectReference Include="..\Modules\TutorPortal\Infrastructure\TutorPortal.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\ClinicSite\Application\ClinicSite.Application.csproj" />
     <ProjectReference Include="..\Modules\ClinicSite\Infrastructure\ClinicSite.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Commerce\Application\Commerce.Application.csproj" />
+    <ProjectReference Include="..\Modules\Commerce\Infrastructure\Commerce.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

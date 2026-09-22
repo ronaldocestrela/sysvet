@@ -1,0 +1,57 @@
+@page "/loja"
+@inject SlugContext SlugContext
+@inject PublicStoreApiService StoreApi
+@inject NavigationManager Navigation
+
+<h1>Loja</h1>
+
+@if (_loading)
+{
+    <p>Carregando produtos...</p>
+}
+else if (_products.Count == 0)
+{
+    <p class="text-muted">Nenhum produto publicado no momento.</p>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var p in _products)
+        {
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@p.ProductName</h5>
+                        <p class="card-text fw-semibold">R$ @p.SalePrice.ToString("N2")</p>
+                        <p class="small text-muted">Estoque: @p.AvailableQuantity.ToString("N0")</p>
+                        @if (p.IsAvailable)
+                        {
+                            <a class="btn btn-primary btn-sm" href="@($"loja/produto/{p.OfferId}")">Ver produto</a>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-secondary">Indisponível</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private IReadOnlyList<PublicStoreProductClientDto> _products = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SlugContext.CurrentSlug))
+        {
+            _loading = false;
+            return;
+        }
+
+        _products = await StoreApi.GetCatalogAsync(SlugContext.CurrentSlug);
+        _loading = false;
+    }
+}

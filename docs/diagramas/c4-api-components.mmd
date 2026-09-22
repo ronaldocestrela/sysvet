@@ -9,7 +9,7 @@ flowchart TB
         OpenApi["OpenAPI Scalar dev"]
         ResultFilter["ResultEndpointFilter"]
         ResultExt["ResultExtensions"]
-        MapEndpoints["MapCore MapAuth MapVeterinary<br/>MapInventory MapSales MapPetshop MapFinance MapFiscal"]
+        MapEndpoints["MapCore MapAuth MapVeterinary<br/>MapInventory MapSales MapPetshop MapFinance MapFiscal<br/>MapClinicSite MapCommerce"]
     end
 
     subgraph core_mod [Core module]
@@ -39,6 +39,17 @@ flowchart TB
         FinInf["Infrastructure FinanceDbContext"]
     end
 
+    subgraph clinic_mod [ClinicSite module]
+        ClinicApp["Application site profile slug index"]
+        ClinicInf["Infrastructure ClinicSiteDbContext"]
+    end
+
+    subgraph commerce_mod [Commerce module]
+        CommerceApp["Application offers online orders marketplace"]
+        CommerceInf["Infrastructure CommerceDbContext"]
+        ConsumeStock["ConsumeStockForSaleRequest via Core"]
+    end
+
     subgraph stub_mod [Stub modules]
         FiscalMod["Fiscal NF-e NFS-e"]
     end
@@ -54,12 +65,18 @@ flowchart TB
     MapEndpoints --> VetApp
     MapEndpoints --> InvApp
     MapEndpoints --> SalesApp
+    MapEndpoints --> ClinicApp
+    MapEndpoints --> CommerceApp
 
     CoreApp --> CoreDom
     CoreInf --> CoreApp
     VetInf --> VetApp
     InvInf --> InvApp
     SalesInf --> SalesApp
+    ClinicInf --> ClinicApp
+    CommerceInf --> CommerceApp
+    CommerceApp --> ConsumeStock
+    ConsumeStock --> InvApp
 
     OrderPaid --> InvHandler
     SalesApp -.-> OrderPaid
@@ -69,4 +86,6 @@ flowchart TB
     Program --> InvInf
     Program --> SalesInf
     Program --> FinInf
+    Program --> ClinicInf
+    Program --> CommerceInf
     Program --> FiscalMod

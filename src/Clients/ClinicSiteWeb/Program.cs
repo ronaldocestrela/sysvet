@@ -16,6 +16,7 @@ if (!apiBaseUrl.EndsWith('/'))
 
 builder.Services.AddSingleton<SlugContext>();
 builder.Services.AddScoped<PublicClinicSiteApiService>();
+builder.Services.AddScoped<PublicStoreApiService>();
 builder.Services.AddHttpClient("PublicApi", client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddSharedUI();
 

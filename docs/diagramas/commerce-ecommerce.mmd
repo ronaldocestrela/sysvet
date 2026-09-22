@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant Store as ClinicSiteWeb
+    participant API as Commerce_API
+    participant Inv as Inventory
+    participant ML as MercadoLivreChannel
+
+    Store->>API: POST public store orders
+    API->>API: OnlineOrder confirm
+    API->>Inv: ConsumeStockForSaleRequest
+    Inv-->>API: StockMovement Out
+    API->>API: Enqueue MarketplaceSyncJob
+    API->>ML: PushListing price qty

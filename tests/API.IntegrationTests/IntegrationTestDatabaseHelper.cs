@@ -26,7 +26,8 @@ internal static class IntegrationTestDatabaseHelper
                      scope.ServiceProvider.GetRequiredService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>(),
                      scope.ServiceProvider.GetRequiredService<global::Automations.Infrastructure.Persistence.AutomationsDbContext>(),
                      scope.ServiceProvider.GetRequiredService<global::TutorPortal.Infrastructure.Persistence.TutorPortalDbContext>(),
-                     scope.ServiceProvider.GetRequiredService<global::ClinicSite.Infrastructure.Persistence.ClinicSiteDbContext>()
+                     scope.ServiceProvider.GetRequiredService<global::ClinicSite.Infrastructure.Persistence.ClinicSiteDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Commerce.Infrastructure.Persistence.CommerceDbContext>()
                  })
         {
             await ctx.Database.EnsureDeletedAsync();
@@ -64,6 +65,9 @@ internal static class IntegrationTestDatabaseHelper
 
         var clinicSiteContext = scope.ServiceProvider.GetRequiredService<global::ClinicSite.Infrastructure.Persistence.ClinicSiteDbContext>();
         await clinicSiteContext.Database.MigrateAsync();
+
+        var commerceContext = scope.ServiceProvider.GetRequiredService<global::Commerce.Infrastructure.Persistence.CommerceDbContext>();
+        await commerceContext.Database.MigrateAsync();
     }
 
     private static async Task EnsureAutomations821SchemaAsync(global::Automations.Infrastructure.Persistence.AutomationsDbContext context)

@@ -23,6 +23,7 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   │   ├── c4-context.mmd              # C4 nível 1 — contexto.
 │   │   ├── c4-containers.mmd           # C4 nível 2 — containers vs src/.
 │   │   ├── c4-api-components.mmd       # C4 nível 3 — módulos na API.
+│   │   ├── commerce-ecommerce.mmd      # Loja pública, pedidos online e Mercado Livre (8.8).
 │   │   └── sync-sequence.mmd           # Outbox: cliente → API → banco nuvem.
 │   ├── agents.md
 │   ├── structure.md
@@ -89,6 +90,11 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │       │   └── Infrastructure/
 │       │
 │       ├── ClinicSite/                  # Site público do estabelecimento (8.7).
+│       │   ├── Domain/
+│       │   ├── Application/
+│       │   └── Infrastructure/
+│       │
+│       ├── Commerce/                    # E-commerce loja + marketplaces (8.8, ADR-045).
 │       │   ├── Domain/
 │       │   ├── Application/
 │       │   └── Infrastructure/

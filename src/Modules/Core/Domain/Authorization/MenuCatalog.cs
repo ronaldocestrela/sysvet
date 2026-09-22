@@ -31,7 +31,9 @@ public static class MenuCatalog
         ["fiscal"] = Permissions.FiscalRead,
         ["automations"] = Permissions.AutomationsRead,
         ["audit"] = Permissions.AuditRead,
-        ["clinic-site"] = Permissions.ClinicSiteRead
+        ["clinic-site"] = Permissions.ClinicSiteRead,
+        ["commerce-offers"] = Permissions.CommerceRead,
+        ["commerce-orders"] = Permissions.CommerceRead
     };
 
     /// <summary>

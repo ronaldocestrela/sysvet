@@ -50,6 +50,7 @@
 * `src/Modules/Automations/` — Fila de mensagens, templates e worker (ADR-038).
 * `src/Modules/TutorPortal/` — Autenticação e vínculo do tutor CRM ao portal (ADR-041).
 * `src/Modules/ClinicSite/` — Site público do estabelecimento (ADR-044).
+* `src/Modules/Commerce/` — E-commerce, ofertas, pedidos online e marketplace (ADR-045).
 * [cite_start]`src/Modules/[NomeDoModulo]/Domain/` - Entidades, Value Objects e interfaces de repositório[cite: 89].
 * [cite_start]`src/Modules/[NomeDoModulo]/Application/` - Handlers CQRS, DTOs e validações[cite: 90].
 * [cite_start]`src/Modules/[NomeDoModulo]/Infrastructure/` - EF Core DbContext, Mapeamentos, Repositórios e Serviços externos[cite: 90].

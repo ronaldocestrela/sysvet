@@ -1,0 +1,151 @@
+@page "/commerce/offers"
+@using Clients.Infrastructure.Commerce
+@using Clients.Infrastructure.Crm
+@using SharedUI.Components
+@using SharedUI.Services
+@inject CommerceApiService CommerceApi
+@inject IInventoryStore InventoryStore
+@inject IToastService Toast
+
+<h1>Ofertas da loja</h1>
+
+@if (_loading)
+{
+    <LoadingState IsLoading="true" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>SKU</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Publicado</th>
+                <th>Loja</th>
+                <th>ML</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var offer in _offers)
+            {
+                <tr>
+                    <td>@offer.ProductName</td>
+                    <td>@offer.Sku</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" style="max-width:120px"
+                               @bind="offer.SalePrice" />
+                    </td>
+                    <td>@offer.AvailableQuantity.ToString("N0")</td>
+                    <td><input type="checkbox" @bind="offer.IsPublished" /></td>
+                    <td><input type="checkbox" @bind="offer.StoreEnabled" /></td>
+                    <td><input type="checkbox" @bind="offer.MercadoLivreEnabled" /></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveOfferAsync(offer)">Salvar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h2 class="h5 mt-4">Novo produto na loja</h2>
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Produto (catálogo)</label>
+            <select class="form-select" @bind="_newProductId">
+                <option value="@Guid.Empty">Selecione...</option>
+                @foreach (var p in _productsWithoutOffer)
+                {
+                    <option value="@p.Id">@p.Name (@p.Sku)</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Preço</label>
+            <input type="number" class="form-control" @bind="_newPrice" />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary" @onclick="AddOfferAsync">Publicar</button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private List<ProductOfferClientDto> _offers = [];
+    private List<InventoryProductListItem> _products = [];
+    private Guid _newProductId;
+    private decimal _newPrice = 10m;
+
+    private IEnumerable<InventoryProductListItem> _productsWithoutOffer =>
+        _products.Where(p => _offers.All(o => o.ProductId != p.Id));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+        _loading = false;
+    }
+
+    private async Task ReloadAsync()
+    {
+        var offers = await CommerceApi.ListOffersAsync();
+        if (offers.IsSuccess)
+        {
+            _offers = offers.Value.ToList();
+        }
+
+        var products = await InventoryStore.ListProductsAsync();
+        if (products.IsSuccess)
+        {
+            _products = products.Value.ToList();
+        }
+    }
+
+    private async Task SaveOfferAsync(ProductOfferClientDto offer)
+    {
+        var result = await CommerceApi.UpsertOfferAsync(new UpsertProductOfferClientDto
+        {
+            ProductId = offer.ProductId,
+            SalePrice = offer.SalePrice,
+            IsPublished = offer.IsPublished,
+            StoreEnabled = offer.StoreEnabled,
+            MercadoLivreEnabled = offer.MercadoLivreEnabled
+        });
+        if (result.IsSuccess)
+        {
+            Toast.Show("Oferta atualizada.", ToastType.Success);
+            await ReloadAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+
+    private async Task AddOfferAsync()
+    {
+        if (_newProductId == Guid.Empty)
+        {
+            return;
+        }
+
+        var result = await CommerceApi.UpsertOfferAsync(new UpsertProductOfferClientDto
+        {
+            ProductId = _newProductId,
+            SalePrice = _newPrice,
+            IsPublished = true,
+            StoreEnabled = true,
+            MercadoLivreEnabled = false
+        });
+        if (result.IsSuccess)
+        {
+            Toast.Show("Oferta criada.", ToastType.Success);
+            await ReloadAsync();
+        }
+        else
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+        }
+    }
+}

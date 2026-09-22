@@ -1,0 +1,86 @@
+@page "/loja/checkout/{OfferId:guid}"
+@inject SlugContext SlugContext
+@inject PublicStoreApiService StoreApi
+@inject NavigationManager Navigation
+
+<h1>Finalizar pedido</h1>
+
+@if (_product is null)
+{
+    <p>Produto indisponível.</p>
+}
+else
+{
+    <p><strong>@_product.ProductName</strong> — R$ @_product.SalePrice.ToString("N2")</p>
+    <div class="mb-3">
+        <label class="form-label">Quantidade</label>
+        <input type="number" class="form-control" min="1" max="@_product.AvailableQuantity" @bind="_quantity" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Nome</label>
+        <input class="form-control" @bind="_buyerName" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Telefone</label>
+        <input class="form-control" @bind="_buyerPhone" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">E-mail (opcional)</label>
+        <input class="form-control" @bind="_buyerEmail" />
+    </div>
+    @if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <p class="text-danger">@_message</p>
+    }
+    <button class="btn btn-primary" disabled="@_submitting" @onclick="SubmitAsync">Confirmar pedido</button>
+    <p class="text-muted small mt-3">Pagamento na retirada na clínica. Estoque é reservado ao confirmar.</p>
+}
+
+@code {
+    [Parameter] public Guid OfferId { get; set; }
+
+    private PublicStoreProductClientDto? _product;
+    private decimal _quantity = 1m;
+    private string _buyerName = string.Empty;
+    private string _buyerPhone = string.Empty;
+    private string? _buyerEmail;
+    private string? _message;
+    private bool _submitting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SlugContext.CurrentSlug))
+        {
+            return;
+        }
+
+        _product = await StoreApi.GetProductAsync(SlugContext.CurrentSlug, OfferId);
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_product is null || string.IsNullOrWhiteSpace(SlugContext.CurrentSlug))
+        {
+            return;
+        }
+
+        _submitting = true;
+        _message = null;
+        var ok = await StoreApi.PlaceOrderAsync(SlugContext.CurrentSlug, new PlaceStoreOrderClientDto
+        {
+            BuyerName = _buyerName,
+            BuyerPhone = _buyerPhone,
+            BuyerEmail = _buyerEmail,
+            Lines = [new PlaceStoreOrderLineClientDto { OfferId = OfferId, Quantity = _quantity }]
+        });
+        _submitting = false;
+        if (ok)
+        {
+            Navigation.NavigateTo("loja?ok=1");
+        }
+        else
+        {
+            _message = "Não foi possível confirmar o pedido. Verifique estoque e dados.";
+        }
+    }
+}

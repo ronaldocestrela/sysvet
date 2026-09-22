@@ -261,9 +261,14 @@ Iniciado o módulo de estoque.
 - Módulo `ClinicSite`, API staff `/api/v1/clinic-site/` e pública `/api/v1/public/clinic-sites/{slug}`; clients `ClinicSiteWeb` + SharedUI `/clinic-site`.
 - Aceite: `ClinicSite_PublishedWithCadastralData_WhenSlugResolved`.
 
-### 👉 **Próxima Ação: Fase 8.8 — E-commerce e marketplaces**
+### Fase 8.8 — E-commerce e marketplaces — Concluída (ADR-045)
 
-Ver [`roadmap.md`](roadmap.md) § Fase 8.
+- Módulo `Commerce`, API staff `/api/v1/commerce/` e loja pública por slug; `ClinicSiteWeb` `/loja`; SharedUI `/commerce/offers|orders`.
+- Aceite: `EcommerceOrder_DebitsStock_WhenConfirmed`; `OfferPrice_ReflectsBackofficeChange_OnPublicCatalog`; `MercadoLivreInboundOrder_DebitsStock`.
+
+### 👉 **Próxima Ação: Fase 9 — Plataforma e Super Admin**
+
+Ver [`roadmap.md`](roadmap.md) § Fase 9.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

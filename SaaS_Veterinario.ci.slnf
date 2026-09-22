@@ -21,6 +21,9 @@
       "src/Modules/ClinicSite/Application/ClinicSite.Application.csproj",
       "src/Modules/ClinicSite/Domain/ClinicSite.Domain.csproj",
       "src/Modules/ClinicSite/Infrastructure/ClinicSite.Infrastructure.csproj",
+      "src/Modules/Commerce/Application/Commerce.Application.csproj",
+      "src/Modules/Commerce/Domain/Commerce.Domain.csproj",
+      "src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj",
       "src/Modules/Finance/Application/Finance.Application.csproj",
       "src/Modules/Finance/Domain/Finance.Domain.csproj",
       "src/Modules/Finance/Infrastructure/Finance.Infrastructure.csproj",
@@ -51,7 +54,8 @@
       "tests/Modules/Sales.Tests/Sales.Tests.csproj",
       "tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj",
       "tests/Modules/TutorPortal.Tests/TutorPortal.Tests.csproj",
-      "tests/Modules/ClinicSite.Tests/ClinicSite.Tests.csproj"
+      "tests/Modules/ClinicSite.Tests/ClinicSite.Tests.csproj",
+      "tests/Modules/Commerce.Tests/Commerce.Tests.csproj"
     ]
   }
 }

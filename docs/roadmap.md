@@ -986,7 +986,7 @@ flowchart TD
 | **8.5 App do tutor (login, vacinas, exames)** | 13 | Concluído |
 | **8.6 Autoagendamento pelo tutor** | 8 | Concluído |
 | **8.7 Site do estabelecimento** | 8 | Concluído |
-| **8.8 E-commerce e marketplaces** | 21 | Pendente |
+| **8.8 E-commerce e marketplaces** | 21 | Concluído |
 | **Total Fase 8** | **79 SP** | |
 
 ### 8.1 Módulo Automations — workers e filas (8 SP)
@@ -1045,11 +1045,11 @@ flowchart TD
 
 ### 8.8 E-commerce e marketplaces (21 SP)
 
-- [ ] Loja sync com estoque físico e preços
-- [ ] Pedidos online; atualização automática de estoque
-- [ ] Integração marketplace (Mercado Livre/Shopee — PoC 1 canal)
+- [x] Loja sync com estoque físico e preços
+- [x] Pedidos online; atualização automática de estoque
+- [x] Integração marketplace (Mercado Livre/Shopee — PoC 1 canal)
 
-**Aceite:** Pedido e-commerce baixa estoque; preço reflete alteração no backoffice.
+**Aceite:** Pedido e-commerce baixa estoque; preço reflete alteração no backoffice (`EcommerceOrder_DebitsStock_WhenConfirmed`; `OfferPrice_ReflectsBackofficeChange_OnPublicCatalog`; `MercadoLivreInboundOrder_DebitsStock`; ADR-045).
 
 ---
 

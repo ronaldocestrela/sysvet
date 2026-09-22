@@ -26,6 +26,8 @@ public static class MenuNavigation
             ["fiscal"] = new(AppRoutes.Fiscal, "Fiscal", "bi-receipt-cutoff"),
             ["automations"] = new(AppRoutes.Automations, "Automações", "bi-send"),
             ["clinic-site"] = new(AppRoutes.ClinicSite, "Site da clínica", "bi-globe2"),
+            ["commerce-offers"] = new(AppRoutes.CommerceOffers, "Loja — ofertas", "bi-bag"),
+            ["commerce-orders"] = new(AppRoutes.CommerceOrders, "Pedidos online", "bi-basket"),
             ["stock"] = new(AppRoutes.StockMovements, "Movimentações", "bi-arrow-left-right"),
             ["stock-alerts"] = new(AppRoutes.StockAlerts, "Alertas de estoque", "bi-exclamation-diamond"),
             ["inventory-counts"] = new(AppRoutes.InventoryCounts, "Inventário", "bi-upc-scan"),

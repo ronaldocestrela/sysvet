@@ -101,6 +101,12 @@ public static class AppRoutes
     /// <summary>Public clinic site configuration.</summary>
     public const string ClinicSite = "/clinic-site";
 
+    /// <summary>Commerce product offers and pricing.</summary>
+    public const string CommerceOffers = "/commerce/offers";
+
+    /// <summary>Online order fulfillment.</summary>
+    public const string CommerceOrders = "/commerce/orders";
+
     /// <summary>Public NPS survey (tokenized, no login).</summary>
     public static string NpsSurvey(string token) => $"/nps/{token}";
 

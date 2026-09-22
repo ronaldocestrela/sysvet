@@ -67,6 +67,9 @@ public static class Permissions
     public const string ClinicSiteRead = "ClinicSite.Read";
     public const string ClinicSiteWrite = "ClinicSite.Write";
 
+    public const string CommerceRead = "Commerce.Read";
+    public const string CommerceWrite = "Commerce.Write";
+
     /// <summary>
     /// All defined permission codes in stable order.
     /// </summary>
@@ -91,7 +94,8 @@ public static class Permissions
         FiscalRead, FiscalWrite,
         AutomationsRead, AutomationsWrite,
         AuditRead,
-        ClinicSiteRead, ClinicSiteWrite
+        ClinicSiteRead, ClinicSiteWrite,
+        CommerceRead, CommerceWrite
     ];
 
     /// <summary>
@@ -138,7 +142,8 @@ public static class Permissions
         FinanceRead, FinanceWrite,
         FiscalRead, FiscalWrite,
         AutomationsRead, AutomationsWrite,
-        ClinicSiteRead, ClinicSiteWrite
+        ClinicSiteRead, ClinicSiteWrite,
+        CommerceRead, CommerceWrite
     ];
 
     /// <summary>

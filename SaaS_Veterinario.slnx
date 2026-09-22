@@ -115,6 +115,16 @@
   <Folder Name="/src/Modules/TutorPortal/Infrastructure/">
     <Project Path="src/Modules/TutorPortal/Infrastructure/TutorPortal.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Commerce/" />
+  <Folder Name="/src/Modules/Commerce/Application/">
+    <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Commerce/Domain/">
+    <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Commerce/Infrastructure/">
+    <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/API.IntegrationTests/API.IntegrationTests.csproj" />
     <Project Path="tests/Clients.Tests/Clients.Tests.csproj" />
@@ -131,5 +141,6 @@
     <Project Path="tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj" />
     <Project Path="tests/Modules/TutorPortal.Tests/TutorPortal.Tests.csproj" />
     <Project Path="tests/Modules/ClinicSite.Tests/ClinicSite.Tests.csproj" />
+    <Project Path="tests/Modules/Commerce.Tests/Commerce.Tests.csproj" />
   </Folder>
 </Solution>

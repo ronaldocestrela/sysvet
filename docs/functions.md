@@ -86,6 +86,7 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 * Visualização da carteira de vacinas digital e histórico de exames.
 * Funcionalidade para o tutor realizar o agendamento de serviços direto pelo aplicativo.
 * **Site do estabelecimento (8.7):** vitrine pública por slug/subdomínio; staff edita em `/clinic-site`; API pública `/api/v1/public/clinic-sites/{slug}`; PWA `ClinicSiteWeb` (ADR-044).
+* **E-commerce (8.8):** ofertas com preço em `/commerce/offers`; pedidos online em `/commerce/orders`; loja pública `ClinicSiteWeb` `/loja`; API `/api/v1/commerce/` e `/api/v1/public/clinic-sites/{slug}/store/`; PoC Mercado Livre (ADR-045).
 * Sincronização do estoque físico gerido no backoffice com loja virtual e marketplaces.
 * Gerenciamento de pedidos do e-commerce com atualização automática de preços.
 
