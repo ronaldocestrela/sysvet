@@ -26,7 +26,7 @@ public sealed class NpsPublicTenantFilter : IEndpointFilter
         }
 
         tenantContext.TenantId = parsed.Value.TenantId;
-        tenantContext.SchemaName = $"tenant_{parsed.Value.TenantId:N}".ToLowerInvariant();
+        tenantContext.SchemaName = TenantSchema.FromId(parsed.Value.TenantId);
         return await next(context);
     }
 }

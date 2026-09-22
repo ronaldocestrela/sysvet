@@ -1,7 +1,7 @@
 using API.Extensions;
 using API.Hubs;
+using API.Filters;
 using API.Middlewares;
-using Core.Infrastructure.Identity;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,13 +39,14 @@ app.UseBlazorWebCors();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseAuthentication();
-app.UseMiddleware<TenantClaimMiddleware>();
+app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseAuthorization();
 
 app.MapApiHealthChecks();
 
 var routes = app.MapGroup(string.Empty)
-    .AddEndpointFilter<ResultEndpointFilter>();
+    .AddEndpointFilter<ResultEndpointFilter>()
+    .AddEndpointFilter<TenantRequiredEndpointFilter>();
 
 routes.MapVeterinaryEndpoints();
 routes.MapCoreEndpoints();

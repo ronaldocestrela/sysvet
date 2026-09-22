@@ -15,7 +15,8 @@ public class EnqueueingTutorNotificationChannelTests
     [Fact]
     public async Task EnqueuesGroomingJob_WhenReadyForPickup()
     {
-        await using var ctx = await CreateContextAsync();
+        var tenant = new TestTenantContext();
+        await using var ctx = await CreateContextAsync(tenant);
         var channel = new EnqueueingTutorNotificationChannel(
             new MessageJobRepository(ctx),
             new TutorMessagingPreferenceRepository(ctx),
@@ -23,7 +24,7 @@ public class EnqueueingTutorNotificationChannelTests
 
         await channel.NotifyGroomingStatusAsync(
             new TutorGroomingNotification(
-                Guid.NewGuid(),
+                tenant.TenantId,
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -39,12 +40,12 @@ public class EnqueueingTutorNotificationChannelTests
         jobs[0].Status.Should().Be(MessageJobStatus.Pending);
     }
 
-    private static async Task<AutomationsDbContext> CreateContextAsync()
+    private static async Task<AutomationsDbContext> CreateContextAsync(TestTenantContext tenant)
     {
         var options = new DbContextOptionsBuilder<AutomationsDbContext>()
             .UseSqlite($"Data Source=file:automations-channel-{Guid.NewGuid():N}?mode=memory&cache=shared")
             .Options;
-        var ctx = new AutomationsDbContext(options, new TestTenantContext());
+        var ctx = new AutomationsDbContext(options, tenant);
         await ctx.Database.OpenConnectionAsync();
         await ctx.Database.EnsureCreatedAsync();
         return ctx;

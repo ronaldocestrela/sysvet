@@ -8,13 +8,16 @@ namespace Veterinary.Infrastructure.Persistence;
 
 public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork, IDomainEventSource
 {
-    public ITenantContext TenantContext { get; set; } = null!;
+    private readonly ITenantContext _tenantContext;
 
-    public VeterinaryDbContext(DbContextOptions<VeterinaryDbContext> options) : base(options)
+    /// <summary>Current tenant for schema and query filters.</summary>
+    public ITenantContext TenantContext => _tenantContext;
+
+    public VeterinaryDbContext(DbContextOptions<VeterinaryDbContext> options, ITenantContext tenantContext)
+        : base(options)
     {
+        _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
     }
-
-    public string SchemaName => TenantContext?.SchemaName ?? "dbo";
 
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<ScheduleSlot> ScheduleSlots => Set<ScheduleSlot>();
@@ -50,12 +53,9 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork, IDomainEven
     {
         base.OnModelCreating(modelBuilder);
 
-        if (!string.IsNullOrWhiteSpace(SchemaName))
-        {
-            modelBuilder.HasDefaultSchema(SchemaName);
-        }
-
+        modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(VeterinaryDbContext).Assembly);
+        modelBuilder.ApplyTenantIsolationFilters(this);
     }
 
     public bool HasPendingChanges() => ChangeTracker.HasChanges();
@@ -70,6 +70,7 @@ public class VeterinaryDbContext : DbContext, IVeterinaryUnitOfWork, IDomainEven
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

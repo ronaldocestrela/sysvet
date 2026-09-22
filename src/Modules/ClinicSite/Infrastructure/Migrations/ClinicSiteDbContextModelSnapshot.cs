@@ -44,6 +44,9 @@ namespace ClinicSite.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("BLOB");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -134,6 +137,9 @@ namespace ClinicSite.Infrastructure.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -183,6 +189,9 @@ namespace ClinicSite.Infrastructure.Migrations
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -261,6 +270,9 @@ namespace ClinicSite.Infrastructure.Migrations
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");

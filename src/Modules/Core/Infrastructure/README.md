@@ -12,7 +12,7 @@ Camada responsável pela **implementação técnica** das abastrações definida
 Infrastructure/
 ├── Configuration/              # DatabaseOptions, ConfigureModuleDatabase, Options tipados
 ├── HealthChecks/               # DatabaseHealthCheck (core-db)
-├── Identity/                   # AppUser, JWT, TenantClaimMiddleware
+├── Identity/                   # AppUser, JWT (tenant via API TenantResolutionMiddleware)
 ├── Persistence/
 │   ├── CoreDbContext.cs
 │   ├── CoreDbContextFactory.cs # Design-time EF CLI (ADR-003 baseline dbo)

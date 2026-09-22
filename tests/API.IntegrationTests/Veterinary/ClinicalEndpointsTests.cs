@@ -148,7 +148,7 @@ public class ClinicalEndpointsTests : IClassFixture<WebApplicationFactory<Progra
         var user = await userManager.FindByEmailAsync("vet-clinical@sysvet.com");
         if (user is null)
         {
-            user = new Core.Infrastructure.Identity.AppUser { UserName = "vet-clinical@sysvet.com", Email = "vet-clinical@sysvet.com", TenantId = Guid.NewGuid() };
+            user = new Core.Infrastructure.Identity.AppUser { UserName = "vet-clinical@sysvet.com", Email = "vet-clinical@sysvet.com", TenantId = IntegrationTestDatabaseHelper.SingleTenantId };
             await userManager.CreateAsync(user, "Password123!");
             await userManager.AddToRoleAsync(user, "Admin");
         }

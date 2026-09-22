@@ -1,6 +1,7 @@
 using Commerce.Domain.Entities;
 using Commerce.Domain.Repositories;
 using Core.Domain;
+using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Commerce.Infrastructure.Persistence;
@@ -41,6 +42,8 @@ public class CommerceDbContext : DbContext, ICommerceUnitOfWork, IDomainEventSou
         modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CommerceDbContext).Assembly);
 
+        modelBuilder.ApplyTenantIsolationFilters(this, typeof(MarketplaceSellerIndex));
+
         modelBuilder.Entity<MarketplaceSellerIndex>(entity =>
         {
             entity.ToTable("MarketplaceSellerIndexes", "dbo");
@@ -64,6 +67,7 @@ public class CommerceDbContext : DbContext, ICommerceUnitOfWork, IDomainEventSou
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

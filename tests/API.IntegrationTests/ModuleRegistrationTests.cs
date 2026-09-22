@@ -106,6 +106,17 @@ public class ModuleRegistrationTests
     }
 
     [Fact]
+    public void AddApplicationModules_ResolvesPlatformDbContextAndDirectory()
+    {
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var provider = scope.ServiceProvider;
+        provider.GetService<global::Platform.Infrastructure.Persistence.PlatformDbContext>().Should().NotBeNull();
+        provider.GetService<global::Platform.Application.Tenancy.ITenantDirectory>().Should().NotBeNull();
+        provider.GetService<global::Platform.Application.Tenancy.ITenantSlugLookup>().Should().NotBeNull();
+    }
+
+    [Fact]
     public void AddApplicationModules_ResolvesAutomationsDbContext()
     {
         using var root = BuildProvider();

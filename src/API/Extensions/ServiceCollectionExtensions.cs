@@ -13,6 +13,7 @@ using Sales.Infrastructure;
 using ClinicSite.Infrastructure;
 using Commerce.Infrastructure;
 using TutorPortal.Infrastructure;
+using Platform.Infrastructure;
 using Veterinary.Infrastructure;
 
 namespace API.Extensions;
@@ -50,6 +51,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationModules(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddCoreModule(configuration);
+        services.AddPlatformModule(configuration);
         services.AddVeterinaryModule(configuration);
         services.AddInventoryModule(configuration);
         services.AddSalesModule(configuration);

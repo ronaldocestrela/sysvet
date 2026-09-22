@@ -29,6 +29,9 @@ namespace TutorPortal.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("BLOB");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("TutorId")
                         .HasColumnType("TEXT");
 
@@ -75,6 +78,9 @@ namespace TutorPortal.Infrastructure.Persistence.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");

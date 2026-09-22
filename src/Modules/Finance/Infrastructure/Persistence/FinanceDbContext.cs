@@ -1,4 +1,5 @@
 using Core.Domain;
+using Core.Infrastructure.Persistence;
 using Finance.Domain.Entities;
 using Finance.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,9 @@ public class FinanceDbContext : DbContext, IFinanceUnitOfWork, IDomainEventSourc
     public DbSet<CardReconciliationBatch> CardReconciliationBatches => Set<CardReconciliationBatch>();
     public DbSet<CardReconciliationLine> CardReconciliationLines => Set<CardReconciliationLine>();
 
+    /// <summary>Current tenant for schema and query filters.</summary>
+    public ITenantContext TenantContext { get; }
+
     private readonly ITenantContext _tenantContext;
 
     /// <summary>
@@ -25,7 +29,7 @@ public class FinanceDbContext : DbContext, IFinanceUnitOfWork, IDomainEventSourc
     public FinanceDbContext(DbContextOptions<FinanceDbContext> options, ITenantContext tenantContext)
         : base(options)
     {
-        _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
+        TenantContext = _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
     }
 
     /// <inheritdoc />
@@ -42,6 +46,7 @@ public class FinanceDbContext : DbContext, IFinanceUnitOfWork, IDomainEventSourc
     {
         modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FinanceDbContext).Assembly);
+        modelBuilder.ApplyTenantIsolationFilters(this);
         base.OnModelCreating(modelBuilder);
     }
 
@@ -56,6 +61,7 @@ public class FinanceDbContext : DbContext, IFinanceUnitOfWork, IDomainEventSourc
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

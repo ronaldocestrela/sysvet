@@ -24,7 +24,7 @@ A Fase 8.1 exige módulo `Automations` com fila durável, worker, retry, log e t
 5. `EnqueueingTutorNotificationChannel` implementa `ITutorNotificationChannel` e enfileira jobs via `EnqueueMessageJobCommand`.
 6. Core registra `NullTutorNotificationChannel` com `TryAddSingleton`; Automations registra canal real depois (last-wins).
 
-**Fora de 8.1 (entregue na 8.2 — ADR-039):** opt-in/opt-out, horário comercial, SMTP/Evolution. **Fora de 8.2:** varredura multi-schema (Platform 9.1).
+**Fora de 8.1 (entregue na 8.2 — ADR-039):** opt-in/opt-out, horário comercial, SMTP/Evolution. **Entregue em 9.1:** `OutboxProcessor` consulta [`ITenantDirectory`](../../src/Modules/Platform/Application/Tenancy/ITenantDirectory.cs) e processa jobs por tenant; fallback single-scope quando o catálogo está vazio.
 
 ## Consequências
 

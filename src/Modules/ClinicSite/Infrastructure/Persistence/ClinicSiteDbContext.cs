@@ -1,6 +1,7 @@
 using ClinicSite.Domain.Entities;
 using ClinicSite.Domain.Repositories;
 using Core.Domain;
+using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicSite.Infrastructure.Persistence;
@@ -16,6 +17,9 @@ public class ClinicSiteDbContext : DbContext, IClinicSiteUnitOfWork, IDomainEven
     public DbSet<ClinicSiteOpeningHours> ClinicSiteOpeningHours => Set<ClinicSiteOpeningHours>();
     public DbSet<ClinicSiteSlugIndex> ClinicSiteSlugIndexes => Set<ClinicSiteSlugIndex>();
 
+    /// <summary>Current tenant for schema and query filters.</summary>
+    public ITenantContext TenantContext { get; }
+
     private readonly ITenantContext _tenantContext;
 
     /// <summary>
@@ -24,7 +28,7 @@ public class ClinicSiteDbContext : DbContext, IClinicSiteUnitOfWork, IDomainEven
     public ClinicSiteDbContext(DbContextOptions<ClinicSiteDbContext> options, ITenantContext tenantContext)
         : base(options)
     {
-        _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
+        TenantContext = _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
     }
 
     /// <inheritdoc />
@@ -41,6 +45,7 @@ public class ClinicSiteDbContext : DbContext, IClinicSiteUnitOfWork, IDomainEven
     {
         modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ClinicSiteDbContext).Assembly);
+        modelBuilder.ApplyTenantIsolationFilters(this, typeof(ClinicSiteSlugIndex));
         base.OnModelCreating(modelBuilder);
     }
 
@@ -55,6 +60,7 @@ public class ClinicSiteDbContext : DbContext, IClinicSiteUnitOfWork, IDomainEven
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

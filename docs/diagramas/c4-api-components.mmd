@@ -4,7 +4,7 @@ flowchart TB
     subgraph api_host [API host src/API]
         Program["Program.cs<br/>composition root"]
         Corr["CorrelationIdMiddleware"]
-        TenantMw["TenantClaimMiddleware"]
+        TenantMw["TenantResolutionMiddleware"]
         Health["HealthCheckExtensions<br/>/health /live /ready"]
         OpenApi["OpenAPI Scalar dev"]
         ResultFilter["ResultEndpointFilter"]

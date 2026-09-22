@@ -43,6 +43,9 @@ namespace Finance.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("BLOB");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -92,6 +95,9 @@ namespace Finance.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -124,6 +130,9 @@ namespace Finance.Infrastructure.Persistence.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -166,6 +175,9 @@ namespace Finance.Infrastructure.Persistence.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -240,6 +252,9 @@ namespace Finance.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -288,6 +303,9 @@ namespace Finance.Infrastructure.Persistence.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");

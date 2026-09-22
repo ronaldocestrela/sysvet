@@ -44,6 +44,9 @@ namespace Fiscal.Infrastructure.Migrations
                     b.Property<int>("Sequence")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset?>("TransmittedAt")
                         .HasColumnType("TEXT");
 
@@ -137,6 +140,9 @@ namespace Fiscal.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -190,6 +196,9 @@ namespace Fiscal.Infrastructure.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
                         .HasColumnType("BLOB");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
@@ -277,18 +286,18 @@ namespace Fiscal.Infrastructure.Migrations
                     b.Property<long>("NextDpsNumber")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("NextNfeNumber")
-                        .IsConcurrencyToken()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NfeSeries")
-                        .HasColumnType("INTEGER");
-
                     b.Property<long>("NextNfceNumber")
                         .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
+                    b.Property<long>("NextNfeNumber")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("NfceSeries")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NfeSeries")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Number")
@@ -327,6 +336,9 @@ namespace Fiscal.Infrastructure.Migrations
 
                     b.Property<int>("TaxRegimeCode")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TradeName")
                         .IsRequired()

@@ -1,4 +1,5 @@
 using Core.Domain;
+using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using TutorPortal.Domain.Entities;
 using TutorPortal.Domain.Repositories;
@@ -15,6 +16,9 @@ public class TutorPortalDbContext : DbContext, ITutorPortalUnitOfWork, IDomainEv
     /// <summary>Web Push subscriptions for tutor portal users.</summary>
     public DbSet<TutorPushSubscription> TutorPushSubscriptions => Set<TutorPushSubscription>();
 
+    /// <summary>Current tenant for schema and query filters.</summary>
+    public ITenantContext TenantContext { get; }
+
     private readonly ITenantContext _tenantContext;
 
     /// <summary>
@@ -23,7 +27,7 @@ public class TutorPortalDbContext : DbContext, ITutorPortalUnitOfWork, IDomainEv
     public TutorPortalDbContext(DbContextOptions<TutorPortalDbContext> options, ITenantContext tenantContext)
         : base(options)
     {
-        _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
+        TenantContext = _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
     }
 
     /// <inheritdoc />
@@ -40,6 +44,7 @@ public class TutorPortalDbContext : DbContext, ITutorPortalUnitOfWork, IDomainEv
     {
         modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TutorPortalDbContext).Assembly);
+        modelBuilder.ApplyTenantIsolationFilters(this);
         base.OnModelCreating(modelBuilder);
     }
 
@@ -54,6 +59,7 @@ public class TutorPortalDbContext : DbContext, ITutorPortalUnitOfWork, IDomainEv
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

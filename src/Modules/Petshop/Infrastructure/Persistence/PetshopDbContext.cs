@@ -1,4 +1,5 @@
 using Core.Domain;
+using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Petshop.Domain.Entities;
 using Petshop.Domain.Repositories;
@@ -10,13 +11,16 @@ namespace Petshop.Infrastructure.Persistence;
 /// </summary>
 public class PetshopDbContext : DbContext, IPetshopUnitOfWork, IDomainEventSource
 {
-    public ITenantContext TenantContext { get; set; } = null!;
+    private readonly ITenantContext _tenantContext;
 
-    public PetshopDbContext(DbContextOptions<PetshopDbContext> options) : base(options)
+    /// <summary>Current tenant for schema and query filters.</summary>
+    public ITenantContext TenantContext => _tenantContext;
+
+    public PetshopDbContext(DbContextOptions<PetshopDbContext> options, ITenantContext tenantContext)
+        : base(options)
     {
+        _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
     }
-
-    public string SchemaName => TenantContext?.SchemaName ?? "dbo";
 
     public DbSet<GroomingAppointment> GroomingAppointments => Set<GroomingAppointment>();
     public DbSet<GroomingSlot> GroomingSlots => Set<GroomingSlot>();
@@ -36,12 +40,9 @@ public class PetshopDbContext : DbContext, IPetshopUnitOfWork, IDomainEventSourc
     {
         base.OnModelCreating(modelBuilder);
 
-        if (!string.IsNullOrWhiteSpace(SchemaName))
-        {
-            modelBuilder.HasDefaultSchema(SchemaName);
-        }
-
+        modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PetshopDbContext).Assembly);
+        modelBuilder.ApplyTenantIsolationFilters(this);
     }
 
     public bool HasPendingChanges() => ChangeTracker.HasChanges();
@@ -56,6 +57,7 @@ public class PetshopDbContext : DbContext, IPetshopUnitOfWork, IDomainEventSourc
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

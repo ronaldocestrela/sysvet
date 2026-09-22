@@ -51,6 +51,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-043](./ADR-043-tutor-autoagendamento.md) | TutorPortal — autoagendamento (8.6) | Accepted |
 | [ADR-044](./ADR-044-clinic-site.md) | Site do estabelecimento (8.7) | Accepted |
 | [ADR-045](./ADR-045-commerce-ecommerce-marketplace.md) | E-commerce e marketplaces (8.8) | Accepted |
+| [ADR-046](./ADR-046-platform-tenant-resolution.md) | Platform — resolução de tenant (9.1) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

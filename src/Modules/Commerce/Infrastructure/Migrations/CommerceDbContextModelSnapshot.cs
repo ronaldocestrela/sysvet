@@ -87,6 +87,9 @@ namespace Commerce.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -122,6 +125,9 @@ namespace Commerce.Infrastructure.Migrations
                     b.Property<string>("SiteId")
                         .IsRequired()
                         .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TenantId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
@@ -178,6 +184,9 @@ namespace Commerce.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid?>("TutorId")
                         .HasColumnType("TEXT");
 
@@ -222,6 +231,9 @@ namespace Commerce.Infrastructure.Migrations
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TenantId")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("UnitPrice")
@@ -277,6 +289,9 @@ namespace Commerce.Infrastructure.Migrations
 
                     b.Property<bool>("StoreEnabled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");

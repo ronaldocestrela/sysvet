@@ -1,4 +1,5 @@
 using Core.Domain;
+using Core.Infrastructure.Persistence;
 using Fiscal.Domain.Entities;
 using Fiscal.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -13,12 +14,15 @@ public class FiscalDbContext : DbContext, IFiscalUnitOfWork, IUnitOfWork, IDomai
     public DbSet<FiscalDocumentItem> FiscalDocumentItems => Set<FiscalDocumentItem>();
     public DbSet<FiscalCorrectionLetter> FiscalCorrectionLetters => Set<FiscalCorrectionLetter>();
 
+    /// <summary>Current tenant for schema and query filters.</summary>
+    public ITenantContext TenantContext { get; }
+
     private readonly ITenantContext _tenantContext;
 
     public FiscalDbContext(DbContextOptions<FiscalDbContext> options, ITenantContext tenantContext)
         : base(options)
     {
-        _tenantContext = tenantContext;
+        TenantContext = _tenantContext = tenantContext;
     }
 
     public IReadOnlyCollection<AggregateRoot> GetAggregateRootsWithPendingEvents() =>
@@ -33,6 +37,7 @@ public class FiscalDbContext : DbContext, IFiscalUnitOfWork, IUnitOfWork, IDomai
     {
         modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FiscalDbContext).Assembly);
+        modelBuilder.ApplyTenantIsolationFilters(this);
         base.OnModelCreating(modelBuilder);
     }
 
@@ -46,6 +51,7 @@ public class FiscalDbContext : DbContext, IFiscalUnitOfWork, IUnitOfWork, IDomai
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

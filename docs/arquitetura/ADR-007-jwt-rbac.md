@@ -10,7 +10,7 @@ Accepted
 
 A Fase 2.3 exige autenticação clínica com ASP.NET Core Identity, JWT Bearer e RBAC fixo por roles (`Admin`, `Veterinarian`, `Receptionist`, `Cashier`), alinhado a [`agents.md`](../agents.md) (CQRS, `Result<T>`, Clean Architecture). Perfis customizáveis (matriz permissão × recurso) ficam na tarefa 2.5.
 
-Multi-tenancy (ADR-003) exige `TenantId` no JWT e `TenantClaimMiddleware` após `UseAuthentication()`.
+Multi-tenancy (ADR-003) exige `TenantId` no JWT e `TenantResolutionMiddleware` após `UseAuthentication()` (ADR-046).
 
 ## Opções consideradas
 

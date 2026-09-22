@@ -66,6 +66,16 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `Fiscal` | `FiscalOptions` | Fiscal.Infrastructure |
 | `BlobStorage` | `BlobStorageOptions` | Core.Infrastructure |
 | `ClinicSite` | `ClinicSiteOptions` | ClinicSite.Infrastructure |
+| `Platform` | `PlatformOptions` | Platform.Infrastructure |
+
+### Platform — resolução de tenant (ADR-046)
+
+| Header | Uso |
+|--------|-----|
+| `X-Tenant-Id` | GUID do tenant (requests anônimos ou integrações) |
+| `X-Tenant-Slug` | Slug resolvido via catálogo `PlatformTenants` |
+
+Rotas isentas de tenant obrigatório: login/refresh/register, `/api/v1/public/*`, health, hubs (ver `TenantEndpointAllowlist` na API).
 
 ### Fiscal (NF-e / NFS-e Nacional — ADR-035)
 

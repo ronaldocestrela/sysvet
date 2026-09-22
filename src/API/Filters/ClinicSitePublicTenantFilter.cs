@@ -29,7 +29,7 @@ public sealed class ClinicSitePublicTenantFilter : IEndpointFilter
         }
 
         tenantContext.TenantId = index.TenantId;
-        tenantContext.SchemaName = $"tenant_{index.TenantId:N}".ToLowerInvariant();
+        tenantContext.SchemaName = TenantSchema.FromId(index.TenantId);
         return await next(context);
     }
 }

@@ -28,7 +28,7 @@ O SaaS atende múltiplas clínicas (tenants). Dados de um tenant não podem vaza
 
 ## Decisão
 
-Usar **schema SQL separado por tenant**, resolvido em runtime via `ITenantContext.SchemaName`, preenchido após autenticação (`TenantClaimMiddleware`). Fallback configurável `TenancySettings:DefaultSchema` (ex. `dbo`) para desenvolvimento e testes sem claim.
+Usar **schema SQL separado por tenant**, resolvido em runtime via `ITenantContext.SchemaName`, preenchido após autenticação (`TenantResolutionMiddleware`, ADR-046). Fallback configurável `TenancySettings:DefaultSchema` (ex. `dbo`) para desenvolvimento e testes sem claim. Em SQLite/CI, **query filters por `TenantId`** (via `TenantIsolationModelBuilderExtensions`) complementam o schema.
 
 Provisionamento em massa de schemas, onboarding Super Admin e impersonation auditada ficam no módulo **Platform** (roadmap Fase 9), não bloqueiam esta decisão.
 
@@ -42,7 +42,8 @@ Provisionamento em massa de schemas, onboarding Super Admin e impersonation audi
 
 - Contrato: [`ITenantContext`](../../src/Modules/Core/Domain/ITenantContext.cs) — `TenantId`, `UserId`, `SchemaName`.
 - Implementação scoped: [`DefaultTenantContext`](../../src/Modules/Core/Infrastructure/Tenancy/DefaultTenantContext.cs); options [`TenancySettings`](../../src/Modules/Core/Infrastructure/Tenancy/TenancySettings.cs).
-- Request pipeline: [`TenantClaimMiddleware`](../../src/Modules/Core/Infrastructure/Identity/TenantClaimMiddleware.cs) após `UseAuthentication()` em [`Program.cs`](../../src/API/Program.cs).
+- Request pipeline: [`TenantResolutionMiddleware`](../../src/API/Middlewares/TenantResolutionMiddleware.cs) após `UseAuthentication()` em [`Program.cs`](../../src/API/Program.cs); helper [`TenantSchema.FromId`](../../src/Modules/Core/Domain/TenantSchema.cs).
+- Catálogo global: módulo [`Platform`](../../src/Modules/Platform/) — `PlatformTenants` (ADR-046).
 - EF: [`TenantAwareModelCacheKeyFactory`](../../src/Modules/Core/Infrastructure/Persistence/TenantAwareModelCacheKeyFactory.cs) inclui `SchemaName` na chave de modelo.
 - DbContexts: `CoreDbContext`, `VeterinaryDbContext`, `InventoryDbContext`, `SalesDbContext`, `PetshopDbContext`, `FinanceDbContext` — `HasDefaultSchema` derivado de `ITenantContext` (migrations atuais geradas com schema `dbo` como baseline de design-time).
 

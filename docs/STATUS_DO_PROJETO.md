@@ -34,7 +34,7 @@ Estas sprints pavimentaram a estrutura base (SaaS modular, CQRS, Offline-First).
 - **Fase 2.2 — EF Core Core:** Migration `InitialCore`, `CoreDbContextFactory`, repositórios, seed de roles no boot (`IdentityDataSeeder`).
 - **Fase 2.3 — Identity, JWT e RBAC:** CQRS (`Login`, `Refresh`, `Register` dev, `GetCurrentUser`), refresh hash (`UserRefreshTokens`), policies RBAC, OpenAPI Bearer, testes E2E (`AuthEndpointsTests`, `AuthorizationTests`). ADR-007.
 - **Fase 2.4 — CRM Tutores/Pets:** `CreateTutor`/`DeleteTutor`, pets com espécie obrigatória e tutor ativo, `PagedResult`, endpoints `/api/v1/tutors|pets`, migration soft delete, ADR-008, diagrama [`crm-tutor-pet.mmd`](diagramas/crm-tutor-pet.mmd).
-- **Identity & Auth:** ASP.NET Core Identity no `CoreDbContext` (`AppUser.TenantId`), JWT via `JwtAccessTokenIssuer`, `TenantClaimMiddleware`.
+- **Identity & Auth:** ASP.NET Core Identity no `CoreDbContext` (`AppUser.TenantId`), JWT via `JwtAccessTokenIssuer`, `TenantResolutionMiddleware` (ADR-046).
 - **Offline-first (Sync):** Padrão Transactional Outbox configurado com Testes de Integração End-to-End validando sincronia com banco local (SQLite).
 - **Testes e CI/CD:** Suíte robusta usando `xUnit`, `FluentAssertions` e `WebApplicationFactory` com DB em memória/SQLite para testes E2E. Pipeline do GitHub Actions em funcionamento.
 
@@ -266,9 +266,14 @@ Iniciado o módulo de estoque.
 - Módulo `Commerce`, API staff `/api/v1/commerce/` e loja pública por slug; `ClinicSiteWeb` `/loja`; SharedUI `/commerce/offers|orders`.
 - Aceite: `EcommerceOrder_DebitsStock_WhenConfirmed`; `OfferPrice_ReflectsBackofficeChange_OnPublicCatalog`; `MercadoLivreInboundOrder_DebitsStock`.
 
-### 👉 **Próxima Ação: Fase 9 — Plataforma e Super Admin**
+### Fase 9.1 — Módulo Platform (multi-tenancy) — Concluída (ADR-046)
 
-Ver [`roadmap.md`](roadmap.md) § Fase 9.
+- Módulo `Platform`, `TenantResolutionMiddleware`, `TenantRequiredEndpointFilter`, `TenantSchema.FromId`, filtros EF por tenant nos DbContexts.
+- Aceite: `TenantIsolation_DoesNotLeakCrm_WhenDifferentTenants`.
+
+### 👉 **Próxima Ação: Fase 9.2 — Gestão de tenants e filiais**
+
+Ver [`roadmap.md`](roadmap.md) §9.2 e [`backoffice.md`](backoffice.md) §1.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

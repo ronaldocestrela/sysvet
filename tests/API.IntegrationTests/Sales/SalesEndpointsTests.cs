@@ -172,6 +172,7 @@ public class SalesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         using var scope = _factory.Services.CreateScope();
         var financeContext = scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>();
         var receivable = await financeContext.FinancialTitles
+            .IgnoreQueryFilters()
             .Include(t => t.Allocations)
             .FirstOrDefaultAsync(t => t.SourceId == orderId);
         receivable.Should().NotBeNull();

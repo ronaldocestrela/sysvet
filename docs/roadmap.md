@@ -1063,7 +1063,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **9.1 Módulo Platform — estrutura e multi-tenancy** | 13 | Pendente |
+| **9.1 Módulo Platform — estrutura e multi-tenancy** | 13 | Concluído |
 | **9.2 Gestão de tenants e filiais** | 13 | Pendente |
 | **9.3 Planos, add-ons e feature flags** | 13 | Pendente |
 | **9.4 Gateway de assinatura e cobrança** | 21 | Pendente |
@@ -1075,12 +1075,12 @@ flowchart TD
 
 ### 9.1 Módulo Platform — estrutura e multi-tenancy (13 SP)
 
-- [ ] Criar `src/Modules/Platform/{Domain,Application,Infrastructure}`
-- [ ] Resolução de tenant (subdomínio, header, claim JWT)
-- [ ] Isolamento: schema por tenant **ou** `TenantId` global (ADR-003)
-- [ ] Middleware de enforcement em todos os módulos
+- [x] Criar `src/Modules/Platform/{Domain,Application,Infrastructure}`
+- [x] Resolução de tenant (subdomínio, header, claim JWT)
+- [x] Isolamento: schema por tenant **ou** `TenantId` global (ADR-003)
+- [x] Middleware de enforcement em todos os módulos
 
-**Aceite:** Tenant A não acessa dados do Tenant B (teste de integração).
+**Aceite:** Tenant A não acessa dados do Tenant B (`TenantIsolation_DoesNotLeakCrm_WhenDifferentTenants`; ADR-046).
 
 ### 9.2 Gestão de tenants e filiais (13 SP)
 

@@ -82,7 +82,7 @@ public class ClinicalQuoteEndpointsTests : IClassFixture<WebApplicationFactory<P
         var user = await userManager.FindByEmailAsync("vet-quotes@sysvet.com");
         if (user is null)
         {
-            user = new Core.Infrastructure.Identity.AppUser { UserName = "vet-quotes@sysvet.com", Email = "vet-quotes@sysvet.com", TenantId = Guid.NewGuid() };
+            user = new Core.Infrastructure.Identity.AppUser { UserName = "vet-quotes@sysvet.com", Email = "vet-quotes@sysvet.com", TenantId = IntegrationTestDatabaseHelper.SingleTenantId };
             await userManager.CreateAsync(user, "Password123!");
             await userManager.AddToRoleAsync(user, "Admin");
         }

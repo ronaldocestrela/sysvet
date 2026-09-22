@@ -1,6 +1,7 @@
 using Automations.Domain.Entities;
 using Automations.Domain.Repositories;
 using Core.Domain;
+using Core.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Automations.Infrastructure.Persistence;
@@ -17,6 +18,9 @@ public class AutomationsDbContext : DbContext, IAutomationsUnitOfWork, IDomainEv
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignRun> CampaignRuns => Set<CampaignRun>();
     public DbSet<NpsInvite> NpsInvites => Set<NpsInvite>();
+    /// <summary>Current tenant for schema and query filters.</summary>
+    public ITenantContext TenantContext { get; }
+
     private readonly ITenantContext _tenantContext;
 
     /// <summary>
@@ -25,7 +29,7 @@ public class AutomationsDbContext : DbContext, IAutomationsUnitOfWork, IDomainEv
     public AutomationsDbContext(DbContextOptions<AutomationsDbContext> options, ITenantContext tenantContext)
         : base(options)
     {
-        _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
+        TenantContext = _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
     }
 
     /// <inheritdoc />
@@ -42,6 +46,8 @@ public class AutomationsDbContext : DbContext, IAutomationsUnitOfWork, IDomainEv
     {
         modelBuilder.HasDefaultSchema(_tenantContext.SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AutomationsDbContext).Assembly);
+        modelBuilder.ApplyTenantIsolationFilters(this, typeof(MessageJob));
+        modelBuilder.Entity<MessageJob>().HasQueryFilter(j => j.TenantId == TenantContext.TenantId);
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -71,6 +77,7 @@ public class AutomationsDbContext : DbContext, IAutomationsUnitOfWork, IDomainEv
             }
         }
 
+        this.SetTenantIdOnAddedEntities(_tenantContext);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }
