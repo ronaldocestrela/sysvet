@@ -64,7 +64,7 @@ public sealed class MarkNoShowAppointmentCommandHandler : IRequestHandler<MarkNo
             return result;
         }
 
-        await AppointmentStatusTransitions.ReleaseSlotAsync(appointment, _scheduleSlotRepository, cancellationToken);
+        await AppointmentScheduler.ReleaseSlotAsync(appointment, _scheduleSlotRepository, cancellationToken);
         _repository.Update(appointment);
         return Result.Success();
     }
@@ -72,35 +72,14 @@ public sealed class MarkNoShowAppointmentCommandHandler : IRequestHandler<MarkNo
 
 public sealed class CancelAppointmentCommandHandler : IRequestHandler<CancelAppointmentCommand, Result>
 {
-    private readonly IAppointmentRepository _repository;
-    private readonly IScheduleSlotRepository _scheduleSlotRepository;
+    private readonly IAppointmentScheduler _scheduler;
 
-    public CancelAppointmentCommandHandler(
-        IAppointmentRepository repository,
-        IScheduleSlotRepository scheduleSlotRepository)
-    {
-        _repository = repository;
-        _scheduleSlotRepository = scheduleSlotRepository;
-    }
+    /// <summary>Creates the handler with the shared appointment scheduler.</summary>
+    public CancelAppointmentCommandHandler(IAppointmentScheduler scheduler) => _scheduler = scheduler;
 
-    public async Task<Result> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
-    {
-        var appointment = await _repository.GetByIdAsync(request.AppointmentId, cancellationToken);
-        if (appointment is null)
-        {
-            return Result.Failure(Veterinary.Domain.ErrorCodes.Appointment.NotFound);
-        }
-
-        var result = appointment.Cancel();
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
-        await AppointmentStatusTransitions.ReleaseSlotAsync(appointment, _scheduleSlotRepository, cancellationToken);
-        _repository.Update(appointment);
-        return Result.Success();
-    }
+    /// <inheritdoc />
+    public Task<Result> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken) =>
+        _scheduler.CancelAndReleaseSlotAsync(request.AppointmentId, cancellationToken);
 }
 
 internal static class AppointmentStatusTransitions
@@ -127,21 +106,9 @@ internal static class AppointmentStatusTransitions
         return Result.Success();
     }
 
-    internal static async Task ReleaseSlotAsync(
+    internal static Task ReleaseSlotAsync(
         Appointment appointment,
         IScheduleSlotRepository scheduleSlotRepository,
-        CancellationToken cancellationToken)
-    {
-        var slots = await scheduleSlotRepository.GetAllSlotsForDayAsync(
-            appointment.VeterinarianId,
-            appointment.Date,
-            cancellationToken);
-
-        var slot = AppointmentSlotHelper.FindCoveringSlot(slots, appointment.Date, appointment.DurationInMinutes);
-        if (slot is not null && !slot.IsAvailable)
-        {
-            slot.CancelBooking();
-            scheduleSlotRepository.Update(slot);
-        }
-    }
+        CancellationToken cancellationToken) =>
+        AppointmentScheduler.ReleaseSlotAsync(appointment, scheduleSlotRepository, cancellationToken);
 }

@@ -1,6 +1,7 @@
 using Core.Domain;
 using FluentAssertions;
 using NSubstitute;
+using Veterinary.Application.Appointments;
 using Veterinary.Application.Appointments.Commands;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Repositories;
@@ -52,7 +53,8 @@ public class AppointmentStatusCommandHandlerTests
         slots.GetAllSlotsForDayAsync(appointment.VeterinarianId, appointment.Date, Arg.Any<CancellationToken>())
             .Returns(Array.Empty<ScheduleSlot>());
 
-        var result = await new CancelAppointmentCommandHandler(repo, slots)
+        var scheduler = new AppointmentScheduler(repo, slots);
+        var result = await new CancelAppointmentCommandHandler(scheduler)
             .Handle(new CancelAppointmentCommand(appointment.Id), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();

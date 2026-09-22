@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Veterinary.Application.Appointments;
 using Veterinary.Application.Appointments.Commands;
 using Veterinary.Domain.Entities;
 using Veterinary.Domain.Repositories;
@@ -16,7 +17,8 @@ public class ScheduleAppointmentCommandHandlerTests
     {
         _appointmentRepository = Substitute.For<IAppointmentRepository>();
         _scheduleSlotRepository = Substitute.For<IScheduleSlotRepository>();
-        _handler = new ScheduleAppointmentCommandHandler(_appointmentRepository, _scheduleSlotRepository);
+        var scheduler = new AppointmentScheduler(_appointmentRepository, _scheduleSlotRepository);
+        _handler = new ScheduleAppointmentCommandHandler(scheduler);
     }
 
     [Fact]

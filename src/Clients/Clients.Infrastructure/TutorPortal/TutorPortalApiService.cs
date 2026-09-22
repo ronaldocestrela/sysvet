@@ -46,6 +46,45 @@ public sealed class TutorPortalApiService
     /// <summary>Registers browser push subscription.</summary>
     public Task<Result> SubscribePushAsync(TutorPushSubscribeRequest request, CancellationToken cancellationToken = default) =>
         _apiClient.PostAsync("/api/v1/tutor-portal/push/subscribe", request, cancellationToken: cancellationToken);
+
+    /// <summary>Lists bookable services for tutor scheduling.</summary>
+    public Task<Result<List<TutorBookableServiceDto>>> GetBookableServicesAsync(Guid petId, CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<List<TutorBookableServiceDto>>($"/api/v1/tutor-portal/pets/{petId}/booking/services", cancellationToken);
+
+    /// <summary>Lists professionals available on a day.</summary>
+    public Task<Result<List<TutorBookingProfessionalDto>>> GetBookingProfessionalsAsync(
+        Guid petId,
+        TutorBookingKindDto kind,
+        Guid serviceId,
+        DateTimeOffset date,
+        CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<List<TutorBookingProfessionalDto>>(
+            $"/api/v1/tutor-portal/pets/{petId}/booking/professionals?kind={kind}&serviceId={serviceId}&date={Uri.EscapeDataString(date.ToString("O"))}",
+            cancellationToken);
+
+    /// <summary>Lists bookable slot starts.</summary>
+    public Task<Result<List<TutorAvailableSlotDto>>> GetAvailableSlotsAsync(
+        Guid petId,
+        TutorBookingKindDto kind,
+        Guid serviceId,
+        Guid professionalId,
+        DateTimeOffset date,
+        CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<List<TutorAvailableSlotDto>>(
+            $"/api/v1/tutor-portal/pets/{petId}/booking/slots?kind={kind}&serviceId={serviceId}&professionalId={professionalId}&date={Uri.EscapeDataString(date.ToString("O"))}",
+            cancellationToken);
+
+    /// <summary>Lists upcoming appointments for a pet.</summary>
+    public Task<Result<List<TutorPetAppointmentDto>>> GetPetAppointmentsAsync(Guid petId, CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<List<TutorPetAppointmentDto>>($"/api/v1/tutor-portal/pets/{petId}/booking/appointments", cancellationToken);
+
+    /// <summary>Books an appointment for a pet.</summary>
+    public Task<Result<Guid>> BookAppointmentAsync(Guid petId, TutorBookAppointmentRequest request, CancellationToken cancellationToken = default) =>
+        _apiClient.PostAsync<TutorBookAppointmentRequest, Guid>($"/api/v1/tutor-portal/pets/{petId}/booking/appointments", request, cancellationToken: cancellationToken);
+
+    /// <summary>Cancels a tutor-owned appointment.</summary>
+    public Task<Result> CancelAppointmentAsync(Guid petId, Guid appointmentId, TutorBookingKindDto kind, CancellationToken cancellationToken = default) =>
+        _apiClient.PostAsync($"/api/v1/tutor-portal/pets/{petId}/booking/appointments/{appointmentId}/cancel", new { kind }, cancellationToken: cancellationToken);
 }
 
 /// <summary>Registration payload for tutor portal.</summary>
@@ -139,6 +178,63 @@ public sealed class TutorPetTimelineItemDto
     public DateTimeOffset OccurredAt { get; set; }
     public string Status { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
+}
+
+/// <summary>Clinical vs grooming booking kind (matches API enum).</summary>
+public enum TutorBookingKindDto
+{
+    Clinical = 0,
+    Grooming = 1
+}
+
+/// <summary>Virtual clinical consultation service id.</summary>
+public static class TutorBookingClientConstants
+{
+    public static readonly Guid ClinicalConsultationServiceId = new("00000000-0000-4000-8000-000000000001");
+}
+
+/// <summary>Bookable service row.</summary>
+public sealed class TutorBookableServiceDto
+{
+    public Guid ServiceId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Kind { get; set; } = string.Empty;
+    public int DurationInMinutes { get; set; }
+}
+
+/// <summary>Professional available for booking.</summary>
+public sealed class TutorBookingProfessionalDto
+{
+    public Guid ProfessionalId { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
+}
+
+/// <summary>Available slot start.</summary>
+public sealed class TutorAvailableSlotDto
+{
+    public DateTimeOffset Start { get; set; }
+    public int DurationInMinutes { get; set; }
+}
+
+/// <summary>Pet appointment summary.</summary>
+public sealed class TutorPetAppointmentDto
+{
+    public Guid Id { get; set; }
+    public string Kind { get; set; } = string.Empty;
+    public DateTimeOffset Date { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public bool CanCancel { get; set; }
+}
+
+/// <summary>Book appointment request body.</summary>
+public sealed class TutorBookAppointmentRequest
+{
+    public TutorBookingKindDto Kind { get; set; }
+    public Guid ServiceId { get; set; }
+    public Guid ProfessionalId { get; set; }
+    public DateTimeOffset Date { get; set; }
+    public Guid Id { get; set; }
 }
 
 /// <summary>Push subscription registration payload.</summary>

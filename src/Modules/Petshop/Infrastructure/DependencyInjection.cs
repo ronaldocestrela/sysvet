@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Petshop.Application.GroomingAppointments;
 using Petshop.Application.GroomingAppointments.Commands;
 using Petshop.Domain.Repositories;
 using Petshop.Infrastructure.Configuration;
@@ -36,6 +37,7 @@ public static class DependencyInjection
             options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
+        services.AddScoped<IGroomingAppointmentScheduler, GroomingAppointmentScheduler>();
         services.AddScoped<IGroomingAppointmentRepository, GroomingAppointmentRepository>();
         services.AddScoped<IGroomingSlotRepository, GroomingSlotRepository>();
         services.AddScoped<IGroomingRecordRepository, GroomingRecordRepository>();

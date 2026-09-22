@@ -984,7 +984,7 @@ flowchart TD
 | **8.3 Campanhas e NPS** | 8 | Concluído |
 | **8.4 Módulo TutorPortal — base** | 5 | Concluído |
 | **8.5 App do tutor (login, vacinas, exames)** | 13 | Concluído |
-| **8.6 Autoagendamento pelo tutor** | 8 | Pendente |
+| **8.6 Autoagendamento pelo tutor** | 8 | Concluído |
 | **8.7 Site do estabelecimento** | 8 | Pendente |
 | **8.8 E-commerce e marketplaces** | 21 | Pendente |
 | **Total Fase 8** | **79 SP** | |
@@ -1031,10 +1031,10 @@ flowchart TD
 
 ### 8.6 Autoagendamento pelo tutor (8 SP)
 
-- [ ] Slots disponíveis por serviço/profissional
-- [ ] Confirmação/cancelamento; integração agenda clínica/estética
+- [x] Slots disponíveis por serviço/profissional
+- [x] Confirmação/cancelamento; integração agenda clínica/estética
 
-**Aceite:** Agendamento pelo portal aparece na agenda da clínica.
+**Aceite:** Agendamento pelo portal aparece na agenda da clínica (`Tutor_BooksAppointment_AppearsOnClinicDailySchedule`; ADR-043).
 
 ### 8.7 Site do estabelecimento (8 SP)
 

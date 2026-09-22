@@ -251,7 +251,12 @@ Iniciado o módulo de estoque.
 - `TutorPortalWeb`: hub do pet, carteira read-only (SharedUI), exames, timeline; Web Push no SW quando configurado.
 - Aceite: `Tutor_ViewsVaccinesAndExams_OfAuthorizedPet`; isolamento staff/tutor.
 
-### 👉 **Próxima Ação: Fase 8.6 — Autoagendamento pelo tutor**
+### Fase 8.6 — Autoagendamento pelo tutor — Concluída (ADR-043)
+
+- API `/api/v1/tutor-portal/pets/{id}/booking/*`; schedulers compartilhados Veterinary/Petshop; `TutorPortalWeb` `/pets/{id}/schedule`.
+- Aceite: `Tutor_BooksAppointment_AppearsOnClinicDailySchedule`; isolamento staff/tutor.
+
+### 👉 **Próxima Ação: Fase 8.7 — Site do estabelecimento**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 8.
 

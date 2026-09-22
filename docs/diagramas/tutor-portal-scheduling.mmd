@@ -1,0 +1,20 @@
+flowchart LR
+  pwa[TutorPortalWeb]
+  api["API tutor-portal booking"]
+  guard[TutorPetAccessGuard]
+  port[ITutorSchedulingPort]
+  clinical[IAppointmentScheduler]
+  grooming[IGroomingAppointmentScheduler]
+  vetDb[Veterinary Appointment]
+  petDb[GroomingAppointment]
+  staff["Staff daily agenda"]
+
+  pwa -->|"JWT Tutor"| api
+  api --> guard
+  guard --> port
+  port --> clinical
+  port --> grooming
+  clinical --> vetDb
+  grooming --> petDb
+  vetDb --> staff
+  petDb --> staff

@@ -27,7 +27,7 @@ A Fase 8.5 exige PWA do tutor com carteira de vacinação, histórico de exames,
 ## Consequências
 
 - Aceite: `Tutor_ViewsVaccinesAndExams_OfAuthorizedPet`; isolamento staff/tutor nos endpoints de pet health.
-- Autoagendamento (8.6), site e e-commerce permanecem no roadmap.
+- Autoagendamento entregue na 8.6 ([ADR-043](./ADR-043-tutor-autoagendamento.md)); site e e-commerce permanecem no roadmap.
 - Download de anexos clínicos (ADR-015) não exposto ao tutor nesta fatia.
 
 ## Confirmação no código

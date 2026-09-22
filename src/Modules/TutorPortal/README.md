@@ -17,12 +17,19 @@ Canal digital do tutor (cliente CRM): autenticação isolada da clínica, víncu
 - Web Push: `TutorPushSubscription`, `POST /push/subscribe`, VAPID opcional
 - Read port `ITutorPetHealthReadPort` (Veterinary + Petshop)
 
+### Fase 8.6
+
+- Autoagendamento: `GET/POST …/pets/{petId}/booking/*` (serviços, profissionais, slots, reserva, cancelamento)
+- Port `ITutorSchedulingPort` + schedulers compartilhados (`IAppointmentScheduler`, `IGroomingAppointmentScheduler`)
+- PWA `/pets/{petId}/schedule`
+
 ## Fora de escopo nesta fatia
 
-Autoagendamento (8.6), site, e-commerce (roadmap 8.6–8.8); anexos clínicos blob.
+Site, e-commerce (roadmap 8.7–8.8); anexos clínicos blob; reagendamento tutor.
 
 ## Referências
 
 - [ADR-041](../../../docs/arquitetura/ADR-041-tutor-portal-base.md)
 - [ADR-042](../../../docs/arquitetura/ADR-042-tutor-portal-app.md)
-- [roadmap § 8.4–8.5](../../../docs/roadmap.md)
+- [ADR-043](../../../docs/arquitetura/ADR-043-tutor-autoagendamento.md)
+- [roadmap § 8.4–8.6](../../../docs/roadmap.md)

@@ -128,35 +128,14 @@ public sealed class CompleteGroomingAppointmentCommandHandler : IRequestHandler<
 
 public sealed class CancelGroomingAppointmentCommandHandler : IRequestHandler<CancelGroomingAppointmentCommand, Result>
 {
-    private readonly IGroomingAppointmentRepository _repository;
-    private readonly IGroomingSlotRepository _slotRepository;
+    private readonly IGroomingAppointmentScheduler _scheduler;
 
-    public CancelGroomingAppointmentCommandHandler(
-        IGroomingAppointmentRepository repository,
-        IGroomingSlotRepository slotRepository)
-    {
-        _repository = repository;
-        _slotRepository = slotRepository;
-    }
+    /// <summary>Creates the handler with the shared grooming scheduler.</summary>
+    public CancelGroomingAppointmentCommandHandler(IGroomingAppointmentScheduler scheduler) => _scheduler = scheduler;
 
-    public async Task<Result> Handle(CancelGroomingAppointmentCommand request, CancellationToken cancellationToken)
-    {
-        var appointment = await _repository.GetByIdAsync(request.GroomingAppointmentId, cancellationToken);
-        if (appointment is null)
-        {
-            return Result.Failure(ErrorCodes.GroomingAppointment.NotFound);
-        }
-
-        var result = appointment.Cancel();
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
-        await GroomingAppointmentStatusTransitions.ReleaseSlotAsync(appointment, _slotRepository, cancellationToken);
-        _repository.Update(appointment);
-        return Result.Success();
-    }
+    /// <inheritdoc />
+    public Task<Result> Handle(CancelGroomingAppointmentCommand request, CancellationToken cancellationToken) =>
+        _scheduler.CancelAndReleaseSlotAsync(request.GroomingAppointmentId, cancellationToken);
 }
 
 public sealed class MarkNoShowGroomingAppointmentCommandHandler : IRequestHandler<MarkNoShowGroomingAppointmentCommand, Result>
@@ -186,7 +165,7 @@ public sealed class MarkNoShowGroomingAppointmentCommandHandler : IRequestHandle
             return result;
         }
 
-        await GroomingAppointmentStatusTransitions.ReleaseSlotAsync(appointment, _slotRepository, cancellationToken);
+        await GroomingAppointmentScheduler.ReleaseSlotAsync(appointment, _slotRepository, cancellationToken);
         _repository.Update(appointment);
         return Result.Success();
     }
@@ -241,17 +220,9 @@ internal static class GroomingAppointmentStatusTransitions
         return Result.Success();
     }
 
-    internal static async Task ReleaseSlotAsync(
+    internal static Task ReleaseSlotAsync(
         GroomingAppointment appointment,
         IGroomingSlotRepository slotRepository,
-        CancellationToken cancellationToken)
-    {
-        var slots = await slotRepository.GetAllSlotsForDayAsync(appointment.GroomerId, appointment.Date, cancellationToken);
-        var slot = GroomingSlotHelper.FindCoveringSlot(slots, appointment.Date, appointment.DurationInMinutes);
-        if (slot is not null && !slot.IsAvailable)
-        {
-            slot.CancelBooking();
-            slotRepository.Update(slot);
-        }
-    }
+        CancellationToken cancellationToken) =>
+        GroomingAppointmentScheduler.ReleaseSlotAsync(appointment, slotRepository, cancellationToken);
 }

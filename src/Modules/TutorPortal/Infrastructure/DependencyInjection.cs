@@ -15,6 +15,7 @@ using TutorPortal.Infrastructure.Configuration;
 using TutorPortal.Application.PetHealth;
 using TutorPortal.Infrastructure.Crm;
 using TutorPortal.Infrastructure.PetHealth;
+using TutorPortal.Infrastructure.Scheduling;
 using TutorPortal.Infrastructure.Push;
 using TutorPortal.Infrastructure.Persistence;
 using TutorPortal.Infrastructure.Persistence.Repositories;
@@ -53,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<TutorPortalUserResolver>();
         services.AddScoped<TutorPetAccessGuard>();
         services.AddScoped<ITutorPetHealthReadPort, TutorPetHealthReadPort>();
+        services.AddScoped<ITutorSchedulingPort, TutorSchedulingPort>();
 
         var tutorPortalOptions = configuration.GetSection(TutorPortalOptions.SectionName).Get<TutorPortalOptions>();
         if (!string.IsNullOrWhiteSpace(tutorPortalOptions?.VapidPublicKey)

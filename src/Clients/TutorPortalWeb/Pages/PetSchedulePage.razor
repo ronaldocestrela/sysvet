@@ -1,0 +1,261 @@
+@page "/pets/{petId:guid}/schedule"
+@inject TutorPortalApiService Api
+@inject IToastService Toast
+
+<h1 class="h5 mb-3">Agendar serviço</h1>
+
+<section class="mb-4">
+    <h2 class="h6">Próximos agendamentos</h2>
+    <LoadingState IsLoading="_loadingAppointments">
+        @if (_appointments.Count == 0 && !_loadingAppointments)
+        {
+            <p class="text-muted small">Nenhum agendamento ativo.</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var appt in _appointments)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <strong>@appt.Title</strong>
+                            <div class="small text-muted">@appt.Date.LocalDateTime.ToString("g") · @appt.Status</div>
+                        </div>
+                        @if (appt.CanCancel)
+                        {
+                            <button class="btn btn-sm btn-outline-danger" disabled="_cancelling" @onclick="() => CancelAsync(appt)">Cancelar</button>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </LoadingState>
+</section>
+
+<section class="card p-3">
+    <h2 class="h6">Novo agendamento</h2>
+
+    <div class="mb-2">
+        <label class="form-label">Serviço</label>
+        <select class="form-select" @bind="_selectedServiceId" @bind:after="OnServiceChangedAsync">
+            <option value="@Guid.Empty">Selecione…</option>
+            @foreach (var service in _services)
+            {
+                <option value="@service.ServiceId">@service.Name (@service.DurationInMinutes min)</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Data</label>
+        <InputDate TValue="DateTime" class="form-control" @bind-Value="_selectedDate" @bind-Value:after="OnDateChangedAsync" />
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Profissional</label>
+        <select class="form-select" @bind="_selectedProfessionalId" @bind:after="OnProfessionalChangedAsync" disabled="_professionals.Count == 0">
+            <option value="@Guid.Empty">Selecione…</option>
+            @foreach (var pro in _professionals)
+            {
+                <option value="@pro.ProfessionalId">@pro.DisplayName</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Horário</label>
+        <select class="form-select" @bind="_selectedSlotStart" disabled="_slots.Count == 0">
+            <option value="">Selecione…</option>
+            @foreach (var slot in _slots)
+            {
+                <option value="@slot.Start.ToString("O")">@slot.Start.LocalDateTime.ToString("HH:mm")</option>
+            }
+        </select>
+    </div>
+
+    <button class="btn btn-primary w-100" disabled="_booking || !CanBook" @onclick="ConfirmBookingAsync">
+        @(_booking ? "Agendando…" : "Confirmar agendamento")
+    </button>
+</section>
+
+<p class="mt-3"><a href="@($"/pets/{PetId}")">← Voltar ao pet</a></p>
+
+@code {
+    [Parameter] public Guid PetId { get; set; }
+
+    private List<TutorBookableServiceDto> _services = [];
+    private List<TutorBookingProfessionalDto> _professionals = [];
+    private List<TutorAvailableSlotDto> _slots = [];
+    private List<TutorPetAppointmentDto> _appointments = [];
+
+    private Guid _selectedServiceId;
+    private Guid _selectedProfessionalId;
+    private DateTime _selectedDate = DateTime.Today.AddDays(1);
+    private string _selectedSlotStart = string.Empty;
+
+    private bool _loadingAppointments = true;
+    private bool _booking;
+    private bool _cancelling;
+
+    private bool CanBook =>
+        _selectedServiceId != Guid.Empty
+        && _selectedProfessionalId != Guid.Empty
+        && !string.IsNullOrEmpty(_selectedSlotStart);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadServicesAsync();
+        await LoadAppointmentsAsync();
+    }
+
+    private async Task LoadServicesAsync()
+    {
+        var result = await Api.GetBookableServicesAsync(PetId);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        _services = result.Value ?? [];
+    }
+
+    private async Task LoadAppointmentsAsync()
+    {
+        _loadingAppointments = true;
+        var result = await Api.GetPetAppointmentsAsync(PetId);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            _appointments = [];
+        }
+        else
+        {
+            _appointments = (result.Value ?? [])
+                .Where(a => a.Date >= DateTimeOffset.UtcNow.AddHours(-1))
+                .OrderBy(a => a.Date)
+                .ToList();
+        }
+
+        _loadingAppointments = false;
+    }
+
+    private TutorBookingKindDto? ResolveKind()
+    {
+        var service = _services.FirstOrDefault(s => s.ServiceId == _selectedServiceId);
+        if (service is null)
+        {
+            return null;
+        }
+
+        return service.Kind.Equals("Grooming", StringComparison.OrdinalIgnoreCase)
+            ? TutorBookingKindDto.Grooming
+            : TutorBookingKindDto.Clinical;
+    }
+
+    private async Task OnServiceChangedAsync()
+    {
+        _selectedProfessionalId = Guid.Empty;
+        _selectedSlotStart = string.Empty;
+        _professionals = [];
+        _slots = [];
+        await LoadProfessionalsAsync();
+    }
+
+    private async Task OnDateChangedAsync() => await LoadProfessionalsAsync();
+
+    private async Task OnProfessionalChangedAsync() => await LoadSlotsAsync();
+
+    private async Task LoadProfessionalsAsync()
+    {
+        var kind = ResolveKind();
+        if (kind is null || _selectedServiceId == Guid.Empty)
+        {
+            return;
+        }
+
+        var date = new DateTimeOffset(_selectedDate.Date, TimeSpan.Zero);
+        var result = await Api.GetBookingProfessionalsAsync(PetId, kind.Value, _selectedServiceId, date);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            _professionals = [];
+            return;
+        }
+
+        _professionals = result.Value ?? [];
+    }
+
+    private async Task LoadSlotsAsync()
+    {
+        var kind = ResolveKind();
+        if (kind is null || _selectedProfessionalId == Guid.Empty)
+        {
+            return;
+        }
+
+        var date = new DateTimeOffset(_selectedDate.Date, TimeSpan.Zero);
+        var result = await Api.GetAvailableSlotsAsync(PetId, kind.Value, _selectedServiceId, _selectedProfessionalId, date);
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            _slots = [];
+            return;
+        }
+
+        _slots = result.Value ?? [];
+        _selectedSlotStart = string.Empty;
+    }
+
+    private async Task ConfirmBookingAsync()
+    {
+        var kind = ResolveKind();
+        if (kind is null || !DateTimeOffset.TryParse(_selectedSlotStart, out var slotStart))
+        {
+            Toast.Show("Selecione serviço, profissional e horário.", ToastType.Warning);
+            return;
+        }
+
+        _booking = true;
+        var result = await Api.BookAppointmentAsync(PetId, new TutorBookAppointmentRequest
+        {
+            Id = Guid.NewGuid(),
+            Kind = kind.Value,
+            ServiceId = _selectedServiceId,
+            ProfessionalId = _selectedProfessionalId,
+            Date = slotStart
+        });
+        _booking = false;
+
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Agendamento confirmado.", ToastType.Success);
+        _selectedSlotStart = string.Empty;
+        await LoadAppointmentsAsync();
+        await LoadSlotsAsync();
+    }
+
+    private async Task CancelAsync(TutorPetAppointmentDto appt)
+    {
+        var kind = appt.Kind.Equals("Grooming", StringComparison.OrdinalIgnoreCase)
+            ? TutorBookingKindDto.Grooming
+            : TutorBookingKindDto.Clinical;
+
+        _cancelling = true;
+        var result = await Api.CancelAppointmentAsync(PetId, appt.Id, kind);
+        _cancelling = false;
+
+        if (result.IsFailure)
+        {
+            Toast.Show(result.Error.Message, ToastType.Error);
+            return;
+        }
+
+        Toast.Show("Agendamento cancelado.", ToastType.Success);
+        await LoadAppointmentsAsync();
+    }
+}

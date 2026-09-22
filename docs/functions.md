@@ -82,6 +82,7 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 * Aplicativo e portal exclusivo para o cliente (tutor) acompanhar a saúde do pet.
 * **Base (8.4):** client `TutorPortalWeb`, role Identity `Tutor`, auto-cadastro por e-mail+CPF do CRM, API `/api/v1/tutor-portal/` (login, cadastro, `/me` com pets).
 * **App (8.5):** carteira de vacinação, exames e timeline por pet (`/api/v1/tutor-portal/pets/{id}/…`); Web Push opcional (VAPID).
+* **Autoagendamento (8.6):** serviços, profissionais, slots e reserva/cancelamento (`/api/v1/tutor-portal/pets/{id}/booking/…`); PWA `/pets/{id}/schedule` (ADR-043).
 * Visualização da carteira de vacinas digital e histórico de exames.
 * Funcionalidade para o tutor realizar o agendamento de serviços direto pelo aplicativo.
 * Criação de site grátis para o estabelecimento.

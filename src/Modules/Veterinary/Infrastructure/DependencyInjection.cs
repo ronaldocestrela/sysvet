@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Veterinary.Application.Appointments;
 using Veterinary.Application.Appointments.Commands;
 using Core.Domain;
 using Veterinary.Domain.Repositories;
@@ -36,6 +37,7 @@ public static class DependencyInjection
             options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
+        services.AddScoped<IAppointmentScheduler, AppointmentScheduler>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
         services.AddScoped<IScheduleSlotRepository, ScheduleSlotRepository>();
         services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();

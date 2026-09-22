@@ -45,6 +45,27 @@ public static class ErrorCodes
     }
 
     /// <summary>
+    /// Tutor self-service booking errors.
+    /// </summary>
+    public static class Booking
+    {
+        /// <summary>No bookable slot covers the requested interval.</summary>
+        public static readonly Error SlotUnavailable = new("TutorPortal.Booking.SlotUnavailable", "The selected time is no longer available.");
+
+        /// <summary>Professional already has an overlapping appointment.</summary>
+        public static readonly Error Overlap = new("TutorPortal.Booking.Overlap", "The selected time conflicts with another appointment.");
+
+        /// <summary>Booking or service was not found for the tutor context.</summary>
+        public static readonly Error NotFound = new("TutorPortal.Booking.NotFound", "Appointment not found.");
+
+        /// <summary>Service is missing, inactive, or not bookable by tutors.</summary>
+        public static readonly Error InvalidService = new("TutorPortal.Booking.InvalidService", "The selected service is not available.");
+
+        /// <summary>Booking kind or parameters are invalid.</summary>
+        public static readonly Error InvalidRequest = new("TutorPortal.Booking.InvalidRequest", "Invalid booking request.");
+    }
+
+    /// <summary>
     /// Web Push subscription validation errors.
     /// </summary>
     public static class Push
