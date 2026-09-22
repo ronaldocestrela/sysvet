@@ -17,10 +17,61 @@ partial class PlatformDbContextModelSnapshot : ModelSnapshot
 #pragma warning disable 612, 618
         modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
+        modelBuilder.Entity("Platform.Domain.Entities.Branch", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Cnpj")
+                    .IsRequired()
+                    .HasMaxLength(14)
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTimeOffset?>("DeletedAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<bool>("IsHeadquarters")
+                    .HasColumnType("INTEGER");
+
+                b.Property<string>("LegalName")
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
+
+                b.Property<byte[]>("RowVersion")
+                    .IsConcurrencyToken()
+                    .IsRequired()
+                    .HasColumnType("BLOB");
+
+                b.Property<Guid>("TenantId")
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TenantId");
+
+                b.HasIndex("TenantId", "Cnpj")
+                    .IsUnique();
+
+                b.ToTable("PlatformBranches");
+            });
+
         modelBuilder.Entity("Platform.Domain.Entities.Tenant", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTimeOffset?>("DeletedAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("DisplayName")
+                    .IsRequired()
+                    .HasMaxLength(256)
                     .HasColumnType("TEXT");
 
                 b.Property<byte[]>("RowVersion")
@@ -38,13 +89,15 @@ partial class PlatformDbContextModelSnapshot : ModelSnapshot
                     .HasMaxLength(63)
                     .HasColumnType("TEXT");
 
+                b.Property<int>("Status")
+                    .HasColumnType("INTEGER");
+
                 b.Property<DateTimeOffset>("UpdatedAt")
                     .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 
-                b.HasIndex("Slug")
-                    .IsUnique();
+                b.HasIndex("Slug");
 
                 b.ToTable("PlatformTenants");
             });

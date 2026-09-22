@@ -46,6 +46,11 @@ public static class ErrorCodes
         public static readonly Error Disabled = new("Auth.Disabled", "This account has been disabled.");
 
         /// <summary>
+        /// The tenant account is suspended, cancelled, or deleted.
+        /// </summary>
+        public static readonly Error TenantNotActive = new("Auth.TenantNotActive", "This clinic account is not active.");
+
+        /// <summary>
         /// Valid credentials were presented on the wrong login surface (clinic vs tutor portal).
         /// </summary>
         public static readonly Error WrongPortal = new("Auth.WrongPortal", "Use the clinic application to sign in with this account.");

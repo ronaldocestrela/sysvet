@@ -63,6 +63,7 @@ routes.MapClinicSiteEndpoints();
 routes.MapClinicSitePublicEndpoints();
 routes.MapCommerceEndpoints();
 routes.MapCommercePublicEndpoints();
+routes.MapPlatformEndpoints();
 
 app.MapHub<GroomingStatusHub>(GroomingStatusHub.HubPath);
 

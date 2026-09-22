@@ -4,7 +4,7 @@ Este documento detalha as funções exclusivas para a administração geral do S
 
 ---
 
-> **Nota (9.1):** O módulo `Platform` entrega catálogo mínimo, resolução JWT/header/host e isolamento técnico. Gestão operacional (onboarding, status, filiais) inicia na **9.2**.
+> **Nota (9.2):** Onboarding, status de tenant, filiais multi-CNPJ e API `/api/v1/platform/tenants` (role `SuperAdmin`) estão entregues (ADR-047). UI Super Admin permanece na **9.8**.
 
 ## 1. Gestão de Tenants (Clientes / Estabelecimentos)
 * **Cadastro e Onboarding:** Criação de novas contas para clínicas e petshops (Tenants), com provisionamento automático de banco de dados/schemas e configurações iniciais.

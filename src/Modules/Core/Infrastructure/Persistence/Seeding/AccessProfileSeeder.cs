@@ -12,16 +12,16 @@ namespace Core.Infrastructure.Persistence.Seeding;
 public sealed class AccessProfileSeeder : IAccessProfileSeeder
 {
     private readonly IAccessProfileRepository _accessProfileRepository;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly CoreDbContext _dbContext;
     private readonly ITenantContext _tenantContext;
 
     public AccessProfileSeeder(
         IAccessProfileRepository accessProfileRepository,
-        IUnitOfWork unitOfWork,
+        CoreDbContext dbContext,
         ITenantContext tenantContext)
     {
         _accessProfileRepository = accessProfileRepository;
-        _unitOfWork = unitOfWork;
+        _dbContext = dbContext;
         _tenantContext = tenantContext;
     }
 
@@ -34,7 +34,7 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
         await EnsureOneAsync(ApplicationRoles.Veterinarian, Permissions.VeterinarianDefaults(), 0m, cancellationToken);
         await EnsureOneAsync(ApplicationRoles.Receptionist, Permissions.ReceptionistDefaults(), 0m, cancellationToken);
         await EnsureOneAsync(ApplicationRoles.Cashier, Permissions.CashierDefaults(), 0m, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task EnsureOneAsync(string baseRole, IReadOnlyList<string> defaults, decimal maxDiscountPercent, CancellationToken cancellationToken)

@@ -1,16 +1,19 @@
 using Core.Domain;
 using Microsoft.EntityFrameworkCore;
+using Platform.Application.Abstractions;
 using Platform.Domain.Entities;
-using Platform.Domain.Repositories;
 
 namespace Platform.Infrastructure.Persistence;
 
 /// <summary>
 /// Global platform catalog (schema <c>dbo</c> only — not tenant-scoped).
 /// </summary>
-public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork
+public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeTrackingUnitOfWork
 {
     public DbSet<Tenant> Tenants => Set<Tenant>();
+
+    /// <summary>Tenant legal entities (CNPJ).</summary>
+    public DbSet<Branch> Branches => Set<Branch>();
 
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
@@ -27,6 +30,3 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork
         base.OnModelCreating(modelBuilder);
     }
 }
-
-/// <summary>Unit of work marker for Platform catalog writes.</summary>
-public interface IPlatformUnitOfWork : IChangeTrackingUnitOfWork;

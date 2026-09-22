@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using API.Middlewares;
+using Core.Application.Common.Interfaces;
 using Core.Domain;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -30,13 +31,7 @@ public class TenantResolutionMiddlewareTests
         ], "TestAuthType"));
 
         var tenantContext = new FakeTenantContext();
-        var slugLookup = Substitute.For<ITenantSlugLookup>();
-        var services = new ServiceCollection();
-        services.AddSingleton<ITenantContext>(tenantContext);
-        services.AddSingleton(slugLookup);
-        services.AddOptions<Core.Infrastructure.Tenancy.TenancySettings>();
-        context.RequestServices = services.BuildServiceProvider();
-
+        context.RequestServices = BuildServices(tenantContext);
         var middleware = new TenantResolutionMiddleware(_ => Task.CompletedTask);
         await middleware.InvokeAsync(context);
 
@@ -52,13 +47,7 @@ public class TenantResolutionMiddlewareTests
         context.Request.Headers[TenantResolutionHeaders.TenantId] = tenantId.ToString();
 
         var tenantContext = new FakeTenantContext();
-        var slugLookup = Substitute.For<ITenantSlugLookup>();
-        var services = new ServiceCollection();
-        services.AddSingleton<ITenantContext>(tenantContext);
-        services.AddSingleton(slugLookup);
-        services.AddOptions<Core.Infrastructure.Tenancy.TenancySettings>();
-        context.RequestServices = services.BuildServiceProvider();
-
+        context.RequestServices = BuildServices(tenantContext);
         var middleware = new TenantResolutionMiddleware(_ => Task.CompletedTask);
         await middleware.InvokeAsync(context);
 
@@ -79,12 +68,7 @@ public class TenantResolutionMiddlewareTests
         context.Request.Headers[TenantResolutionHeaders.TenantId] = otherTenant.ToString();
 
         var tenantContext = new FakeTenantContext();
-        var slugLookup = Substitute.For<ITenantSlugLookup>();
-        var services = new ServiceCollection();
-        services.AddSingleton<ITenantContext>(tenantContext);
-        services.AddSingleton(slugLookup);
-        services.AddOptions<Core.Infrastructure.Tenancy.TenancySettings>();
-        context.RequestServices = services.BuildServiceProvider();
+        context.RequestServices = BuildServices(tenantContext);
 
         var nextCalled = false;
         var middleware = new TenantResolutionMiddleware(_ =>
@@ -106,5 +90,20 @@ public class TenantResolutionMiddlewareTests
     public void ResolveHostLabel_ParsesSubdomain(string host, string? expected)
     {
         TenantResolutionMiddleware.ResolveHostLabel(host).Should().Be(expected);
+    }
+
+    private static ServiceProvider BuildServices(FakeTenantContext tenantContext)
+    {
+        var slugLookup = Substitute.For<ITenantSlugLookup>();
+        var signInGate = Substitute.For<ITenantSignInGate>();
+        signInGate.EnsureActiveAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var services = new ServiceCollection();
+        services.AddSingleton<ITenantContext>(tenantContext);
+        services.AddSingleton(slugLookup);
+        services.AddSingleton(signInGate);
+        services.AddOptions<Core.Infrastructure.Tenancy.TenancySettings>();
+        return services.BuildServiceProvider();
     }
 }

@@ -33,7 +33,7 @@ public sealed class PlatformTenantSeedHostedService : IHostedService
             await using var scope = _scopeFactory.CreateAsyncScope();
             var context = scope.ServiceProvider.GetRequiredService<PlatformDbContext>();
 
-            await context.Database.EnsureCreatedAsync(cancellationToken);
+            await context.Database.MigrateAsync(cancellationToken);
 
             var repository = scope.ServiceProvider.GetRequiredService<ITenantRepository>();
             var existing = await repository.GetByIdAsync(DevelopmentAdminUserSeeder.DevTenantId, cancellationToken);
@@ -42,7 +42,7 @@ public sealed class PlatformTenantSeedHostedService : IHostedService
                 return;
             }
 
-            var tenantResult = Tenant.Create(DevelopmentAdminUserSeeder.DevTenantId, "dev");
+            var tenantResult = Tenant.Create(DevelopmentAdminUserSeeder.DevTenantId, "dev", "Development");
             if (tenantResult.IsFailure)
             {
                 _logger.LogWarning("Platform tenant seed skipped: {Error}", tenantResult.Error.Message);

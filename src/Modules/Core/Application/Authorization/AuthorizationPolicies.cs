@@ -29,4 +29,9 @@ public static class AuthorizationPolicies
     /// Tutor portal users linked to a CRM tutor record.
     /// </summary>
     public const string TutorPortal = "TutorPortal";
+
+    /// <summary>
+    /// VetNexus Super Admin operators managing tenants and billing.
+    /// </summary>
+    public const string PlatformAdmin = "PlatformAdmin";
 }

@@ -14,7 +14,7 @@ public sealed class TenantDirectory : ITenantDirectory
     /// <inheritdoc />
     public async Task<IReadOnlyList<TenantDirectoryEntry>> ListAsync(CancellationToken cancellationToken = default)
     {
-        var tenants = await _repository.ListAsync(cancellationToken);
+        var tenants = await _repository.ListActiveAsync(cancellationToken);
         return tenants
             .Select(t => new TenantDirectoryEntry(t.Id, t.SchemaName, t.Slug))
             .ToList();

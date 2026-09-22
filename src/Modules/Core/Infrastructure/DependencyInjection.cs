@@ -93,6 +93,8 @@ public static class DependencyInjection
                     ApplicationRoles.Cashier));
             options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.TutorPortal, policy =>
                 policy.RequireRole(ApplicationRoles.Tutor));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.PlatformAdmin, policy =>
+                policy.RequireRole(ApplicationRoles.SuperAdmin));
         });
 
         services.AddHttpContextAccessor();

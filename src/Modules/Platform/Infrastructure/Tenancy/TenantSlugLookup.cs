@@ -1,4 +1,5 @@
 using Platform.Application.Tenancy;
+using Platform.Domain.Entities;
 using Platform.Domain.Repositories;
 using Platform.Domain.ValueObjects;
 
@@ -22,6 +23,11 @@ public sealed class TenantSlugLookup : ITenantSlugLookup
         }
 
         var tenant = await _repository.GetBySlugAsync(slug, cancellationToken);
-        return tenant?.Id;
+        if (tenant is null || tenant.Status != TenantStatus.Active)
+        {
+            return null;
+        }
+
+        return tenant.Id;
     }
 }

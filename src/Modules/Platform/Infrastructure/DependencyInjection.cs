@@ -1,3 +1,4 @@
+using Core.Application.Common.Interfaces;
 using Core.Domain;
 using Core.Infrastructure.Configuration;
 using Core.Infrastructure.Persistence;
@@ -6,12 +7,16 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Platform.Application.Abstractions;
+using Platform.Application.Provisioning;
 using Platform.Application.Tenancy;
+using Platform.Application.Tenants.Commands;
 using Platform.Domain.Repositories;
 using Platform.Infrastructure.Configuration;
 using Platform.Infrastructure.Persistence;
 using Platform.Infrastructure.Persistence.Repositories;
 using Platform.Infrastructure.Persistence.Seeding;
+using Platform.Infrastructure.Provisioning;
 using Platform.Infrastructure.Tenancy;
 
 namespace Platform.Infrastructure;
@@ -34,12 +39,19 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IBranchRepository, BranchRepository>();
         services.AddScoped<ITenantSlugLookup, TenantSlugLookup>();
         services.AddScoped<ITenantDirectory, TenantDirectory>();
+        services.AddScoped<ITenantProvisioner, TenantProvisioner>();
+        services.AddScoped<ITenantSignInGate, CatalogTenantSignInGate>();
         services.AddScoped<IPlatformUnitOfWork>(sp => sp.GetRequiredService<PlatformDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PlatformDbContext>());
 
+        services.AddScoped<IDevelopmentSuperAdminSeeder, DevelopmentSuperAdminSeeder>();
         services.AddHostedService<PlatformTenantSeedHostedService>();
+        services.AddHostedService<DevelopmentSuperAdminSeedHostedService>();
+
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(OnboardTenantCommand).Assembly));
 
         return services;
     }

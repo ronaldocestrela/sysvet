@@ -72,6 +72,21 @@ internal static class IntegrationTestDatabaseHelper
 
         var platformContext = scope.ServiceProvider.GetRequiredService<global::Platform.Infrastructure.Persistence.PlatformDbContext>();
         await platformContext.Database.MigrateAsync();
+
+        await EnsureDefaultPlatformTenantAsync(platformContext);
+    }
+
+    private static async Task EnsureDefaultPlatformTenantAsync(
+        global::Platform.Infrastructure.Persistence.PlatformDbContext platformContext)
+    {
+        if (await platformContext.Tenants.AnyAsync(t => t.Id == SingleTenantId))
+        {
+            return;
+        }
+
+        var tenant = global::Platform.Domain.Entities.Tenant.Create(SingleTenantId, "integration", "Integration Test").Value;
+        platformContext.Tenants.Add(tenant);
+        await platformContext.SaveChangesAsync();
     }
 
     private static async Task EnsureAutomations821SchemaAsync(global::Automations.Infrastructure.Persistence.AutomationsDbContext context)

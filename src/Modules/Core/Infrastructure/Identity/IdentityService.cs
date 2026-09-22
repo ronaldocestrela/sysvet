@@ -20,19 +20,22 @@ public sealed class IdentityService : IIdentityService
     private readonly IAccessProfileRepository _accessProfileRepository;
     private readonly IAccessProfileSeeder _accessProfileSeeder;
     private readonly ITenantContext _tenantContext;
+    private readonly ITenantSignInGate _tenantSignInGate;
 
     public IdentityService(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         IAccessProfileRepository accessProfileRepository,
         IAccessProfileSeeder accessProfileSeeder,
-        ITenantContext tenantContext)
+        ITenantContext tenantContext,
+        ITenantSignInGate tenantSignInGate)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _accessProfileRepository = accessProfileRepository;
         _accessProfileSeeder = accessProfileSeeder;
         _tenantContext = tenantContext;
+        _tenantSignInGate = tenantSignInGate;
     }
 
     /// <inheritdoc />
@@ -69,8 +72,18 @@ public sealed class IdentityService : IIdentityService
         }
 
         var roles = (await _userManager.GetRolesAsync(user)).ToList();
+        var isSuperAdmin = roles.Contains(ApplicationRoles.SuperAdmin);
         var isTutorOnly = roles.Count == 1 && roles[0] == ApplicationRoles.Tutor;
-        if (!isTutorOnly)
+        if (!isTutorOnly && !isSuperAdmin && user.TenantId != Guid.Empty)
+        {
+            var tenantActive = await _tenantSignInGate.EnsureActiveAsync(user.TenantId, cancellationToken);
+            if (tenantActive.IsFailure)
+            {
+                return Result.Failure<AuthenticatedUserDto>(ErrorCodes.Auth.TenantNotActive);
+            }
+        }
+
+        if (!isTutorOnly && !isSuperAdmin)
         {
             var primaryRole = roles.FirstOrDefault(r => r != ApplicationRoles.Tutor) ?? ApplicationRoles.Receptionist;
             if (user.AccessProfileId == Guid.Empty)

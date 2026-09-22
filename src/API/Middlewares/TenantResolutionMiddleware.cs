@@ -1,3 +1,5 @@
+using API.Filters;
+using Core.Application.Common.Interfaces;
 using Core.Domain;
 using Core.Infrastructure.Tenancy;
 using Microsoft.Extensions.Options;
@@ -32,6 +34,7 @@ public sealed class TenantResolutionMiddleware
         var tenantContext = context.RequestServices.GetRequiredService<ITenantContext>();
         var tenancySettings = context.RequestServices.GetRequiredService<IOptions<TenancySettings>>().Value;
         var slugLookup = context.RequestServices.GetRequiredService<ITenantSlugLookup>();
+        var tenantSignInGate = context.RequestServices.GetRequiredService<ITenantSignInGate>();
 
         var jwtTenantId = ResolveJwtTenantId(context);
         if (jwtTenantId != Guid.Empty)
@@ -44,6 +47,11 @@ public sealed class TenantResolutionMiddleware
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsJsonAsync(new { error = PlatformTenancyErrors.Tenancy.TenantMismatch.Message });
+                return;
+            }
+
+            if (await BlockInactiveTenantAsync(context, tenantContext, tenantSignInGate))
+            {
                 return;
             }
 
@@ -66,7 +74,59 @@ public sealed class TenantResolutionMiddleware
         }
 
         ResolveUserId(context, tenantContext);
+
+        if (await BlockInactiveTenantAsync(context, tenantContext, tenantSignInGate))
+        {
+            return;
+        }
+
         await _next(context);
+    }
+
+    private static async Task<bool> BlockInactiveTenantAsync(
+        HttpContext context,
+        ITenantContext tenantContext,
+        ITenantSignInGate tenantSignInGate)
+    {
+        if (!RequiresActiveTenant(context.Request.Path) || tenantContext.TenantId == Guid.Empty)
+        {
+            return false;
+        }
+
+        var active = await tenantSignInGate.EnsureActiveAsync(tenantContext.TenantId, context.RequestAborted);
+        if (active.IsSuccess)
+        {
+            return false;
+        }
+
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = PlatformTenancyErrors.Tenant.NotActive.Message,
+            code = PlatformTenancyErrors.Tenant.NotActive.Code
+        });
+        return true;
+    }
+
+    private static bool RequiresActiveTenant(PathString path)
+    {
+        var value = path.Value ?? string.Empty;
+        if (!value.StartsWith("/api/v1", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (TenantEndpointAllowlist.IsExempt(path))
+        {
+            return false;
+        }
+
+        if (value.StartsWith("/api/v1/platform/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static Guid ResolveJwtTenantId(HttpContext context)

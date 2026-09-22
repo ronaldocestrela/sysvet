@@ -13,7 +13,9 @@ internal sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.ToTable("PlatformTenants");
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Slug).HasMaxLength(63).IsRequired();
-        builder.HasIndex(t => t.Slug).IsUnique();
+        builder.Property(t => t.DisplayName).HasMaxLength(256).IsRequired();
+        builder.Property(t => t.Status).HasConversion<int>().IsRequired();
+        builder.HasIndex(t => t.Slug);
         builder.Property(t => t.SchemaName).HasMaxLength(128).IsRequired();
         builder.Property(t => t.RowVersion).IsConcurrencyToken();
     }

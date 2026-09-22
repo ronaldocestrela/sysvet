@@ -1064,7 +1064,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **9.1 Módulo Platform — estrutura e multi-tenancy** | 13 | Concluído |
-| **9.2 Gestão de tenants e filiais** | 13 | Pendente |
+| **9.2 Gestão de tenants e filiais** | 13 | Concluído |
 | **9.3 Planos, add-ons e feature flags** | 13 | Pendente |
 | **9.4 Gateway de assinatura e cobrança** | 21 | Pendente |
 | **9.5 Dunning, bloqueio e cupons** | 13 | Pendente |
@@ -1084,13 +1084,13 @@ flowchart TD
 
 ### 9.2 Gestão de tenants e filiais (13 SP)
 
-- [ ] Onboarding: criar tenant + admin + provisionamento schema/seed
-- [ ] Status: ativo, suspenso, cancelado, excluído (soft delete)
-- [ ] Filiais (multi-CNPJ) vinculadas à matriz
+- [x] Onboarding: criar tenant + admin + provisionamento schema/seed
+- [x] Status: ativo, suspenso, cancelado, excluído (soft delete)
+- [x] Filiais (multi-CNPJ) vinculadas à matriz
 
 **Referência:** `backoffice.md` §1.
 
-**Aceite:** Novo tenant operacional em < 5 min via backoffice.
+**Aceite:** Novo tenant operacional em < 5 min via backoffice (`TenantOnboarding_AdminCanAuthenticate_WhenProvisioned`; ADR-047).
 
 ### 9.3 Planos, add-ons e feature flags (13 SP)
 

@@ -271,9 +271,15 @@ Iniciado o módulo de estoque.
 - Módulo `Platform`, `TenantResolutionMiddleware`, `TenantRequiredEndpointFilter`, `TenantSchema.FromId`, filtros EF por tenant nos DbContexts.
 - Aceite: `TenantIsolation_DoesNotLeakCrm_WhenDifferentTenants`.
 
-### 👉 **Próxima Ação: Fase 9.2 — Gestão de tenants e filiais**
+### Fase 9.2 — Gestão de tenants e filiais — Concluída (ADR-047)
 
-Ver [`roadmap.md`](roadmap.md) §9.2 e [`backoffice.md`](backoffice.md) §1.
+- API `/api/v1/platform/tenants` (SuperAdmin): onboarding, status, soft delete, filiais.
+- `ITenantProvisioner`, `ITenantSignInGate`, role `SuperAdmin`.
+- Aceite: `TenantOnboarding_AdminCanAuthenticate_WhenProvisioned`; `SuspendedTenant_ForbiddenOnClinicApi`; `Branch_LinkedToHeadquarters_WhenAdded`.
+
+### 👉 **Próxima Ação: Fase 9.3 — Planos, add-ons e feature flags**
+
+Ver [`roadmap.md`](roadmap.md) §9.3 e [`backoffice.md`](backoffice.md) §2.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

@@ -20,6 +20,9 @@ public static class ApplicationRoles
     /// <summary>Pet owner using the tutor portal (not clinic staff).</summary>
     public const string Tutor = "Tutor";
 
+    /// <summary>VetNexus platform operator (Super Admin backoffice).</summary>
+    public const string SuperAdmin = "SuperAdmin";
+
     /// <summary>Clinic staff roles seeded for backoffice RBAC policies.</summary>
     public static readonly IReadOnlyList<string> All =
     [
@@ -36,6 +39,7 @@ public static class ApplicationRoles
         Veterinarian,
         Receptionist,
         Cashier,
-        Tutor
+        Tutor,
+        SuperAdmin
     ];
 }

@@ -82,6 +82,11 @@ public static class TenantEndpointAllowlist
             return true;
         }
 
+        if (value.StartsWith("/api/v1/platform/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
         return false;
     }
 }

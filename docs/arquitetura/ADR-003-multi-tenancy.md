@@ -36,7 +36,8 @@ Provisionamento em massa de schemas, onboarding Super Admin e impersonation audi
 
 - **Positivas:** menor chance de cross-tenant acidental em SQL ad hoc; alinhado a clínicas como unidades isoladas.
 - **Negativas:** pipeline de migrations multi-schema; `IModelCacheKeyFactory` customizado obrigatório.
-- **Futuro:** testes de isolamento E2E por tenant; automação de `CREATE SCHEMA` no onboarding.
+- **Onboarding (9.2 / ADR-047):** `CREATE SCHEMA` idempotente no SQL Server ao provisionar tenant; dados operacionais continuam em tabelas `dbo` com `TenantId` até migrations multi-schema.
+- **Futuro:** clonar estrutura de tabelas para `tenant_{guid}`; testes E2E adicionais.
 
 ## Confirmação no código
 
