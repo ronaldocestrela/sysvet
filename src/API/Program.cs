@@ -58,6 +58,8 @@ routes.MapFiscalEndpoints();
 routes.MapAutomationsEndpoints();
 routes.MapAutomationsPublicNpsEndpoints();
 routes.MapTutorPortalEndpoints();
+routes.MapClinicSiteEndpoints();
+routes.MapClinicSitePublicEndpoints();
 
 app.MapHub<GroomingStatusHub>(GroomingStatusHub.HubPath);
 

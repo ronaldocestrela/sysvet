@@ -49,6 +49,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-041](./ADR-041-tutor-portal-base.md) | TutorPortal — autenticação isolada (8.4) | Accepted |
 | [ADR-042](./ADR-042-tutor-portal-app.md) | TutorPortal — app carteira/exames/timeline/push (8.5) | Accepted |
 | [ADR-043](./ADR-043-tutor-autoagendamento.md) | TutorPortal — autoagendamento (8.6) | Accepted |
+| [ADR-044](./ADR-044-clinic-site.md) | Site do estabelecimento (8.7) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

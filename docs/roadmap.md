@@ -985,7 +985,7 @@ flowchart TD
 | **8.4 Módulo TutorPortal — base** | 5 | Concluído |
 | **8.5 App do tutor (login, vacinas, exames)** | 13 | Concluído |
 | **8.6 Autoagendamento pelo tutor** | 8 | Concluído |
-| **8.7 Site do estabelecimento** | 8 | Pendente |
+| **8.7 Site do estabelecimento** | 8 | Concluído |
 | **8.8 E-commerce e marketplaces** | 21 | Pendente |
 | **Total Fase 8** | **79 SP** | |
 
@@ -1038,10 +1038,10 @@ flowchart TD
 
 ### 8.7 Site do estabelecimento (8 SP)
 
-- [ ] Site gerado (subdomínio `{clinica}.vetnexus.app`)
-- [ ] Páginas: serviços, equipe, contato, horários
+- [x] Site gerado (subdomínio `{clinica}.vetnexus.app`)
+- [x] Páginas: serviços, equipe, contato, horários
 
-**Aceite:** Site publicado com dados cadastrais da clínica.
+**Aceite:** Site publicado com dados cadastrais da clínica (`ClinicSite_PublishedWithCadastralData_WhenSlugResolved`; ADR-044).
 
 ### 8.8 E-commerce e marketplaces (21 SP)
 

@@ -1,0 +1,26 @@
+@page "/contato"
+
+<h1 class="h3 mb-3">Contato</h1>
+<ul class="list-unstyled">
+    @if (!string.IsNullOrWhiteSpace(Site.Phone))
+    {
+        <li><strong>Telefone:</strong> @Site.Phone</li>
+    }
+    @if (!string.IsNullOrWhiteSpace(Site.Email))
+    {
+        <li><strong>E-mail:</strong> <a href="mailto:@Site.Email">@Site.Email</a></li>
+    }
+    @if (!string.IsNullOrWhiteSpace(Site.WhatsApp))
+    {
+        <li><strong>WhatsApp:</strong> @Site.WhatsApp</li>
+    }
+</ul>
+<p>@Site.Street, @Site.Number<br />
+@(string.IsNullOrWhiteSpace(Site.Complement) ? null : Site.Complement + " · ")
+@Site.District — @Site.City/@Site.State<br />
+CEP @Site.PostalCode</p>
+
+@code {
+    [CascadingParameter]
+    public PublicClinicSiteClientDto Site { get; set; } = null!;
+}

@@ -39,6 +39,8 @@
     <ProjectReference Include="..\Modules\Automations\Infrastructure\Automations.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\TutorPortal\Application\TutorPortal.Application.csproj" />
     <ProjectReference Include="..\Modules\TutorPortal\Infrastructure\TutorPortal.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\ClinicSite\Application\ClinicSite.Application.csproj" />
+    <ProjectReference Include="..\Modules\ClinicSite\Infrastructure\ClinicSite.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

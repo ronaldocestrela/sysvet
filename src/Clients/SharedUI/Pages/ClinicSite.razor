@@ -1,0 +1,253 @@
+@page "/clinic-site"
+@using Clients.Infrastructure.ClinicSite
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject ClinicSiteApiService ClinicSiteApi
+@inject IToastService Toast
+
+<div class="header-section d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="mb-0">Site da clínica</h1>
+    @if (_site?.IsPublished == true)
+    {
+        <span class="badge text-bg-success">Publicado</span>
+    }
+    else
+    {
+        <span class="badge text-bg-secondary">Rascunho</span>
+    }
+</div>
+
+<LoadingState IsLoading="_loading">
+    <div class="card mb-3">
+        <p class="text-muted">Configure o site público do estabelecimento (subdomínio <code>{slug}.vetnexus.app</code>).</p>
+        <div class="row g-2">
+            <div class="col-md-6"><label>Nome exibido</label><input class="form-control" @bind="_displayName" /></div>
+            <div class="col-md-6"><label>Slogan</label><input class="form-control" @bind="_tagline" /></div>
+            <div class="col-md-4"><label>Slug (URL)</label><input class="form-control" @bind="_slug" placeholder="minha-clinica" /></div>
+            <div class="col-md-8"><label>Logo (URL)</label><input class="form-control" @bind="_logoUrl" /></div>
+            <div class="col-md-8"><label>Logradouro</label><input class="form-control" @bind="_street" /></div>
+            <div class="col-md-2"><label>Nº</label><input class="form-control" @bind="_number" /></div>
+            <div class="col-md-2"><label>UF</label><input class="form-control" maxlength="2" @bind="_state" /></div>
+            <div class="col-md-4"><label>Bairro</label><input class="form-control" @bind="_district" /></div>
+            <div class="col-md-4"><label>Cidade</label><input class="form-control" @bind="_city" /></div>
+            <div class="col-md-4"><label>CEP</label><input class="form-control" @bind="_postalCode" /></div>
+            <div class="col-md-4"><label>Telefone</label><input class="form-control" @bind="_phone" /></div>
+            <div class="col-md-4"><label>E-mail</label><input class="form-control" @bind="_email" /></div>
+            <div class="col-md-4"><label>WhatsApp</label><input class="form-control" @bind="_whatsApp" /></div>
+        </div>
+        <button class="btn btn-primary mt-3" disabled="_saving" @onclick="SaveProfileAsync">Salvar cadastro</button>
+    </div>
+
+    <div class="card mb-3">
+        <h2 class="h5">Serviços</h2>
+        @foreach (var service in _services)
+        {
+            <div class="border rounded p-2 mb-2">
+                <input class="form-control mb-1" placeholder="Nome" @bind="service.Name" />
+                <textarea class="form-control mb-1" placeholder="Descrição" @bind="service.Description"></textarea>
+                <div class="row g-1">
+                    <div class="col-4"><input class="form-control" type="number" placeholder="Minutos" @bind="service.DurationMinutes" /></div>
+                    <div class="col-4"><input class="form-control" type="number" step="0.01" placeholder="Preço" @bind="service.Price" /></div>
+                    <div class="col-4"><label class="form-check"><input type="checkbox" @bind="service.IsVisible" /> Visível</label></div>
+                </div>
+            </div>
+        }
+        <button class="btn btn-outline-secondary btn-sm" @onclick="AddService">Adicionar serviço</button>
+        <button class="btn btn-primary btn-sm ms-2" disabled="_saving" @onclick="SaveServicesAsync">Salvar serviços</button>
+    </div>
+
+    <div class="card mb-3">
+        <h2 class="h5">Equipe</h2>
+        @foreach (var member in _team)
+        {
+            <div class="border rounded p-2 mb-2">
+                <input class="form-control mb-1" placeholder="Nome" @bind="member.Name" />
+                <input class="form-control mb-1" placeholder="Cargo" @bind="member.RoleTitle" />
+                <textarea class="form-control" placeholder="Bio" @bind="member.Bio"></textarea>
+            </div>
+        }
+        <button class="btn btn-outline-secondary btn-sm" @onclick="AddTeamMember">Adicionar membro</button>
+        <button class="btn btn-primary btn-sm ms-2" disabled="_saving" @onclick="SaveTeamAsync">Salvar equipe</button>
+    </div>
+
+    <div class="card mb-3">
+        <h2 class="h5">Horários</h2>
+        @foreach (var row in _hours)
+        {
+            <div class="row g-1 align-items-center mb-1">
+                <div class="col-md-3">@row.Day</div>
+                <div class="col-md-2"><input class="form-control" placeholder="Abre" @bind="row.OpenTime" /></div>
+                <div class="col-md-2"><input class="form-control" placeholder="Fecha" @bind="row.CloseTime" /></div>
+                <div class="col-md-3"><label class="form-check"><input type="checkbox" @bind="row.IsClosed" /> Fechado</label></div>
+            </div>
+        }
+        <button class="btn btn-primary btn-sm" disabled="_saving" @onclick="SaveHoursAsync">Salvar horários</button>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-success" disabled="_saving || string.IsNullOrWhiteSpace(_slug)" @onclick="PublishAsync">Publicar site</button>
+        <button class="btn btn-outline-danger" disabled="_saving" @onclick="UnpublishAsync">Despublicar</button>
+        @if (!string.IsNullOrWhiteSpace(_slug))
+        {
+            <span class="text-muted align-self-center">Preview local: <code>/s/@_slug</code> no ClinicSiteWeb</span>
+        }
+    </div>
+</LoadingState>
+
+@code {
+    private bool _loading = true;
+    private bool _saving;
+    private ClinicSiteStaffClientDto? _site;
+    private string _displayName = "";
+    private string? _tagline;
+    private string _slug = "";
+    private string? _logoUrl;
+    private string _street = "";
+    private string _number = "";
+    private string _district = "";
+    private string _city = "";
+    private string _state = "";
+    private string _postalCode = "";
+    private string _phone = "";
+    private string _email = "";
+    private string? _whatsApp;
+    private List<ClinicSiteServiceClientDto> _services = [];
+    private List<ClinicSiteTeamMemberClientDto> _team = [];
+    private List<ClinicSiteHoursClientDto> _hours = [];
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await ClinicSiteApi.GetAsync();
+        if (result.IsSuccess && result.Value is not null)
+        {
+            _site = result.Value;
+            BindFromSite(_site);
+        }
+
+        if (_hours.Count == 0)
+        {
+            _hours = Enum.GetValues<DayOfWeek>()
+                .Select((d, i) => new ClinicSiteHoursClientDto { Id = Guid.Empty, Day = d, OpenTime = "08:00", CloseTime = "18:00", IsClosed = d is DayOfWeek.Sunday })
+                .ToList();
+        }
+
+        _loading = false;
+    }
+
+    private void BindFromSite(ClinicSiteStaffClientDto site)
+    {
+        _displayName = site.DisplayName;
+        _tagline = site.Tagline;
+        _slug = site.Slug;
+        _logoUrl = site.LogoUrl;
+        _street = site.Street;
+        _number = site.Number;
+        _district = site.District;
+        _city = site.City;
+        _state = site.State;
+        _postalCode = site.PostalCode;
+        _phone = site.Phone;
+        _email = site.Email;
+        _whatsApp = site.WhatsApp;
+        _services = site.Services.Select(CloneService).ToList();
+        _team = site.Team.Select(CloneTeam).ToList();
+        if (site.Hours.Count > 0)
+        {
+            _hours = site.Hours.Select(CloneHours).ToList();
+        }
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        _saving = true;
+        var result = await ClinicSiteApi.UpdateProfileAsync(new ClinicSiteProfileUpdateClientDto
+        {
+            DisplayName = _displayName,
+            Tagline = _tagline,
+            Street = _street,
+            Number = _number,
+            District = _district,
+            City = _city,
+            State = _state,
+            PostalCode = _postalCode,
+            Phone = _phone,
+            Email = _email,
+            WhatsApp = _whatsApp,
+            LogoUrl = _logoUrl,
+            Slug = _slug
+        });
+        _saving = false;
+        Toast.Show(result.IsSuccess ? "Cadastro salvo." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+        if (result.IsSuccess)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task SaveServicesAsync()
+    {
+        _saving = true;
+        var payload = _services.Select((s, i) => { s.SortOrder = i; return s; }).ToList();
+        var result = await ClinicSiteApi.ReplaceServicesAsync(payload);
+        _saving = false;
+        Toast.Show(result.IsSuccess ? "Serviços salvos." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+    }
+
+    private async Task SaveTeamAsync()
+    {
+        _saving = true;
+        var payload = _team.Select((t, i) => { t.SortOrder = i; return t; }).ToList();
+        var result = await ClinicSiteApi.ReplaceTeamAsync(payload);
+        _saving = false;
+        Toast.Show(result.IsSuccess ? "Equipe salva." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+    }
+
+    private async Task SaveHoursAsync()
+    {
+        _saving = true;
+        var result = await ClinicSiteApi.ReplaceHoursAsync(_hours);
+        _saving = false;
+        Toast.Show(result.IsSuccess ? "Horários salvos." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+    }
+
+    private async Task PublishAsync()
+    {
+        _saving = true;
+        var result = await ClinicSiteApi.PublishAsync();
+        _saving = false;
+        Toast.Show(result.IsSuccess ? "Site publicado." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+        if (result.IsSuccess)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task UnpublishAsync()
+    {
+        _saving = true;
+        var result = await ClinicSiteApi.UnpublishAsync();
+        _saving = false;
+        Toast.Show(result.IsSuccess ? "Site despublicado." : result.Error.Message, result.IsSuccess ? ToastType.Success : ToastType.Error);
+        if (result.IsSuccess)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private void AddService() => _services.Add(new ClinicSiteServiceClientDto { Id = Guid.Empty, IsVisible = true });
+
+    private void AddTeamMember() => _team.Add(new ClinicSiteTeamMemberClientDto { Id = Guid.Empty, IsVisible = true });
+
+    private static ClinicSiteServiceClientDto CloneService(ClinicSiteServiceClientDto s) =>
+        new() { Id = s.Id, Name = s.Name, Description = s.Description, DurationMinutes = s.DurationMinutes, Price = s.Price, SortOrder = s.SortOrder, IsVisible = s.IsVisible };
+
+    private static ClinicSiteTeamMemberClientDto CloneTeam(ClinicSiteTeamMemberClientDto t) =>
+        new() { Id = t.Id, Name = t.Name, RoleTitle = t.RoleTitle, Bio = t.Bio, SortOrder = t.SortOrder, IsVisible = t.IsVisible };
+
+    private static ClinicSiteHoursClientDto CloneHours(ClinicSiteHoursClientDto h) =>
+        new() { Id = h.Id, Day = h.Day, OpenTime = h.OpenTime, CloseTime = h.CloseTime, IsClosed = h.IsClosed };
+}

@@ -1,0 +1,32 @@
+@page "/"
+
+<section class="mb-4">
+    <h1 class="display-6">@Site.DisplayName</h1>
+    @if (!string.IsNullOrWhiteSpace(Site.Tagline))
+    {
+        <p class="lead text-muted">@Site.Tagline</p>
+    }
+    <p>@Site.Street, @Site.Number — @Site.District, @Site.City/@Site.State</p>
+</section>
+
+<section>
+    <h2 class="h4">Serviços em destaque</h2>
+    @if (Site.Services.Count == 0)
+    {
+        <p class="text-muted">Em breve.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var service in Site.Services.Take(5))
+            {
+                <li>@service.Name</li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    [CascadingParameter]
+    public PublicClinicSiteClientDto Site { get; set; } = null!;
+}

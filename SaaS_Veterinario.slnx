@@ -6,6 +6,7 @@
   <Folder Name="/src/Clients/">
     <Project Path="src/Clients/BlazorWeb/BlazorWeb.csproj" />
     <Project Path="src/Clients/TutorPortalWeb/TutorPortalWeb.csproj" />
+    <Project Path="src/Clients/ClinicSiteWeb/ClinicSiteWeb.csproj" />
     <Project Path="src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj" />
     <Project Path="src/Clients/MauiApp/MauiApp.csproj">
       <Restore Solution="*|*" Project="false" />
@@ -94,6 +95,16 @@
   <Folder Name="/src/Modules/Veterinary/Infrastructure/">
     <Project Path="src/Modules/Veterinary/Infrastructure/Veterinary.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/ClinicSite/" />
+  <Folder Name="/src/Modules/ClinicSite/Application/">
+    <Project Path="src/Modules/ClinicSite/Application/ClinicSite.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ClinicSite/Domain/">
+    <Project Path="src/Modules/ClinicSite/Domain/ClinicSite.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ClinicSite/Infrastructure/">
+    <Project Path="src/Modules/ClinicSite/Infrastructure/ClinicSite.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/TutorPortal/" />
   <Folder Name="/src/Modules/TutorPortal/Application/">
     <Project Path="src/Modules/TutorPortal/Application/TutorPortal.Application.csproj" />
@@ -119,5 +130,6 @@
     <Project Path="tests/Modules/Sales.Tests/Sales.Tests.csproj" />
     <Project Path="tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj" />
     <Project Path="tests/Modules/TutorPortal.Tests/TutorPortal.Tests.csproj" />
+    <Project Path="tests/Modules/ClinicSite.Tests/ClinicSite.Tests.csproj" />
   </Folder>
 </Solution>

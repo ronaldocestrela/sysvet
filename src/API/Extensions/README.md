@@ -9,7 +9,7 @@ Métodos de extensão que mantêm o [`Program.cs`](../Program.cs) enxuto: docume
 | [`ServiceCollectionExtensions.cs`](./ServiceCollectionExtensions.cs) | `AddApiDocumentation()`, `AddApplicationModules()` — delega para `Add*Module()` em cada `src/Modules/*/Infrastructure/DependencyInjection.cs` |
 | [`HealthCheckExtensions.cs`](./HealthCheckExtensions.cs) | `AddApiHealthChecks()`, `MapApiHealthChecks()` — `/health/live`, `/health/ready`, `/health` (JSON agregado) |
 
-Ordem de registro: **Core** (Identity, JWT, behaviors MediatR) → Veterinary → Inventory → Sales → Petshop → Finance → Fiscal → Automations → TutorPortal.
+Ordem de registro: **Core** (Identity, JWT, behaviors MediatR) → Veterinary → Inventory → Sales → Petshop → Finance → Fiscal → Automations → TutorPortal → ClinicSite.
 
 ## Endpoints
 
@@ -22,6 +22,7 @@ Ordem de registro: **Core** (Identity, JWT, behaviors MediatR) → Veterinary �
 | [`SalesEndpointExtensions`](./SalesEndpointExtensions.cs) | PDV e caixa |
 | [`PetshopEndpointExtensions`](./PetshopEndpointExtensions.cs) | Stub |
 | [`TutorPortalEndpointExtensions`](./TutorPortalEndpointExtensions.cs) | Login/cadastro tutor, `/me` |
+| [`ClinicSiteEndpointExtensions`](./ClinicSiteEndpointExtensions.cs) | Site staff `/clinic-site` e público `/public/clinic-sites` |
 | [`FiscalEndpointExtensions`](./FiscalEndpointExtensions.cs) | NF-e / NFS-e Nacional (issuer, documentos, XML/DANFE) |
 
 Rotas de negócio são mapeadas em um `MapGroup` com [`ResultEndpointFilter`](../Middlewares/ResultEndpointFilter.cs). Falhas usam [`ResultExtensions.ToHttpResult`](./ResultExtensions.cs) / `ToProblemDetails`.

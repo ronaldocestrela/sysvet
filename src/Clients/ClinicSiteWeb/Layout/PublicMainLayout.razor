@@ -1,0 +1,79 @@
+@inherits LayoutComponentBase
+@inject SlugContext SlugContext
+@inject PublicClinicSiteApiService SiteApi
+@inject NavigationManager Navigation
+
+@if (_loading)
+{
+    <LoadingState IsLoading="true" Message="Carregando site..." />
+}
+else if (_site is null)
+{
+    <div class="container py-5">
+        <h1>Site não encontrado</h1>
+        <p class="text-muted">Use <code>/s/seu-slug</code> em desenvolvimento ou acesse pelo subdomínio publicado.</p>
+    </div>
+}
+else
+{
+    <header class="border-bottom mb-4">
+        <nav class="navbar navbar-expand-lg container">
+            <a class="navbar-brand fw-semibold" href="">@_site.DisplayName</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="">Início</a>
+                <a class="nav-link" href="servicos">Serviços</a>
+                <a class="nav-link" href="equipe">Equipe</a>
+                <a class="nav-link" href="contato">Contato</a>
+                <a class="nav-link" href="horarios">Horários</a>
+            </div>
+        </nav>
+    </header>
+    <main class="container pb-5">
+        <CascadingValue Value="_site" IsFixed="true">
+            @Body
+        </CascadingValue>
+    </main>
+    <footer class="border-top py-3 text-center text-muted small">
+        @(_site.City)/@(_site.State) · VetNexus
+    </footer>
+}
+
+@code {
+    private bool _loading = true;
+    private PublicClinicSiteClientDto? _site;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ResolveSlugFromHost();
+        if (string.IsNullOrWhiteSpace(SlugContext.CurrentSlug))
+        {
+            _loading = false;
+            return;
+        }
+
+        var result = await SiteApi.GetSiteAsync(SlugContext.CurrentSlug);
+        _site = result.IsSuccess ? result.Value : null;
+        _loading = false;
+    }
+
+    private void ResolveSlugFromHost()
+    {
+        if (!string.IsNullOrWhiteSpace(SlugContext.CurrentSlug))
+        {
+            return;
+        }
+
+        var uri = new Uri(Navigation.Uri);
+        var host = uri.Host;
+        if (host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || host.StartsWith("127.", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var parts = host.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length >= 3 && !parts[0].Equals("www", StringComparison.OrdinalIgnoreCase))
+        {
+            SlugContext.SetSlug(parts[0]);
+        }
+    }
+}

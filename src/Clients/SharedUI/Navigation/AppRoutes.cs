@@ -98,6 +98,9 @@ public static class AppRoutes
     /// <summary>Automations, campaigns and message jobs.</summary>
     public const string Automations = "/automations";
 
+    /// <summary>Public clinic site configuration.</summary>
+    public const string ClinicSite = "/clinic-site";
+
     /// <summary>Public NPS survey (tokenized, no login).</summary>
     public static string NpsSurvey(string token) => $"/nps/{token}";
 

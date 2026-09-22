@@ -65,6 +65,7 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `Finance` | `FinanceOptions` | Finance.Infrastructure |
 | `Fiscal` | `FiscalOptions` | Fiscal.Infrastructure |
 | `BlobStorage` | `BlobStorageOptions` | Core.Infrastructure |
+| `ClinicSite` | `ClinicSiteOptions` | ClinicSite.Infrastructure |
 
 ### Fiscal (NF-e / NFS-e Nacional — ADR-035)
 
@@ -81,6 +82,14 @@ Exemplo em [`appsettings.Development.json`](../../src/API/appsettings.Developmen
 | Chave | Default | Descrição |
 |-------|---------|-----------|
 | `Sales:PaymentTerminalProvider` | `Simulator` | Adapter TEF ativo (`Simulator` até integrar acquirer real) |
+
+### ClinicSite (site público — ADR-044)
+
+| Chave | Default | Descrição |
+|-------|---------|-----------|
+| `ClinicSite:BaseDomain` | `vetnexus.app` | Domínio base para subdomínios `{slug}.vetnexus.app` |
+
+CORS: origens explícitas em `Cors:AllowedOrigins` (inclui `ClinicSiteWeb` em Development) e `SetIsOriginAllowed` para hosts `*.vetnexus.app`.
 
 ### BlobStorage (anexos clínicos — ADR-015)
 

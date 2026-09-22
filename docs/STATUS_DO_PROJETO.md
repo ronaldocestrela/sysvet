@@ -256,7 +256,12 @@ Iniciado o módulo de estoque.
 - API `/api/v1/tutor-portal/pets/{id}/booking/*`; schedulers compartilhados Veterinary/Petshop; `TutorPortalWeb` `/pets/{id}/schedule`.
 - Aceite: `Tutor_BooksAppointment_AppearsOnClinicDailySchedule`; isolamento staff/tutor.
 
-### 👉 **Próxima Ação: Fase 8.7 — Site do estabelecimento**
+### Fase 8.7 — Site do estabelecimento — Concluída (ADR-044)
+
+- Módulo `ClinicSite`, API staff `/api/v1/clinic-site/` e pública `/api/v1/public/clinic-sites/{slug}`; clients `ClinicSiteWeb` + SharedUI `/clinic-site`.
+- Aceite: `ClinicSite_PublishedWithCadastralData_WhenSlugResolved`.
+
+### 👉 **Próxima Ação: Fase 8.8 — E-commerce e marketplaces**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 8.
 

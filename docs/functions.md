@@ -85,7 +85,7 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 * **Autoagendamento (8.6):** serviços, profissionais, slots e reserva/cancelamento (`/api/v1/tutor-portal/pets/{id}/booking/…`); PWA `/pets/{id}/schedule` (ADR-043).
 * Visualização da carteira de vacinas digital e histórico de exames.
 * Funcionalidade para o tutor realizar o agendamento de serviços direto pelo aplicativo.
-* Criação de site grátis para o estabelecimento.
+* **Site do estabelecimento (8.7):** vitrine pública por slug/subdomínio; staff edita em `/clinic-site`; API pública `/api/v1/public/clinic-sites/{slug}`; PWA `ClinicSiteWeb` (ADR-044).
 * Sincronização do estoque físico gerido no backoffice com loja virtual e marketplaces.
 * Gerenciamento de pedidos do e-commerce com atualização automática de preços.
 

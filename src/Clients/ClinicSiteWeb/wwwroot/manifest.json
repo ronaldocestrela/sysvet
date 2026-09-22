@@ -1,0 +1,11 @@
+{
+  "name": "Clínica | VetNexus",
+  "short_name": "ClinicSite",
+  "description": "Site do estabelecimento — VetNexus",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4A90E2",
+  "icons": []
+}

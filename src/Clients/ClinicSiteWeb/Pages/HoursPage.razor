@@ -1,0 +1,31 @@
+@page "/horarios"
+
+<h1 class="h3 mb-3">Horários</h1>
+<table class="table table-sm">
+    <thead><tr><th>Dia</th><th>Horário</th></tr></thead>
+    <tbody>
+        @foreach (var row in Site.Hours.OrderBy(h => h.Day))
+        {
+            <tr>
+                <td>@FormatDay(row.Day)</td>
+                <td>@(row.IsClosed ? "Fechado" : $"{row.OpenTime} – {row.CloseTime}")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [CascadingParameter]
+    public PublicClinicSiteClientDto Site { get; set; } = null!;
+
+    private static string FormatDay(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Segunda",
+        DayOfWeek.Tuesday => "Terça",
+        DayOfWeek.Wednesday => "Quarta",
+        DayOfWeek.Thursday => "Quinta",
+        DayOfWeek.Friday => "Sexta",
+        DayOfWeek.Saturday => "Sábado",
+        _ => "Domingo"
+    };
+}

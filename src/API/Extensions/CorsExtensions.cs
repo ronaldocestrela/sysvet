@@ -21,7 +21,21 @@ public static class CorsExtensions
             {
                 if (origins.Length > 0)
                 {
-                    policy.WithOrigins(origins)
+                    policy.SetIsOriginAllowed(origin =>
+                        {
+                            if (origins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+                            {
+                                return true;
+                            }
+
+                            if (Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+                                && uri.Host.EndsWith(".vetnexus.app", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return uri.Scheme is "https" or "http";
+                            }
+
+                            return false;
+                        })
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();

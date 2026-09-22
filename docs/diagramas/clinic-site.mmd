@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant Visitor as Visitante
+    participant PWA as ClinicSiteWeb
+    participant API as API
+    participant Slug as ClinicSiteSlugs_dbo
+    participant Site as ClinicSiteProfile
+
+    Visitor->>PWA: GET /s/{slug} ou subdominio
+    PWA->>API: GET /api/v1/public/clinic-sites/{slug}
+    API->>Slug: resolve TenantId
+    API->>Site: load profile + children
+    Site-->>API: PublicClinicSiteDto
+    API-->>PWA: JSON
+    PWA-->>Visitor: paginas servicos equipe contato horarios
