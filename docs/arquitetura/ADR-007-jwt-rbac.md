@@ -34,7 +34,7 @@ Multi-tenancy (ADR-003) exige `TenantId` no JWT e `TenantClaimMiddleware` após 
 ## Consequências
 
 - OpenAPI/Scalar documentam esquema Bearer (`OpenApiBearerSecurityTransformer`).
-- Logout/revogação em massa e roles `SuperAdmin`/`Tutor` permanecem fora do escopo 2.3.
+- Logout/revogação em massa e role `SuperAdmin` permanecem fora do escopo 2.3; role **`Tutor`** e portal do tutor foram entregues na Fase 8.4 ([ADR-041](./ADR-041-tutor-portal-base.md)).
 
 ## Confirmação no código
 

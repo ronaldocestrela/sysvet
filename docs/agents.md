@@ -48,12 +48,14 @@
 * `src/Modules/Finance/` — Contas a pagar/receber, caixa, conciliação, demonstrativos.
 * `src/Modules/Fiscal/` — Emissão NF-e (Zeus) e NFS-e Nacional (OpenAC Web); ADR-035.
 * `src/Modules/Automations/` — Fila de mensagens, templates e worker (ADR-038).
+* `src/Modules/TutorPortal/` — Autenticação e vínculo do tutor CRM ao portal (ADR-041).
 * [cite_start]`src/Modules/[NomeDoModulo]/Domain/` - Entidades, Value Objects e interfaces de repositório[cite: 89].
 * [cite_start]`src/Modules/[NomeDoModulo]/Application/` - Handlers CQRS, DTOs e validações[cite: 90].
 * [cite_start]`src/Modules/[NomeDoModulo]/Infrastructure/` - EF Core DbContext, Mapeamentos, Repositórios e Serviços externos[cite: 90].
 * [cite_start]`src/API/` - Projeto ASP.NET Core Web API (Ponto de entrada, injeção de dependência e configuração do Scalar)[cite: 91].
 * [cite_start]`src/Clients/` - Aplicativos clientes[cite: 92].
 * [cite_start]`src/Clients/BlazorWeb/` - Aplicação WebAssembly PWA[cite: 92].
+* `src/Clients/TutorPortalWeb/` — PWA do tutor (login/cadastro separados da clínica).
 * [cite_start]`src/Clients/MauiApp/` - Aplicação Mobile/Desktop MAUI[cite: 92].
 * [cite_start]`src/Clients/SharedUI/` - Componentes Razor reutilizáveis[cite: 93].
 * [cite_start]`tests/` - Espelho da pasta `src/` contendo os testes unitários e de integração[cite: 93].

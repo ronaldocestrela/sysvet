@@ -1,5 +1,6 @@
 using Core.Application.Auth.Commands;
 using Core.Application.Auth.Queries;
+using Core.Application.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +30,7 @@ public static class AuthEndpointsExtensions
 
         group.MapGet("/me", async (IMediator mediator) =>
             (await mediator.Send(new GetCurrentUserQuery())).ToHttpResult())
-            .RequireAuthorization();
+            .RequireAuthorization(AuthorizationPolicies.ClinicUser);
 
         if (environment.IsDevelopment())
         {

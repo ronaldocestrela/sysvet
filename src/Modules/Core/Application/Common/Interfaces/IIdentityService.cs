@@ -28,6 +28,15 @@ public interface IIdentityService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates a tutor portal Identity user without an access profile.
+    /// </summary>
+    Task<Result<string>> CreateTutorUserAsync(
+        string email,
+        string password,
+        Guid tenantId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Loads a staff user by id within the tenant.
     /// </summary>
     Task<Result<StaffUserDto>> GetByIdAsync(string userId, Guid tenantId, CancellationToken cancellationToken = default);

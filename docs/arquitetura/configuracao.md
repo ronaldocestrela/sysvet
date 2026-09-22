@@ -160,7 +160,7 @@ curl -sk -X POST https://localhost:7180/api/v1/auth/login \
 
 - **Build Linux/WSL:** workload `wasm-tools` + pacote `libatomic1` (link nativo WASM/SQLite via `WasmBuildNative`; sem `libatomic.so.1` o `emcc` falha com exit 127).
 - **API base URL:** `src/Clients/BlazorWeb/wwwroot/appsettings.Development.json` → `"ApiBaseUrl": "https://localhost:7180/"`.
-- **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252` e `http://localhost:5259` (origens do BlazorWeb dev).
+- **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252`, `http://localhost:5259` (BlazorWeb staff) e `https://localhost:7262`, `http://localhost:5260` (TutorPortalWeb).
 - **PWA:** validar instalação/offline após `dotnet publish src/Clients/BlazorWeb/BlazorWeb.csproj` (service worker ativo no output `wwwroot/`). Ver [ADR-012](./ADR-012-blazor-pwa-jwt.md).
 - **SQLite local (3.4):** arquivo `sysvet.db` em MEMFS; snapshot em **IndexedDB** (`sqlite-db-storage.js`) após cada `SaveChanges` com alterações. Boot: `RestoreOfflineDatabaseIfExistsAsync` → `MigrateOfflineDatabaseAsync`. Ver [ADR-014](./ADR-014-sqlite-local-clients.md).
 

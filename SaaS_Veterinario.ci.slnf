@@ -5,6 +5,7 @@
       "src/API/API.csproj",
       "src/PoC.Sync/PoC.Sync.csproj",
       "src/Clients/BlazorWeb/BlazorWeb.csproj",
+      "src/Clients/TutorPortalWeb/TutorPortalWeb.csproj",
       "src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj",
       "src/Clients/SharedUI/SharedUI.csproj",
       "src/Modules/Core/Application/Core.Application.csproj",
@@ -13,6 +14,9 @@
       "src/Modules/Automations/Application/Automations.Application.csproj",
       "src/Modules/Automations/Domain/Automations.Domain.csproj",
       "src/Modules/Automations/Infrastructure/Automations.Infrastructure.csproj",
+      "src/Modules/TutorPortal/Application/TutorPortal.Application.csproj",
+      "src/Modules/TutorPortal/Domain/TutorPortal.Domain.csproj",
+      "src/Modules/TutorPortal/Infrastructure/TutorPortal.Infrastructure.csproj",
       "src/Modules/Finance/Application/Finance.Application.csproj",
       "src/Modules/Finance/Domain/Finance.Domain.csproj",
       "src/Modules/Finance/Infrastructure/Finance.Infrastructure.csproj",
@@ -41,7 +45,8 @@
       "tests/Modules/Inventory.Tests/Inventory.Tests.csproj",
       "tests/Modules/Petshop.Tests/Petshop.Tests.csproj",
       "tests/Modules/Sales.Tests/Sales.Tests.csproj",
-      "tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj"
+      "tests/Modules/Veterinary.Tests/Veterinary.Tests.csproj",
+      "tests/Modules/TutorPortal.Tests/TutorPortal.Tests.csproj"
     ]
   }
 }

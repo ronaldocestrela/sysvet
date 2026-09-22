@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Petshop.Infrastructure;
 using Sales.Infrastructure;
+using TutorPortal.Infrastructure;
 using Veterinary.Infrastructure;
 
 namespace API.Extensions;
@@ -54,6 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddFinanceModule(configuration);
         services.AddFiscalModule(configuration);
         services.AddAutomationsModule(configuration);
+        services.AddTutorPortalModule(configuration);
 
         services.AddSignalR();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GroomingRealtimeBroadcastHandler).Assembly));

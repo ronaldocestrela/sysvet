@@ -31,6 +31,11 @@ public interface ICurrentUser
     Guid AccessProfileId { get; }
 
     /// <summary>
+    /// CRM tutor identifier when the caller is a tutor portal user.
+    /// </summary>
+    Guid? TutorId { get; }
+
+    /// <summary>
     /// Role claims attached to the access token.
     /// </summary>
     IReadOnlyList<string> Roles { get; }

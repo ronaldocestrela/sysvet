@@ -2,6 +2,7 @@
 flowchart TB
     subgraph clients [Client devices]
         BlazorWeb["BlazorWeb<br/>Blazor WASM PWA<br/>src/Clients/BlazorWeb"]
+        TutorPortalWeb["TutorPortalWeb<br/>Tutor WASM PWA<br/>src/Clients/TutorPortalWeb"]
         MauiApp["MauiApp<br/>Blazor Hybrid<br/>src/Clients/MauiApp"]
     end
 
@@ -18,14 +19,18 @@ flowchart TB
 
     Staff["Equipe da clinica"]
 
+    Tutor["Tutor / responsavel"]
     Staff --> BlazorWeb
     Staff --> MauiApp
+    Tutor --> TutorPortalWeb
     BlazorWeb --> SharedUI
+    TutorPortalWeb --> SharedUI
     MauiApp --> SharedUI
     BlazorWeb --> ClientInfra
     MauiApp --> ClientInfra
 
     BlazorWeb -->|"HTTPS JSON REST"| Api
+    TutorPortalWeb -->|"HTTPS JSON REST tutor-portal"| Api
     MauiApp -->|"HTTPS JSON REST"| Api
     ClientInfra --> SqliteLocal
 

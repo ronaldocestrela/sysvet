@@ -43,7 +43,7 @@ public sealed class IdentityDataSeeder : IIdentityDataSeeder
             return;
         }
 
-        foreach (var roleName in ApplicationRoles.All)
+        foreach (var roleName in ApplicationRoles.AllIncludingTutor)
         {
             await EnsureRoleExistsAsync(roleName, cancellationToken);
         }

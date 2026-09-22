@@ -1,0 +1,4 @@
+.tutor-portal-shell {
+    min-height: 100vh;
+    background: var(--vn-bg, #f5f7fb);
+}

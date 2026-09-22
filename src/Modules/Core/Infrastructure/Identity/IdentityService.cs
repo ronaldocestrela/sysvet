@@ -69,11 +69,15 @@ public sealed class IdentityService : IIdentityService
         }
 
         var roles = (await _userManager.GetRolesAsync(user)).ToList();
-        var primaryRole = roles.FirstOrDefault() ?? ApplicationRoles.Receptionist;
-        if (user.AccessProfileId == Guid.Empty)
+        var isTutorOnly = roles.Count == 1 && roles[0] == ApplicationRoles.Tutor;
+        if (!isTutorOnly)
         {
-            await EnsureAccessProfileAsync(user.Id, user.TenantId, primaryRole, cancellationToken);
-            user = await _userManager.FindByIdAsync(user.Id) ?? user;
+            var primaryRole = roles.FirstOrDefault(r => r != ApplicationRoles.Tutor) ?? ApplicationRoles.Receptionist;
+            if (user.AccessProfileId == Guid.Empty)
+            {
+                await EnsureAccessProfileAsync(user.Id, user.TenantId, primaryRole, cancellationToken);
+                user = await _userManager.FindByIdAsync(user.Id) ?? user;
+            }
         }
 
         return Result.Success(new AuthenticatedUserDto(
@@ -125,6 +129,23 @@ public sealed class IdentityService : IIdentityService
         }
 
         return Result.Success(user.Id);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<string>> CreateTutorUserAsync(
+        string email,
+        string password,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        return await CreateUserAsync(
+            email,
+            password,
+            ApplicationRoles.Tutor,
+            tenantId,
+            accessProfileId: Guid.Empty,
+            displayName: null,
+            cancellationToken);
     }
 
     /// <inheritdoc />

@@ -41,7 +41,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | MAUI | **Concluído (3.3)** | Blazor Hybrid Android + Windows; JWT/CRM SharedUI; VetNexus branding; job `maui-publish` (Windows CI); ADR-013 |
 | SQLite / Sync offline | **Concluído (3.5–3.6 CRM)** | SQLite + outbox push/pull tutor/pet; PoC E2E em [`sync-poc.md`](arquitetura/sync-poc.md) |
 | CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test Linux, cobertura, artefato API, Dockerfile, publish MAUI (Windows runner) |
-| Módulos ausentes | **Pendente** | `Intelligence`, `TutorPortal`, `Platform` (`Automations`: 8.1; `Finance`: 7.x) |
+| Módulos ausentes | **Pendente** | `Intelligence`, `Platform` (`TutorPortal`: 8.4; `Automations`: 8.1; `Finance`: 7.x) |
 
 **Progresso estimado:** ~10% da Fase 1 concluída (scaffold + API mínima + `Result<T>`).
 
@@ -982,7 +982,7 @@ flowchart TD
 | **8.1 Módulo Automations — workers e filas** | 8 | Concluído |
 | **8.2 Lembretes WhatsApp/SMS/e-mail** | 8 | Concluído |
 | **8.3 Campanhas e NPS** | 8 | Concluído |
-| **8.4 Módulo TutorPortal — base** | 5 | Pendente |
+| **8.4 Módulo TutorPortal — base** | 5 | Concluído |
 | **8.5 App do tutor (login, vacinas, exames)** | 13 | Pendente |
 | **8.6 Autoagendamento pelo tutor** | 8 | Pendente |
 | **8.7 Site do estabelecimento** | 8 | Pendente |
@@ -1015,10 +1015,10 @@ flowchart TD
 
 ### 8.4 Módulo TutorPortal — base (5 SP)
 
-- [ ] Projeto client ou área isolada com Identity role `Tutor`
-- [ ] API BFF ou endpoints dedicados `/api/tutor-portal/`
+- [x] Projeto client ou área isolada com Identity role `Tutor`
+- [x] API BFF ou endpoints dedicados `/api/v1/tutor-portal/`
 
-**Aceite:** Tutor autentica separado de usuário clínica.
+**Aceite:** Tutor autentica separado de usuário clínica (`Tutor_AuthenticatesSeparatelyFromClinicStaff`; `TutorToken_ForbiddenOnClinicTutorsApi`; `ClinicStaffToken_ForbiddenOnTutorPortalMe`; `TutorSelfRegister_LinksExistingCrmTutor_WhenEmailAndCpfMatch`; ADR-041).
 
 ### 8.5 App do tutor (13 SP)
 

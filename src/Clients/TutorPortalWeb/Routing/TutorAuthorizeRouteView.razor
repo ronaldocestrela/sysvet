@@ -1,0 +1,67 @@
+@using SharedUI.Layout
+@using SharedUI.Services
+@using TutorPortalWeb.Pages
+@implements IDisposable
+@inject IAuthState AuthState
+@inject INavigationService Navigation
+
+@if (_ready)
+{
+    @if (_isAuthorized || IsPublicRoute())
+    {
+        <RouteView RouteData="@RouteData" DefaultLayout="@(_isAuthorized ? typeof(TutorMainLayout) : typeof(AuthLayout))" />
+    }
+}
+else
+{
+    <p>Carregando...</p>
+}
+
+@code {
+    [Parameter] public RouteData RouteData { get; set; } = default!;
+
+    private bool _ready;
+    private bool _isAuthorized;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthState.InitializeAsync();
+        _isAuthorized = AuthState.IsAuthenticated;
+        _ready = true;
+
+        if (!_isAuthorized && !IsPublicRoute())
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        if (_isAuthorized && RouteData.PageType == typeof(LoginPage))
+        {
+            Navigation.NavigateTo("/");
+        }
+
+        AuthState.SessionChanged += OnSessionChanged;
+    }
+
+    private void OnSessionChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            _isAuthorized = AuthState.IsAuthenticated;
+            if (!_isAuthorized && !IsPublicRoute())
+            {
+                Navigation.NavigateTo("/login");
+            }
+
+            StateHasChanged();
+            return Task.CompletedTask;
+        });
+    }
+
+    private bool IsPublicRoute() =>
+        RouteData.PageType == typeof(LoginPage) ||
+        RouteData.PageType == typeof(RegisterPage) ||
+        RouteData.PageType == typeof(NotFoundPage);
+
+    public void Dispose() => AuthState.SessionChanged -= OnSessionChanged;
+}

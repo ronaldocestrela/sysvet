@@ -1,0 +1,49 @@
+@page "/login"
+@layout AuthLayout
+@inject TutorPortalApiService Api
+@inject IAuthState AuthState
+@inject INavigationService Navigation
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Entrar — Portal do Tutor</h1>
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger">@_error</div>
+        }
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <FormField Label="E-mail">
+                <InputText @bind-Value="_model.Email" class="form-control" />
+            </FormField>
+            <FormField Label="Senha">
+                <InputText @bind-Value="_model.Password" type="password" class="form-control" />
+            </FormField>
+            <button class="btn btn-primary w-100 mt-2" disabled="@_busy">Entrar</button>
+        </EditForm>
+        <p class="mt-3 mb-0 text-center">
+            <a href="/register">Criar conta</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private readonly TutorLoginRequest _model = new();
+    private string? _error;
+    private bool _busy;
+
+    private async Task SubmitAsync()
+    {
+        _busy = true;
+        _error = null;
+        var result = await Api.LoginAsync(_model);
+        _busy = false;
+        if (result.IsFailure)
+        {
+            _error = "E-mail ou senha inválidos.";
+            return;
+        }
+
+        await AuthState.LoginAsync(result.Value.AccessToken, result.Value.RefreshToken);
+        Navigation.NavigateTo("/");
+    }
+}

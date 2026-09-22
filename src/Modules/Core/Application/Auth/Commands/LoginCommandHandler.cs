@@ -1,4 +1,5 @@
 using Core.Application.Auth.Dtos;
+using Core.Application.Authorization;
 using Core.Application.Common.Interfaces;
 using Core.Domain;
 using MediatR;
@@ -34,6 +35,11 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
         }
 
         var user = userResult.Value;
+        if (user.Roles.Contains(ApplicationRoles.Tutor))
+        {
+            return Result.Failure<AuthTokensDto>(ErrorCodes.Auth.WrongPortal);
+        }
+
         var accessToken = _accessTokenIssuer.IssueAccessToken(user);
         var refreshToken = await _refreshTokenStore.IssueAsync(user.UserId, cancellationToken);
 

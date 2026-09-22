@@ -44,6 +44,11 @@ public static class ErrorCodes
         /// The account has been disabled by an administrator.
         /// </summary>
         public static readonly Error Disabled = new("Auth.Disabled", "This account has been disabled.");
+
+        /// <summary>
+        /// Valid credentials were presented on the wrong login surface (clinic vs tutor portal).
+        /// </summary>
+        public static readonly Error WrongPortal = new("Auth.WrongPortal", "Use the clinic application to sign in with this account.");
     }
 
     /// <summary>

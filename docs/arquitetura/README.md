@@ -46,6 +46,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-038](./ADR-038-automations-outbox.md) | Automations — outbox SQL e worker (8.1) | Accepted |
 | [ADR-039](./ADR-039-lembretes-smtp-evolution.md) | Lembretes SMTP + Evolution API (8.2) | Accepted |
 | [ADR-040](./ADR-040-campanhas-nps.md) | Campanhas segmentadas e NPS (8.3) | Accepted |
+| [ADR-041](./ADR-041-tutor-portal-base.md) | TutorPortal — autenticação isolada (8.4) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

@@ -1,0 +1,19 @@
+flowchart LR
+  tutorWeb[TutorPortalWeb]
+  staffWeb[BlazorWeb]
+  tutorRegister[POST_tutor-portal_register]
+  tutorLogin[POST_tutor-portal_login]
+  staffLogin[POST_auth_login]
+  crmTutor[Tutor_CRM]
+  link[TutorPortalAccount]
+  tutorMe[GET_tutor-portal_me]
+
+  tutorWeb --> tutorRegister
+  tutorWeb --> tutorLogin
+  staffWeb --> staffLogin
+  tutorRegister --> crmTutor
+  tutorRegister --> link
+  tutorLogin --> link
+  link --> tutorMe
+  staffLogin -.->|WrongPortal| tutorLogin
+  tutorLogin -.->|WrongPortal| staffLogin

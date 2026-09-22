@@ -38,6 +38,11 @@ public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer
 
         claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
+        if (user.TutorId is { } tutorId && tutorId != Guid.Empty)
+        {
+            claims.Add(new Claim("TutorId", tutorId.ToString()));
+        }
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

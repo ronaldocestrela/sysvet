@@ -39,7 +39,8 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   │   └── Extensions/                 
 │   │
 │   ├── Clients/                        # Aplicativos clientes.
-│   │   ├── BlazorWeb/                  # Aplicação WebAssembly PWA.
+│   │   ├── BlazorWeb/                  # Aplicação WebAssembly PWA (staff).
+│   │   ├── TutorPortalWeb/             # PWA do tutor (portal do cliente).
 │   │   ├── MauiApp/                    # Aplicação Mobile/Desktop MAUI.
 │   │   ├── Clients.Infrastructure/     # ApiClient, OfflineDbContext, CRM stores, sync outbox.
 │   │   └── SharedUI/                   # RCL — design system (layout, tokens, componentes, serviços UI).
@@ -82,6 +83,11 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │       │   └── Infrastructure/
 │       │
 │       ├── Automations/                 
+│       │   ├── Domain/
+│       │   ├── Application/
+│       │   └── Infrastructure/
+│       │
+│       ├── TutorPortal/                 # Portal do tutor — auth e vínculo CRM (8.4).
 │       │   ├── Domain/
 │       │   ├── Application/
 │       │   └── Infrastructure/

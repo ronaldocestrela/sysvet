@@ -85,6 +85,14 @@ public static class DependencyInjection
             options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Veterinarian, policy => policy.RequireRole(ApplicationRoles.Veterinarian, ApplicationRoles.Admin));
             options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Receptionist, policy => policy.RequireRole(ApplicationRoles.Receptionist, ApplicationRoles.Admin));
             options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.Cashier, policy => policy.RequireRole(ApplicationRoles.Cashier, ApplicationRoles.Admin));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.ClinicUser, policy =>
+                policy.RequireRole(
+                    ApplicationRoles.Admin,
+                    ApplicationRoles.Veterinarian,
+                    ApplicationRoles.Receptionist,
+                    ApplicationRoles.Cashier));
+            options.AddPolicy(Core.Application.Authorization.AuthorizationPolicies.TutorPortal, policy =>
+                policy.RequireRole(ApplicationRoles.Tutor));
         });
 
         services.AddHttpContextAccessor();

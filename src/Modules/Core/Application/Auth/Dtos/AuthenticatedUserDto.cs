@@ -8,4 +8,5 @@ public sealed record AuthenticatedUserDto(
     string Email,
     Guid TenantId,
     Guid AccessProfileId,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    Guid? TutorId = null);

@@ -1,0 +1,23 @@
+@inherits LayoutComponentBase
+@using SharedUI.Services
+
+<div class="tutor-portal-shell">
+    <header class="border-bottom bg-white px-3 py-2 d-flex align-items-center justify-content-between">
+        <strong>Portal do Tutor</strong>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="LogoutAsync">Sair</button>
+    </header>
+    <main class="p-3">
+        @Body
+    </main>
+</div>
+
+@code {
+    [Inject] private IAuthState AuthState { get; set; } = default!;
+    [Inject] private INavigationService Navigation { get; set; } = default!;
+
+    private async Task LogoutAsync()
+    {
+        await AuthState.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}

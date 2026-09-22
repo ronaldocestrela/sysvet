@@ -96,6 +96,16 @@ public class ModuleRegistrationTests
     }
 
     [Fact]
+    public void AddApplicationModules_ResolvesTutorPortalDbContext()
+    {
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var provider = scope.ServiceProvider;
+        provider.GetService<global::TutorPortal.Infrastructure.Persistence.TutorPortalDbContext>().Should().NotBeNull();
+        provider.GetService<global::TutorPortal.Domain.Repositories.ITutorPortalUnitOfWork>().Should().NotBeNull();
+    }
+
+    [Fact]
     public void AddApplicationModules_ResolvesAutomationsDbContext()
     {
         using var root = BuildProvider();

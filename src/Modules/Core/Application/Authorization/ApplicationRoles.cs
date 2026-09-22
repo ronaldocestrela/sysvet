@@ -17,12 +17,25 @@ public static class ApplicationRoles
     /// <summary>Point-of-sale operator.</summary>
     public const string Cashier = "Cashier";
 
-    /// <summary>All roles seeded at application startup for RBAC policies.</summary>
+    /// <summary>Pet owner using the tutor portal (not clinic staff).</summary>
+    public const string Tutor = "Tutor";
+
+    /// <summary>Clinic staff roles seeded for backoffice RBAC policies.</summary>
     public static readonly IReadOnlyList<string> All =
     [
         Admin,
         Veterinarian,
         Receptionist,
         Cashier
+    ];
+
+    /// <summary>All Identity roles including the tutor portal role.</summary>
+    public static readonly IReadOnlyList<string> AllIncludingTutor =
+    [
+        Admin,
+        Veterinarian,
+        Receptionist,
+        Cashier,
+        Tutor
     ];
 }

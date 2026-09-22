@@ -42,6 +42,15 @@ public class HttpCurrentUser(IHttpContextAccessor httpContextAccessor, IAuthoriz
         }
     }
 
+    public Guid? TutorId
+    {
+        get
+        {
+            var claim = Principal?.FindFirst("TutorId")?.Value;
+            return claim is not null && Guid.TryParse(claim, out var tutorId) ? tutorId : null;
+        }
+    }
+
     public IReadOnlyList<string> Roles =>
         Principal?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList() ?? [];
 

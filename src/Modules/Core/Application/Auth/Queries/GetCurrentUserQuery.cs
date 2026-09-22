@@ -8,5 +8,5 @@ namespace Core.Application.Auth.Queries;
 /// <summary>
 /// Returns the profile of the authenticated caller from JWT claims.
 /// </summary>
-[AuthorizeRequest(AuthorizationPolicies.Authenticated)]
+[AuthorizeRequest(AuthorizationPolicies.ClinicUser)]
 public sealed record GetCurrentUserQuery : IQuery<CurrentUserDto>;

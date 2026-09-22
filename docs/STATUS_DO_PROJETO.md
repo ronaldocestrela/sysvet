@@ -240,7 +240,12 @@ Iniciado o módulo de estoque.
 - API campanhas/NPS + público `/api/v1/public/nps/{token}`; UI `/automations` e `/nps/{token}`.
 - Aceite: `Campaign_EnqueuedForInactiveSegment_WhenLastVisitOlderThan90Days`; `NpsResponse_RecordedAndReportable`.
 
-### 👉 **Próxima Ação: Fase 8.4 — Módulo TutorPortal — base**
+### Fase 8.4 — Módulo TutorPortal — base — Concluída (ADR-041)
+
+- `src/Modules/TutorPortal/`, role `Tutor`, `TutorPortalAccount`, API `/api/v1/tutor-portal/`, client `TutorPortalWeb`.
+- Aceite: `Tutor_AuthenticatesSeparatelyFromClinicStaff`; isolamento staff/tutor nos testes de integração.
+
+### 👉 **Próxima Ação: Fase 8.5 — App do tutor (login, vacinas, exames)**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 8.
 

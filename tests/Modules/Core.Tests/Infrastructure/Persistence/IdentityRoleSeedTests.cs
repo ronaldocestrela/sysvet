@@ -42,7 +42,7 @@ public class IdentityRoleSeedTests
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var roles = await roleManager.Roles.Select(r => r.Name).ToListAsync();
         roles.Should().OnlyHaveUniqueItems();
-        roles.Should().BeEquivalentTo(ApplicationRoles.All);
+        roles.Should().BeEquivalentTo(ApplicationRoles.AllIncludingTutor);
     }
 
     private static async Task<ServiceProvider> CreateMigratedServiceProviderAsync()

@@ -19,4 +19,14 @@ public static class AuthorizationPolicies
     public const string Veterinarian = "Veterinarian";
     public const string Receptionist = "Receptionist";
     public const string Cashier = "Cashier";
+
+    /// <summary>
+    /// Any clinic staff or backoffice role (excludes tutor portal users).
+    /// </summary>
+    public const string ClinicUser = "ClinicUser";
+
+    /// <summary>
+    /// Tutor portal users linked to a CRM tutor record.
+    /// </summary>
+    public const string TutorPortal = "TutorPortal";
 }
