@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -89,7 +90,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<Core.Application.Common.Interfaces.ICurrentUser, HttpCurrentUser>();
         services.AddScoped<Core.Application.Common.Interfaces.IDomainEventDispatcher, MediatRDomainEventDispatcher>();
-        services.AddSingleton<ITutorNotificationChannel, NullTutorNotificationChannel>();
+        services.TryAddSingleton<ITutorNotificationChannel, NullTutorNotificationChannel>();
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IAccessTokenIssuer, JwtAccessTokenIssuer>();

@@ -20,7 +20,7 @@ O módulo Core passou a expor `IDomainEvent` e eventos em `AggregateRoot` (ADR-0
 
 - Handlers permanecem finos; efeitos colaterais de persistência ficam no pipeline.
 - Testes de domínio podem assertar eventos na coleção do agregado antes do dispatch.
-- Outbox futuro pode interceptar `DomainEventEnvelope` ou integration notifications sem mudar contratos de domínio.
+- Outbox de **notificações** no servidor entregue em Automations 8.1 ([ADR-038](./ADR-038-automations-outbox.md)); distinto do outbox client de sync ([ADR-002](./ADR-002-estrategia-de-sync.md)).
 
 ## Confirmação no código
 

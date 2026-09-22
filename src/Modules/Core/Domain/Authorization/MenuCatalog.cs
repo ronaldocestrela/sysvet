@@ -29,6 +29,7 @@ public static class MenuCatalog
         ["cash"] = Permissions.CashRegisterRead,
         ["finance"] = Permissions.FinanceRead,
         ["fiscal"] = Permissions.FiscalRead,
+        ["automations"] = Permissions.AutomationsRead,
         ["audit"] = Permissions.AuditRead
     };
 

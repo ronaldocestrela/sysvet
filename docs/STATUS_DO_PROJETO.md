@@ -177,7 +177,7 @@ Iniciado o módulo de estoque.
 
 ### Fase 6.7 — Notificações de status (banho) — Concluída (ADR-031)
 
-- Status `ReadyForPickup`, endpoint `/ready`, SignalR no tenant, porta `ITutorNotificationChannel` (Null até Automations 8.1).
+- Status `ReadyForPickup`, endpoint `/ready`, SignalR no tenant, porta `ITutorNotificationChannel` → fila Automations (8.1).
 - Aceite: `MarkReady_WhenAutomationsChannelEnabled_NotifiesTutor`.
 
 ### Fase 7.1 — Módulo Finance (estrutura) — Concluída
@@ -223,7 +223,12 @@ Iniciado o módulo de estoque.
 - API `GET /api/v1/fiscal/planning` e `/planning/export` (CSV/PDF); UI `/fiscal/planning` (online-only).
 - Aceite: `PeriodTaxReport_MatchesAuthorizedDocuments`; `ExportFiscalPlanning_ReturnsCsv` / `_ReturnsPdf`.
 
-### 👉 **Próxima Ação: Fase 8.1 — Módulo Automations**
+### Fase 8.1 — Módulo Automations — Concluída (ADR-038)
+
+- `src/Modules/Automations/`, outbox SQL, `OutboxProcessor`, templates por canal, API `/api/v1/automations`, UI `/automations`.
+- `EnqueueingTutorNotificationChannel`; aceite `EnqueueJob_ThenProcessor_SucceedsWithAttemptLog`.
+
+### 👉 **Próxima Ação: Fase 8.2 — Lembretes WhatsApp/SMS/e-mail**
 
 Ver [`roadmap.md`](roadmap.md) § Fase 8.
 

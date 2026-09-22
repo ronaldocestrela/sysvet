@@ -59,6 +59,9 @@ public static class Permissions
     public const string FiscalRead = "Fiscal.Read";
     public const string FiscalWrite = "Fiscal.Write";
 
+    public const string AutomationsRead = "Automations.Read";
+    public const string AutomationsWrite = "Automations.Write";
+
     public const string AuditRead = "Audit.Read";
 
     /// <summary>
@@ -83,6 +86,7 @@ public static class Permissions
         CashRegisterRead, CashRegisterWrite,
         FinanceRead, FinanceWrite,
         FiscalRead, FiscalWrite,
+        AutomationsRead, AutomationsWrite,
         AuditRead
     ];
 
@@ -128,7 +132,8 @@ public static class Permissions
         StockRead,
         PurchaseImportsRead, PurchaseImportsWrite,
         FinanceRead, FinanceWrite,
-        FiscalRead, FiscalWrite
+        FiscalRead, FiscalWrite,
+        AutomationsRead, AutomationsWrite
     ];
 
     /// <summary>

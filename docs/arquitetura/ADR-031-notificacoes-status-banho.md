@@ -17,7 +17,7 @@ A fase 6.7 exige avisar o tutor sobre início e “pronto para retirada” do ba
 - Novo status `ReadyForPickup` e comando `MarkGroomingReady`; `Complete` aceita `InProgress` (ready implícito) ou `ReadyForPickup`.
 - Domain events → `GroomingStatusChangedEvent` (Core) via `DomainEventEnvelope`; handlers não lançam após commit.
 - Hub SignalR `/hubs/grooming-status`, grupo `tenant-{TenantId}`, JWT em query `access_token`.
-- `ITutorNotificationChannel` com `NullTutorNotificationChannel` (`IsEnabled = false`); Automations substitui o registro.
+- `ITutorNotificationChannel` com `NullTutorNotificationChannel` (`TryAddSingleton` no Core); módulo Automations (8.1, ADR-038) registra `EnqueueingTutorNotificationChannel`.
 
 ## Consequências
 - Tutor só recebe mensagem quando um canal real estiver ativo; aceite usa fake no teste de integração.

@@ -123,7 +123,8 @@ Design-time: [`CoreDbContextFactory`](../../src/Modules/Core/Infrastructure/Pers
 | Grupo | `tenant-{TenantId}` | Claim `TenantId` do JWT |
 | WebSocket auth | Query `access_token` | Mesmo JWT Bearer; ver [`JwtBearerOptionsConfiguration`](../../src/Modules/Core/Infrastructure/Identity/JwtBearerOptionsConfiguration.cs) |
 | Permissão hub | `Grooming.Read` | Conexão do backoffice |
-| Canal tutor | `ITutorNotificationChannel` | `NullTutorNotificationChannel` até módulo Automations (8.1) |
+| Canal tutor | `ITutorNotificationChannel` | `EnqueueingTutorNotificationChannel` quando Automations registrado (ADR-038) |
+| Automations worker | `Automations:PollIntervalSeconds` | Outbox SQL + `OutboxProcessor` (8.1) |
 
 Clientes Blazor/MAUI usam `IGroomingStatusRealtime` com o client HTTP `API` como base URL.
 

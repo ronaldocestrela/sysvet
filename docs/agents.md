@@ -47,6 +47,7 @@
 * `src/Modules/Inventory/` — Estoque, produtos, importação NF-e de compra.
 * `src/Modules/Finance/` — Contas a pagar/receber, caixa, conciliação, demonstrativos.
 * `src/Modules/Fiscal/` — Emissão NF-e (Zeus) e NFS-e Nacional (OpenAC Web); ADR-035.
+* `src/Modules/Automations/` — Fila de mensagens, templates e worker (ADR-038).
 * [cite_start]`src/Modules/[NomeDoModulo]/Domain/` - Entidades, Value Objects e interfaces de repositório[cite: 89].
 * [cite_start]`src/Modules/[NomeDoModulo]/Application/` - Handlers CQRS, DTOs e validações[cite: 90].
 * [cite_start]`src/Modules/[NomeDoModulo]/Infrastructure/` - EF Core DbContext, Mapeamentos, Repositórios e Serviços externos[cite: 90].

@@ -20,7 +20,8 @@ internal static class IntegrationTestDatabaseHelper
                      scope.ServiceProvider.GetRequiredService<global::Sales.Infrastructure.Persistence.SalesDbContext>(),
                      scope.ServiceProvider.GetRequiredService<global::Petshop.Infrastructure.Persistence.PetshopDbContext>(),
                      scope.ServiceProvider.GetRequiredService<global::Finance.Infrastructure.Persistence.FinanceDbContext>(),
-                     scope.ServiceProvider.GetRequiredService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>()
+                     scope.ServiceProvider.GetRequiredService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Automations.Infrastructure.Persistence.AutomationsDbContext>()
                  })
         {
             await ctx.Database.EnsureDeletedAsync();
@@ -46,5 +47,8 @@ internal static class IntegrationTestDatabaseHelper
 
         var fiscalContext = scope.ServiceProvider.GetRequiredService<global::Fiscal.Infrastructure.Persistence.FiscalDbContext>();
         await fiscalContext.Database.MigrateAsync();
+
+        var automationsContext = scope.ServiceProvider.GetRequiredService<global::Automations.Infrastructure.Persistence.AutomationsDbContext>();
+        await automationsContext.Database.MigrateAsync();
     }
 }

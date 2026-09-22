@@ -1,0 +1,131 @@
+@page "/automations"
+@using Clients.Infrastructure.Automations
+@using SharedUI.Components
+@using SharedUI.Navigation
+@using SharedUI.Services
+@inject AutomationsApiService AutomationsApi
+@inject IConnectivityService Connectivity
+@inject IToastService Toast
+
+<div class="header-section">
+    <h1 class="mb-0">Automações</h1>
+    <p class="text-muted small mb-0">Templates e fila de mensagens (online).</p>
+</div>
+
+@if (!Connectivity.IsOnline)
+{
+    <div class="alert alert-warning">Templates e jobs exigem conexão online com a API.</div>
+}
+
+<LoadingState IsLoading="_loading" Message="Carregando automações...">
+    <div class="card mb-3">
+        <h5>Templates</h5>
+        @if (_templates.Count == 0)
+        {
+            <p class="text-muted mb-0">Nenhum template cadastrado.</p>
+        }
+        else
+        {
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Canal</th>
+                        <th>Ativo</th>
+                        <th>Corpo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in _templates)
+                    {
+                        <tr>
+                            <td>@t.Code</td>
+                            <td>@t.Channel</td>
+                            <td>@(t.IsActive ? "Sim" : "Não")</td>
+                            <td class="small text-truncate" style="max-width:20rem">@t.Body</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <div class="card">
+        <h5>Jobs recentes</h5>
+        @if (_jobs.Count == 0)
+        {
+            <p class="text-muted mb-0">Nenhum job na fila.</p>
+        }
+        else
+        {
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Template</th>
+                        <th>Status</th>
+                        <th>Tentativas</th>
+                        <th>Último erro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var j in _jobs)
+                    {
+                        <tr>
+                            <td>@j.TemplateCode</td>
+                            <td>@j.Status</td>
+                            <td>@j.AttemptCount (@j.AttemptLogs.Count log)</td>
+                            <td class="small">@(j.LastError ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</LoadingState>
+
+@code {
+    private bool _loading;
+    private List<MessageTemplateClientDto> _templates = new();
+    private List<MessageJobClientDto> _jobs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (!Connectivity.IsOnline)
+        {
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var templates = await AutomationsApi.ListTemplatesAsync();
+            if (templates.IsSuccess)
+            {
+                _templates = templates.Value.ToList();
+            }
+            else
+            {
+                Toast.Show(templates.Error.Message, ToastType.Warning);
+            }
+
+            var jobs = await AutomationsApi.ListJobsAsync();
+            if (jobs.IsSuccess)
+            {
+                _jobs = jobs.Value.ToList();
+            }
+            else
+            {
+                Toast.Show(jobs.Error.Message, ToastType.Warning);
+            }
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

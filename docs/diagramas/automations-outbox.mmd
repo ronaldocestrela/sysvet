@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant Api as API_request
+    participant Handler as GroomingTutorNotificationHandler
+    participant Channel as EnqueueingTutorNotificationChannel
+    participant Jobs as MessageJob_table
+    participant Worker as OutboxProcessor
+    participant Sender as IOutboundMessageSender
+
+    Api->>Handler: GroomingStatusChangedEvent
+    Handler->>Channel: NotifyGroomingStatusAsync
+    Channel->>Jobs: Enqueue Pending
+    Worker->>Jobs: claim due jobs
+    Worker->>Sender: send rendered message
+    alt success
+        Worker->>Jobs: Succeeded plus JobAttemptLog
+    else retryable
+        Worker->>Jobs: Failed NextAttemptAt
+    else max attempts
+        Worker->>Jobs: DeadLetter plus log
+    end

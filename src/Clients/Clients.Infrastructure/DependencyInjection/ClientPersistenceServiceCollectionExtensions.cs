@@ -1,4 +1,5 @@
 using System.Linq;
+using Clients.Infrastructure.Automations;
 using Clients.Infrastructure.Crm;
 using Clients.Infrastructure.Finance;
 using Clients.Infrastructure.Fiscal;
@@ -62,6 +63,7 @@ public static class ClientPersistenceServiceCollectionExtensions
         services.AddScoped<FinanceReconciliationApiService>();
         services.AddScoped<FinanceReportsApiService>();
         services.AddScoped<FiscalPlanningApiService>();
+        services.AddScoped<AutomationsApiService>();
         services.AddScoped<FiscalApiService>();
         services.AddScoped<OfflineFiscalNfceService>();
         services.AddScoped<IFiscalStore, OfflineFiscalStore>();

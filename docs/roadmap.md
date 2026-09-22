@@ -41,7 +41,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | MAUI | **Concluído (3.3)** | Blazor Hybrid Android + Windows; JWT/CRM SharedUI; VetNexus branding; job `maui-publish` (Windows CI); ADR-013 |
 | SQLite / Sync offline | **Concluído (3.5–3.6 CRM)** | SQLite + outbox push/pull tutor/pet; PoC E2E em [`sync-poc.md`](arquitetura/sync-poc.md) |
 | CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test Linux, cobertura, artefato API, Dockerfile, publish MAUI (Windows runner) |
-| Módulos ausentes | **Pendente** | `Automations`, `Intelligence`, `TutorPortal`, `Platform` (`Finance`: estrutura 7.1 concluída) |
+| Módulos ausentes | **Pendente** | `Intelligence`, `TutorPortal`, `Platform` (`Automations`: 8.1; `Finance`: 7.x) |
 
 **Progresso estimado:** ~10% da Fase 1 concluída (scaffold + API mínima + `Result<T>`).
 
@@ -979,7 +979,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **8.1 Módulo Automations — workers e filas** | 8 | Pendente |
+| **8.1 Módulo Automations — workers e filas** | 8 | Concluído |
 | **8.2 Lembretes WhatsApp/SMS/e-mail** | 8 | Pendente |
 | **8.3 Campanhas e NPS** | 8 | Pendente |
 | **8.4 Módulo TutorPortal — base** | 5 | Pendente |
@@ -991,11 +991,11 @@ flowchart TD
 
 ### 8.1 Módulo Automations — workers e filas (8 SP)
 
-- [ ] Criar `src/Modules/Automations/`
-- [ ] Worker Service / fila (Azure Service Bus, RabbitMQ ou tabela outbox)
-- [ ] Templates de mensagem por canal
+- [x] Criar `src/Modules/Automations/`
+- [x] Worker Service / fila (Azure Service Bus, RabbitMQ ou tabela outbox)
+- [x] Templates de mensagem por canal
 
-**Aceite:** Job enfileirado processado com retry e log.
+**Aceite:** Job enfileirado processado com retry e log (`EnqueueJob_ThenProcessor_SucceedsWithAttemptLog`; ADR-038).
 
 ### 8.2 Lembretes WhatsApp/SMS/e-mail (8 SP)
 

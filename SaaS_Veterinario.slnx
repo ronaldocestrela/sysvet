@@ -23,6 +23,16 @@
   <Folder Name="/src/Modules/Core/Infrastructure/">
     <Project Path="src/Modules/Core/Infrastructure/Core.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Automations/" />
+  <Folder Name="/src/Modules/Automations/Application/">
+    <Project Path="src/Modules/Automations/Application/Automations.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Automations/Domain/">
+    <Project Path="src/Modules/Automations/Domain/Automations.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Automations/Infrastructure/">
+    <Project Path="src/Modules/Automations/Infrastructure/Automations.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Finance/" />
   <Folder Name="/src/Modules/Finance/Application/">
     <Project Path="src/Modules/Finance/Application/Finance.Application.csproj" />
@@ -89,6 +99,7 @@
     <Project Path="tests/PoC.SyncTests/PoC.SyncTests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/">
+    <Project Path="tests/Modules/Automations.Tests/Automations.Tests.csproj" />
     <Project Path="tests/Modules/Core.Tests/Core.Tests.csproj" />
     <Project Path="tests/Modules/Finance.Tests/Finance.Tests.csproj" />
     <Project Path="tests/Modules/Fiscal.Tests/Fiscal.Tests.csproj" />

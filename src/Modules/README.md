@@ -12,7 +12,8 @@ Coração da aplicação. Contém todos os **módulos de domínio** isolados, ca
 | [`Sales/`](./Sales/README.md) | PDV (Ponto de Venda) com suporte offline, pedidos e comissões | 🔴 Não iniciado |
 | [`Inventory/`](./Inventory/README.md) | Controle de estoque de produtos e insumos | 🔴 Não iniciado |
 | [`Finance/`](./Finance/README.md) | Contas a pagar/receber, caixa, fluxo de caixa | 🟡 Estrutura (7.1) |
-| [`Fiscal/`](./Fiscal/README.md) | Emissão de notas fiscais e integração com sistemas fiscais brasileiros | 🔴 Não iniciado |
+| [`Fiscal/`](./Fiscal/README.md) | Emissão de notas fiscais e integração com sistemas fiscais brasileiros | 🟢 Fase 7 |
+| [`Automations/`](./Automations/README.md) | Fila de mensagens, templates e worker | 🟢 Fase 8.1 |
 
 ## Anatomia de um Módulo
 

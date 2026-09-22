@@ -2,6 +2,7 @@ using API.Notifications;
 using API.Serialization;
 using Core.Infrastructure;
 using MediatR;
+using Automations.Infrastructure;
 using Finance.Infrastructure;
 using Fiscal.Infrastructure;
 using Inventory.Infrastructure;
@@ -52,6 +53,7 @@ public static class ServiceCollectionExtensions
         services.AddPetshopModule(configuration);
         services.AddFinanceModule(configuration);
         services.AddFiscalModule(configuration);
+        services.AddAutomationsModule(configuration);
 
         services.AddSignalR();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GroomingRealtimeBroadcastHandler).Assembly));

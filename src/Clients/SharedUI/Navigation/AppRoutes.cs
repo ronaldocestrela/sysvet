@@ -96,6 +96,8 @@ public static class AppRoutes
     public const string SalesPrepaidBalances = "/sales/prepaid-balances";
 
     /// <summary>Issued NF-e and NFS-e documents.</summary>
+    public const string Automations = "/automations";
+
     public const string Fiscal = "/fiscal";
 
     /// <summary>Issuer profile and A1 certificate.</summary>

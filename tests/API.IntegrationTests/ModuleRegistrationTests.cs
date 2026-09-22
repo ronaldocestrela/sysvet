@@ -96,6 +96,16 @@ public class ModuleRegistrationTests
     }
 
     [Fact]
+    public void AddApplicationModules_ResolvesAutomationsDbContext()
+    {
+        using var root = BuildProvider();
+        using var scope = root.CreateScope();
+        var provider = scope.ServiceProvider;
+        provider.GetService<global::Automations.Infrastructure.Persistence.AutomationsDbContext>().Should().NotBeNull();
+        provider.GetService<global::Automations.Domain.Repositories.IAutomationsUnitOfWork>().Should().NotBeNull();
+    }
+
+    [Fact]
     public void AddApplicationModules_DoesNotThrowForPetshopStub()
     {
         var act = () => BuildProvider();
