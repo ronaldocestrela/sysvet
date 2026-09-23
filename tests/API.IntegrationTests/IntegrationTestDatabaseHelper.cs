@@ -73,6 +73,7 @@ internal static class IntegrationTestDatabaseHelper
 
         var platformContext = scope.ServiceProvider.GetRequiredService<global::Platform.Infrastructure.Persistence.PlatformDbContext>();
         await platformContext.Database.MigrateAsync();
+        await EnsurePlatformDunningSchemaAsync(platformContext);
         await PlatformCatalogTestSeeder.EnsureCatalogAsync(scope.ServiceProvider);
 
         await EnsureDefaultPlatformTenantAsync(scope, platformContext);
@@ -171,6 +172,69 @@ internal static class IntegrationTestDatabaseHelper
             CREATE UNIQUE INDEX IF NOT EXISTS IX_NpsInvites_SourceType_SourceId ON NpsInvites (SourceType, SourceId);
             CREATE INDEX IF NOT EXISTS IX_NpsInvites_TutorId ON NpsInvites (TutorId);
             """);
+    }
+
+    private static async Task EnsurePlatformDunningSchemaAsync(global::Platform.Infrastructure.Persistence.PlatformDbContext context)
+    {
+        await context.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS PlatformCoupons (
+                Id TEXT NOT NULL PRIMARY KEY,
+                Code TEXT NOT NULL,
+                DiscountType INTEGER NOT NULL,
+                Value TEXT NOT NULL,
+                MaxRedemptions INTEGER NULL,
+                RedemptionCount INTEGER NOT NULL,
+                ExpiresAt TEXT NULL,
+                IsActive INTEGER NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformCoupons_Code ON PlatformCoupons (Code);
+            CREATE TABLE IF NOT EXISTS PlatformCouponRedemptions (
+                Id TEXT NOT NULL PRIMARY KEY,
+                CouponId TEXT NOT NULL,
+                TenantId TEXT NOT NULL,
+                BillingInvoiceId TEXT NULL,
+                RedeemedAt TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL,
+                FOREIGN KEY (CouponId) REFERENCES PlatformCoupons (Id) ON DELETE CASCADE
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformCouponRedemptions_TenantId_CouponId
+                ON PlatformCouponRedemptions (TenantId, CouponId);
+            CREATE TABLE IF NOT EXISTS PlatformDunningNotices (
+                Id TEXT NOT NULL PRIMARY KEY,
+                TenantId TEXT NOT NULL,
+                InvoiceId TEXT NOT NULL,
+                StepDay INTEGER NOT NULL,
+                Channel INTEGER NOT NULL,
+                ScheduledAt TEXT NOT NULL,
+                SentAt TEXT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformDunningNotices_TenantId_InvoiceId_StepDay_Channel
+                ON PlatformDunningNotices (TenantId, InvoiceId, StepDay, Channel);
+            """);
+
+        foreach (var alter in new[]
+                 {
+                     "ALTER TABLE \"PlatformBillingInvoices\" ADD COLUMN \"CardRetryCount\" INTEGER NOT NULL DEFAULT 0;",
+                     "ALTER TABLE \"PlatformBillingInvoices\" ADD COLUMN \"NextCardRetryAt\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBillingInvoices\" ADD COLUMN \"AppliedCouponId\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformTenantSubscriptions\" ADD COLUMN \"PastDueSince\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformTenantSubscriptions\" ADD COLUMN \"PendingCouponId\" TEXT NULL;"
+                 })
+        {
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(alter);
+            }
+            catch
+            {
+                // Column already exists.
+            }
+        }
     }
 
     private static async Task EnsureMedicalRecordFollowUpColumnAsync(global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext context)

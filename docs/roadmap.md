@@ -1067,7 +1067,7 @@ flowchart TD
 | **9.2 Gestão de tenants e filiais** | 13 | Concluído |
 | **9.3 Planos, add-ons e feature flags** | 13 | Concluída |
 | **9.4 Gateway de assinatura e cobrança** | 21 | Concluída |
-| **9.5 Dunning, bloqueio e cupons** | 13 | Pendente |
+| **9.5 Dunning, bloqueio e cupons** | 13 | Concluída |
 | **9.6 NFS-e do SaaS e impersonation** | 13 | Pendente |
 | **9.7 Auditoria, API keys e health por tenant** | 8 | Pendente |
 | **9.8 UI Super Admin (Blazor)** | 13 | Pendente |
@@ -1117,11 +1117,11 @@ flowchart TD
 
 ### 9.5 Dunning, bloqueio e cupons (13 SP)
 
-- [ ] Réguas de cobrança (e-mail/SMS); retentativas cartão
-- [ ] Bloqueio após X dias: apenas tela de pagamento
-- [ ] Cupons: percentual/valor fixo, limite uso, expiração
+- [x] Réguas de cobrança (e-mail/SMS); retentativas cartão
+- [x] Bloqueio após X dias: apenas tela de pagamento
+- [x] Cupons: percentual/valor fixo, limite uso, expiração
 
-**Aceite:** Inadimplência simulada suspende acesso operacional.
+**Aceite:** Inadimplência simulada suspende acesso operacional (`SimulatedDelinquency_SuspendsOperationalAccess`; ADR-050).
 
 ### 9.6 NFS-e do SaaS e impersonation (13 SP)
 

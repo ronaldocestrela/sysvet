@@ -42,9 +42,11 @@ public class TenantSubscriptionBillingTests
     {
         var start = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
         var sub = TenantSubscription.CreateActive(Guid.NewGuid(), Guid.NewGuid(), start).Value;
+        var overdueAt = start.AddDays(35);
 
-        sub.RecordPaymentOverdue(start.AddDays(35)).IsSuccess.Should().BeTrue();
+        sub.RecordPaymentOverdue(overdueAt).IsSuccess.Should().BeTrue();
         sub.BillingStanding.Should().Be(BillingStanding.PastDue);
+        sub.PastDueSince.Should().Be(overdueAt);
         sub.Status.Should().Be(SubscriptionStatus.Active);
     }
 

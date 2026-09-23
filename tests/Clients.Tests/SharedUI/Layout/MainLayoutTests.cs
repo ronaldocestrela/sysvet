@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SharedUI.Layout;
 using Xunit;
 using SharedUI.Services;
+using Clients.Infrastructure.Billing;
 using Clients.Tests.Fakes;
 
 namespace Clients.Tests.SharedUI.Layout;
@@ -16,6 +17,7 @@ public class MainLayoutTests : BunitContext
         Services.AddSingleton<IToastService, ToastService>();
         Services.AddScoped<IAuthState, FakeAuthState>();
         Services.AddScoped<IConnectivityService, FakeConnectivityService>();
+        Services.AddSingleton<IClinicBillingApi, FakeClinicBillingApi>();
     }
 
     [Fact]

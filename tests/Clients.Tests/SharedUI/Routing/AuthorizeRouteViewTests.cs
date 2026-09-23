@@ -6,6 +6,7 @@ using SharedUI.Navigation;
 using SharedUI.Routing;
 using SharedUI.Services;
 using Xunit;
+using Clients.Infrastructure.Billing;
 using Clients.Tests.Fakes;
 
 namespace Clients.Tests.SharedUI.Routing;
@@ -39,6 +40,7 @@ public class AuthorizeRouteViewTests : BunitContext
         Services.AddSingleton<INavigationService>(nav);
         Services.AddSingleton<IToastService, ToastService>();
         Services.AddScoped<IConnectivityService>(_ => new FakeConnectivityService());
+        Services.AddSingleton<IClinicBillingApi, FakeClinicBillingApi>();
         ComponentFactories.AddStub<global::SharedUI.Layout.NavMenu>();
         ComponentFactories.AddStub<global::SharedUI.Pages.Tutors>();
 

@@ -290,9 +290,16 @@ Iniciado o módulo de estoque.
 - API: `/api/v1/platform/tenants/{id}/billing/*`, webhook `POST /api/v1/platform/webhooks/asaas`.
 - Aceite: `RecurringSubscription_Charged_WhenPeriodDue`; `PaymentWebhook_UpdatesBillingStanding_WhenPaid`.
 
-### 👉 **Próxima Ação: Fase 9.5 — Dunning, bloqueio e cupons**
+### Fase 9.5 — Dunning, bloqueio e cupons — Concluída (ADR-050)
 
-Ver [`roadmap.md`](roadmap.md) §9.5 e [`backoffice.md`](backoffice.md) §3.
+- Régua dunning (e-mail/SMS Fake/Live), retentativa cartão, lock operacional após carência.
+- API clínica `/api/v1/billing/standing|pay`; cupons Super Admin `/api/v1/platform/coupons`.
+- SharedUI `/billing/payment` quando `BillingStanding.Locked`.
+- Aceite: `SimulatedDelinquency_SuspendsOperationalAccess`.
+
+### 👉 **Próxima Ação: Fase 9.6 — NFS-e do SaaS e impersonation**
+
+Ver [`roadmap.md`](roadmap.md) §9.6 e [`backoffice.md`](backoffice.md) §1 e §3.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

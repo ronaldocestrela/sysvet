@@ -25,6 +25,20 @@ public sealed class BillingInvoiceRepository : IBillingInvoiceRepository
             .FirstOrDefaultAsync(i => i.TenantId == tenantId && i.Status == BillingInvoiceStatus.Open, cancellationToken);
 
     /// <inheritdoc />
+    public async Task<BillingInvoice?> GetOutstandingByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default)
+    {
+        var invoices = await _context.BillingInvoices
+            .Include(i => i.Charges)
+            .Where(i => i.TenantId == tenantId
+                        && (i.Status == BillingInvoiceStatus.Open || i.Status == BillingInvoiceStatus.Failed))
+            .ToListAsync(cancellationToken);
+
+        return invoices
+            .OrderByDescending(i => i.PeriodEnd)
+            .FirstOrDefault();
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<BillingInvoice>> ListByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
         _context.BillingInvoices
             .AsNoTracking()

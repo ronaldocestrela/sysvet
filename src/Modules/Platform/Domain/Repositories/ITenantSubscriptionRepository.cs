@@ -14,6 +14,9 @@ public interface ITenantSubscriptionRepository
     /// <summary>Lists active subscriptions due for recurring billing.</summary>
     Task<IReadOnlyList<TenantSubscription>> ListDueForBillingAsync(DateTimeOffset asOfUtc, CancellationToken cancellationToken = default);
 
+    /// <summary>Lists subscriptions in dunning (past due or locked) (9.5).</summary>
+    Task<IReadOnlyList<TenantSubscription>> ListForDunningAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Adds subscription row.</summary>
     Task AddAsync(TenantSubscription subscription, CancellationToken cancellationToken = default);
 }

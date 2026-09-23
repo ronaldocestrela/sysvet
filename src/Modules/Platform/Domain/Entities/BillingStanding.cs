@@ -13,5 +13,8 @@ public enum BillingStanding
     PastDue = 2,
 
     /// <summary>Subscription billing canceled at gateway.</summary>
-    Canceled = 3
+    Canceled = 3,
+
+    /// <summary>Operational API blocked; payment endpoints remain available (9.5).</summary>
+    Locked = 4
 }

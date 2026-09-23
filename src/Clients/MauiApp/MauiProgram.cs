@@ -36,6 +36,9 @@ public static class MauiProgram
 		builder.Services.AddHttpClient("PublicApi", client => client.BaseAddress = new Uri(apiBaseUrl));
 
 		builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
+		builder.Services.AddScoped<Clients.Infrastructure.Billing.IClinicBillingApi>(sp =>
+			new Clients.Infrastructure.Billing.ClinicBillingApiService(
+				sp.GetRequiredService<IHttpClientFactory>().CreateClient("API")));
 		builder.Services.AddScoped<Clients.Infrastructure.Http.ApiClient>();
 		builder.Services.AddScoped<Clients.Infrastructure.Http.IWardUnitApiService, Clients.Infrastructure.Http.WardUnitApiService>();
 		builder.Services.AddScoped<Clients.Infrastructure.Crm.IClinicalAttachmentService, Clients.Infrastructure.Http.ClinicalAttachmentService>();

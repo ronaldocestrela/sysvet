@@ -11,6 +11,9 @@ public interface IBillingInvoiceRepository
     /// <summary>Gets open invoice for tenant if any.</summary>
     Task<BillingInvoice?> GetOpenByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default);
 
+    /// <summary>Gets open or failed invoice awaiting payment (9.5).</summary>
+    Task<BillingInvoice?> GetOutstandingByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default);
+
     /// <summary>Lists invoices for tenant newest first.</summary>
     Task<IReadOnlyList<BillingInvoice>> ListByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default);
 

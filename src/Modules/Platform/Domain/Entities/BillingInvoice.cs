@@ -23,6 +23,15 @@ public sealed class BillingInvoice : Entity
     /// <summary>When payment was confirmed (UTC).</summary>
     public DateTimeOffset? PaidAt { get; private set; }
 
+    /// <summary>Automatic card retry attempts after failure (9.5).</summary>
+    public int CardRetryCount { get; private set; }
+
+    /// <summary>Earliest UTC instant for the next card retry (9.5).</summary>
+    public DateTimeOffset? NextCardRetryAt { get; private set; }
+
+    /// <summary>Coupon discount applied when the invoice was opened (9.5).</summary>
+    public Guid? AppliedCouponId { get; private set; }
+
     /// <summary>Gateway charges linked to this invoice.</summary>
     public ICollection<BillingCharge> Charges { get; private set; } = new List<BillingCharge>();
 
@@ -71,7 +80,7 @@ public sealed class BillingInvoice : Entity
             return Result.Success();
         }
 
-        if (Status is not BillingInvoiceStatus.Open)
+        if (Status is not (BillingInvoiceStatus.Open or BillingInvoiceStatus.Failed))
         {
             return Result.Failure(ErrorCodes.Billing.InvalidInvoiceTransition);
         }
@@ -126,7 +135,27 @@ public sealed class BillingInvoice : Entity
     {
         var charge = BillingCharge.Create(Id, gatewayPaymentId, pixCopyPaste, boletoLine);
         Charges.Add(charge);
+        if (Status == BillingInvoiceStatus.Failed)
+        {
+            Status = BillingInvoiceStatus.Open;
+        }
+
         UpdatedAt = DateTimeOffset.UtcNow;
         return charge;
     }
+
+    /// <summary>Records coupon used when opening the invoice.</summary>
+    public void SetAppliedCoupon(Guid couponId) => AppliedCouponId = couponId;
+
+    /// <summary>Increments card retry counter and schedules the next attempt.</summary>
+    public void IncrementCardRetry(DateTimeOffset nextRetryAtUtc)
+    {
+        CardRetryCount++;
+        NextCardRetryAt = nextRetryAtUtc;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Gets open or failed invoice collectible via gateway.</summary>
+    public bool IsOutstanding =>
+        Status is BillingInvoiceStatus.Open or BillingInvoiceStatus.Failed;
 }

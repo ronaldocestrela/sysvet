@@ -27,7 +27,8 @@ Como a arquitetura exige modularidade estrita, permitindo que cada módulo seja 
 
 ---
 
-> **Nota (9.4):** Gateway Asaas (Fake em CI), cliente/meio de pagamento, cobrança recorrente, webhook e histórico de faturas via `/api/v1/platform/tenants/{id}/billing/*` e `POST /api/v1/platform/webhooks/asaas` (ADR-049). Dunning, bloqueio e cupons permanecem na **9.5**; NFS-e na **9.6**; UI Super Admin na **9.8**.
+> **Nota (9.4):** Gateway Asaas (Fake em CI), cliente/meio de pagamento, cobrança recorrente, webhook e histórico de faturas via `/api/v1/platform/tenants/{id}/billing/*` e `POST /api/v1/platform/webhooks/asaas` (ADR-049).
+> **Nota (9.5):** Régua dunning (`ProcessDunningCommand`, `Platform:Dunning`), bloqueio operacional (`BillingStanding.Locked`, filtro API, `/api/v1/billing/*`, SharedUI `/billing/payment`) e cupons (`/api/v1/platform/coupons`, resgate por tenant) entregues (ADR-050). NFS-e na **9.6**; UI Super Admin na **9.8**.
 
 ## 3. Formas de Pagamentos, Faturamento e Cobrança
 * **Integração com Gateway de Pagamento:** Conexão com provedores (ex: Stripe, Pagar.me, Asaas) para processamento de assinaturas do SaaS.

@@ -47,6 +47,7 @@ app.MapApiHealthChecks();
 var routes = app.MapGroup(string.Empty)
     .AddEndpointFilter<ResultEndpointFilter>()
     .AddEndpointFilter<TenantRequiredEndpointFilter>()
+    .AddEndpointFilter<TenantOperationalBillingEndpointFilter>()
     .AddEndpointFilter<CommercialModuleEndpointFilter>();
 
 routes.MapVeterinaryEndpoints();
@@ -65,6 +66,7 @@ routes.MapClinicSitePublicEndpoints();
 routes.MapCommerceEndpoints();
 routes.MapCommercePublicEndpoints();
 routes.MapPlatformEndpoints();
+routes.MapClinicBillingEndpoints();
 routes.MapPlatformBillingWebhookEndpoints();
 
 app.MapHub<GroomingStatusHub>(GroomingStatusHub.HubPath);

@@ -23,6 +23,8 @@ public sealed class BillingCommandHandlers :
     private readonly IBillingPaymentMethodRepository _paymentMethodRepository;
     private readonly IBillingInvoiceRepository _invoiceRepository;
     private readonly IBillingWebhookReceiptRepository _webhookReceiptRepository;
+    private readonly ICouponRepository _couponRepository;
+    private readonly ICouponRedemptionRepository _couponRedemptionRepository;
     private readonly IBillingGateway _billingGateway;
     private readonly IPlatformUnitOfWork _unitOfWork;
     private readonly IBillingWebhookAuthenticator _webhookAuthenticator;
@@ -36,6 +38,8 @@ public sealed class BillingCommandHandlers :
         IBillingPaymentMethodRepository paymentMethodRepository,
         IBillingInvoiceRepository invoiceRepository,
         IBillingWebhookReceiptRepository webhookReceiptRepository,
+        ICouponRepository couponRepository,
+        ICouponRedemptionRepository couponRedemptionRepository,
         IBillingGateway billingGateway,
         IPlatformUnitOfWork unitOfWork,
         IBillingWebhookAuthenticator webhookAuthenticator,
@@ -47,6 +51,8 @@ public sealed class BillingCommandHandlers :
         _paymentMethodRepository = paymentMethodRepository;
         _invoiceRepository = invoiceRepository;
         _webhookReceiptRepository = webhookReceiptRepository;
+        _couponRepository = couponRepository;
+        _couponRedemptionRepository = couponRedemptionRepository;
         _billingGateway = billingGateway;
         _unitOfWork = unitOfWork;
         _webhookAuthenticator = webhookAuthenticator;
@@ -79,10 +85,18 @@ public sealed class BillingCommandHandlers :
         var addOnPrices = subscription.AddOns
             .Where(a => a.AddOn is not null)
             .Select(a => a.AddOn!.MonthlyPrice);
+
+        Coupon? coupon = null;
+        if (subscription.PendingCouponId is { } pendingCouponId)
+        {
+            coupon = await _couponRepository.GetByIdAsync(pendingCouponId, cancellationToken);
+        }
+
         var amount = BillingInvoiceComposer.ComposeAmount(
             subscription.Plan.MonthlyPrice,
             addOnPrices,
-            pendingAdjustments);
+            pendingAdjustments,
+            coupon);
 
         var invoiceResult = BillingInvoice.Open(
             request.TenantId,
@@ -105,6 +119,23 @@ public sealed class BillingCommandHandlers :
         }
 
         subscription.MarkInvoiced();
+        if (coupon is not null)
+        {
+            invoice.SetAppliedCoupon(coupon.Id);
+            var consumed = coupon.RecordRedemptionConsumed();
+            if (consumed.IsFailure)
+            {
+                return Result.Failure<ChargeTenantBillingResultDto>(consumed.Error);
+            }
+
+            var redemption = await _couponRedemptionRepository.GetPendingByTenantAndCouponAsync(
+                request.TenantId,
+                coupon.Id,
+                cancellationToken);
+            redemption?.AttachInvoice(invoice.Id);
+            subscription.ClearPendingCoupon();
+        }
+
         await _invoiceRepository.AddAsync(invoice, cancellationToken);
 
         if (amount == 0)

@@ -1,0 +1,85 @@
+@page "/billing/payment"
+@using Clients.Infrastructure.Billing
+@inject IClinicBillingApi BillingApi
+@inject NavigationManager Navigation
+
+<div class="header-section">
+    <h1>Pagamento VetNexus</h1>
+    <p>Regularize sua assinatura para liberar o acesso operacional.</p>
+</div>
+
+@if (_loading)
+{
+    <p>Carregando…</p>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_standing is not null)
+{
+    <div class="card p-3">
+        <p><strong>Situação:</strong> @_standing.Standing</p>
+        @if (_standing.OutstandingAmount is { } amount)
+        {
+            <p><strong>Valor:</strong> @amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</p>
+        }
+        @if (!string.IsNullOrWhiteSpace(_standing.PixCopyPaste))
+        {
+            <p><strong>Pix copia e cola:</strong></p>
+            <code>@_standing.PixCopyPaste</code>
+        }
+        @if (!string.IsNullOrWhiteSpace(_standing.BoletoLine))
+        {
+            <p><strong>Boleto:</strong> @_standing.BoletoLine</p>
+        }
+        <button class="btn btn-primary mt-3" disabled="@_paying" @onclick="PayAsync">
+            @(_paying ? "Processando…" : "Tentar pagamento")
+        </button>
+        @if (!string.IsNullOrWhiteSpace(_payMessage))
+        {
+            <p class="mt-2">@_payMessage</p>
+        }
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private bool _paying;
+    private string? _error;
+    private string? _payMessage;
+    private ClinicBillingStandingResponse? _standing;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _error = null;
+        var result = await BillingApi.GetStandingAsync();
+        _loading = false;
+        if (result.IsFailure)
+        {
+            _error = result.Error.Message;
+            return;
+        }
+
+        _standing = result.Value;
+    }
+
+    private async Task PayAsync()
+    {
+        _paying = true;
+        _payMessage = null;
+        var result = await BillingApi.PayOutstandingAsync();
+        _paying = false;
+        if (result.IsFailure)
+        {
+            _payMessage = result.Error.Message;
+            return;
+        }
+
+        _payMessage = $"Cobrança iniciada (ref. {result.Value.GatewayPaymentId}). Aguarde confirmação ou conclua via Pix/boleto acima.";
+        await ReloadAsync();
+    }
+}

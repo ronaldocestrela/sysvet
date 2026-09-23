@@ -9,12 +9,20 @@ public static class BillingInvoiceComposer
     public static decimal ComposeAmount(
         decimal planMonthlyPrice,
         IEnumerable<decimal> activeAddOnPrices,
-        IEnumerable<SubscriptionAdjustment> pendingAdjustments)
+        IEnumerable<SubscriptionAdjustment> pendingAdjustments,
+        Coupon? coupon = null)
     {
         var adjustmentTotal = pendingAdjustments
             .Where(a => a.Status == AdjustmentStatus.PendingBilling && a.Amount > 0)
             .Sum(a => a.Amount);
 
-        return planMonthlyPrice + activeAddOnPrices.Sum() + adjustmentTotal;
+        var subtotal = planMonthlyPrice + activeAddOnPrices.Sum() + adjustmentTotal;
+        if (coupon is null)
+        {
+            return subtotal;
+        }
+
+        var discount = coupon.CalculateDiscount(subtotal);
+        return Math.Max(0m, subtotal - discount);
     }
 }

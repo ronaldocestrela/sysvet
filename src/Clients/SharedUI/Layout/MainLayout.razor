@@ -1,10 +1,20 @@
 @inherits LayoutComponentBase
+@using Clients.Infrastructure.Billing
+@using SharedUI.Navigation
+@inject IClinicBillingApi BillingApi
+@inject NavigationManager Navigation
 
 <div class="app-container">
-    <NavMenu />
+    @if (!_operationallyLocked)
+    {
+        <NavMenu />
+    }
 
     <main class="main-content">
-        <SharedUI.Components.ConnectivityBanner />
+        @if (!_operationallyLocked)
+        {
+            <SharedUI.Components.ConnectivityBanner />
+        }
         <header class="top-bar">
             <h2>SysVet | VetNexus</h2>
         </header>
@@ -16,3 +26,21 @@
 </div>
 
 <SharedUI.Components.Toast />
+
+@code {
+    private bool _operationallyLocked;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var standing = await BillingApi.GetStandingAsync();
+        if (standing.IsSuccess && standing.Value.IsOperationallyLocked)
+        {
+            _operationallyLocked = true;
+            var path = new Uri(Navigation.Uri).AbsolutePath;
+            if (!path.StartsWith(AppRoutes.BillingPayment, StringComparison.OrdinalIgnoreCase))
+            {
+                Navigation.NavigateTo(AppRoutes.BillingPayment, replace: true);
+            }
+        }
+    }
+}

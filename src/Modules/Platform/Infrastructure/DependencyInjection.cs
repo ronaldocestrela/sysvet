@@ -13,6 +13,7 @@ using Platform.Application.Provisioning;
 using Platform.Application.Tenancy;
 using Platform.Application.Tenants.Commands;
 using Platform.Domain.Repositories;
+using Platform.Application.Configuration;
 using Platform.Infrastructure.Configuration;
 using Platform.Infrastructure.Entitlements;
 using Platform.Infrastructure.Persistence;
@@ -20,6 +21,7 @@ using Platform.Infrastructure.Persistence.Repositories;
 using Platform.Infrastructure.Persistence.Seeding;
 using Platform.Application.Billing;
 using Platform.Infrastructure.Billing;
+using Platform.Infrastructure.Dunning;
 using Platform.Infrastructure.HostedServices;
 using Platform.Infrastructure.Provisioning;
 using Platform.Infrastructure.Tenancy;
@@ -35,6 +37,7 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.AddValidatedOptions<PlatformOptions>(configuration, PlatformOptions.SectionName);
         services.AddValidatedOptions<BillingOptions>(configuration, BillingOptions.SectionName);
+        services.AddValidatedOptions<DunningOptions>(configuration, DunningOptions.SectionName);
 
         services.AddDbContext<PlatformDbContext>((serviceProvider, options) =>
         {
@@ -55,6 +58,10 @@ public static class DependencyInjection
         services.AddScoped<IBillingPaymentMethodRepository, BillingPaymentMethodRepository>();
         services.AddScoped<IBillingInvoiceRepository, BillingInvoiceRepository>();
         services.AddScoped<IBillingWebhookReceiptRepository, BillingWebhookReceiptRepository>();
+        services.AddScoped<IDunningNoticeRepository, DunningNoticeRepository>();
+        services.AddScoped<ICouponRepository, CouponRepository>();
+        services.AddScoped<ICouponRedemptionRepository, CouponRedemptionRepository>();
+        services.AddScoped<ITenantBillingStandingReader, TenantBillingStandingReader>();
         services.AddScoped<IBillingWebhookAuthenticator, BillingWebhookAuthenticator>();
 
         var billingProvider = configuration.GetSection(BillingOptions.SectionName).GetValue<string>(nameof(BillingOptions.Provider)) ?? "Fake";
@@ -65,6 +72,24 @@ public static class DependencyInjection
         else
         {
             services.AddSingleton<IBillingGateway, FakeBillingGateway>();
+        }
+
+        var dunningProvider = configuration.GetSection(DunningOptions.SectionName).GetValue<string>(nameof(DunningOptions.Provider)) ?? "Fake";
+        if (string.Equals(dunningProvider, "Live", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHttpClient("PlatformDunningSms", client =>
+            {
+                var baseUrl = configuration.GetSection(DunningOptions.SectionName).GetValue<string>(nameof(DunningOptions.SmsBaseUrl));
+                if (!string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    client.BaseAddress = new Uri(baseUrl);
+                }
+            });
+            services.AddScoped<IDunningNotifier, LiveDunningNotifier>();
+        }
+        else
+        {
+            services.AddScoped<IDunningNotifier, FakeDunningNotifier>();
         }
         services.AddScoped<ITenantSubscriptionProvisioner, TenantSubscriptionProvisioner>();
         services.AddScoped<ITenantEntitlementReader, TenantEntitlementReader>();
@@ -82,6 +107,7 @@ public static class DependencyInjection
         services.AddHostedService<DevelopmentSuperAdminSeedHostedService>();
         services.AddHostedService<TrialExpirationHostedService>();
         services.AddHostedService<BillingCycleHostedService>();
+        services.AddHostedService<DunningHostedService>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(OnboardTenantCommand).Assembly));
 

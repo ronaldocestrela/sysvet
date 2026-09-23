@@ -25,7 +25,7 @@ Recorrência nativa do Asaas não é usada: pró-rata e `CreditBalance` permanec
 3. **Persistência** `dbo`: `BillingCustomer`, `BillingPaymentMethod`, `BillingInvoice`, `BillingCharge`, `BillingWebhookReceipt`; `TenantSubscription.BillingStanding` (`Unbilled`, `Good`, `PastDue`, `Canceled`).
 4. **Ciclo:** `BillingCycleHostedService` + `ChargeDueSubscriptionsCommand`; fatura = plano + add-ons ativos + ajustes `PendingBilling` positivos; total zero liquida localmente.
 5. **Webhook** `POST /api/v1/platform/webhooks/asaas`, header `asaas-access-token`, idempotência por `event + paymentId`.
-6. **Eventos:** `PAYMENT_RECEIVED` / `PAYMENT_CONFIRMED` liquidam; `PAYMENT_OVERDUE` → `PastDue`; `PAYMENT_DELETED` cancela cobrança aberta; `PAYMENT_REFUNDED` registra estorno. `TenantStatus` não muda (9.5).
+6. **Eventos:** `PAYMENT_RECEIVED` / `PAYMENT_CONFIRMED` liquidam; `PAYMENT_OVERDUE` → `PastDue`; `PAYMENT_DELETED` cancela cobrança aberta; `PAYMENT_REFUNDED` registra estorno. `TenantStatus` não muda; bloqueio operacional em [ADR-050](./ADR-050-dunning-bloqueio-cupons.md).
 
 ## Consequências
 

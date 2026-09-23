@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Core.Domain.Entitlements;
 using Platform.Application.Billing;
+using Platform.Application.Coupons;
 using Platform.Application.Subscriptions;
 using Platform.Application.Tenants.Commands;
 using Platform.Application.Tenants.Dtos;
@@ -33,6 +34,8 @@ public static class PlatformEndpointsExtensions
 
         catalog.MapGet("/plans", ListPlans);
         catalog.MapGet("/addons", ListAddOns);
+        catalog.MapGet("/coupons", ListCoupons);
+        catalog.MapPost("/coupons", CreateCoupon);
     }
 
     /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
@@ -64,9 +67,27 @@ public static class PlatformEndpointsExtensions
         group.MapPut("/{tenantId:guid}/billing/payment-method", UpsertBillingPaymentMethod);
         group.MapPost("/{tenantId:guid}/billing/charge", ChargeTenantBilling);
         group.MapGet("/{tenantId:guid}/billing/invoices", ListBillingInvoices);
+        group.MapPost("/{tenantId:guid}/billing/coupon", RedeemCoupon);
 
         return builder;
     }
+
+    private static Task<Result<IReadOnlyList<CouponSummaryDto>>> ListCoupons(IMediator mediator) =>
+        mediator.Send(new ListCouponsQuery());
+
+    private static Task<Result<CouponSummaryDto>> CreateCoupon([FromBody] CreateCouponRequest body, IMediator mediator) =>
+        mediator.Send(new CreateCouponCommand(
+            body.Code,
+            body.DiscountType,
+            body.Value,
+            body.MaxRedemptions,
+            body.ExpiresAt));
+
+    private static Task<Result> RedeemCoupon(
+        Guid tenantId,
+        [FromBody] RedeemCouponRequest body,
+        IMediator mediator) =>
+        mediator.Send(new RedeemTenantCouponCommand(tenantId, body.Code));
 
     private static Task<Result<IReadOnlyList<PlanSummaryDto>>> ListPlans(IMediator mediator) =>
         mediator.Send(new ListPlansQuery());
@@ -157,4 +178,15 @@ public static class PlatformEndpointsExtensions
 
     /// <summary>Billing payment method body.</summary>
     public sealed record UpsertBillingPaymentMethodRequest(BillingPaymentMethodKind Kind, string? CreditCardToken);
+
+    /// <summary>Create coupon body.</summary>
+    public sealed record CreateCouponRequest(
+        string Code,
+        CouponDiscountType DiscountType,
+        decimal Value,
+        int? MaxRedemptions,
+        DateTimeOffset? ExpiresAt);
+
+    /// <summary>Redeem coupon body.</summary>
+    public sealed record RedeemCouponRequest(string Code);
 }

@@ -51,6 +51,15 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeT
     /// <summary>Webhook idempotency ledger (9.4).</summary>
     public DbSet<BillingWebhookReceipt> BillingWebhookReceipts => Set<BillingWebhookReceipt>();
 
+    /// <summary>Dunning notices (9.5).</summary>
+    public DbSet<DunningNotice> DunningNotices => Set<DunningNotice>();
+
+    /// <summary>Promotional coupons (9.5).</summary>
+    public DbSet<Coupon> Coupons => Set<Coupon>();
+
+    /// <summary>Coupon redemptions (9.5).</summary>
+    public DbSet<CouponRedemption> CouponRedemptions => Set<CouponRedemption>();
+
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)

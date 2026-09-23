@@ -126,6 +126,11 @@ public sealed class TenantResolutionMiddleware
             return false;
         }
 
+        if (value.StartsWith("/api/v1/billing/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
         return true;
     }
 

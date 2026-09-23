@@ -33,6 +33,12 @@ public sealed class TenantSubscription : Entity
     /// <summary>Payment health at gateway (9.4); does not change <see cref="Tenant.Status"/>.</summary>
     public BillingStanding BillingStanding { get; private set; } = BillingStanding.Unbilled;
 
+    /// <summary>When the subscription first became past due (9.5).</summary>
+    public DateTimeOffset? PastDueSince { get; private set; }
+
+    /// <summary>Coupon applied on the next invoice after Super Admin redemption (9.5).</summary>
+    public Guid? PendingCouponId { get; private set; }
+
     /// <summary>Active add-on links.</summary>
     public ICollection<TenantAddOn> AddOns { get; private set; } = new List<TenantAddOn>();
 
@@ -188,6 +194,8 @@ public sealed class TenantSubscription : Entity
             return Result.Failure(ErrorCodes.Billing.NotBillable);
         }
 
+        PastDueSince = null;
+        PendingCouponId = null;
         BillingStanding = BillingStanding.Good;
         UpdatedAt = asOfUtc;
         return AdvancePeriodAfterPayment(asOfUtc);
@@ -201,9 +209,76 @@ public sealed class TenantSubscription : Entity
             return Result.Success();
         }
 
-        BillingStanding = BillingStanding.PastDue;
+        PastDueSince ??= asOfUtc;
+        if (BillingStanding != BillingStanding.Locked)
+        {
+            BillingStanding = BillingStanding.PastDue;
+        }
+
         UpdatedAt = asOfUtc;
         return Result.Success();
+    }
+
+    /// <summary>Applies operational lock when grace period elapsed (9.5).</summary>
+    public Result EvaluateOperationalLock(DateTimeOffset asOfUtc, int lockAfterDays)
+    {
+        if (BillingStanding is BillingStanding.Canceled or BillingStanding.Good or BillingStanding.Unbilled)
+        {
+            return Result.Success();
+        }
+
+        if (PastDueSince is null)
+        {
+            return Result.Success();
+        }
+
+        if (BillingStanding == BillingStanding.Locked)
+        {
+            return Result.Success();
+        }
+
+        if (asOfUtc >= PastDueSince.Value.AddDays(lockAfterDays))
+        {
+            return LockOperationalAccess(asOfUtc);
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>Blocks operational API while keeping billing routes (9.5).</summary>
+    public Result LockOperationalAccess(DateTimeOffset asOfUtc)
+    {
+        if (BillingStanding == BillingStanding.Canceled)
+        {
+            return Result.Success();
+        }
+
+        BillingStanding = BillingStanding.Locked;
+        UpdatedAt = asOfUtc;
+        return Result.Success();
+    }
+
+    /// <summary>Whether tenant staff APIs should be blocked.</summary>
+    public bool IsOperationallyLocked => BillingStanding == BillingStanding.Locked;
+
+    /// <summary>Stages a coupon for the next invoice composition.</summary>
+    public Result SetPendingCoupon(Guid couponId)
+    {
+        if (couponId == Guid.Empty)
+        {
+            return Result.Failure(ErrorCodes.Coupon.InvalidReference);
+        }
+
+        PendingCouponId = couponId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
+
+    /// <summary>Clears pending coupon after it is consumed on an invoice.</summary>
+    public void ClearPendingCoupon()
+    {
+        PendingCouponId = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     /// <summary>Stops future billing cycles.</summary>

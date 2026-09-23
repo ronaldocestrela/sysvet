@@ -91,5 +91,26 @@ public static class ErrorCodes
         public static readonly Error GatewayFailed = new("Platform.Billing.GatewayFailed", "Falha na integração com gateway de pagamento.");
         public static readonly Error WebhookUnauthorized = new("Platform.Billing.WebhookUnauthorized", "Webhook não autorizado.");
         public static readonly Error WebhookInvalidPayload = new("Platform.Billing.WebhookInvalidPayload", "Payload de webhook inválido.");
+        public static readonly Error OperationalLocked = new("Platform.Billing.OperationalLocked", "Acesso operacional bloqueado por inadimplência. Regularize o pagamento.");
+        public static readonly Error NoOutstandingInvoice = new("Platform.Billing.NoOutstandingInvoice", "Não há fatura pendente para pagamento.");
+    }
+
+    /// <summary>Dunning pipeline errors (9.5).</summary>
+    public static class Dunning
+    {
+        public static readonly Error InvalidStep = new("Platform.Dunning.InvalidStep", "Passo de régua inválido.");
+    }
+
+    /// <summary>Coupon catalog errors (9.5).</summary>
+    public static class Coupon
+    {
+        public static readonly Error InvalidCode = new("Platform.Coupon.InvalidCode", "Código de cupom inválido.");
+        public static readonly Error InvalidValue = new("Platform.Coupon.InvalidValue", "Valor de desconto inválido.");
+        public static readonly Error InvalidMaxRedemptions = new("Platform.Coupon.InvalidMaxRedemptions", "Limite de usos inválido.");
+        public static readonly Error InvalidReference = new("Platform.Coupon.InvalidReference", "Referência de cupom inválida.");
+        public static readonly Error NotFound = new("Platform.Coupon.NotFound", "Cupom não encontrado.");
+        public static readonly Error NotRedeemable = new("Platform.Coupon.NotRedeemable", "Cupom não pode ser resgatado.");
+        public static readonly Error AlreadyRedeemed = new("Platform.Coupon.AlreadyRedeemed", "Cupom já resgatado para este tenant.");
+        public static readonly Error Exhausted = new("Platform.Coupon.Exhausted", "Cupom esgotado.");
     }
 }

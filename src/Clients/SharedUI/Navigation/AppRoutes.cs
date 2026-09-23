@@ -120,4 +120,7 @@ public static class AppRoutes
 
     /// <summary>Fiscal document detail.</summary>
     public static string FiscalDocumentDetail(Guid id) => $"/fiscal/{id}";
+
+    /// <summary>SaaS subscription payment when operationally locked (9.5).</summary>
+    public const string BillingPayment = "/billing/payment";
 }
