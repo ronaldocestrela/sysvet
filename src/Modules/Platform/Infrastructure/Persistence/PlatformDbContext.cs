@@ -60,6 +60,15 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeT
     /// <summary>Coupon redemptions (9.5).</summary>
     public DbSet<CouponRedemption> CouponRedemptions => Set<CouponRedemption>();
 
+    /// <summary>VetNexus NFS-e rows (9.6).</summary>
+    public DbSet<SaasServiceInvoice> SaasServiceInvoices => Set<SaasServiceInvoice>();
+
+    /// <summary>Impersonation sessions (9.6).</summary>
+    public DbSet<ImpersonationSession> ImpersonationSessions => Set<ImpersonationSession>();
+
+    /// <summary>Impersonation audit trail (9.6).</summary>
+    public DbSet<ImpersonationAuditEntry> ImpersonationAuditEntries => Set<ImpersonationAuditEntry>();
+
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)

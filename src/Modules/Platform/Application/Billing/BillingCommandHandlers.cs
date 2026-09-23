@@ -152,6 +152,7 @@ public sealed class BillingCommandHandlers :
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await TriggerSaasNfseAsync(invoice.Id, cancellationToken);
             return Result.Success(new ChargeTenantBillingResultDto(invoice.Id, 0m, invoice.Status, null));
         }
 
@@ -363,8 +364,17 @@ public sealed class BillingCommandHandlers :
             BillingWebhookReceipt.Create(idempotencyKey, asOf),
             cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (eventName is "PAYMENT_RECEIVED" or "PAYMENT_CONFIRMED")
+        {
+            await TriggerSaasNfseAsync(invoice.Id, cancellationToken);
+        }
+
         return Result.Success();
     }
+
+    private async Task TriggerSaasNfseAsync(Guid invoiceId, CancellationToken cancellationToken) =>
+        _ = await _mediator.Send(new IssueSaasNfseForInvoiceCommand(invoiceId), cancellationToken);
 
     private static Result ApplyOverdue(BillingInvoice invoice, TenantSubscription subscription, DateTimeOffset asOfUtc)
     {

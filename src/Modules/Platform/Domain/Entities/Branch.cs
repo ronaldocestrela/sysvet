@@ -23,6 +23,27 @@ public sealed class Branch : Entity
     /// <summary>Soft-delete timestamp when removed from the catalog.</summary>
     public DateTimeOffset? DeletedAt { get; private set; }
 
+    /// <summary>Recipient postal code digits (optional — required for OpenAC NFS-e).</summary>
+    public string? PostalCode { get; private set; }
+
+    /// <summary>Street name.</summary>
+    public string? Street { get; private set; }
+
+    /// <summary>Street number.</summary>
+    public string? StreetNumber { get; private set; }
+
+    /// <summary>District.</summary>
+    public string? District { get; private set; }
+
+    /// <summary>City name.</summary>
+    public string? City { get; private set; }
+
+    /// <summary>UF (2 letters).</summary>
+    public string? StateCode { get; private set; }
+
+    /// <summary>IBGE municipality code.</summary>
+    public int? IbgeCode { get; private set; }
+
 #pragma warning disable CS8618
     private Branch()
     {
@@ -36,6 +57,42 @@ public sealed class Branch : Entity
     /// <summary>Creates a non-headquarters branch.</summary>
     public static Result<Branch> CreateBranch(Guid tenantId, string cnpjRaw, string legalNameRaw) =>
         CreateInternal(tenantId, cnpjRaw, legalNameRaw, isHeadquarters: false);
+
+    /// <summary>True when all address fields required for NFS-e OpenAC are present.</summary>
+    public bool HasCompleteAddress =>
+        !string.IsNullOrWhiteSpace(PostalCode)
+        && !string.IsNullOrWhiteSpace(Street)
+        && !string.IsNullOrWhiteSpace(StreetNumber)
+        && !string.IsNullOrWhiteSpace(District)
+        && !string.IsNullOrWhiteSpace(City)
+        && !string.IsNullOrWhiteSpace(StateCode)
+        && IbgeCode is > 0;
+
+    /// <summary>Updates optional fiscal address fields.</summary>
+    public Result UpdateAddress(
+        string? postalCode,
+        string? street,
+        string? streetNumber,
+        string? district,
+        string? city,
+        string? stateCode,
+        int? ibgeCode)
+    {
+        if (DeletedAt is not null)
+        {
+            return Result.Failure(ErrorCodes.Branch.AlreadyDeleted);
+        }
+
+        PostalCode = NormalizeDigits(postalCode, 8);
+        Street = TrimOrNull(street);
+        StreetNumber = TrimOrNull(streetNumber);
+        District = TrimOrNull(district);
+        City = TrimOrNull(city);
+        StateCode = TrimOrNull(stateCode)?.ToUpperInvariant();
+        IbgeCode = ibgeCode;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
 
     /// <summary>Updates legal name for an active branch.</summary>
     public Result UpdateLegalName(string legalNameRaw)
@@ -98,5 +155,22 @@ public sealed class Branch : Entity
             UpdatedAt = DateTimeOffset.UtcNow,
             RowVersion = new byte[8]
         });
+    }
+
+    private static string? TrimOrNull(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
+    }
+
+    private static string? NormalizeDigits(string? raw, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        var digits = new string(raw.Where(char.IsDigit).ToArray());
+        return digits.Length == 0 ? null : digits[..Math.Min(digits.Length, maxLength)];
     }
 }

@@ -20,6 +20,7 @@ public sealed class SubscriptionQueryHandlers :
     private readonly ITenantSubscriptionRepository _subscriptionRepository;
     private readonly ITenantEntitlementReader _entitlementReader;
     private readonly IBillingInvoiceRepository _billingInvoiceRepository;
+    private readonly ISaasServiceInvoiceRepository _saasNfseRepository;
 
     /// <summary>Creates handlers.</summary>
     public SubscriptionQueryHandlers(
@@ -27,13 +28,15 @@ public sealed class SubscriptionQueryHandlers :
         IAddOnRepository addOnRepository,
         ITenantSubscriptionRepository subscriptionRepository,
         ITenantEntitlementReader entitlementReader,
-        IBillingInvoiceRepository billingInvoiceRepository)
+        IBillingInvoiceRepository billingInvoiceRepository,
+        ISaasServiceInvoiceRepository saasNfseRepository)
     {
         _planRepository = planRepository;
         _addOnRepository = addOnRepository;
         _subscriptionRepository = subscriptionRepository;
         _entitlementReader = entitlementReader;
         _billingInvoiceRepository = billingInvoiceRepository;
+        _saasNfseRepository = saasNfseRepository;
     }
 
     /// <inheritdoc />
@@ -94,18 +97,33 @@ public sealed class SubscriptionQueryHandlers :
         }
 
         var invoices = await _billingInvoiceRepository.ListByTenantIdAsync(request.TenantId, cancellationToken);
-        var dtos = invoices.Select(i => new BillingInvoiceDto(
-            i.Id,
-            i.PeriodStart,
-            i.PeriodEnd,
-            i.Amount,
-            i.Status,
-            i.PaidAt,
-            (i.Charges ?? Array.Empty<Platform.Domain.Entities.BillingCharge>())
-                .Select(c => new BillingChargeDto(
-                    c.GatewayPaymentId,
-                    c.PixCopyPaste,
-                    c.BoletoIdentificationField)).ToList())).ToList();
+        var nfseRows = await _saasNfseRepository.ListByTenantIdAsync(request.TenantId, cancellationToken);
+        var nfseByInvoice = nfseRows.ToDictionary(n => n.BillingInvoiceId);
+        var dtos = invoices.Select(i =>
+        {
+            SaasNfseSummaryDto? nfse = null;
+            if (nfseByInvoice.TryGetValue(i.Id, out var row))
+            {
+                nfse = new SaasNfseSummaryDto(
+                    (SaasServiceInvoiceStatusDto)row.Status,
+                    row.NfseNumber,
+                    row.FailureReason);
+            }
+
+            return new BillingInvoiceDto(
+                i.Id,
+                i.PeriodStart,
+                i.PeriodEnd,
+                i.Amount,
+                i.Status,
+                i.PaidAt,
+                (i.Charges ?? Array.Empty<Platform.Domain.Entities.BillingCharge>())
+                    .Select(c => new BillingChargeDto(
+                        c.GatewayPaymentId,
+                        c.PixCopyPaste,
+                        c.BoletoIdentificationField)).ToList(),
+                nfse);
+        }).ToList();
 
         return Result.Success<IReadOnlyList<BillingInvoiceDto>>(dtos);
     }

@@ -44,6 +44,11 @@ public sealed class BranchRepository : IBranchRepository
     }
 
     /// <inheritdoc />
+    public Task<Branch?> GetHeadquartersAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
+        _context.Branches.FirstOrDefaultAsync(
+            b => b.TenantId == tenantId && b.IsHeadquarters && b.DeletedAt == null,
+            cancellationToken);
+
     public Task<bool> HeadquartersExistsAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
         _context.Branches.AnyAsync(
             b => b.TenantId == tenantId && b.IsHeadquarters && b.DeletedAt == null,

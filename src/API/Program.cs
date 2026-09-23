@@ -40,6 +40,7 @@ app.UseBlazorWebCors();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<TenantResolutionMiddleware>();
+app.UseMiddleware<ImpersonationSessionMiddleware>();
 app.UseAuthorization();
 
 app.MapApiHealthChecks();

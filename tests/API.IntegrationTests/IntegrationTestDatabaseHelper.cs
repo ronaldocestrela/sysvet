@@ -74,6 +74,7 @@ internal static class IntegrationTestDatabaseHelper
         var platformContext = scope.ServiceProvider.GetRequiredService<global::Platform.Infrastructure.Persistence.PlatformDbContext>();
         await platformContext.Database.MigrateAsync();
         await EnsurePlatformDunningSchemaAsync(platformContext);
+        await EnsurePlatformNfseImpersonationSchemaAsync(platformContext);
         await PlatformCatalogTestSeeder.EnsureCatalogAsync(scope.ServiceProvider);
 
         await EnsureDefaultPlatformTenantAsync(scope, platformContext);
@@ -235,6 +236,73 @@ internal static class IntegrationTestDatabaseHelper
                 // Column already exists.
             }
         }
+    }
+
+    private static async Task EnsurePlatformNfseImpersonationSchemaAsync(global::Platform.Infrastructure.Persistence.PlatformDbContext context)
+    {
+        foreach (var alter in new[]
+                 {
+                     "ALTER TABLE \"PlatformBranches\" ADD COLUMN \"PostalCode\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBranches\" ADD COLUMN \"Street\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBranches\" ADD COLUMN \"StreetNumber\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBranches\" ADD COLUMN \"District\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBranches\" ADD COLUMN \"City\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBranches\" ADD COLUMN \"StateCode\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBranches\" ADD COLUMN \"IbgeCode\" INTEGER NULL;"
+                 })
+        {
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(alter);
+            }
+            catch
+            {
+                // Column already exists.
+            }
+        }
+
+        await context.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS PlatformSaasServiceInvoices (
+                Id TEXT NOT NULL PRIMARY KEY,
+                BillingInvoiceId TEXT NOT NULL,
+                TenantId TEXT NOT NULL,
+                Amount TEXT NOT NULL,
+                RecipientCnpj TEXT NOT NULL,
+                RecipientLegalName TEXT NOT NULL,
+                Status INTEGER NOT NULL,
+                NfseNumber TEXT NULL,
+                AccessKey TEXT NULL,
+                XmlBlobKey TEXT NULL,
+                FailureReason TEXT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformSaasServiceInvoices_BillingInvoiceId
+                ON PlatformSaasServiceInvoices (BillingInvoiceId);
+            CREATE TABLE IF NOT EXISTS PlatformImpersonationSessions (
+                Id TEXT NOT NULL PRIMARY KEY,
+                ActorUserId TEXT NOT NULL,
+                ActorEmail TEXT NOT NULL,
+                TargetTenantId TEXT NOT NULL,
+                ClientIp TEXT NOT NULL,
+                StartedAt TEXT NOT NULL,
+                ExpiresAt TEXT NOT NULL,
+                EndedAt TEXT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS PlatformImpersonationAuditEntries (
+                Id TEXT NOT NULL PRIMARY KEY,
+                SessionId TEXT NOT NULL,
+                ActorUserId TEXT NOT NULL,
+                TargetTenantId TEXT NOT NULL,
+                Action TEXT NOT NULL,
+                OccurredAt TEXT NOT NULL,
+                ClientIp TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            """);
     }
 
     private static async Task EnsureMedicalRecordFollowUpColumnAsync(global::Veterinary.Infrastructure.Persistence.VeterinaryDbContext context)

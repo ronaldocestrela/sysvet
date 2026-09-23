@@ -25,6 +25,9 @@ using Platform.Infrastructure.Dunning;
 using Platform.Infrastructure.HostedServices;
 using Platform.Infrastructure.Provisioning;
 using Platform.Infrastructure.Tenancy;
+using Platform.Infrastructure.Identity;
+using Platform.Infrastructure.Nfse;
+using OpenAC.Net.NFSe.Nacional.Web;
 
 namespace Platform.Infrastructure;
 
@@ -38,6 +41,8 @@ public static class DependencyInjection
         services.AddValidatedOptions<PlatformOptions>(configuration, PlatformOptions.SectionName);
         services.AddValidatedOptions<BillingOptions>(configuration, BillingOptions.SectionName);
         services.AddValidatedOptions<DunningOptions>(configuration, DunningOptions.SectionName);
+        services.AddValidatedOptions<NfseOptions>(configuration, NfseOptions.SectionName);
+        services.AddValidatedOptions<ImpersonationOptions>(configuration, ImpersonationOptions.SectionName);
 
         services.AddDbContext<PlatformDbContext>((serviceProvider, options) =>
         {
@@ -61,6 +66,10 @@ public static class DependencyInjection
         services.AddScoped<IDunningNoticeRepository, DunningNoticeRepository>();
         services.AddScoped<ICouponRepository, CouponRepository>();
         services.AddScoped<ICouponRedemptionRepository, CouponRedemptionRepository>();
+        services.AddScoped<ISaasServiceInvoiceRepository, SaasServiceInvoiceRepository>();
+        services.AddScoped<IImpersonationSessionRepository, ImpersonationSessionRepository>();
+        services.AddScoped<IImpersonationAuditRepository, ImpersonationAuditRepository>();
+        services.AddScoped<IImpersonationAccessTokenIssuer, ImpersonationAccessTokenIssuer>();
         services.AddScoped<ITenantBillingStandingReader, TenantBillingStandingReader>();
         services.AddScoped<IBillingWebhookAuthenticator, BillingWebhookAuthenticator>();
 
@@ -90,6 +99,21 @@ public static class DependencyInjection
         else
         {
             services.AddScoped<IDunningNotifier, FakeDunningNotifier>();
+        }
+
+        var nfseProvider = configuration.GetSection(NfseOptions.SectionName).GetValue<string>(nameof(NfseOptions.Provider)) ?? "Fake";
+        if (string.Equals(nfseProvider, "OpenAc", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddOpenNFSeNacionalWebMultiTenant<PlatformSaasNfseConfigurationProvider, PlatformSaasNfseCertificateProvider>(infra =>
+            {
+                infra.PersistenciaHabilitada = false;
+                infra.TimeoutOperacao = TimeSpan.FromSeconds(90);
+            });
+            services.AddScoped<ISaasNfseGateway, OpenAcSaasNfseGateway>();
+        }
+        else
+        {
+            services.AddSingleton<ISaasNfseGateway, FakeSaasNfseGateway>();
         }
         services.AddScoped<ITenantSubscriptionProvisioner, TenantSubscriptionProvisioner>();
         services.AddScoped<ITenantEntitlementReader, TenantEntitlementReader>();

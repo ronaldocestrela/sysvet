@@ -101,6 +101,33 @@ public static class ErrorCodes
         public static readonly Error InvalidStep = new("Platform.Dunning.InvalidStep", "Passo de régua inválido.");
     }
 
+    /// <summary>SaaS NFS-e emission errors (9.6).</summary>
+    public static class Nfse
+    {
+        public static readonly Error InvalidAmount = new("Platform.Nfse.InvalidAmount", "Valor inválido para NFS-e SaaS.");
+        public static readonly Error InvalidRecipient = new("Platform.Nfse.InvalidRecipient", "Tomador inválido para NFS-e SaaS.");
+        public static readonly Error InvalidTransition = new("Platform.Nfse.InvalidTransition", "Transição de NFS-e SaaS inválida.");
+        public static readonly Error InvalidGatewayResponse = new("Platform.Nfse.InvalidGatewayResponse", "Resposta inválida do gateway NFS-e.");
+        public static readonly Error AlreadyAuthorized = new("Platform.Nfse.AlreadyAuthorized", "NFS-e já autorizada para esta fatura.");
+        public static readonly Error HeadquartersMissing = new("Platform.Nfse.HeadquartersMissing", "Matriz (CNPJ) não cadastrada para o tenant.");
+        public static readonly Error InvoiceNotPaid = new("Platform.Nfse.InvoiceNotPaid", "Fatura ainda não liquidada.");
+        public static readonly Error RecipientAddressRequired = new("Platform.Nfse.RecipientAddressRequired", "Endereço completo da matriz é obrigatório para NFS-e OpenAC.");
+        public static readonly Error IssuerNotConfigured = new("Platform.Nfse.IssuerNotConfigured", "Emissor VetNexus não configurado.");
+    }
+
+    /// <summary>Impersonation errors (9.6).</summary>
+    public static class Impersonation
+    {
+        public static readonly Error InvalidActor = new("Platform.Impersonation.InvalidActor", "Operador de suporte inválido.");
+        public static readonly Error InvalidTarget = new("Platform.Impersonation.InvalidTarget", "Tenant alvo inválido.");
+        public static readonly Error InvalidDuration = new("Platform.Impersonation.InvalidDuration", "Duração de sessão inválida.");
+        public static readonly Error SessionNotFound = new("Platform.Impersonation.SessionNotFound", "Sessão de impersonation não encontrada.");
+        public static readonly Error SessionExpired = new("Platform.Impersonation.SessionExpired", "Sessão de impersonation expirada ou encerrada.");
+        public static readonly Error AlreadyEnded = new("Platform.Impersonation.AlreadyEnded", "Sessão já encerrada.");
+        public static readonly Error TenantNotAllowed = new("Platform.Impersonation.TenantNotAllowed", "Tenant não elegível para impersonation.");
+        public static readonly Error Forbidden = new("Platform.Impersonation.Forbidden", "Operação não permitida para esta sessão.");
+    }
+
     /// <summary>Coupon catalog errors (9.5).</summary>
     public static class Coupon
     {

@@ -12,6 +12,7 @@ using Platform.Application.Subscriptions;
 using Platform.Application.Tenants.Commands;
 using Platform.Application.Tenants.Dtos;
 using Platform.Application.Tenants.Queries;
+using Platform.Application.Impersonation;
 using Platform.Domain.Entities;
 
 namespace API.Extensions;
@@ -36,6 +37,8 @@ public static class PlatformEndpointsExtensions
         catalog.MapGet("/addons", ListAddOns);
         catalog.MapGet("/coupons", ListCoupons);
         catalog.MapPost("/coupons", CreateCoupon);
+        catalog.MapGet("/impersonation-audits", ListImpersonationAudits);
+        catalog.MapPost("/impersonation/{sessionId:guid}/end", EndImpersonation);
     }
 
     /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
@@ -68,6 +71,8 @@ public static class PlatformEndpointsExtensions
         group.MapPost("/{tenantId:guid}/billing/charge", ChargeTenantBilling);
         group.MapGet("/{tenantId:guid}/billing/invoices", ListBillingInvoices);
         group.MapPost("/{tenantId:guid}/billing/coupon", RedeemCoupon);
+        group.MapPost("/{tenantId:guid}/billing/invoices/{invoiceId:guid}/nfse", RetrySaasNfse);
+        group.MapPost("/{tenantId:guid}/impersonation", StartImpersonation);
 
         return builder;
     }
@@ -130,6 +135,26 @@ public static class PlatformEndpointsExtensions
 
     private static Task<Result<IReadOnlyList<BillingInvoiceDto>>> ListBillingInvoices(Guid tenantId, IMediator mediator) =>
         mediator.Send(new ListTenantBillingInvoicesQuery(tenantId));
+
+    private static Task<Result<SaasNfseDto>> RetrySaasNfse(Guid tenantId, Guid invoiceId, IMediator mediator) =>
+        mediator.Send(new RetrySaasNfseForInvoiceCommand(tenantId, invoiceId));
+
+    private static Task<Result<StartImpersonationResultDto>> StartImpersonation(
+        Guid tenantId,
+        HttpContext httpContext,
+        IMediator mediator) =>
+        mediator.Send(new StartImpersonationCommand(tenantId, ResolveClientIp(httpContext)));
+
+    private static Task<Result> EndImpersonation(Guid sessionId, HttpContext httpContext, IMediator mediator) =>
+        mediator.Send(new EndImpersonationCommand(sessionId, ResolveClientIp(httpContext)));
+
+    private static Task<Result<IReadOnlyList<ImpersonationAuditDto>>> ListImpersonationAudits(
+        [FromQuery] int take,
+        IMediator mediator) =>
+        mediator.Send(new ListImpersonationAuditsQuery(take <= 0 ? 100 : take));
+
+    private static string ResolveClientIp(HttpContext context) =>
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
     private static Task<Result<OnboardTenantResultDto>> OnboardTenant([FromBody] OnboardTenantCommand command, IMediator mediator) =>
         mediator.Send(command);

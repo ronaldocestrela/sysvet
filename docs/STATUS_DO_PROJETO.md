@@ -297,9 +297,16 @@ Iniciado o módulo de estoque.
 - SharedUI `/billing/payment` quando `BillingStanding.Locked`.
 - Aceite: `SimulatedDelinquency_SuspendsOperationalAccess`.
 
-### 👉 **Próxima Ação: Fase 9.6 — NFS-e do SaaS e impersonation**
+### Fase 9.6 — NFS-e do SaaS e impersonation — Concluída (ADR-051)
 
-Ver [`roadmap.md`](roadmap.md) §9.6 e [`backoffice.md`](backoffice.md) §1 e §3.
+- `SaasServiceInvoice` + `ISaasNfseGateway` (Fake/OpenAc) na liquidação de fatura; blob `platform/nfse/*`.
+- Impersonation: sessão, audit append-only, JWT curto, middleware de validação.
+- API: `POST .../impersonation`, `POST /api/v1/platform/impersonation/{sessionId}/end`, retry NFS-e Super Admin.
+- Aceite: `SaasNfse_Issued_WhenInvoiceSettled`; `Impersonation_WritesImmutableAudit_AndSessionExpires`.
+
+### 👉 **Próxima Ação: Fase 9.7 — Auditoria, API keys e health por tenant**
+
+Ver [`roadmap.md`](roadmap.md) §9.7 e [`backoffice.md`](backoffice.md) §4.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

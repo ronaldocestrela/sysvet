@@ -13,6 +13,9 @@ public interface IBranchRepository
     /// <summary>Lists non-deleted branches for a tenant.</summary>
     Task<IReadOnlyList<Branch>> ListByTenantAsync(Guid tenantId, CancellationToken cancellationToken = default);
 
+    /// <summary>Gets the headquarters branch when present.</summary>
+    Task<Branch?> GetHeadquartersAsync(Guid tenantId, CancellationToken cancellationToken = default);
+
     /// <summary>True when an active branch already uses the CNPJ for the tenant.</summary>
     Task<bool> CnpjExistsAsync(Guid tenantId, string cnpjDigits, Guid? excludeBranchId = null, CancellationToken cancellationToken = default);
 

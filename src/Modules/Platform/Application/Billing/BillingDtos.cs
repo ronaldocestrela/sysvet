@@ -35,7 +35,14 @@ public sealed record BillingInvoiceDto(
     decimal Amount,
     BillingInvoiceStatus Status,
     DateTimeOffset? PaidAt,
-    List<BillingChargeDto> Charges);
+    List<BillingChargeDto> Charges,
+    SaasNfseSummaryDto? Nfse = null);
+
+/// <summary>NFS-e SaaS summary on a billing invoice (9.6).</summary>
+public sealed record SaasNfseSummaryDto(
+    SaasServiceInvoiceStatusDto Status,
+    string? NfseNumber,
+    string? FailureReason);
 
 /// <summary>Charge line on invoice.</summary>
 public sealed record BillingChargeDto(

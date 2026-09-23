@@ -78,6 +78,18 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `Platform:Billing:ApiKey` | — | Chave Asaas (**user-secrets/env**, nunca no git) |
 | `Platform:Billing:WebhookAccessToken` | — | Token esperado no header `asaas-access-token` |
 
+### Platform — NFS-e SaaS e impersonation (ADR-051)
+
+| Chave | Default | Descrição |
+|-------|---------|-----------|
+| `Platform:Nfse:Provider` | `Fake` | `Fake` (CI/dev) ou `OpenAc` |
+| `Platform:Nfse:IssuerCnpj` | — | CNPJ VetNexus (OpenAc) |
+| `Platform:Nfse:IssuerIbgeCityCode` | `0` | IBGE município emissor |
+| `Platform:Nfse:CertificateBlobKey` | — | PFX A1 em blob (**user-secrets/env**) |
+| `Platform:Nfse:CertificatePassword` | — | Senha do certificado |
+| `Platform:Nfse:Environment` | `Homologation` | `Homologation` ou `Production` |
+| `Platform:Impersonation:SessionMinutes` | `15` | TTL do JWT de impersonation |
+
 ### Platform — resolução de tenant (ADR-046)
 
 | Header | Uso |

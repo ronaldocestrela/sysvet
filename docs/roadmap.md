@@ -1068,7 +1068,7 @@ flowchart TD
 | **9.3 Planos, add-ons e feature flags** | 13 | Concluída |
 | **9.4 Gateway de assinatura e cobrança** | 21 | Concluída |
 | **9.5 Dunning, bloqueio e cupons** | 13 | Concluída |
-| **9.6 NFS-e do SaaS e impersonation** | 13 | Pendente |
+| **9.6 NFS-e do SaaS e impersonation** | 13 | Concluída |
 | **9.7 Auditoria, API keys e health por tenant** | 8 | Pendente |
 | **9.8 UI Super Admin (Blazor)** | 13 | Pendente |
 | **Total Fase 9** | **107 SP** | |
@@ -1125,13 +1125,13 @@ flowchart TD
 
 ### 9.6 NFS-e do SaaS e impersonation (13 SP)
 
-- [ ] Emissão NFS-e VetNexus → clínica a cada liquidação
-- [ ] Impersonation auditada (suporte loga como tenant)
-- [ ] Trilha: quem impersonou, quando, IP
+- [x] Emissão NFS-e VetNexus → clínica a cada liquidação
+- [x] Impersonation auditada (suporte loga como tenant)
+- [x] Trilha: quem impersonou, quando, IP
 
 **Referência:** `backoffice.md` §1 e §3.
 
-**Aceite:** Impersonation gera audit log imutável; sessão expira.
+**Aceite:** NFS-e na liquidação (`SaasNfse_Issued_WhenInvoiceSettled`); impersonation gera audit log imutável e sessão expira (`Impersonation_WritesImmutableAudit_AndSessionExpires`; ADR-051).
 
 ### 9.7 Auditoria, API keys e health por tenant (8 SP)
 
