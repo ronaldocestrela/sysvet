@@ -11,6 +11,9 @@ public interface ITenantSubscriptionRepository
     /// <summary>Lists trials past end date.</summary>
     Task<IReadOnlyList<TenantSubscription>> ListDueTrialsAsync(DateTimeOffset asOfUtc, CancellationToken cancellationToken = default);
 
+    /// <summary>Lists active subscriptions due for recurring billing.</summary>
+    Task<IReadOnlyList<TenantSubscription>> ListDueForBillingAsync(DateTimeOffset asOfUtc, CancellationToken cancellationToken = default);
+
     /// <summary>Adds subscription row.</summary>
     Task AddAsync(TenantSubscription subscription, CancellationToken cancellationToken = default);
 }

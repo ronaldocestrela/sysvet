@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Core.Domain.Entitlements;
+using Platform.Application.Billing;
 using Platform.Application.Subscriptions;
 using Platform.Application.Tenants.Commands;
 using Platform.Application.Tenants.Dtos;
@@ -59,6 +60,11 @@ public static class PlatformEndpointsExtensions
         group.MapGet("/{tenantId:guid}/entitlements", GetEntitlements);
         group.MapPut("/{tenantId:guid}/flags/{module}", SetFeatureFlag);
 
+        group.MapPut("/{tenantId:guid}/billing/customer", UpsertBillingCustomer);
+        group.MapPut("/{tenantId:guid}/billing/payment-method", UpsertBillingPaymentMethod);
+        group.MapPost("/{tenantId:guid}/billing/charge", ChargeTenantBilling);
+        group.MapGet("/{tenantId:guid}/billing/invoices", ListBillingInvoices);
+
         return builder;
     }
 
@@ -85,6 +91,24 @@ public static class PlatformEndpointsExtensions
 
     private static Task<Result> SetFeatureFlag(Guid tenantId, CommercialModule module, [FromBody] SetFeatureFlagRequest body, IMediator mediator) =>
         mediator.Send(new SetTenantFeatureFlagCommand(tenantId, module, body.State));
+
+    private static Task<Result<BillingCustomerDto>> UpsertBillingCustomer(
+        Guid tenantId,
+        [FromBody] UpsertBillingCustomerRequest body,
+        IMediator mediator) =>
+        mediator.Send(new UpsertBillingCustomerCommand(tenantId, body.Name, body.Email, body.CpfCnpj));
+
+    private static Task<Result<BillingPaymentMethodDto>> UpsertBillingPaymentMethod(
+        Guid tenantId,
+        [FromBody] UpsertBillingPaymentMethodRequest body,
+        IMediator mediator) =>
+        mediator.Send(new UpsertBillingPaymentMethodCommand(tenantId, body.Kind, body.CreditCardToken));
+
+    private static Task<Result<ChargeTenantBillingResultDto>> ChargeTenantBilling(Guid tenantId, IMediator mediator) =>
+        mediator.Send(new ChargeTenantBillingCommand(tenantId, DateTimeOffset.UtcNow));
+
+    private static Task<Result<IReadOnlyList<BillingInvoiceDto>>> ListBillingInvoices(Guid tenantId, IMediator mediator) =>
+        mediator.Send(new ListTenantBillingInvoicesQuery(tenantId));
 
     private static Task<Result<OnboardTenantResultDto>> OnboardTenant([FromBody] OnboardTenantCommand command, IMediator mediator) =>
         mediator.Send(command);
@@ -127,4 +151,10 @@ public static class PlatformEndpointsExtensions
 
     /// <summary>Feature flag body.</summary>
     public sealed record SetFeatureFlagRequest(FeatureFlagState State);
+
+    /// <summary>Billing customer body.</summary>
+    public sealed record UpsertBillingCustomerRequest(string Name, string Email, string CpfCnpj);
+
+    /// <summary>Billing payment method body.</summary>
+    public sealed record UpsertBillingPaymentMethodRequest(BillingPaymentMethodKind Kind, string? CreditCardToken);
 }

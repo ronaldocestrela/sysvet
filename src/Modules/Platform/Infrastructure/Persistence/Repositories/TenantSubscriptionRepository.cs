@@ -27,6 +27,17 @@ public sealed class TenantSubscriptionRepository : ITenantSubscriptionRepository
             .ContinueWith(t => (IReadOnlyList<TenantSubscription>)t.Result, cancellationToken);
 
     /// <inheritdoc />
+    public Task<IReadOnlyList<TenantSubscription>> ListDueForBillingAsync(DateTimeOffset asOfUtc, CancellationToken cancellationToken = default) =>
+        _context.TenantSubscriptions
+            .Include(s => s.Plan)
+            .Include(s => s.AddOns).ThenInclude(a => a.AddOn)
+            .Where(s => s.Status == SubscriptionStatus.Active
+                        && s.BillingStanding != BillingStanding.Canceled
+                        && s.PeriodEnd <= asOfUtc)
+            .ToListAsync(cancellationToken)
+            .ContinueWith(t => (IReadOnlyList<TenantSubscription>)t.Result, cancellationToken);
+
+    /// <inheritdoc />
     public async Task AddAsync(TenantSubscription subscription, CancellationToken cancellationToken = default) =>
         await _context.TenantSubscriptions.AddAsync(subscription, cancellationToken);
 }

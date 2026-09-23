@@ -30,6 +30,9 @@ public sealed class TenantSubscription : Entity
     /// <summary>Credit balance from downgrades (applied in 9.4).</summary>
     public decimal CreditBalance { get; private set; }
 
+    /// <summary>Payment health at gateway (9.4); does not change <see cref="Tenant.Status"/>.</summary>
+    public BillingStanding BillingStanding { get; private set; } = BillingStanding.Unbilled;
+
     /// <summary>Active add-on links.</summary>
     public ICollection<TenantAddOn> AddOns { get; private set; } = new List<TenantAddOn>();
 
@@ -154,6 +157,72 @@ public sealed class TenantSubscription : Entity
         ApplyCredit(signedDelta, out var chargeableDelta);
         UpdatedAt = DateTimeOffset.UtcNow;
         return Result.Success(chargeableDelta);
+    }
+
+    /// <summary>Returns true when recurring charge may be attempted for the period.</summary>
+    public bool IsDueForBilling(DateTimeOffset asOfUtc) =>
+        Status == SubscriptionStatus.Active
+        && BillingStanding != BillingStanding.Canceled
+        && asOfUtc >= PeriodEnd;
+
+    /// <summary>Advances billing period after successful settlement.</summary>
+    public Result AdvancePeriodAfterPayment(DateTimeOffset asOfUtc)
+    {
+        if (Status != SubscriptionStatus.Active)
+        {
+            return Result.Failure(ErrorCodes.Billing.NotBillable);
+        }
+
+        PeriodStart = PeriodEnd;
+        PeriodEnd = PeriodStart.AddDays(ProrationCalculator.DefaultPeriodDays);
+        BillingStanding = BillingStanding.Good;
+        UpdatedAt = asOfUtc;
+        return Result.Success();
+    }
+
+    /// <summary>Records successful payment from webhook.</summary>
+    public Result RecordPaymentSuccess(DateTimeOffset asOfUtc)
+    {
+        if (BillingStanding == BillingStanding.Canceled)
+        {
+            return Result.Failure(ErrorCodes.Billing.NotBillable);
+        }
+
+        BillingStanding = BillingStanding.Good;
+        UpdatedAt = asOfUtc;
+        return AdvancePeriodAfterPayment(asOfUtc);
+    }
+
+    /// <summary>Marks subscription past due without suspending tenant (9.5).</summary>
+    public Result RecordPaymentOverdue(DateTimeOffset asOfUtc)
+    {
+        if (BillingStanding == BillingStanding.Canceled)
+        {
+            return Result.Success();
+        }
+
+        BillingStanding = BillingStanding.PastDue;
+        UpdatedAt = asOfUtc;
+        return Result.Success();
+    }
+
+    /// <summary>Stops future billing cycles.</summary>
+    public Result CancelBilling(DateTimeOffset asOfUtc)
+    {
+        BillingStanding = BillingStanding.Canceled;
+        UpdatedAt = asOfUtc;
+        return Result.Success();
+    }
+
+    /// <summary>Marks first invoice issued.</summary>
+    public void MarkInvoiced()
+    {
+        if (BillingStanding == BillingStanding.Unbilled)
+        {
+            BillingStanding = BillingStanding.Good;
+        }
+
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     private void ApplyCredit(decimal delta, out decimal chargeableDelta)

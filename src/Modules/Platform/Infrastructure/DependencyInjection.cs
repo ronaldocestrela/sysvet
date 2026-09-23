@@ -18,6 +18,8 @@ using Platform.Infrastructure.Entitlements;
 using Platform.Infrastructure.Persistence;
 using Platform.Infrastructure.Persistence.Repositories;
 using Platform.Infrastructure.Persistence.Seeding;
+using Platform.Application.Billing;
+using Platform.Infrastructure.Billing;
 using Platform.Infrastructure.HostedServices;
 using Platform.Infrastructure.Provisioning;
 using Platform.Infrastructure.Tenancy;
@@ -32,6 +34,7 @@ public static class DependencyInjection
     {
         services.AddMemoryCache();
         services.AddValidatedOptions<PlatformOptions>(configuration, PlatformOptions.SectionName);
+        services.AddValidatedOptions<BillingOptions>(configuration, BillingOptions.SectionName);
 
         services.AddDbContext<PlatformDbContext>((serviceProvider, options) =>
         {
@@ -48,6 +51,21 @@ public static class DependencyInjection
         services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<ISubscriptionAdjustmentRepository, SubscriptionAdjustmentRepository>();
+        services.AddScoped<IBillingCustomerRepository, BillingCustomerRepository>();
+        services.AddScoped<IBillingPaymentMethodRepository, BillingPaymentMethodRepository>();
+        services.AddScoped<IBillingInvoiceRepository, BillingInvoiceRepository>();
+        services.AddScoped<IBillingWebhookReceiptRepository, BillingWebhookReceiptRepository>();
+        services.AddScoped<IBillingWebhookAuthenticator, BillingWebhookAuthenticator>();
+
+        var billingProvider = configuration.GetSection(BillingOptions.SectionName).GetValue<string>(nameof(BillingOptions.Provider)) ?? "Fake";
+        if (string.Equals(billingProvider, "Asaas", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHttpClient<IBillingGateway, AsaasBillingGateway>();
+        }
+        else
+        {
+            services.AddSingleton<IBillingGateway, FakeBillingGateway>();
+        }
         services.AddScoped<ITenantSubscriptionProvisioner, TenantSubscriptionProvisioner>();
         services.AddScoped<ITenantEntitlementReader, TenantEntitlementReader>();
         services.AddScoped<IBranchRepository, BranchRepository>();
@@ -63,6 +81,7 @@ public static class DependencyInjection
         services.AddHostedService<PlatformTenantSeedHostedService>();
         services.AddHostedService<DevelopmentSuperAdminSeedHostedService>();
         services.AddHostedService<TrialExpirationHostedService>();
+        services.AddHostedService<BillingCycleHostedService>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(OnboardTenantCommand).Assembly));
 

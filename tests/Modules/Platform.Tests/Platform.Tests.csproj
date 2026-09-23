@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Platform\Domain\Platform.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Platform\Infrastructure\Platform.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Core\Domain\Core.Domain.csproj" />
   </ItemGroup>
 

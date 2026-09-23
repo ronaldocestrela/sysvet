@@ -13,6 +13,7 @@ internal sealed class TenantSubscriptionConfiguration : IEntityTypeConfiguration
         builder.Property(s => s.Status).HasConversion<int>();
         builder.Property(s => s.TrialEndAction).HasConversion<int>();
         builder.Property(s => s.CreditBalance).HasPrecision(18, 2);
+        builder.Property(s => s.BillingStanding).HasConversion<int>();
         builder.HasIndex(s => s.TenantId).IsUnique();
         builder.Property(s => s.RowVersion).IsConcurrencyToken();
         builder.HasOne(s => s.Plan).WithMany().HasForeignKey(s => s.PlanId);

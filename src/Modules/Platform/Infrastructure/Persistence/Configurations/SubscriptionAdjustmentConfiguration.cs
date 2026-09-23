@@ -14,5 +14,6 @@ internal sealed class SubscriptionAdjustmentConfiguration : IEntityTypeConfigura
         builder.Property(a => a.Status).HasConversion<int>();
         builder.Property(a => a.RowVersion).IsConcurrencyToken();
         builder.HasIndex(a => a.TenantId);
+        builder.HasIndex(a => a.BillingInvoiceId);
     }
 }

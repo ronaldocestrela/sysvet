@@ -67,6 +67,16 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | `BlobStorage` | `BlobStorageOptions` | Core.Infrastructure |
 | `ClinicSite` | `ClinicSiteOptions` | ClinicSite.Infrastructure |
 | `Platform` | `PlatformOptions` | Platform.Infrastructure |
+| `Platform:Billing` | `BillingOptions` | Platform.Infrastructure |
+
+### Platform — billing SaaS (ADR-049)
+
+| Chave | Default | Descrição |
+|-------|---------|-----------|
+| `Platform:Billing:Provider` | `Fake` | `Fake` (CI/dev) ou `Asaas` |
+| `Platform:Billing:BaseUrl` | `https://api.asaas.com` | Base URL da API Asaas |
+| `Platform:Billing:ApiKey` | — | Chave Asaas (**user-secrets/env**, nunca no git) |
+| `Platform:Billing:WebhookAccessToken` | — | Token esperado no header `asaas-access-token` |
 
 ### Platform — resolução de tenant (ADR-046)
 

@@ -284,9 +284,15 @@ Iniciado o módulo de estoque.
 - API Super Admin: `/api/v1/platform/plans`, `/addons`, assinatura, flags e entitlements.
 - Aceite: `FeatureFlag_DisablesModule_OnApiAndMenus`; `PlanChange_ReturnsProration_WhenMidCycle`.
 
-### 👉 **Próxima Ação: Fase 9.4 — Gateway de assinatura e cobrança**
+### Fase 9.4 — Gateway de assinatura e cobrança — Concluída (ADR-049)
 
-Ver [`roadmap.md`](roadmap.md) §9.4 e [`backoffice.md`](backoffice.md) §3.
+- `IBillingGateway` (Fake/Asaas), faturas, webhook idempotente, `BillingCycleHostedService`.
+- API: `/api/v1/platform/tenants/{id}/billing/*`, webhook `POST /api/v1/platform/webhooks/asaas`.
+- Aceite: `RecurringSubscription_Charged_WhenPeriodDue`; `PaymentWebhook_UpdatesBillingStanding_WhenPaid`.
+
+### 👉 **Próxima Ação: Fase 9.5 — Dunning, bloqueio e cupons**
+
+Ver [`roadmap.md`](roadmap.md) §9.5 e [`backoffice.md`](backoffice.md) §3.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

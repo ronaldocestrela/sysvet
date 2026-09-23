@@ -1,6 +1,7 @@
 using Core.Application.Entitlements;
 using Core.Domain;
 using MediatR;
+using Platform.Application.Billing;
 using Platform.Domain.Repositories;
 using PlatformErrorCodes = Platform.Domain.ErrorCodes;
 
@@ -11,24 +12,28 @@ public sealed class SubscriptionQueryHandlers :
     IRequestHandler<ListPlansQuery, Result<IReadOnlyList<PlanSummaryDto>>>,
     IRequestHandler<ListAddOnsQuery, Result<IReadOnlyList<AddOnSummaryDto>>>,
     IRequestHandler<GetTenantSubscriptionQuery, Result<TenantSubscriptionDto>>,
-    IRequestHandler<GetTenantEntitlementsQuery, Result<TenantEntitlementsDto>>
+    IRequestHandler<GetTenantEntitlementsQuery, Result<TenantEntitlementsDto>>,
+    IRequestHandler<ListTenantBillingInvoicesQuery, Result<IReadOnlyList<BillingInvoiceDto>>>
 {
     private readonly IPlanRepository _planRepository;
     private readonly IAddOnRepository _addOnRepository;
     private readonly ITenantSubscriptionRepository _subscriptionRepository;
     private readonly ITenantEntitlementReader _entitlementReader;
+    private readonly IBillingInvoiceRepository _billingInvoiceRepository;
 
     /// <summary>Creates handlers.</summary>
     public SubscriptionQueryHandlers(
         IPlanRepository planRepository,
         IAddOnRepository addOnRepository,
         ITenantSubscriptionRepository subscriptionRepository,
-        ITenantEntitlementReader entitlementReader)
+        ITenantEntitlementReader entitlementReader,
+        IBillingInvoiceRepository billingInvoiceRepository)
     {
         _planRepository = planRepository;
         _addOnRepository = addOnRepository;
         _subscriptionRepository = subscriptionRepository;
         _entitlementReader = entitlementReader;
+        _billingInvoiceRepository = billingInvoiceRepository;
     }
 
     /// <inheritdoc />
@@ -76,5 +81,32 @@ public sealed class SubscriptionQueryHandlers :
     {
         var modules = await _entitlementReader.GetEnabledModulesAsync(request.TenantId, cancellationToken);
         return Result.Success(new TenantEntitlementsDto(request.TenantId, modules.OrderBy(m => m).ToList()));
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<IReadOnlyList<BillingInvoiceDto>>> Handle(
+        ListTenantBillingInvoicesQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (request.TenantId == Guid.Empty)
+        {
+            return Result.Failure<IReadOnlyList<BillingInvoiceDto>>(PlatformErrorCodes.Billing.InvalidTenant);
+        }
+
+        var invoices = await _billingInvoiceRepository.ListByTenantIdAsync(request.TenantId, cancellationToken);
+        var dtos = invoices.Select(i => new BillingInvoiceDto(
+            i.Id,
+            i.PeriodStart,
+            i.PeriodEnd,
+            i.Amount,
+            i.Status,
+            i.PaidAt,
+            (i.Charges ?? Array.Empty<Platform.Domain.Entities.BillingCharge>())
+                .Select(c => new BillingChargeDto(
+                    c.GatewayPaymentId,
+                    c.PixCopyPaste,
+                    c.BoletoIdentificationField)).ToList())).ToList();
+
+        return Result.Success<IReadOnlyList<BillingInvoiceDto>>(dtos);
     }
 }

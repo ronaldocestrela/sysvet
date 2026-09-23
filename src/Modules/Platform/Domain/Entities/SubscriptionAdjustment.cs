@@ -23,6 +23,9 @@ public sealed class SubscriptionAdjustment : Entity
     /// <summary>Billing pipeline status.</summary>
     public AdjustmentStatus Status { get; private set; }
 
+    /// <summary>Invoice that included this adjustment, when invoiced.</summary>
+    public Guid? BillingInvoiceId { get; private set; }
+
 #pragma warning disable CS8618
     private SubscriptionAdjustment()
     {
@@ -54,5 +57,37 @@ public sealed class SubscriptionAdjustment : Entity
             UpdatedAt = DateTimeOffset.UtcNow,
             RowVersion = new byte[8]
         });
+    }
+
+    /// <summary>Links adjustment to an open invoice.</summary>
+    public Result MarkInvoiced(Guid invoiceId)
+    {
+        if (Status is not AdjustmentStatus.PendingBilling)
+        {
+            return Result.Failure(ErrorCodes.Billing.InvalidInvoiceTransition);
+        }
+
+        if (invoiceId == Guid.Empty)
+        {
+            return Result.Failure(ErrorCodes.Billing.InvalidTenant);
+        }
+
+        Status = AdjustmentStatus.Invoiced;
+        BillingInvoiceId = invoiceId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
+    }
+
+    /// <summary>Marks adjustment settled after invoice payment.</summary>
+    public Result MarkSettled()
+    {
+        if (Status is not AdjustmentStatus.Invoiced)
+        {
+            return Result.Failure(ErrorCodes.Billing.InvalidInvoiceTransition);
+        }
+
+        Status = AdjustmentStatus.Settled;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
     }
 }

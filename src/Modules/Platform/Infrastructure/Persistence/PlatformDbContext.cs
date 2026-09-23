@@ -36,6 +36,21 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeT
     /// <summary>Pending proration rows.</summary>
     public DbSet<SubscriptionAdjustment> SubscriptionAdjustments => Set<SubscriptionAdjustment>();
 
+    /// <summary>Tenant billing customers (9.4).</summary>
+    public DbSet<BillingCustomer> BillingCustomers => Set<BillingCustomer>();
+
+    /// <summary>Tenant billing payment methods (9.4).</summary>
+    public DbSet<BillingPaymentMethod> BillingPaymentMethods => Set<BillingPaymentMethod>();
+
+    /// <summary>Platform SaaS invoices (9.4).</summary>
+    public DbSet<BillingInvoice> BillingInvoices => Set<BillingInvoice>();
+
+    /// <summary>Gateway charges (9.4).</summary>
+    public DbSet<BillingCharge> BillingCharges => Set<BillingCharge>();
+
+    /// <summary>Webhook idempotency ledger (9.4).</summary>
+    public DbSet<BillingWebhookReceipt> BillingWebhookReceipts => Set<BillingWebhookReceipt>();
+
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)

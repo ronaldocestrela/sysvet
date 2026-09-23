@@ -73,4 +73,23 @@ public static class ErrorCodes
     {
         public static readonly Error ModuleDisabled = new("Platform.Entitlement.ModuleDisabled", "Módulo não disponível no plano atual.");
     }
+
+    /// <summary>SaaS billing gateway errors (9.4).</summary>
+    public static class Billing
+    {
+        public static readonly Error InvalidTenant = new("Platform.Billing.InvalidTenant", "Tenant inválido para cobrança.");
+        public static readonly Error InvalidCustomer = new("Platform.Billing.InvalidCustomer", "Dados de cliente de cobrança inválidos.");
+        public static readonly Error InvalidPaymentMethod = new("Platform.Billing.InvalidPaymentMethod", "Forma de pagamento inválida.");
+        public static readonly Error InvalidAmount = new("Platform.Billing.InvalidAmount", "Valor de fatura inválido.");
+        public static readonly Error InvalidInvoiceTransition = new("Platform.Billing.InvalidInvoiceTransition", "Transição de fatura inválida.");
+        public static readonly Error CustomerNotFound = new("Platform.Billing.CustomerNotFound", "Cliente de cobrança não cadastrado.");
+        public static readonly Error PaymentMethodNotFound = new("Platform.Billing.PaymentMethodNotFound", "Forma de pagamento não cadastrada.");
+        public static readonly Error NotDue = new("Platform.Billing.NotDue", "Assinatura ainda não venceu para cobrança.");
+        public static readonly Error NotBillable = new("Platform.Billing.NotBillable", "Assinatura não elegível para cobrança.");
+        public static readonly Error OpenInvoiceExists = new("Platform.Billing.OpenInvoiceExists", "Já existe fatura em aberto.");
+        public static readonly Error InvoiceNotFound = new("Platform.Billing.InvoiceNotFound", "Fatura não encontrada.");
+        public static readonly Error GatewayFailed = new("Platform.Billing.GatewayFailed", "Falha na integração com gateway de pagamento.");
+        public static readonly Error WebhookUnauthorized = new("Platform.Billing.WebhookUnauthorized", "Webhook não autorizado.");
+        public static readonly Error WebhookInvalidPayload = new("Platform.Billing.WebhookInvalidPayload", "Payload de webhook inválido.");
+    }
 }

@@ -1066,7 +1066,7 @@ flowchart TD
 | **9.1 Módulo Platform — estrutura e multi-tenancy** | 13 | Concluído |
 | **9.2 Gestão de tenants e filiais** | 13 | Concluído |
 | **9.3 Planos, add-ons e feature flags** | 13 | Concluída |
-| **9.4 Gateway de assinatura e cobrança** | 21 | Pendente |
+| **9.4 Gateway de assinatura e cobrança** | 21 | Concluída |
 | **9.5 Dunning, bloqueio e cupons** | 13 | Pendente |
 | **9.6 NFS-e do SaaS e impersonation** | 13 | Pendente |
 | **9.7 Auditoria, API keys e health por tenant** | 8 | Pendente |
@@ -1106,14 +1106,14 @@ flowchart TD
 
 ### 9.4 Gateway de assinatura e cobrança (21 SP)
 
-- [ ] Integração Stripe / Asaas / Pagar.me (ADR)
-- [ ] Cartão recorrente, Pix, boleto
-- [ ] Webhooks: pagamento, falha, cancelamento
-- [ ] Faturas e histórico de cobrança
+- [x] Integração Asaas (`Platform:Billing:Provider` Fake | Asaas — ADR-049)
+- [x] Cartão recorrente (token), Pix, boleto
+- [x] Webhooks: pagamento, falha, cancelamento, estorno
+- [x] Faturas e histórico de cobrança
 
 **Referência:** `backoffice.md` §3.
 
-**Aceite:** Assinatura recorrente cobrada; webhook atualiza status tenant.
+**Aceite:** Assinatura recorrente cobrada; webhook atualiza `BillingStanding` (`RecurringSubscription_Charged_WhenPeriodDue`; `PaymentWebhook_UpdatesBillingStanding_WhenPaid`; ADR-049).
 
 ### 9.5 Dunning, bloqueio e cupons (13 SP)
 
