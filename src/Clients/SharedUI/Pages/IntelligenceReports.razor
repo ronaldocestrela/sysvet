@@ -1,0 +1,166 @@
+@page "/intelligence/reports"
+@using Clients.Infrastructure.Intelligence
+@using SharedUI.Services
+@inject IIntelligenceApiService IntelligenceApi
+@inject IFileDownloadService FileDownload
+
+<h1>Relatórios estratégicos</h1>
+
+<div class="row g-2 align-items-end mb-4">
+    <div class="col-auto">
+        <label class="form-label">De</label>
+        <input type="date" class="form-control" @bind="_from" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label">Até</label>
+        <input type="date" class="form-control" @bind="_to" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" @onclick="LoadAsync">Atualizar</button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <p class="text-danger">@_error</p>
+}
+
+<section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Curva ABC — clientes</h2>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="ExportCustomersAsync">Exportar CSV</button>
+    </div>
+    <table class="table table-sm">
+        <thead>
+            <tr><th>#</th><th>Cliente</th><th>Valor</th><th>%</th><th>Acum.</th><th>Classe</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var row in _customers)
+            {
+                <tr>
+                    <td>@row.Rank</td>
+                    <td>@row.DisplayName</td>
+                    <td>@row.NetAmount.ToString("N2")</td>
+                    <td>@row.SharePercent.ToString("N2")%</td>
+                    <td>@row.CumulativeSharePercent.ToString("N2")%</td>
+                    <td>@row.Class</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+<section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Curva ABC — produtos</h2>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="ExportProductsAsync">Exportar CSV</button>
+    </div>
+    <table class="table table-sm">
+        <thead>
+            <tr><th>#</th><th>Produto</th><th>Valor</th><th>Qtd</th><th>Classe</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var row in _products)
+            {
+                <tr>
+                    <td>@row.Rank</td>
+                    <td>@row.ProductName</td>
+                    <td>@row.NetAmount.ToString("N2")</td>
+                    <td>@row.NetQuantity.ToString("N2")</td>
+                    <td>@row.Class</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Produtividade por profissional</h2>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="ExportProductivityAsync">Exportar CSV</button>
+    </div>
+    <table class="table table-sm">
+        <thead>
+            <tr><th>Profissional</th><th>Receita PDV</th><th>Qtd PDV</th><th>Consultas</th><th>Banhos</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var row in _productivity)
+            {
+                <tr>
+                    <td>@row.DisplayName</td>
+                    <td>@row.SalesNetAmount.ToString("N2")</td>
+                    <td>@row.SalesQuantity.ToString("N2")</td>
+                    <td>@row.ClinicalCompleted</td>
+                    <td>@row.GroomingCompleted</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+@code {
+    private DateOnly _from = DateOnly.FromDateTime(DateTime.Today.AddDays(-30));
+    private DateOnly _to = DateOnly.FromDateTime(DateTime.Today);
+    private string? _error;
+    private List<AbcCustomerRowClientDto> _customers = new();
+    private List<AbcProductRowClientDto> _products = new();
+    private List<ProductivityRowClientDto> _productivity = new();
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        var customers = await IntelligenceApi.GetAbcCustomersAsync(_from, _to);
+        if (customers.IsFailure)
+        {
+            _error = customers.Error.Message;
+            return;
+        }
+
+        var products = await IntelligenceApi.GetAbcProductsAsync(_from, _to);
+        if (products.IsFailure)
+        {
+            _error = products.Error.Message;
+            return;
+        }
+
+        var productivity = await IntelligenceApi.GetProductivityAsync(_from, _to);
+        if (productivity.IsFailure)
+        {
+            _error = productivity.Error.Message;
+            return;
+        }
+
+        _customers = customers.Value.Rows.ToList();
+        _products = products.Value.Rows.ToList();
+        _productivity = productivity.Value.Rows.ToList();
+    }
+
+    private async Task ExportCustomersAsync()
+    {
+        var result = await IntelligenceApi.ExportAbcCustomersAsync(_from, _to);
+        if (result.IsSuccess)
+        {
+            await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
+        }
+    }
+
+    private async Task ExportProductsAsync()
+    {
+        var result = await IntelligenceApi.ExportAbcProductsAsync(_from, _to);
+        if (result.IsSuccess)
+        {
+            await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
+        }
+    }
+
+    private async Task ExportProductivityAsync()
+    {
+        var result = await IntelligenceApi.ExportProductivityAsync(_from, _to);
+        if (result.IsSuccess)
+        {
+            await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
+        }
+    }
+}

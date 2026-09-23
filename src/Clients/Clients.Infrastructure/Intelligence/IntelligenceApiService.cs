@@ -14,6 +14,24 @@ public interface IIntelligenceApiService
 
     /// <summary>Persists layout for an access profile.</summary>
     Task<Result> SaveLayoutAsync(Guid accessProfileId, ProfileDashboardLayoutClientDto layout, CancellationToken cancellationToken = default);
+
+    /// <summary>Loads ABC customer ranking.</summary>
+    Task<Result<AbcCustomerReportClientDto>> GetAbcCustomersAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>Loads ABC product ranking.</summary>
+    Task<Result<AbcProductReportClientDto>> GetAbcProductsAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>Loads staff productivity report.</summary>
+    Task<Result<ProductivityReportClientDto>> GetProductivityAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>Downloads ABC customers CSV.</summary>
+    Task<Result<DownloadedFile>> ExportAbcCustomersAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>Downloads ABC products CSV.</summary>
+    Task<Result<DownloadedFile>> ExportAbcProductsAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>Downloads productivity CSV.</summary>
+    Task<Result<DownloadedFile>> ExportProductivityAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
 }
 
 /// <summary>REST implementation of intelligence dashboard APIs.</summary>
@@ -38,6 +56,42 @@ public sealed class IntelligenceApiService : IIntelligenceApiService
             $"/api/v1/intelligence/dashboard-layouts/{accessProfileId}",
             layout,
             idempotencyKey: null,
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<AbcCustomerReportClientDto>> GetAbcCustomersAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<AbcCustomerReportClientDto>(
+            $"/api/v1/intelligence/reports/abc-customers?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}",
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<AbcProductReportClientDto>> GetAbcProductsAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<AbcProductReportClientDto>(
+            $"/api/v1/intelligence/reports/abc-products?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}",
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<ProductivityReportClientDto>> GetProductivityAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<ProductivityReportClientDto>(
+            $"/api/v1/intelligence/reports/productivity?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}",
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<DownloadedFile>> ExportAbcCustomersAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        _apiClient.DownloadGetAsync(
+            $"/api/v1/intelligence/reports/abc-customers/export?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}",
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<DownloadedFile>> ExportAbcProductsAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        _apiClient.DownloadGetAsync(
+            $"/api/v1/intelligence/reports/abc-products/export?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}",
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<DownloadedFile>> ExportProductivityAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken = default) =>
+        _apiClient.DownloadGetAsync(
+            $"/api/v1/intelligence/reports/productivity/export?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}",
             cancellationToken);
 }
 

@@ -328,9 +328,16 @@ Iniciado o módulo de estoque.
 - PlatformWeb `/metrics` com cards e inadimplência; CAC via gasto de aquisição manual.
 - Aceite: `SaasMetrics_MatchBilling_WithinDocumentedTolerance`; testes Platform.Tests, API.IntegrationTests, bUnit MetricsPage.
 
-### 👉 **Próxima Ação: Fase 10.3 — Curva ABC, produtividade e adoção de módulos**
+### Fase 10.3 — Curva ABC, produtividade e adoção — Concluída (ADR-056)
 
-Ver [`roadmap.md`](roadmap.md) §10.3.
+- `AbcCurveClassifier`, `ProductivityMerger` (Intelligence); `ModuleAdoptionCalculator` (Platform).
+- API tenant `/api/v1/intelligence/reports/*` + CSV; plataforma `/api/v1/platform/adoption` + CSV.
+- UI SharedUI `/intelligence/reports`; PlatformWeb `/adoption`.
+- Aceite: relatórios exportáveis; adoção alinhada a flags/planos; testes domínio + `API.IntegrationTests/Intelligence`.
+
+### 👉 **Próxima Ação: Fase 10.4 — Performance, cache e escalabilidade**
+
+Ver [`roadmap.md`](roadmap.md) §10.4.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

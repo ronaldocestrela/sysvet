@@ -1,3 +1,4 @@
+using Clients.Infrastructure.Http;
 using Clients.Infrastructure.Platform;
 using Core.Domain;
 using Core.Domain.Entitlements;
@@ -155,6 +156,12 @@ public sealed class FakePlatformAdminApi : IPlatformAdminApi
         LastAcquisitionSpend = request;
         return Task.FromResult(Result.Success());
     }
+
+    public Task<Result<PlatformModuleAdoptionDto>> GetModuleAdoptionAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Success(new PlatformModuleAdoptionDto([], [])));
+
+    public Task<Result<DownloadedFile>> ExportModuleAdoptionAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Success(new DownloadedFile(Array.Empty<byte>(), "text/csv", "adocao-modulos.csv")));
 }
 
 /// <summary>Configurable auth state for platform UI tests.</summary>

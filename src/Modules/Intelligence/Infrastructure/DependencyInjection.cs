@@ -1,6 +1,7 @@
 using Core.Domain;
 using Core.Infrastructure.Configuration;
 using Intelligence.Application.Dashboard.Commands;
+using Intelligence.Application.Reports;
 using Intelligence.Domain.Repositories;
 using Intelligence.Infrastructure.Configuration;
 using Intelligence.Infrastructure.Persistence;
@@ -30,6 +31,7 @@ public static class DependencyInjection
             options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
+        services.AddScoped<IntelligenceReportComposer>();
         services.AddScoped<IProfileDashboardLayoutRepository, ProfileDashboardLayoutRepository>();
         services.AddScoped<IIntelligenceUnitOfWork>(sp => sp.GetRequiredService<IntelligenceDbContext>());
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<IntelligenceDbContext>());

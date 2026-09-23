@@ -235,6 +235,14 @@ public sealed class PlatformAdminApiService : IPlatformAdminApi
             request,
             cancellationToken: cancellationToken);
 
+    /// <inheritdoc />
+    public Task<Result<PlatformModuleAdoptionDto>> GetModuleAdoptionAsync(CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<PlatformModuleAdoptionDto>("/api/v1/platform/adoption", cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<DownloadedFile>> ExportModuleAdoptionAsync(CancellationToken cancellationToken = default) =>
+        _apiClient.DownloadGetAsync("/api/v1/platform/adoption/export", cancellationToken);
+
     private sealed record ChangeStatusBody(PlatformTenantStatus Status);
     private sealed record ChangePlanBody(string PlanCode);
     private sealed record SetFeatureFlagBody(PlatformFeatureFlagState State);

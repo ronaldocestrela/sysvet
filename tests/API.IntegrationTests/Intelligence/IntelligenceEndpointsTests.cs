@@ -38,6 +38,33 @@ public class IntelligenceEndpointsTests : IClassFixture<WebApplicationFactory<Pr
     }
 
     [Fact]
+    public async Task AbcCustomersReport_ReturnsOk()
+    {
+        var client = await CreateStaffClientAsync(ApplicationRoles.Admin);
+        var from = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7));
+        var to = DateOnly.FromDateTime(DateTime.UtcNow);
+        var response = await client.GetAsync(
+            $"/api/v1/intelligence/reports/abc-customers?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}");
+        var body = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+    }
+
+    [Fact]
+    public async Task AbcCustomersExport_ReturnsCsv()
+    {
+        var client = await CreateStaffClientAsync(ApplicationRoles.Admin);
+        var from = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7));
+        var to = DateOnly.FromDateTime(DateTime.UtcNow);
+        var response = await client.GetAsync(
+            $"/api/v1/intelligence/reports/abc-customers/export?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}");
+        var body = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/csv");
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        bytes.Length.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public async Task Dashboard_LoadsTodayKpis_UnderThreeSeconds()
     {
         var client = await CreateStaffClientAsync(ApplicationRoles.Admin);

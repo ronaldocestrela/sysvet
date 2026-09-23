@@ -56,5 +56,5 @@ Como a arquitetura exige modularidade estrita, permitindo que cada módulo seja 
 ## 5. Dashboards e Métricas SaaS (Business Intelligence)
 * **Métricas Financeiras Globais:** Acompanhamento de MRR (Receita Mensal Recorrente), ARR (Receita Anual), e fluxo de caixa do sistema — entregue em **10.2** (`GET /api/v1/platform/metrics`, ADR-055).
 * **Métricas de Crescimento:** Acompanhamento de Churn Rate (taxa de cancelamento), LTV (Lifetime Value), e CAC (Custo de Aquisição de Clientes) — CAC via lançamento **`AcquisitionSpend`** (sem CRM externo).
-* **Análise de Adoção de Módulos:** Identificação de quais módulos complementares são mais e menos utilizados/assinados pelos clientes — Fase **10.3**.
+* **Análise de Adoção de Módulos:** Heatmap tenant × módulo a partir do entitlement efetivo (plano ∪ add-ons ± flags) — entregue em **10.3** (`GET /api/v1/platform/adoption`, export CSV; PlatformWeb `/adoption`; ADR-056).
 * **Relatórios de Inadimplência:** Visão geral de contas a receber e clientes bloqueados no mês — incluído no snapshot **10.2**.

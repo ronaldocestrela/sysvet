@@ -32,6 +32,7 @@ builder.Services.AddHttpClient("API", client => client.BaseAddress = new Uri(api
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"));
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped<IPlatformAdminApi, PlatformAdminApiService>();
+builder.Services.AddScoped<IFileDownloadService, WebFileDownloadService>();
 
 builder.Services.AddSharedUI();
 

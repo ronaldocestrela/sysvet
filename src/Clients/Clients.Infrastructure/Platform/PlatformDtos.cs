@@ -1,3 +1,4 @@
+using Clients.Infrastructure.Http;
 using Core.Domain;
 using Core.Domain.Entitlements;
 
@@ -41,6 +42,8 @@ public interface IPlatformAdminApi
     Task<Result> RevokePartnerApiKeyAsync(Guid tenantId, Guid keyId, CancellationToken cancellationToken = default);
     Task<Result<PlatformSaasMetricsDto>> GetSaasMetricsAsync(int year, int month, CancellationToken cancellationToken = default);
     Task<Result> UpsertAcquisitionSpendAsync(PlatformUpsertAcquisitionSpendRequest request, CancellationToken cancellationToken = default);
+    Task<Result<PlatformModuleAdoptionDto>> GetModuleAdoptionAsync(CancellationToken cancellationToken = default);
+    Task<Result<DownloadedFile>> ExportModuleAdoptionAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>Tenant list row.</summary>
@@ -286,3 +289,20 @@ public sealed record PlatformUpsertAcquisitionSpendRequest(
     string Channel,
     decimal Amount,
     string? Note);
+
+/// <summary>Module adoption heatmap (10.3).</summary>
+public sealed record PlatformModuleAdoptionDto(
+    IReadOnlyList<PlatformTenantModuleAdoptionRowDto> Tenants,
+    IReadOnlyList<PlatformModuleAdoptionSummaryDto> ModuleSummaries);
+
+/// <summary>Tenant row in adoption matrix.</summary>
+public sealed record PlatformTenantModuleAdoptionRowDto(
+    Guid TenantId,
+    string DisplayName,
+    IReadOnlyList<PlatformModuleAdoptionCellDto> Cells);
+
+/// <summary>Cell in adoption matrix.</summary>
+public sealed record PlatformModuleAdoptionCellDto(CommercialModule Module, bool Enabled);
+
+/// <summary>Module adoption summary.</summary>
+public sealed record PlatformModuleAdoptionSummaryDto(CommercialModule Module, int EnabledCount, decimal AdoptionRate);

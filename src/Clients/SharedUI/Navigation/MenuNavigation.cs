@@ -33,7 +33,8 @@ public static class MenuNavigation
             ["inventory-counts"] = new(AppRoutes.InventoryCounts, "Inventário", "bi-upc-scan"),
             ["purchase-suggestions"] = new(AppRoutes.PurchaseSuggestions, "Sugestão de compras", "bi-cart-plus"),
             ["audit"] = new(AppRoutes.Home, "Auditoria", "bi-journal-text"),
-            ["intelligence-layouts"] = new(AppRoutes.IntelligenceLayouts, "Dashboard — layouts", "bi-sliders")
+            ["intelligence-layouts"] = new(AppRoutes.IntelligenceLayouts, "Dashboard — layouts", "bi-sliders"),
+            ["intelligence-reports"] = new(AppRoutes.IntelligenceReports, "Relatórios BI", "bi-bar-chart-line")
         };
 
     /// <summary>

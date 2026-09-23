@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantRequestDailyRepository, TenantRequestDailyRepository>();
         services.AddScoped<IAcquisitionSpendRepository, AcquisitionSpendRepository>();
         services.AddScoped<ISaasMetricsReader, SaasMetricsReader>();
+        services.AddScoped<IModuleAdoptionReader, ModuleAdoptionReader>();
         services.AddScoped<PlatformBackofficeAuditRecorder>();
         services.AddScoped<IGeoIpLookup, NullGeoIpLookup>();
         services.AddScoped<IPlatformAuditContext, HttpPlatformAuditContext>();

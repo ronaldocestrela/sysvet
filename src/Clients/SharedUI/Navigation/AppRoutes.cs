@@ -126,4 +126,7 @@ public static class AppRoutes
 
     /// <summary>Dashboard widget layout editor (10.1).</summary>
     public const string IntelligenceLayouts = "/intelligence/layouts";
+
+    /// <summary>ABC and productivity strategic reports (10.3).</summary>
+    public const string IntelligenceReports = "/intelligence/reports";
 }

@@ -34,7 +34,8 @@ public static class MenuEntitlementMapper
             ["clinic-site"] = CommercialModule.ClinicSite,
             ["commerce-offers"] = CommercialModule.Commerce,
             ["commerce-orders"] = CommercialModule.Commerce,
-            ["intelligence-layouts"] = CommercialModule.Intelligence
+            ["intelligence-layouts"] = CommercialModule.Intelligence,
+            ["intelligence-reports"] = CommercialModule.Intelligence
         };
 
     /// <summary>Filters menu keys to those allowed by tenant entitlements.</summary>

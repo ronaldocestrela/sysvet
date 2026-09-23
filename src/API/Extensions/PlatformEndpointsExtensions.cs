@@ -47,6 +47,10 @@ public static class PlatformEndpointsExtensions
         catalog.MapGet("/change-audits", ListPlatformChangeAudits);
         catalog.MapGet("/metrics", GetPlatformSaasMetrics);
         catalog.MapPost("/metrics/acquisition-spend", UpsertAcquisitionSpend);
+        catalog.MapGet("/adoption", async (IMediator mediator) =>
+            (await mediator.Send(new GetPlatformModuleAdoptionQuery())).ToHttpResult());
+        catalog.MapGet("/adoption/export", async (IMediator mediator) =>
+            ToAdoptionFileResult(await mediator.Send(new ExportPlatformModuleAdoptionQuery())));
     }
 
     /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
@@ -256,6 +260,16 @@ public static class PlatformEndpointsExtensions
 
     /// <summary>Create partner API key body.</summary>
     public sealed record CreatePartnerApiKeyRequest(string PartnerName);
+
+    private static IResult ToAdoptionFileResult(Result<ModuleAdoptionFileDto> result)
+    {
+        if (result.IsFailure)
+        {
+            return result.ToHttpResult();
+        }
+
+        return Results.File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
+    }
 
     private static Task<Result<PlatformSaasMetricsDto>> GetPlatformSaasMetrics(
         int? year,

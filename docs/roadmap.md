@@ -1163,7 +1163,7 @@ flowchart TD
 |--------|-----|--------|
 | **10.1 Módulo Intelligence — dashboards tenant** | 13 | Concluída |
 | **10.2 Métricas SaaS (MRR, churn, LTV, CAC)** | 13 | Concluída |
-| **10.3 Curva ABC, produtividade e adoção de módulos** | 8 | Pendente |
+| **10.3 Curva ABC, produtividade e adoção de módulos** | 8 | Concluída |
 | **10.4 Performance, cache e escalabilidade** | 8 | Pendente |
 | **10.5 Backup, DR e observabilidade avançada** | 8 | Pendente |
 | **10.6 Segurança, LGPD e pentest** | 13 | Pendente |
@@ -1192,9 +1192,11 @@ flowchart TD
 
 ### 10.3 Curva ABC, produtividade e adoção (8 SP)
 
-- [ ] Ranking clientes e produtos (curva ABC)
-- [ ] Produtividade por profissional
-- [ ] Heatmap adoção de módulos por tenant
+- [x] Ranking clientes e produtos (curva ABC)
+- [x] Produtividade por profissional
+- [x] Heatmap adoção de módulos por tenant
+
+**Referência:** `functions.md` § Inteligência; `backoffice.md` §5; ADR-056.
 
 **Aceite:** Relatórios exportáveis; adoção reflete flags/planos reais.
 

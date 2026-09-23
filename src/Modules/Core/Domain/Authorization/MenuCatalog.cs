@@ -34,7 +34,8 @@ public static class MenuCatalog
         ["clinic-site"] = Permissions.ClinicSiteRead,
         ["commerce-offers"] = Permissions.CommerceRead,
         ["commerce-orders"] = Permissions.CommerceRead,
-        ["intelligence-layouts"] = Permissions.IntelligenceLayoutWrite
+        ["intelligence-layouts"] = Permissions.IntelligenceLayoutWrite,
+        ["intelligence-reports"] = Permissions.IntelligenceRead
     };
 
     /// <summary>

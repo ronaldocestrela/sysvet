@@ -1,0 +1,102 @@
+@page "/adoption"
+@using Clients.Infrastructure.Http
+@using Clients.Infrastructure.Platform
+@using Core.Domain.Entitlements
+@using SharedUI.Services
+@inject IPlatformAdminApi PlatformApi
+@inject IPlatformAuthState AuthState
+@inject IFileDownloadService FileDownload
+
+<h1>Adoção de módulos</h1>
+
+@if (!AuthState.IsSuperAdmin)
+{
+    <p class="text-danger">Acesso negado.</p>
+}
+else
+{
+    <div class="mb-3">
+        <button class="btn btn-outline-secondary" @onclick="ExportAsync">Exportar CSV</button>
+        <button class="btn btn-primary ms-2" @onclick="LoadAsync">Atualizar</button>
+    </div>
+
+    @if (_error is not null)
+    {
+        <p class="text-danger">@_error</p>
+    }
+    else if (_adoption is not null)
+    {
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>Tenant</th>
+                        @foreach (var module in _modules)
+                        {
+                            <th class="text-center">@module</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tenant in _adoption.Tenants)
+                    {
+                        <tr>
+                            <td>@tenant.DisplayName</td>
+                            @foreach (var module in _modules)
+                            {
+                                var enabled = tenant.Cells.FirstOrDefault(c => c.Module == module)?.Enabled == true;
+                                <td class="text-center">@(enabled ? "●" : "")</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="h5">Resumo</h2>
+        <table class="table table-sm">
+            <thead><tr><th>Módulo</th><th>Habilitados</th><th>Taxa</th></tr></thead>
+            <tbody>
+                @foreach (var summary in _adoption.ModuleSummaries)
+                {
+                    <tr>
+                        <td>@summary.Module</td>
+                        <td>@summary.EnabledCount</td>
+                        <td>@summary.AdoptionRate.ToString("P1")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private PlatformModuleAdoptionDto? _adoption;
+    private string? _error;
+    private IReadOnlyList<CommercialModule> _modules = Enum.GetValues<CommercialModule>().OrderBy(m => (int)m).ToList();
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        var result = await PlatformApi.GetModuleAdoptionAsync();
+        if (result.IsFailure)
+        {
+            _error = result.Error.Message;
+            _adoption = null;
+            return;
+        }
+
+        _adoption = result.Value;
+    }
+
+    private async Task ExportAsync()
+    {
+        var result = await PlatformApi.ExportModuleAdoptionAsync();
+        if (result.IsSuccess)
+        {
+            await FileDownload.DownloadAsync(result.Value.FileName, result.Value.ContentType, result.Value.Content);
+        }
+    }
+}

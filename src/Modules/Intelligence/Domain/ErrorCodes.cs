@@ -14,4 +14,11 @@ public static class ErrorCodes
         public static readonly Error EmptyLayout = new("Intelligence.DashboardLayout.EmptyLayout", "Layout must contain at least one widget.");
         public static readonly Error ProfileNotFound = new("Intelligence.DashboardLayout.ProfileNotFound", "Access profile not found.");
     }
+
+    /// <summary>Strategic report validation errors (10.3).</summary>
+    public static class Reports
+    {
+        public static readonly Error InvalidDateRange = new("Intelligence.Reports.InvalidDateRange", "Invalid report date range.");
+        public static readonly Error RangeTooLarge = new("Intelligence.Reports.RangeTooLarge", "Report range cannot exceed 366 days.");
+    }
 }
