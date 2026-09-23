@@ -23,6 +23,9 @@ public sealed class Tenant : Entity
     /// <summary>When set, the tenant is soft-deleted and excluded from slug uniqueness checks.</summary>
     public DateTimeOffset? DeletedAt { get; private set; }
 
+    /// <summary>When subscription was cancelled; used for logo churn (10.2).</summary>
+    public DateTimeOffset? CancelledAt { get; private set; }
+
 #pragma warning disable CS8618
     private Tenant()
     {
@@ -127,6 +130,11 @@ public sealed class Tenant : Entity
 
     private Result SetStatus(TenantStatus status)
     {
+        if (status == TenantStatus.Cancelled && CancelledAt is null)
+        {
+            CancelledAt = DateTimeOffset.UtcNow;
+        }
+
         Status = status;
         UpdatedAt = DateTimeOffset.UtcNow;
         return Result.Success();

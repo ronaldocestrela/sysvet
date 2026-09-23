@@ -96,4 +96,4 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 * **Dashboard tenant (10.1):** painel do dia (`GET /api/v1/intelligence/dashboard`) com vendas PDV, estética, consultas e pedidos online; widgets por `AccessProfile` (`ProfileDashboardLayout`); poll 30s na home Blazor; módulo comercial `Intelligence` (ADR-054).
 * Relatórios estratégicos de produtividade e métricas de desempenho da equipe (Fase 10.3).
 * Geração de ranking de clientes (Curva ABC) e identificação de produtos mais consumidos/rentáveis (Fase 10.3).
-* Métricas SaaS globais (MRR, churn, LTV, CAC) no backoffice VetNexus (Fase 10.2).
+* **Métricas SaaS globais (10.2):** MRR/ARR, caixa, churn, LTV, CAC e inadimplência via `GET /api/v1/platform/metrics`; gasto de aquisição para CAC; UI PlatformWeb `/metrics` (ADR-055).

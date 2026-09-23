@@ -44,6 +44,7 @@ public class TenantLifecycleTests
         var tenant = ActiveTenant();
         tenant.Cancel().IsSuccess.Should().BeTrue();
         tenant.Status.Should().Be(TenantStatus.Cancelled);
+        tenant.CancelledAt.Should().NotBeNull();
     }
 
     [Fact]

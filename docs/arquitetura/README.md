@@ -59,6 +59,8 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-051](./ADR-051-nfse-saas-impersonation.md) | NFS-e SaaS e impersonation (9.6) | Accepted |
 | [ADR-052](./ADR-052-auditoria-api-keys-health.md) | Auditoria, API keys e health por tenant (9.7) | Accepted |
 | [ADR-053](./ADR-053-platform-super-admin-ui.md) | UI Super Admin — client PlatformWeb (9.8) | Accepted |
+| [ADR-054](./ADR-054-intelligence-dashboards-tenant.md) | Intelligence — dashboards tenant (10.1) | Accepted |
+| [ADR-055](./ADR-055-metricas-saas-platform.md) | Métricas SaaS globais — Platform (10.2) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

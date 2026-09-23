@@ -51,7 +51,7 @@
 * `src/Modules/TutorPortal/` — Autenticação e vínculo do tutor CRM ao portal (ADR-041).
 * `src/Modules/ClinicSite/` — Site público do estabelecimento (ADR-044).
 * `src/Modules/Commerce/` — E-commerce, ofertas, pedidos online e marketplace (ADR-045).
-* `src/Modules/Platform/` — Catálogo de tenants, onboarding/status/filiais, planos/flags, billing Asaas (Fake/Live), dunning/bloqueio/cupons, NFS-e SaaS, impersonation auditada, login/change audit, API keys partner, health por tenant, resolução multi-tenancy, workers e UI `PlatformWeb` (ADR-046–ADR-053; Fase 9.1–9.8).
+* `src/Modules/Platform/` — Catálogo de tenants, onboarding/status/filiais, planos/flags, billing Asaas (Fake/Live), dunning/bloqueio/cupons, NFS-e SaaS, impersonation auditada, login/change audit, API keys partner, health por tenant, métricas SaaS globais (MRR/churn/LTV/CAC), resolução multi-tenancy, workers e UI `PlatformWeb` (ADR-046–ADR-053, ADR-055; Fase 9.1–9.8, 10.2).
 * `src/Modules/Intelligence/` — Dashboards operacionais do tenant, layouts por perfil, KPIs do dia via integração Sales/Petshop/Veterinary/Commerce (ADR-054; Fase 10.1).
 * [cite_start]`src/Modules/[NomeDoModulo]/Domain/` - Entidades, Value Objects e interfaces de repositório[cite: 89].
 * [cite_start]`src/Modules/[NomeDoModulo]/Application/` - Handlers CQRS, DTOs e validações[cite: 90].

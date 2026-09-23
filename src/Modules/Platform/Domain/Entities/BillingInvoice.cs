@@ -23,6 +23,9 @@ public sealed class BillingInvoice : Entity
     /// <summary>When payment was confirmed (UTC).</summary>
     public DateTimeOffset? PaidAt { get; private set; }
 
+    /// <summary>When refund was recorded (UTC) for cash-out metrics (10.2).</summary>
+    public DateTimeOffset? RefundedAt { get; private set; }
+
     /// <summary>Automatic card retry attempts after failure (9.5).</summary>
     public int CardRetryCount { get; private set; }
 
@@ -126,6 +129,7 @@ public sealed class BillingInvoice : Entity
         }
 
         Status = BillingInvoiceStatus.Refunded;
+        RefundedAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
         return Result.Success();
     }

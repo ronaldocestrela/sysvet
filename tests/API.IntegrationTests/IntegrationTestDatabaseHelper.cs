@@ -80,6 +80,7 @@ internal static class IntegrationTestDatabaseHelper
         await EnsurePlatformDunningSchemaAsync(platformContext);
         await EnsurePlatformNfseImpersonationSchemaAsync(platformContext);
         await EnsurePlatformAuditApiKeysHealthSchemaAsync(platformContext);
+        await EnsurePlatformSaasMetricsSchemaAsync(platformContext);
         await PlatformCatalogTestSeeder.EnsureCatalogAsync(scope.ServiceProvider);
 
         await EnsureDefaultPlatformTenantAsync(scope, platformContext);
@@ -362,6 +363,40 @@ internal static class IntegrationTestDatabaseHelper
             );
             CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformTenantRequestDailies_TenantId_DateUtc
                 ON PlatformTenantRequestDailies (TenantId, DateUtc);
+            """);
+    }
+
+    private static async Task EnsurePlatformSaasMetricsSchemaAsync(global::Platform.Infrastructure.Persistence.PlatformDbContext context)
+    {
+        foreach (var alter in new[]
+                 {
+                     "ALTER TABLE \"PlatformTenants\" ADD COLUMN \"CancelledAt\" TEXT NULL;",
+                     "ALTER TABLE \"PlatformBillingInvoices\" ADD COLUMN \"RefundedAt\" TEXT NULL;"
+                 })
+        {
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(alter);
+            }
+            catch
+            {
+                // Column already exists.
+            }
+        }
+
+        await context.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS PlatformAcquisitionSpends (
+                Id TEXT NOT NULL PRIMARY KEY,
+                Year INTEGER NOT NULL,
+                Month INTEGER NOT NULL,
+                Channel TEXT NOT NULL,
+                Amount TEXT NOT NULL,
+                Note TEXT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformAcquisitionSpends_Year_Month_Channel
+                ON PlatformAcquisitionSpends (Year, Month, Channel);
             """);
     }
 

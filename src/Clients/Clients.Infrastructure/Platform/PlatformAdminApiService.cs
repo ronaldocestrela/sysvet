@@ -222,6 +222,19 @@ public sealed class PlatformAdminApiService : IPlatformAdminApi
             new { },
             cancellationToken: cancellationToken);
 
+    /// <inheritdoc />
+    public Task<Result<PlatformSaasMetricsDto>> GetSaasMetricsAsync(int year, int month, CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<PlatformSaasMetricsDto>(
+            $"/api/v1/platform/metrics?year={year}&month={month}",
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result> UpsertAcquisitionSpendAsync(PlatformUpsertAcquisitionSpendRequest request, CancellationToken cancellationToken = default) =>
+        _apiClient.PostAsync(
+            "/api/v1/platform/metrics/acquisition-spend",
+            request,
+            cancellationToken: cancellationToken);
+
     private sealed record ChangeStatusBody(PlatformTenantStatus Status);
     private sealed record ChangePlanBody(string PlanCode);
     private sealed record SetFeatureFlagBody(PlatformFeatureFlagState State);

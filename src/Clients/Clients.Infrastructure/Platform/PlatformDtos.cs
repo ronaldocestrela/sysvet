@@ -39,6 +39,8 @@ public interface IPlatformAdminApi
     Task<Result<IReadOnlyList<PlatformPartnerApiKeySummaryDto>>> ListPartnerApiKeysAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task<Result<PlatformCreatePartnerApiKeyResultDto>> CreatePartnerApiKeyAsync(Guid tenantId, string partnerName, CancellationToken cancellationToken = default);
     Task<Result> RevokePartnerApiKeyAsync(Guid tenantId, Guid keyId, CancellationToken cancellationToken = default);
+    Task<Result<PlatformSaasMetricsDto>> GetSaasMetricsAsync(int year, int month, CancellationToken cancellationToken = default);
+    Task<Result> UpsertAcquisitionSpendAsync(PlatformUpsertAcquisitionSpendRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Tenant list row.</summary>
@@ -248,3 +250,39 @@ public sealed record PlatformCreatePartnerApiKeyResultDto(
 
 /// <summary>NFS-e retry result.</summary>
 public sealed record PlatformSaasNfseDto(int Status, string? NfseNumber, string? FailureReason);
+
+/// <summary>Delinquent tenant row (10.2).</summary>
+public sealed record PlatformSaasDelinquencyItemDto(
+    Guid TenantId,
+    string DisplayName,
+    decimal OutstandingAmount,
+    DateTimeOffset? PastDueSince,
+    int BillingStanding);
+
+/// <summary>Global SaaS metrics snapshot (10.2).</summary>
+public sealed record PlatformSaasMetricsDto(
+    int Year,
+    int Month,
+    decimal BilledMrr,
+    decimal ContractedMrr,
+    decimal Arr,
+    decimal CashIn,
+    decimal CashOut,
+    decimal NetCashFlow,
+    decimal LogoChurnRate,
+    int PayingTenantsInMonth,
+    int CancelledLogosInMonth,
+    int PayingLogosAtMonthStart,
+    decimal? Ltv,
+    decimal AcquisitionSpend,
+    int NewPayingTenantsInMonth,
+    decimal? Cac,
+    IReadOnlyList<PlatformSaasDelinquencyItemDto> Delinquency);
+
+/// <summary>Acquisition spend upsert body (10.2).</summary>
+public sealed record PlatformUpsertAcquisitionSpendRequest(
+    int Year,
+    int Month,
+    string Channel,
+    decimal Amount,
+    string? Note);

@@ -321,9 +321,16 @@ Iniciado o módulo de estoque.
 - API `/api/v1/intelligence/dashboard` e layouts; `CommercialModule.Intelligence`; home Blazor com poll 30s.
 - Aceite: `Dashboard_LoadsTodayKpis_UnderThreeSeconds`; testes `Intelligence.Tests`, `API.IntegrationTests/Intelligence`, bUnit dashboard.
 
-### 👉 **Próxima Ação: Fase 10.2 — Métricas SaaS (MRR, churn, LTV, CAC)**
+### Fase 10.2 — Métricas SaaS (MRR, churn, LTV, CAC) — Concluída (ADR-055)
 
-Ver [`roadmap.md`](roadmap.md) §10.2.
+- `SaasMetricsCalculator`, `AcquisitionSpend`, `Tenant.CancelledAt`, `BillingInvoice.RefundedAt`.
+- API `GET /api/v1/platform/metrics`, `POST /api/v1/platform/metrics/acquisition-spend`.
+- PlatformWeb `/metrics` com cards e inadimplência; CAC via gasto de aquisição manual.
+- Aceite: `SaasMetrics_MatchBilling_WithinDocumentedTolerance`; testes Platform.Tests, API.IntegrationTests, bUnit MetricsPage.
+
+### 👉 **Próxima Ação: Fase 10.3 — Curva ABC, produtividade e adoção de módulos**
+
+Ver [`roadmap.md`](roadmap.md) §10.3.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

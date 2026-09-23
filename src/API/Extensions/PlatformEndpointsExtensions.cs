@@ -16,6 +16,7 @@ using Platform.Application.Impersonation;
 using Platform.Application.Auditing;
 using Platform.Application.ApiKeys;
 using Platform.Application.Health;
+using Platform.Application.Metrics;
 using Platform.Domain.Entities;
 
 namespace API.Extensions;
@@ -44,6 +45,8 @@ public static class PlatformEndpointsExtensions
         catalog.MapPost("/impersonation/{sessionId:guid}/end", EndImpersonation);
         catalog.MapGet("/login-logs", ListPlatformLoginLogs);
         catalog.MapGet("/change-audits", ListPlatformChangeAudits);
+        catalog.MapGet("/metrics", GetPlatformSaasMetrics);
+        catalog.MapPost("/metrics/acquisition-spend", UpsertAcquisitionSpend);
     }
 
     /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
@@ -253,4 +256,23 @@ public static class PlatformEndpointsExtensions
 
     /// <summary>Create partner API key body.</summary>
     public sealed record CreatePartnerApiKeyRequest(string PartnerName);
+
+    private static Task<Result<PlatformSaasMetricsDto>> GetPlatformSaasMetrics(
+        int? year,
+        int? month,
+        IMediator mediator)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var y = year ?? now.Year;
+        var m = month ?? now.Month;
+        return mediator.Send(new GetPlatformSaasMetricsQuery(y, m));
+    }
+
+    private static Task<Result> UpsertAcquisitionSpend(
+        [FromBody] UpsertAcquisitionSpendRequest body,
+        IMediator mediator) =>
+        mediator.Send(new UpsertAcquisitionSpendCommand(body.Year, body.Month, body.Channel, body.Amount, body.Note));
+
+    /// <summary>Acquisition spend body (10.2).</summary>
+    public sealed record UpsertAcquisitionSpendRequest(int Year, int Month, string Channel, decimal Amount, string? Note);
 }

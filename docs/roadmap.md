@@ -1162,7 +1162,7 @@ flowchart TD
 | Tarefa | SP | Status |
 |--------|-----|--------|
 | **10.1 Módulo Intelligence — dashboards tenant** | 13 | Concluída |
-| **10.2 Métricas SaaS (MRR, churn, LTV, CAC)** | 13 | Pendente |
+| **10.2 Métricas SaaS (MRR, churn, LTV, CAC)** | 13 | Concluída |
 | **10.3 Curva ABC, produtividade e adoção de módulos** | 8 | Pendente |
 | **10.4 Performance, cache e escalabilidade** | 8 | Pendente |
 | **10.5 Backup, DR e observabilidade avançada** | 8 | Pendente |
@@ -1182,9 +1182,9 @@ flowchart TD
 
 ### 10.2 Métricas SaaS (13 SP)
 
-- [ ] MRR, ARR, fluxo de caixa global VetNexus
-- [ ] Churn rate, LTV, CAC (integração CRM vendas/marketing)
-- [ ] Relatório inadimplência mensal
+- [x] MRR, ARR, fluxo de caixa global VetNexus
+- [x] Churn rate, LTV, CAC (integração CRM vendas/marketing)
+- [x] Relatório inadimplência mensal
 
 **Referência:** `backoffice.md` §5.
 

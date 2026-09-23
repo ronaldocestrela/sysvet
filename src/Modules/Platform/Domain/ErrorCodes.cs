@@ -167,4 +167,13 @@ public static class ErrorCodes
         public static readonly Error AlreadyRedeemed = new("Platform.Coupon.AlreadyRedeemed", "Cupom já resgatado para este tenant.");
         public static readonly Error Exhausted = new("Platform.Coupon.Exhausted", "Cupom esgotado.");
     }
+
+    /// <summary>SaaS metrics and acquisition spend errors (10.2).</summary>
+    public static class Metrics
+    {
+        public static readonly Error InvalidYear = new("Platform.Metrics.InvalidYear", "Ano inválido para métricas.");
+        public static readonly Error InvalidMonth = new("Platform.Metrics.InvalidMonth", "Mês inválido para métricas.");
+        public static readonly Error InvalidChannel = new("Platform.Metrics.InvalidChannel", "Canal de aquisição inválido.");
+        public static readonly Error InvalidAmount = new("Platform.Metrics.InvalidAmount", "Valor de aquisição inválido.");
+    }
 }

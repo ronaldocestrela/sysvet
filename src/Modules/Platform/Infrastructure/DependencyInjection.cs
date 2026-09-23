@@ -30,6 +30,7 @@ using Platform.Infrastructure.Nfse;
 using Platform.Infrastructure.Auditing;
 using Platform.Infrastructure.ApiKeys;
 using Platform.Infrastructure.Health;
+using Platform.Infrastructure.Metrics;
 using Platform.Application.Auditing;
 using OpenAC.Net.NFSe.Nacional.Web;
 
@@ -77,6 +78,8 @@ public static class DependencyInjection
         services.AddScoped<IPlatformChangeAuditRepository, PlatformChangeAuditRepository>();
         services.AddScoped<IPartnerApiKeyRepository, PartnerApiKeyRepository>();
         services.AddScoped<ITenantRequestDailyRepository, TenantRequestDailyRepository>();
+        services.AddScoped<IAcquisitionSpendRepository, AcquisitionSpendRepository>();
+        services.AddScoped<ISaasMetricsReader, SaasMetricsReader>();
         services.AddScoped<PlatformBackofficeAuditRecorder>();
         services.AddScoped<IGeoIpLookup, NullGeoIpLookup>();
         services.AddScoped<IPlatformAuditContext, HttpPlatformAuditContext>();

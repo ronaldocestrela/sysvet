@@ -13,6 +13,7 @@ internal sealed class BillingInvoiceConfiguration : IEntityTypeConfiguration<Bil
         builder.Property(i => i.Amount).HasPrecision(18, 2);
         builder.Property(i => i.Status).HasConversion<int>();
         builder.Property(i => i.AppliedCouponId);
+        builder.Property(i => i.RefundedAt);
         builder.HasIndex(i => i.TenantId);
         builder.HasIndex(i => new { i.TenantId, i.Status });
         builder.Property(i => i.RowVersion).IsConcurrencyToken();

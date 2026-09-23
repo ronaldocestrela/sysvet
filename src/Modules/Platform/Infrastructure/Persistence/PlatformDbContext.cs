@@ -81,6 +81,9 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeT
     /// <summary>Daily API request counters per tenant (9.7).</summary>
     public DbSet<TenantRequestDaily> TenantRequestDailies => Set<TenantRequestDaily>();
 
+    /// <summary>Marketing acquisition spend for CAC (10.2).</summary>
+    public DbSet<AcquisitionSpend> AcquisitionSpends => Set<AcquisitionSpend>();
+
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)

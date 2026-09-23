@@ -125,6 +125,36 @@ public sealed class FakePlatformAdminApi : IPlatformAdminApi
 
     public Task<Result<PlatformTenantHealthDto>> GetTenantHealthAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
+
+    public PlatformSaasMetricsDto Metrics { get; set; } = new(
+        2026,
+        3,
+        600m,
+        1990m,
+        7200m,
+        300m,
+        50m,
+        250m,
+        0.1m,
+        3,
+        1,
+        10,
+        2000m,
+        1000m,
+        2,
+        500m,
+        []);
+
+    public PlatformUpsertAcquisitionSpendRequest? LastAcquisitionSpend { get; private set; }
+
+    public Task<Result<PlatformSaasMetricsDto>> GetSaasMetricsAsync(int year, int month, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Success(Metrics with { Year = year, Month = month }));
+
+    public Task<Result> UpsertAcquisitionSpendAsync(PlatformUpsertAcquisitionSpendRequest request, CancellationToken cancellationToken = default)
+    {
+        LastAcquisitionSpend = request;
+        return Task.FromResult(Result.Success());
+    }
 }
 
 /// <summary>Configurable auth state for platform UI tests.</summary>

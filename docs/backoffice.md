@@ -4,7 +4,8 @@ Este documento detalha as funções exclusivas para a administração geral do S
 
 ---
 
-> **Nota (9.8):** UI Blazor **`PlatformWeb`** (`src/Clients/PlatformWeb/`) consome `/api/v1/platform/*` com role `SuperAdmin` — tenants, planos (leitura), billing, flags, cupons, health, API keys, impersonation e auditoria (ADR-053). Métricas BI globais (MRR, churn) permanecem na Fase **10.2**.
+> **Nota (9.8):** UI Blazor **`PlatformWeb`** (`src/Clients/PlatformWeb/`) consome `/api/v1/platform/*` com role `SuperAdmin` — tenants, planos (leitura), billing, flags, cupons, health, API keys, impersonation e auditoria (ADR-053).
+> **Nota (10.2):** Métricas SaaS globais (MRR, ARR, churn, LTV, CAC, inadimplência) via `/api/v1/platform/metrics` e página **`/metrics`**; gasto de aquisição (`AcquisitionSpend`) para CAC (ADR-055).
 
 > **Nota (9.2):** Onboarding, status de tenant, filiais multi-CNPJ e API `/api/v1/platform/tenants` (role `SuperAdmin`) estão entregues (ADR-047). UI em **PlatformWeb** (9.8).
 
@@ -53,7 +54,7 @@ Como a arquitetura exige modularidade estrita, permitindo que cada módulo seja 
 ---
 
 ## 5. Dashboards e Métricas SaaS (Business Intelligence)
-* **Métricas Financeiras Globais:** Acompanhamento de MRR (Receita Mensal Recorrente), ARR (Receita Anual), e fluxo de caixa do sistema.
-* **Métricas de Crescimento:** Acompanhamento de Churn Rate (taxa de cancelamento), LTV (Lifetime Value), e CAC (Custo de Aquisição de Clientes).
-* **Análise de Adoção de Módulos:** Identificação de quais módulos complementares são mais e menos utilizados/assinados pelos clientes.
-* **Relatórios de Inadimplência:** Visão geral de contas a receber e clientes bloqueados no mês.
+* **Métricas Financeiras Globais:** Acompanhamento de MRR (Receita Mensal Recorrente), ARR (Receita Anual), e fluxo de caixa do sistema — entregue em **10.2** (`GET /api/v1/platform/metrics`, ADR-055).
+* **Métricas de Crescimento:** Acompanhamento de Churn Rate (taxa de cancelamento), LTV (Lifetime Value), e CAC (Custo de Aquisição de Clientes) — CAC via lançamento **`AcquisitionSpend`** (sem CRM externo).
+* **Análise de Adoção de Módulos:** Identificação de quais módulos complementares são mais e menos utilizados/assinados pelos clientes — Fase **10.3**.
+* **Relatórios de Inadimplência:** Visão geral de contas a receber e clientes bloqueados no mês — incluído no snapshot **10.2**.

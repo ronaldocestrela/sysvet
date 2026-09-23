@@ -18,5 +18,6 @@ internal sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.HasIndex(t => t.Slug);
         builder.Property(t => t.SchemaName).HasMaxLength(128).IsRequired();
         builder.Property(t => t.RowVersion).IsConcurrencyToken();
+        builder.Property(t => t.CancelledAt);
     }
 }
