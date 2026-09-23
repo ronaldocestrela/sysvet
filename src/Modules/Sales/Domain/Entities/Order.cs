@@ -114,6 +114,15 @@ public class Order : AggregateRoot
         return Result.Success(true);
     }
 
+    /// <summary>Replaces stored consumer CPF copy after tutor anonymization.</summary>
+    public void ReplaceConsumerCpfCopy(string? cpfDigits)
+    {
+        ConsumerCpf = string.IsNullOrWhiteSpace(cpfDigits)
+            ? null
+            : new string(cpfDigits.Where(char.IsDigit).ToArray());
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     /// <summary>Applies order-level discount percent while still in draft.</summary>
     public Result<bool> ApplyDiscount(decimal discountPercent)
     {

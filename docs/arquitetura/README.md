@@ -64,8 +64,9 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-056](./ADR-056-curva-abc-produtividade-adocao.md) | Curva ABC, produtividade e adoção (10.3) | Accepted |
 | [ADR-057](./ADR-057-cache-paginacao-baseline.md) | Cache, paginação e baseline (10.4) | Accepted |
 | [ADR-058](./ADR-058-backup-dr-observabilidade.md) | Backup, DR e observabilidade avançada (10.5) | Accepted |
+| [ADR-059](./ADR-059-lgpd-seguranca-pentest.md) | LGPD, hardening e pentest (10.6) | Accepted |
 
-Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [load-baseline.md](./load-baseline.md) — baseline P95 staging (10.4); [backup-dr-runbook.md](./backup-dr-runbook.md) — drill trimestral SQL Server (10.5); [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
+Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [load-baseline.md](./load-baseline.md) — baseline P95 staging (10.4); [backup-dr-runbook.md](./backup-dr-runbook.md) — drill trimestral SQL Server (10.5); [lgpd-ripd.md](./lgpd-ripd.md) — RIPD titular tutor (10.6); [security-pentest-runbook.md](./security-pentest-runbook.md) — pentest e registro de achados (10.6); [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 
 Diagramas: [`docs/diagramas/`](../diagramas/) — C4 e sequência de sync.
 

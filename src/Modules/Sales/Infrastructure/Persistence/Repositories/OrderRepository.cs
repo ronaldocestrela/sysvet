@@ -137,4 +137,10 @@ public class OrderRepository : IOrderRepository
     {
         _dbContext.Orders.Remove(order);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<Order>> ListByTutorIdAsync(Guid tutorId, CancellationToken cancellationToken = default) =>
+        await _dbContext.Orders
+            .Where(o => o.TutorId == tutorId)
+            .ToListAsync(cancellationToken);
 }

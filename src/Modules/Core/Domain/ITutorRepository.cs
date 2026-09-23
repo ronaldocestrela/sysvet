@@ -16,4 +16,11 @@ public interface ITutorRepository : IRepository<Tutor>
         string? nameFilter,
         string? cpfFilter,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Soft-deleted, not-yet-anonymized tutors eligible for automatic anonymization at <paramref name="asOfUtc"/>.
+    /// </summary>
+    Task<IReadOnlyList<Tutor>> ListRetentionCandidatesAsync(
+        DateTimeOffset asOfUtc,
+        CancellationToken cancellationToken = default);
 }

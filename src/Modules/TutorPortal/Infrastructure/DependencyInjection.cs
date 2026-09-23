@@ -70,6 +70,9 @@ public static class DependencyInjection
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterTutorCommand).Assembly));
         services.AddValidatorsFromAssembly(typeof(RegisterTutorCommand).Assembly);
 
+        services.AddScoped<Core.Application.Privacy.IPersonalDataExportContributor, Privacy.TutorPortalPersonalDataContributor>();
+        services.AddScoped<Core.Application.Privacy.IPersonalDataErasureContributor, Privacy.TutorPortalPersonalDataContributor>();
+
         return services;
     }
 }

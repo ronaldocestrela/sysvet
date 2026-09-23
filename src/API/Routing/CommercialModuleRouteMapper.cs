@@ -15,7 +15,8 @@ public static class CommercialModuleRouteMapper
                || value.StartsWith("/api/v1/access-profiles", StringComparison.OrdinalIgnoreCase)
                || value.StartsWith("/api/v1/me/", StringComparison.OrdinalIgnoreCase)
                || value.StartsWith("/api/v1/audit", StringComparison.OrdinalIgnoreCase)
-               || value.StartsWith("/api/v1/billing", StringComparison.OrdinalIgnoreCase);
+               || value.StartsWith("/api/v1/billing", StringComparison.OrdinalIgnoreCase)
+               || value.StartsWith("/api/v1/privacy", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Resolves required module for a path, or null when route is not commercial.</summary>

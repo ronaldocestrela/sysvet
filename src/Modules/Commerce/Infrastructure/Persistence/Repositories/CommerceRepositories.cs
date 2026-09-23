@@ -98,6 +98,10 @@ public sealed class OnlineOrderRepository : IOnlineOrderRepository
         return (orders, total);
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<OnlineOrder>> ListByTutorIdAsync(Guid tutorId, CancellationToken cancellationToken = default) =>
+        await _db.OnlineOrders.Where(x => x.TutorId == tutorId).ToListAsync(cancellationToken);
+
     public void Add(OnlineOrder order) => _db.OnlineOrders.Add(order);
 
     public void Update(OnlineOrder order) => _db.OnlineOrders.Update(order);

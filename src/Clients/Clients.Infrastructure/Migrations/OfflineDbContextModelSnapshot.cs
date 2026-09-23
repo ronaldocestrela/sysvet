@@ -258,8 +258,16 @@ namespace Clients.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTimeOffset?>("AnonymizedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsAnonymized")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()

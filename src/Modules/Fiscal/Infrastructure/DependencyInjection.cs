@@ -71,6 +71,8 @@ public static class DependencyInjection
 
         services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.FiscalSyncPushHandler>();
         services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.FiscalSyncChangeFeedContributor>();
+        services.AddScoped<Core.Application.Privacy.IPersonalDataExportContributor, Privacy.FiscalPersonalDataContributor>();
+        services.AddScoped<Core.Application.Privacy.IPersonalDataErasureContributor, Privacy.FiscalPersonalDataContributor>();
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(IssueFromOrderCommand).Assembly));

@@ -37,6 +37,7 @@ O provider EF Core é definido em `Database:Provider` (`Sqlite` ou `SqlServer`).
 | `JwtSettings:Issuer` | Sim | Sim (JSON ou env) | Emissor do token |
 | `JwtSettings:Audience` | Sim | Sim (JSON ou env) | Audiência do token |
 | `JwtSettings:RefreshExpiryDays` | Sim (default 7) | Sim | Validade do refresh token (dias) |
+| *(Rotação JWT)* | — | Runbook | Troca de `JwtSettings:Secret` invalida access tokens até novo login; refresh continua amarrado ao `SecurityStamp` (ADR-007) |
 | `TenancySettings:DefaultSchema` | Sim (default `dbo`) | Sim | Schema fallback (ADR-003) |
 | `TenancySettings:SingleTenantId` | Não | Dev/staging | Tenant fixo para workers (lembretes/outbox) até varredura multi-tenant (9.x) |
 | `Database:Provider` | `Sqlite` | `SqlServer` | Provider EF Core |
@@ -106,12 +107,21 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 
 Rotas isentas de tenant obrigatório: login/refresh/register, `/api/v1/public/*`, health, hubs (ver `TenantEndpointAllowlist` na API).
 
+### Segurança HTTP (Fase 10.6)
+
+| Item | Descrição |
+|------|-----------|
+| Headers | `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy` via `SecurityHeadersMiddleware` |
+| HSTS | Habilitado fora de `Development` |
+| Rate limit | Policy `auth` — 20 req/min por IP em `POST /api/v1/auth/login` e `POST /api/v1/tutor-portal/login|register` |
+
 ### Fiscal (NF-e / NFS-e Nacional — ADR-035)
 
 | Chave | Default | Descrição |
 |-------|---------|-----------|
 | `Fiscal:Provider` | `Fake` | `Fake` (CI/dev) ou `ZeusOpenAc` (Zeus NF-e + OpenAC NFS-e ADN) |
 | `Fiscal:CertificateEncryptionKey` | — | AES para senha do PFX (mín. 32 caracteres; **user-secrets/env**, nunca no git) |
+| `Fiscal:CertificateEncryptionKeyPrevious` | — | Chave anterior durante rotação (opcional; decrypt de ciphertext legado e `v1:`) |
 | `Fiscal:ConnectionString` | *(opcional)* | Override de connection string do módulo |
 
 Exemplo em [`appsettings.Development.json`](../../src/API/appsettings.Development.json).

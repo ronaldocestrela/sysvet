@@ -69,6 +69,22 @@ public sealed class FiscalDocumentRepository : IFiscalDocumentRepository
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<FiscalDocument>> ListByRecipientCpfAsync(
+        string recipientCpf,
+        CancellationToken cancellationToken = default)
+    {
+        var digits = new string(recipientCpf.Where(char.IsDigit).ToArray());
+        if (digits.Length == 0)
+        {
+            return Array.Empty<FiscalDocument>();
+        }
+
+        return await _dbContext.FiscalDocuments
+            .Where(d => d.RecipientCpf == digits)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<FiscalDocument>> ListForPlanningAsync(
         DateOnly from,
         DateOnly to,

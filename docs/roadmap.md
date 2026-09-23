@@ -1166,7 +1166,7 @@ flowchart TD
 | **10.3 Curva ABC, produtividade e adoção de módulos** | 8 | Concluída |
 | **10.4 Performance, cache e escalabilidade** | 8 | Concluída |
 | **10.5 Backup, DR e observabilidade avançada** | 8 | Concluída |
-| **10.6 Segurança, LGPD e pentest** | 13 | Pendente |
+| **10.6 Segurança, LGPD e pentest** | 13 | Concluída |
 | **10.7 Testes de carga e rollout** | 8 | Pendente |
 | **Total Fase 10** | **71 SP** | |
 
@@ -1218,11 +1218,11 @@ flowchart TD
 
 ### 10.6 Segurança, LGPD e pentest (13 SP)
 
-- [ ] Política retenção dados; exportação/exclusão titular
-- [ ] Criptografia at-rest e in-transit; rotação secrets
-- [ ] Pentest externo; correção achados críticos
+- [x] Política retenção dados; exportação/exclusão titular
+- [x] Criptografia at-rest e in-transit; rotação secrets
+- [x] Pentest externo; correção achados críticos
 
-**Aceite:** RIPD/LGPD documentado; zero achados críticos abertos.
+**Aceite:** RIPD/LGPD documentado; zero achados críticos abertos. ADR-059; [`lgpd-ripd.md`](arquitetura/lgpd-ripd.md); [`security-pentest-runbook.md`](arquitetura/security-pentest-runbook.md); API `/api/v1/privacy/tutors/*`; testes `Core.Tests`, `Fiscal.Tests`, `API.IntegrationTests/TutorPrivacy*`, `SecurityHeadersTests`.
 
 ### 10.7 Testes de carga e rollout (8 SP)
 
@@ -1238,14 +1238,14 @@ flowchart TD
 
 | Fase | Nome | SP | Status global |
 |------|------|-----|---------------|
-| 1 | Fundação do Repositório e Engenharia | 22 | Parcial (~15%) |
-| 2 | Core SaaS e CRM | 47 | Pendente |
-| 3 | Clientes e Offline-First | 63 | Pendente |
-| 4 | Operação Clínica | 55 | Pendente |
-| 5 | Estoque e Compras | 45 | Pendente |
-| 6 | PDV e Estética | 65 | Pendente |
-| 7 | Financeiro e Fiscal | 65 | Pendente |
-| 8 | Relacionamento e Portal do Tutor | 79 | Pendente |
+| 1 | Fundação do Repositório e Engenharia | 22 | Concluída |
+| 2 | Core SaaS e CRM | 47 | Concluída |
+| 3 | Clientes e Offline-First | 63 | Concluída |
+| 4 | Operação Clínica | 55 | Concluída |
+| 5 | Estoque e Compras | 45 | Concluída |
+| 6 | PDV e Estética | 65 | Concluída |
+| 7 | Financeiro e Fiscal | 65 | Concluída |
+| 8 | Relacionamento e Portal do Tutor | 79 | Concluída |
 | 9 | Plataforma e Super Admin | 107 | Concluída |
 | 10 | Inteligência, Escala e Produção | 71 | Pendente |
 | **Total** | | **619 SP** | **~2% concluído** |

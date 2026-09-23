@@ -158,4 +158,57 @@ public class TutorTests
 
         tutor.UpdatedAt.Should().BeAfter(before);
     }
+
+    [Fact]
+    public void Anonymize_ShouldReplaceIdentifiersWithStableTombstone()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+        var originalCpf = tutor.Cpf.Number;
+
+        var result = tutor.Anonymize();
+
+        result.IsSuccess.Should().BeTrue();
+        tutor.IsAnonymized.Should().BeTrue();
+        tutor.AnonymizedAt.Should().NotBeNull();
+        tutor.Name.Should().Contain(tutor.Id.ToString("N"));
+        tutor.Email.Address.Should().Contain("anonymized");
+        tutor.Cpf.Number.Should().NotBe(originalCpf);
+        tutor.Cpf.Number.Should().HaveLength(11);
+        tutor.Phone.Number.Should().HaveLength(11);
+        tutor.Address.Should().BeNull();
+    }
+
+    [Fact]
+    public void Anonymize_ShouldBeIdempotent()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+        tutor.Anonymize().IsSuccess.Should().BeTrue();
+        var emailAfterFirst = tutor.Email.Address;
+
+        tutor.Anonymize().IsSuccess.Should().BeTrue();
+        tutor.Email.Address.Should().Be(emailAfterFirst);
+    }
+
+    [Fact]
+    public void Update_ShouldReturnFailure_WhenTutorIsAnonymized()
+    {
+        var tutor = Tutor.Create("Maria Silva",
+            Email.Create("maria@example.com").Value,
+            Cpf.Create("12345678909").Value,
+            Phone.Create("11999998888").Value).Value;
+        tutor.Anonymize();
+
+        var result = tutor.Update("New Name",
+            Email.Create("new@example.com").Value,
+            Phone.Create("11888887777").Value);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Tutor.AlreadyAnonymized");
+    }
 }

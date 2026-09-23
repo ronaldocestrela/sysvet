@@ -1,5 +1,8 @@
 using Core.Application.Authorization;
 using Core.Application.Common;
+using Core.Application.Privacy;
+using Core.Application.Privacy.Commands;
+using Core.Application.Privacy.Queries;
 using Core.Application.Tutors.Commands;
 using Core.Application.Tutors.Queries;
 using MediatR;
@@ -58,6 +61,29 @@ public static class TutorEndpointsExtensions
             .WithDescription("Marks the tutor and linked pets as deleted.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        var privacy = builder.MapGroup("/api/v1/privacy/tutors")
+            .RequireAuthorization(AuthorizationPolicies.Admin)
+            .WithTags("Core", "Tutors", "Privacy");
+
+        privacy.MapGet("/retention-candidates", ListRetentionCandidates)
+            .WithName("ListRetentionCandidates")
+            .WithSummary("List tutors eligible for scheduled anonymization")
+            .Produces<IReadOnlyList<RetentionCandidateDto>>(StatusCodes.Status200OK);
+
+        privacy.MapGet("/{id:guid}", ExportTutorPersonalData)
+            .WithName("ExportTutorPersonalData")
+            .WithSummary("Export tutor personal data (LGPD)")
+            .Produces<TutorPersonalDataExportDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        privacy.MapDelete("/{id:guid}", AnonymizeTutorPersonalData)
+            .WithName("AnonymizeTutorPersonalData")
+            .WithSummary("Anonymize tutor personal data (LGPD erasure)")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> CreateTutor(HttpContext context, CreateTutorCommand command, IMediator mediator)
@@ -99,6 +125,24 @@ public static class TutorEndpointsExtensions
         var headerValue = context.Request.Headers["Idempotency-Key"].FirstOrDefault();
         Guid.TryParse(headerValue, out var key);
         var result = await mediator.Send(new DeleteTutorCommand(id, key));
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> ExportTutorPersonalData(Guid id, IMediator mediator)
+    {
+        var result = await mediator.Send(new ExportTutorPersonalDataQuery(id));
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> AnonymizeTutorPersonalData(Guid id, IMediator mediator)
+    {
+        var result = await mediator.Send(new AnonymizeTutorCommand(id));
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> ListRetentionCandidates([AsParameters] ListRetentionCandidatesQuery query, IMediator mediator)
+    {
+        var result = await mediator.Send(query);
         return result.ToHttpResult();
     }
 }

@@ -99,9 +99,19 @@ public class CoreDbContext : IdentityDbContext<AppUser>, IChangeTrackingUnitOfWo
 
         if (typeof(ISoftDeletable).IsAssignableFrom(typeof(TEntity)))
         {
-            modelBuilder.Entity<TEntity>().HasQueryFilter(e =>
-                EF.Property<Guid>(e, "TenantId") == TenantContext.TenantId
-                && EF.Property<bool>(e, nameof(ISoftDeletable.IsDeleted)) == false);
+            if (typeof(IAnonymizable).IsAssignableFrom(typeof(TEntity)))
+            {
+                modelBuilder.Entity<TEntity>().HasQueryFilter(e =>
+                    EF.Property<Guid>(e, "TenantId") == TenantContext.TenantId
+                    && EF.Property<bool>(e, nameof(ISoftDeletable.IsDeleted)) == false
+                    && EF.Property<bool>(e, nameof(IAnonymizable.IsAnonymized)) == false);
+            }
+            else
+            {
+                modelBuilder.Entity<TEntity>().HasQueryFilter(e =>
+                    EF.Property<Guid>(e, "TenantId") == TenantContext.TenantId
+                    && EF.Property<bool>(e, nameof(ISoftDeletable.IsDeleted)) == false);
+            }
         }
         else
         {

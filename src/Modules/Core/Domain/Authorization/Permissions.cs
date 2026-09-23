@@ -64,6 +64,9 @@ public static class Permissions
 
     public const string AuditRead = "Audit.Read";
 
+    public const string PrivacyExport = "Privacy.Export";
+    public const string PrivacyErase = "Privacy.Erase";
+
     public const string ClinicSiteRead = "ClinicSite.Read";
     public const string ClinicSiteWrite = "ClinicSite.Write";
 
@@ -97,6 +100,7 @@ public static class Permissions
         FiscalRead, FiscalWrite,
         AutomationsRead, AutomationsWrite,
         AuditRead,
+        PrivacyExport, PrivacyErase,
         ClinicSiteRead, ClinicSiteWrite,
         CommerceRead, CommerceWrite,
         IntelligenceRead, IntelligenceLayoutWrite

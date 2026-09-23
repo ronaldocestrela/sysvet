@@ -19,6 +19,7 @@ builder.Services.AddApiHealthChecks();
 builder.Services.AddOperationalAlerts(builder.Configuration);
 builder.Services.AddSysVetOpenTelemetry(builder.Configuration, builder.Environment);
 builder.Services.AddBlazorWebCors(builder.Configuration);
+builder.Services.AddSysVetSecurity();
 
 var app = builder.Build();
 
@@ -38,6 +39,8 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 app.UseHttpsRedirection();
+app.UseSysVetSecurityHeaders();
+app.UseRateLimiter();
 app.UseBlazorWebCors();
 
 app.UseMiddleware<CorrelationIdMiddleware>();

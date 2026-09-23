@@ -27,6 +27,11 @@ public interface IFiscalDocumentRepository
         FiscalDocumentStatus? status,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Lists documents whose recipient CPF copy matches.</summary>
+    Task<IReadOnlyList<FiscalDocument>> ListByRecipientCpfAsync(
+        string recipientCpf,
+        CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Loads documents for planning reports: RBT12 window through <paramref name="to"/> plus period cancellations.
     /// </summary>

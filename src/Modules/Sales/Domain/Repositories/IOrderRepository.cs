@@ -21,4 +21,7 @@ public interface IOrderRepository : IRepository<Order>
         OrderStatus status,
         DateTimeOffset updatedAt,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Orders linked to a CRM tutor.</summary>
+    Task<IReadOnlyList<Order>> ListByTutorIdAsync(Guid tutorId, CancellationToken cancellationToken = default);
 }

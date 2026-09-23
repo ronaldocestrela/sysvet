@@ -49,6 +49,18 @@ public sealed class AccessProfileSeeder : IAccessProfileSeeder
                 changed = true;
             }
 
+            if (baseRole == ApplicationRoles.Admin && !existing.PermissionCodes.Contains(Permissions.PrivacyExport))
+            {
+                existing.Grant(Permissions.PrivacyExport);
+                changed = true;
+            }
+
+            if (baseRole == ApplicationRoles.Admin && !existing.PermissionCodes.Contains(Permissions.PrivacyErase))
+            {
+                existing.Grant(Permissions.PrivacyErase);
+                changed = true;
+            }
+
             if (baseRole == ApplicationRoles.Admin && existing.MaxDiscountPercent < 100m)
             {
                 existing.SetMaxDiscountPercent(100m);

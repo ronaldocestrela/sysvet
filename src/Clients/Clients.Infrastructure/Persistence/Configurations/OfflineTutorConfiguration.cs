@@ -21,6 +21,8 @@ public sealed class OfflineTutorConfiguration : IEntityTypeConfiguration<Tutor>
 
         builder.Property(t => t.IsDeleted).IsRequired().HasDefaultValue(false);
         builder.Property(t => t.DeletedAt);
+        builder.Property(t => t.IsAnonymized).IsRequired().HasDefaultValue(false);
+        builder.Property(t => t.AnonymizedAt);
 
         builder.OwnsOne(t => t.Email, e =>
         {

@@ -1,4 +1,5 @@
 using Core.Domain.Events;
+using Core.Domain.Privacy;
 using Core.Domain.ValueObjects;
 
 namespace Core.Domain.Entities;
@@ -6,7 +7,7 @@ namespace Core.Domain.Entities;
 /// <summary>
 /// Aggregate Root que representa o Tutor do pet.
 /// </summary>
-public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
+public class Tutor : AggregateRoot, ISoftDeletable, IAnonymizable, IAuditable
 {
     private readonly List<Pet> _pets = new();
 
@@ -24,10 +25,16 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
     /// <inheritdoc />
     public DateTimeOffset? DeletedAt { get; private set; }
 
+    /// <inheritdoc />
+    public bool IsAnonymized { get; private set; }
+
+    /// <inheritdoc />
+    public DateTimeOffset? AnonymizedAt { get; private set; }
+
     /// <summary>
     /// Tutores ativos podem receber novos pets e ser referenciados em atendimentos.
     /// </summary>
-    public bool IsActive => !IsDeleted;
+    public bool IsActive => !IsDeleted && !IsAnonymized;
 
     /// <summary>
     /// Lista imutável de pets vinculados ao tutor.
@@ -83,6 +90,11 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
     /// <summary>Sets or clears the tutor postal address for fiscal documents.</summary>
     public Result SetAddress(PostalAddress? address)
     {
+        if (IsAnonymized)
+        {
+            return Result.Failure(ErrorCodes.Tutor.AlreadyAnonymized);
+        }
+
         if (IsDeleted)
         {
             return Result.Failure(ErrorCodes.Tutor.AlreadyDeleted);
@@ -96,6 +108,11 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
     /// <summary>Updates mutable tutor fields (CPF remains immutable).</summary>
     public Result Update(string name, Email email, Phone phone)
     {
+        if (IsAnonymized)
+        {
+            return Result.Failure(ErrorCodes.Tutor.AlreadyAnonymized);
+        }
+
         if (IsDeleted)
         {
             return Result.Failure(ErrorCodes.Tutor.AlreadyDeleted);
@@ -119,6 +136,46 @@ public class Tutor : AggregateRoot, ISoftDeletable, IAuditable
         Name = name.Trim();
         Email = email;
         Phone = phone;
+        UpdatedAt = DateTimeOffset.UtcNow;
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Replaces personal identifiers with deterministic tombstones (LGPD erasure); idempotent.
+    /// </summary>
+    public Result Anonymize()
+    {
+        if (IsAnonymized)
+        {
+            return Result.Success();
+        }
+
+        var emailResult = PersonalDataTombstone.Email(Id);
+        if (emailResult.IsFailure)
+        {
+            return Result.Failure(emailResult.Error);
+        }
+
+        var cpfResult = PersonalDataTombstone.Cpf(Id);
+        if (cpfResult.IsFailure)
+        {
+            return Result.Failure(cpfResult.Error);
+        }
+
+        var phoneResult = PersonalDataTombstone.Phone(Id);
+        if (phoneResult.IsFailure)
+        {
+            return Result.Failure(phoneResult.Error);
+        }
+
+        Name = PersonalDataTombstone.Name(Id);
+        Email = emailResult.Value;
+        Cpf = cpfResult.Value;
+        Phone = phoneResult.Value;
+        Address = null;
+        IsAnonymized = true;
+        AnonymizedAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
 
         return Result.Success();

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Fiscal.Infrastructure.Configuration;
 
 /// <summary>Fiscal module configuration.</summary>
@@ -13,5 +15,10 @@ public class FiscalOptions
     public string Provider { get; set; } = "Fake";
 
     /// <summary>AES key for certificate password encryption (min 32 chars).</summary>
+    [MinLength(32)]
     public string CertificateEncryptionKey { get; set; } = "dev-fiscal-cert-key-min-32-chars!!";
+
+    /// <summary>Previous AES key used during rotation (optional).</summary>
+    [MinLength(32)]
+    public string? CertificateEncryptionKeyPrevious { get; set; }
 }

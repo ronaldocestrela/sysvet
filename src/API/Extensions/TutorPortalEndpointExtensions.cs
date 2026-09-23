@@ -29,10 +29,12 @@ public static class TutorPortalEndpointExtensions
             .WithTags("TutorPortal");
 
         group.MapPost("/register", async ([FromBody] RegisterTutorCommand command, IMediator mediator) =>
-            (await mediator.Send(command)).ToHttpResult());
+            (await mediator.Send(command)).ToHttpResult())
+            .RequireRateLimiting(SecurityServiceCollectionExtensions.AuthRateLimitPolicy);
 
         group.MapPost("/login", async ([FromBody] TutorLoginCommand command, IMediator mediator) =>
-            (await mediator.Send(command)).ToHttpResult());
+            (await mediator.Send(command)).ToHttpResult())
+            .RequireRateLimiting(SecurityServiceCollectionExtensions.AuthRateLimitPolicy);
 
         group.MapPost("/refresh", async ([FromBody] RefreshTutorTokenCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());

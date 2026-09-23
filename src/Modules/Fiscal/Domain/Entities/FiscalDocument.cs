@@ -69,6 +69,16 @@ public sealed class FiscalDocument : AggregateRoot
         return Result.Success(doc);
     }
 
+    /// <summary>Replaces recipient copy fields after tutor anonymization (XML blobs unchanged).</summary>
+    public void ReplaceRecipientCopy(string recipientName, string? recipientCpf)
+    {
+        RecipientName = recipientName.Trim();
+        RecipientCpf = string.IsNullOrWhiteSpace(recipientCpf)
+            ? null
+            : new string(recipientCpf.Where(char.IsDigit).ToArray());
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     /// <summary>Adds a product line to an NF-e draft.</summary>
     public Result AddProductItem(
         Guid? productId,

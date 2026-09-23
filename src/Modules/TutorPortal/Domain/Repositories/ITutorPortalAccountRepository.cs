@@ -21,4 +21,7 @@ public interface ITutorPortalAccountRepository
     /// Finds the linkage for a CRM tutor within the current tenant scope.
     /// </summary>
     Task<TutorPortalAccount?> GetByTutorIdAsync(Guid tutorId, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes a portal linkage pending unit-of-work commit.</summary>
+    void Remove(TutorPortalAccount account);
 }

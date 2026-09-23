@@ -63,6 +63,9 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(typeof(Integration.GetOnlineOrdersTodayKpisRequestHandler).Assembly);
         });
 
+        services.AddScoped<Core.Application.Privacy.IPersonalDataExportContributor, Privacy.CommercePersonalDataContributor>();
+        services.AddScoped<Core.Application.Privacy.IPersonalDataErasureContributor, Privacy.CommercePersonalDataContributor>();
+
         return services;
     }
 }

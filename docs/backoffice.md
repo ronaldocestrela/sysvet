@@ -50,6 +50,7 @@ Como a arquitetura exige modularidade estrita, permitindo que cada módulo seja 
 * **Logs de Acesso da Plataforma:** Registro detalhado de logins de todos os tenants (IP, dispositivo, localização).
 * **Auditoria de Configurações:** Rastreamento de quem alterou planos, permissões ou aplicou descontos dentro do Backoffice Super Admin.
 * **Gestão de API Keys:** Controle de chaves de integração para parceiros e contabilidades terceirizadas.
+* **LGPD (titular tutor — 10.6):** Exportação e anonimização via API clínica `/api/v1/privacy/tutors/*` (permissões `Privacy.Export` / `Privacy.Erase`); RIPD em [`lgpd-ripd.md`](arquitetura/lgpd-ripd.md).
 
 ---
 

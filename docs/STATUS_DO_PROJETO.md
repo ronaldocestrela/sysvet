@@ -352,9 +352,17 @@ Iniciado o módulo de estoque.
 - Testes: `Core.Tests` (window, planner, script markers), `Platform.Tests` (billing observer), `API.IntegrationTests` (ops probe, OTEL, fail-fast sample ratio).
 - Aceite trimestral: drill SQL Server documentado no runbook (fora do CI SQLite).
 
-### 👉 **Próxima Ação: Fase 10.6 — Segurança, LGPD e pentest**
+### Fase 10.6 — Segurança, LGPD e pentest — Concluída (ADR-059)
 
-Ver [`roadmap.md`](roadmap.md) §10.6.
+- Tutor: `Anonymize()`, retenção 5 anos, permissões `Privacy.Export` / `Privacy.Erase`.
+- API `/api/v1/privacy/tutors/{id}` (GET export, DELETE anonimização), `/retention-candidates`.
+- Contributors Sales/Fiscal/Commerce/Automations/TutorPortal; headers + rate limit auth; rotação `CertificateEncryptionKey`.
+- RIPD [`lgpd-ripd.md`](arquitetura/lgpd-ripd.md); pentest [`security-pentest-runbook.md`](arquitetura/security-pentest-runbook.md) (zero Critical aberto).
+- Aceite: testes `Core.Tests`, `Fiscal.Tests`, `TutorPrivacyEndpointsTests`, `SecurityHeadersTests`.
+
+### 👉 **Próxima Ação: Fase 10.7 — Testes de carga e rollout**
+
+Ver [`roadmap.md`](roadmap.md) §10.7.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

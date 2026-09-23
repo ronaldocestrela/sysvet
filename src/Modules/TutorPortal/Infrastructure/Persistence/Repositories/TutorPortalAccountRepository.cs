@@ -26,4 +26,7 @@ public sealed class TutorPortalAccountRepository : ITutorPortalAccountRepository
     /// <inheritdoc />
     public Task<TutorPortalAccount?> GetByTutorIdAsync(Guid tutorId, CancellationToken cancellationToken = default) =>
         _dbContext.TutorPortalAccounts.FirstOrDefaultAsync(a => a.TutorId == tutorId, cancellationToken);
+
+    /// <inheritdoc />
+    public void Remove(TutorPortalAccount account) => _dbContext.TutorPortalAccounts.Remove(account);
 }

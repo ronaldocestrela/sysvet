@@ -108,6 +108,7 @@ public static class ErrorCodes
         public static readonly Error DuplicateCpf = new("Tutor.DuplicateCpf", "Já existe um tutor cadastrado com este CPF.");
         public static readonly Error DuplicateEmail = new("Tutor.DuplicateEmail", "Já existe um tutor cadastrado com este e-mail.");
         public static readonly Error AlreadyDeleted = new("Tutor.AlreadyDeleted", "O tutor foi excluído e não pode ser alterado.");
+        public static readonly Error AlreadyAnonymized = new("Tutor.AlreadyAnonymized", "O tutor foi anonimizado e não pode ser alterado.");
     }
 
     /// <summary>

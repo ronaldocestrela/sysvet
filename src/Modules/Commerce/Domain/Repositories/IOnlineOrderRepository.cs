@@ -14,6 +14,10 @@ public interface IOnlineOrderRepository
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Online orders linked to a CRM tutor.</summary>
+    Task<IReadOnlyList<OnlineOrder>> ListByTutorIdAsync(Guid tutorId, CancellationToken cancellationToken = default);
+
     void Add(OnlineOrder order);
     void Update(OnlineOrder order);
 }

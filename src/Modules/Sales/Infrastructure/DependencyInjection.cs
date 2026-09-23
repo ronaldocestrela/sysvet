@@ -56,6 +56,8 @@ public static class DependencyInjection
 
         services.AddScoped<Core.Application.Sync.ISyncPushHandler, Sync.SalesSyncPushHandler>();
         services.AddScoped<Core.Application.Sync.ISyncChangeFeedContributor, Sync.SalesSyncChangeFeedContributor>();
+        services.AddScoped<Core.Application.Privacy.IPersonalDataExportContributor, Privacy.SalesPersonalDataContributor>();
+        services.AddScoped<Core.Application.Privacy.IPersonalDataErasureContributor, Privacy.SalesPersonalDataContributor>();
 
         return services;
     }

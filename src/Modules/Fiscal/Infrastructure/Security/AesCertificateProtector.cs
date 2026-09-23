@@ -6,21 +6,57 @@ using System.Text;
 
 namespace Fiscal.Infrastructure.Security;
 
-/// <summary>AES protector for certificate passwords at rest.</summary>
+/// <summary>AES protector for certificate passwords at rest with optional key rotation.</summary>
 public sealed class AesCertificateProtector : ICertificateProtector
 {
-    private readonly byte[] _key;
+    private const string VersionPrefix = "v1:";
+    private readonly byte[] _currentKey;
+    private readonly byte[]? _previousKey;
 
+    /// <summary>Initializes keys from fiscal options.</summary>
     public AesCertificateProtector(IOptions<FiscalOptions> options)
     {
-        var material = options.Value.CertificateEncryptionKey ?? string.Empty;
-        _key = SHA256.HashData(Encoding.UTF8.GetBytes(material));
+        var fiscal = options.Value;
+        _currentKey = DeriveKey(fiscal.CertificateEncryptionKey);
+        _previousKey = string.IsNullOrWhiteSpace(fiscal.CertificateEncryptionKeyPrevious)
+            ? null
+            : DeriveKey(fiscal.CertificateEncryptionKeyPrevious!);
     }
 
+    /// <inheritdoc />
     public string Encrypt(string plainText)
     {
+        var cipher = EncryptWithKey(plainText, _currentKey);
+        return VersionPrefix + cipher;
+    }
+
+    /// <inheritdoc />
+    public string Decrypt(string cipherText)
+    {
+        if (cipherText.StartsWith(VersionPrefix, StringComparison.Ordinal))
+        {
+            return DecryptWithKey(cipherText[VersionPrefix.Length..], _currentKey);
+        }
+
+        try
+        {
+            return DecryptWithKey(cipherText, _currentKey);
+        }
+        catch (CryptographicException) when (_previousKey is not null)
+        {
+            return DecryptWithKey(cipherText, _previousKey);
+        }
+    }
+
+    private static byte[] DeriveKey(string material)
+    {
+        return SHA256.HashData(Encoding.UTF8.GetBytes(material ?? string.Empty));
+    }
+
+    private static string EncryptWithKey(string plainText, byte[] key)
+    {
         using var aes = Aes.Create();
-        aes.Key = _key;
+        aes.Key = key;
         aes.GenerateIV();
         using var encryptor = aes.CreateEncryptor();
         var plainBytes = Encoding.UTF8.GetBytes(plainText);
@@ -29,11 +65,11 @@ public sealed class AesCertificateProtector : ICertificateProtector
         return Convert.ToBase64String(payload);
     }
 
-    public string Decrypt(string cipherText)
+    private static string DecryptWithKey(string cipherText, byte[] key)
     {
         var payload = Convert.FromBase64String(cipherText);
         using var aes = Aes.Create();
-        aes.Key = _key;
+        aes.Key = key;
         aes.IV = payload.Take(16).ToArray();
         using var decryptor = aes.CreateDecryptor();
         var cipher = payload.Skip(16).ToArray();

@@ -1,5 +1,6 @@
 using Core.Domain;
 using Core.Domain.Entities;
+using Core.Domain.Privacy;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Infrastructure.Persistence.Repositories;
@@ -49,5 +50,24 @@ public class TutorRepository : Repository<Tutor>, ITutorRepository
             .ToListAsync(cancellationToken);
 
         return new PagedList<Tutor>(items, total);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<Tutor>> ListRetentionCandidatesAsync(
+        DateTimeOffset asOfUtc,
+        CancellationToken cancellationToken = default)
+    {
+        var deleted = await _dbContext.Tutors
+            .IgnoreQueryFilters()
+            .Where(t => t.IsDeleted && !t.IsAnonymized && t.DeletedAt != null)
+            .ToListAsync(cancellationToken);
+
+        return deleted
+            .Where(t => PersonalDataRetentionPolicy.IsEligibleForAutomaticAnonymization(
+                t.IsDeleted,
+                t.DeletedAt,
+                t.IsAnonymized,
+                asOfUtc))
+            .ToList();
     }
 }

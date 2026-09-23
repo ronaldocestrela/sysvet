@@ -131,6 +131,15 @@ public sealed class OnlineOrder : AggregateRoot
         return Result.Success(order);
     }
 
+    /// <summary>Replaces buyer contact fields after tutor anonymization.</summary>
+    public void ReplaceBuyerContact(string buyerName, string buyerPhone, string? buyerEmail)
+    {
+        BuyerName = buyerName.Trim();
+        BuyerPhone = buyerPhone.Trim();
+        BuyerEmail = string.IsNullOrWhiteSpace(buyerEmail) ? null : buyerEmail.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     /// <summary>
     /// Marks the order confirmed after stock debit succeeds in the application layer.
     /// </summary>

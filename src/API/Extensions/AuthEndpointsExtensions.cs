@@ -41,7 +41,8 @@ public static class AuthEndpointsExtensions
             }
 
             return result.ToHttpResult();
-        });
+        })
+        .RequireRateLimiting(SecurityServiceCollectionExtensions.AuthRateLimitPolicy);
 
         group.MapPost("/refresh", async ([FromBody] RefreshTokenCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());

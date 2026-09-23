@@ -93,6 +93,9 @@ public static class DependencyInjection
         services.AddHostedService<AutomationsTemplateSeedHostedService>();
         services.AddHostedService<AutomationsSettingsSeedHostedService>();
 
+        services.AddScoped<Core.Application.Privacy.IPersonalDataExportContributor, Privacy.AutomationsPersonalDataContributor>();
+        services.AddScoped<Core.Application.Privacy.IPersonalDataErasureContributor, Privacy.AutomationsPersonalDataContributor>();
+
         return services;
     }
 }
