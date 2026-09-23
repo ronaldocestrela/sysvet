@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Core.Application.Entitlements;
 using Core.Domain;
 using MediatR;
 using Platform.Application.Abstractions;
+using Platform.Application.Auditing;
 using Platform.Domain.Entities;
 using PlatformErrorCodes = Platform.Domain.ErrorCodes;
 using Platform.Domain.Repositories;
@@ -24,6 +26,7 @@ public sealed class SubscriptionCommandHandlers :
     private readonly ISubscriptionAdjustmentRepository _adjustmentRepository;
     private readonly IPlatformUnitOfWork _unitOfWork;
     private readonly ITenantEntitlementReader _entitlementReader;
+    private readonly PlatformBackofficeAuditRecorder _auditRecorder;
 
     /// <summary>Creates handlers.</summary>
     public SubscriptionCommandHandlers(
@@ -33,7 +36,8 @@ public sealed class SubscriptionCommandHandlers :
         IFeatureFlagRepository featureFlagRepository,
         ISubscriptionAdjustmentRepository adjustmentRepository,
         IPlatformUnitOfWork unitOfWork,
-        ITenantEntitlementReader entitlementReader)
+        ITenantEntitlementReader entitlementReader,
+        PlatformBackofficeAuditRecorder auditRecorder)
     {
         _planRepository = planRepository;
         _addOnRepository = addOnRepository;
@@ -42,6 +46,7 @@ public sealed class SubscriptionCommandHandlers :
         _adjustmentRepository = adjustmentRepository;
         _unitOfWork = unitOfWork;
         _entitlementReader = entitlementReader;
+        _auditRecorder = auditRecorder;
     }
 
     /// <inheritdoc />
@@ -66,6 +71,7 @@ public sealed class SubscriptionCommandHandlers :
 
         var asOf = DateTimeOffset.UtcNow;
         var fromPlanId = subscription.PlanId;
+        var fromPlanCode = subscription.Plan.Code;
         var proration = subscription.ChangePlan(newPlan.Id, subscription.Plan.MonthlyPrice, newPlan.MonthlyPrice, asOf);
         if (proration.IsFailure)
         {
@@ -83,6 +89,18 @@ public sealed class SubscriptionCommandHandlers :
         }
 
         await _adjustmentRepository.AddAsync(adjustment.Value, cancellationToken);
+        await _auditRecorder.RecordAsync(
+            request.TenantId,
+            PlatformChangeActions.PlanChanged,
+            JsonSerializer.Serialize(new
+            {
+                fromPlanId,
+                toPlanId = newPlan.Id,
+                fromPlanCode,
+                toPlanCode = newPlan.Code,
+                proration = proration.Value
+            }),
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         _entitlementReader.Invalidate(request.TenantId);
 
@@ -125,6 +143,11 @@ public sealed class SubscriptionCommandHandlers :
             await _adjustmentRepository.AddAsync(adjustment.Value, cancellationToken);
         }
 
+        await _auditRecorder.RecordAsync(
+            request.TenantId,
+            PlatformChangeActions.AddOnActivated,
+            JsonSerializer.Serialize(new { addOnCode = request.AddOnCode, proration = charge.Value }),
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         _entitlementReader.Invalidate(request.TenantId);
         return Result.Success(charge.Value);
@@ -167,6 +190,11 @@ public sealed class SubscriptionCommandHandlers :
             await _adjustmentRepository.AddAsync(adjustment.Value, cancellationToken);
         }
 
+        await _auditRecorder.RecordAsync(
+            request.TenantId,
+            PlatformChangeActions.AddOnDeactivated,
+            JsonSerializer.Serialize(new { addOnCode = request.AddOnCode, proration = charge.Value }),
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         _entitlementReader.Invalidate(request.TenantId);
         return Result.Success(charge.Value);
@@ -182,6 +210,11 @@ public sealed class SubscriptionCommandHandlers :
         }
 
         await _featureFlagRepository.UpsertAsync(flagResult.Value, cancellationToken);
+        await _auditRecorder.RecordAsync(
+            request.TenantId,
+            PlatformChangeActions.FeatureFlagSet,
+            JsonSerializer.Serialize(new { module = request.Module.ToString(), state = request.State.ToString() }),
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         _entitlementReader.Invalidate(request.TenantId);
         return Result.Success();

@@ -39,9 +39,11 @@ app.UseBlazorWebCors();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseAuthentication();
+app.UseMiddleware<PartnerApiKeyMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseMiddleware<ImpersonationSessionMiddleware>();
 app.UseAuthorization();
+app.UseMiddleware<TenantRequestMetricsMiddleware>();
 
 app.MapApiHealthChecks();
 
@@ -67,6 +69,7 @@ routes.MapClinicSitePublicEndpoints();
 routes.MapCommerceEndpoints();
 routes.MapCommercePublicEndpoints();
 routes.MapPlatformEndpoints();
+routes.MapPartnerEndpoints();
 routes.MapClinicBillingEndpoints();
 routes.MapPlatformBillingWebhookEndpoints();
 

@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Core.Application.Messaging;
 using Core.Domain;
 using MediatR;
 using Platform.Application.Abstractions;
+using Platform.Application.Auditing;
 using Platform.Domain.Entities;
 using Platform.Domain.Repositories;
 using PlatformErrorCodes = Platform.Domain.ErrorCodes;
@@ -18,18 +20,21 @@ public sealed class CouponCommandHandlers :
     private readonly ICouponRedemptionRepository _redemptionRepository;
     private readonly ITenantSubscriptionRepository _subscriptionRepository;
     private readonly IPlatformUnitOfWork _unitOfWork;
+    private readonly PlatformBackofficeAuditRecorder _auditRecorder;
 
     /// <summary>Creates handlers.</summary>
     public CouponCommandHandlers(
         ICouponRepository couponRepository,
         ICouponRedemptionRepository redemptionRepository,
         ITenantSubscriptionRepository subscriptionRepository,
-        IPlatformUnitOfWork unitOfWork)
+        IPlatformUnitOfWork unitOfWork,
+        PlatformBackofficeAuditRecorder auditRecorder)
     {
         _couponRepository = couponRepository;
         _redemptionRepository = redemptionRepository;
         _subscriptionRepository = subscriptionRepository;
         _unitOfWork = unitOfWork;
+        _auditRecorder = auditRecorder;
     }
 
     /// <inheritdoc />
@@ -53,6 +58,11 @@ public sealed class CouponCommandHandlers :
         }
 
         await _couponRepository.AddAsync(created.Value, cancellationToken);
+        await _auditRecorder.RecordAsync(
+            null,
+            PlatformChangeActions.CouponCreated,
+            JsonSerializer.Serialize(new { code = created.Value.Code, discountType = created.Value.DiscountType.ToString(), value = created.Value.Value }),
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success(Map(created.Value));
     }
@@ -102,6 +112,11 @@ public sealed class CouponCommandHandlers :
         }
 
         await _redemptionRepository.AddAsync(redemption.Value, cancellationToken);
+        await _auditRecorder.RecordAsync(
+            request.TenantId,
+            PlatformChangeActions.CouponRedeemed,
+            JsonSerializer.Serialize(new { code = coupon.Code, couponId = coupon.Id }),
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

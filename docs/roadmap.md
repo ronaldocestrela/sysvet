@@ -1069,7 +1069,7 @@ flowchart TD
 | **9.4 Gateway de assinatura e cobrança** | 21 | Concluída |
 | **9.5 Dunning, bloqueio e cupons** | 13 | Concluída |
 | **9.6 NFS-e do SaaS e impersonation** | 13 | Concluída |
-| **9.7 Auditoria, API keys e health por tenant** | 8 | Pendente |
+| **9.7 Auditoria, API keys e health por tenant** | 8 | Concluída |
 | **9.8 UI Super Admin (Blazor)** | 13 | Pendente |
 | **Total Fase 9** | **107 SP** | |
 
@@ -1135,14 +1135,14 @@ flowchart TD
 
 ### 9.7 Auditoria, API keys e health por tenant (8 SP)
 
-- [ ] Logs de login (IP, device, geo)
-- [ ] Auditoria alterações backoffice (planos, descontos)
-- [ ] API keys para parceiros/contabilidades
-- [ ] Dashboard health: volume dados, requests, espaço
+- [x] Logs de login (IP, device, geo)
+- [x] Auditoria alterações backoffice (planos, descontos)
+- [x] API keys para parceiros/contabilidades
+- [x] Dashboard health: volume dados, requests, espaço
 
 **Referência:** `backoffice.md` §4.
 
-**Aceite:** API key revogada falha imediatamente; métricas por tenant visíveis.
+**Aceite:** API key revogada falha imediatamente; métricas por tenant visíveis (`RevokedApiKey_FailsImmediately`; `TenantHealth_Visible_PerTenant`; ADR-052).
 
 ### 9.8 UI Super Admin (Blazor) (13 SP)
 

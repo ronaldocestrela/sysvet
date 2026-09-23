@@ -304,9 +304,15 @@ Iniciado o módulo de estoque.
 - API: `POST .../impersonation`, `POST /api/v1/platform/impersonation/{sessionId}/end`, retry NFS-e Super Admin.
 - Aceite: `SaasNfse_Issued_WhenInvoiceSettled`; `Impersonation_WritesImmutableAudit_AndSessionExpires`.
 
-### 👉 **Próxima Ação: Fase 9.7 — Auditoria, API keys e health por tenant**
+### Fase 9.7 — Auditoria, API keys e health por tenant — Concluída (ADR-052)
 
-Ver [`roadmap.md`](roadmap.md) §9.7 e [`backoffice.md`](backoffice.md) §4.
+- Login logs (`PlatformLoginLog`), change audit Super Admin, API keys partner (`X-Api-Key`) e health por tenant.
+- API: `/api/v1/platform/login-logs`, `/change-audits`, `/tenants/{id}/health|api-keys`, `/api/v1/partner/health`.
+- Aceite: `RevokedApiKey_FailsImmediately`; `TenantHealth_Visible_PerTenant`; login log com IP/User-Agent.
+
+### 👉 **Próxima Ação: Fase 9.8 — UI Super Admin (Blazor)**
+
+Ver [`roadmap.md`](roadmap.md) §9.8.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

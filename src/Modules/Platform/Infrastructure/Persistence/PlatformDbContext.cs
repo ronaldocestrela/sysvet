@@ -69,6 +69,18 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeT
     /// <summary>Impersonation audit trail (9.6).</summary>
     public DbSet<ImpersonationAuditEntry> ImpersonationAuditEntries => Set<ImpersonationAuditEntry>();
 
+    /// <summary>Staff login attempts across tenants (9.7).</summary>
+    public DbSet<PlatformLoginLog> PlatformLoginLogs => Set<PlatformLoginLog>();
+
+    /// <summary>Super Admin configuration change audit (9.7).</summary>
+    public DbSet<PlatformChangeAuditEntry> PlatformChangeAuditEntries => Set<PlatformChangeAuditEntry>();
+
+    /// <summary>Partner API keys (9.7).</summary>
+    public DbSet<PartnerApiKey> PartnerApiKeys => Set<PartnerApiKey>();
+
+    /// <summary>Daily API request counters per tenant (9.7).</summary>
+    public DbSet<TenantRequestDaily> TenantRequestDailies => Set<TenantRequestDaily>();
+
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)

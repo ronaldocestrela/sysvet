@@ -75,6 +75,7 @@ internal static class IntegrationTestDatabaseHelper
         await platformContext.Database.MigrateAsync();
         await EnsurePlatformDunningSchemaAsync(platformContext);
         await EnsurePlatformNfseImpersonationSchemaAsync(platformContext);
+        await EnsurePlatformAuditApiKeysHealthSchemaAsync(platformContext);
         await PlatformCatalogTestSeeder.EnsureCatalogAsync(scope.ServiceProvider);
 
         await EnsureDefaultPlatformTenantAsync(scope, platformContext);
@@ -302,6 +303,61 @@ internal static class IntegrationTestDatabaseHelper
                 UpdatedAt TEXT NOT NULL,
                 RowVersion BLOB NOT NULL
             );
+            """);
+    }
+
+    private static async Task EnsurePlatformAuditApiKeysHealthSchemaAsync(global::Platform.Infrastructure.Persistence.PlatformDbContext context)
+    {
+        await context.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS PlatformLoginLogs (
+                Id TEXT NOT NULL PRIMARY KEY,
+                TenantId TEXT NULL,
+                Email TEXT NOT NULL,
+                Succeeded INTEGER NOT NULL,
+                ClientIp TEXT NOT NULL,
+                UserAgent TEXT NOT NULL,
+                Country TEXT NOT NULL,
+                Region TEXT NOT NULL,
+                OccurredAt TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS PlatformChangeAuditEntries (
+                Id TEXT NOT NULL PRIMARY KEY,
+                ActorUserId TEXT NOT NULL,
+                TenantId TEXT NULL,
+                Action TEXT NOT NULL,
+                PayloadSummary TEXT NOT NULL,
+                ClientIp TEXT NOT NULL,
+                OccurredAt TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS PlatformPartnerApiKeys (
+                Id TEXT NOT NULL PRIMARY KEY,
+                TenantId TEXT NOT NULL,
+                PartnerName TEXT NOT NULL,
+                KeyPrefix TEXT NOT NULL,
+                SecretHash TEXT NOT NULL,
+                Scope TEXT NOT NULL,
+                CreatedByUserId TEXT NOT NULL,
+                CreatedAt TEXT NOT NULL,
+                RevokedAt TEXT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformPartnerApiKeys_SecretHash
+                ON PlatformPartnerApiKeys (SecretHash);
+            CREATE TABLE IF NOT EXISTS PlatformTenantRequestDailies (
+                Id TEXT NOT NULL PRIMARY KEY,
+                TenantId TEXT NOT NULL,
+                DateUtc TEXT NOT NULL,
+                RequestCount INTEGER NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformTenantRequestDailies_TenantId_DateUtc
+                ON PlatformTenantRequestDailies (TenantId, DateUtc);
             """);
     }
 

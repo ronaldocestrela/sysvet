@@ -128,6 +128,33 @@ public static class ErrorCodes
         public static readonly Error Forbidden = new("Platform.Impersonation.Forbidden", "Operação não permitida para esta sessão.");
     }
 
+    /// <summary>Platform audit and login log errors (9.7).</summary>
+    public static class Audit
+    {
+        public static readonly Error InvalidEmail = new("Platform.Audit.InvalidEmail", "E-mail de login inválido.");
+        public static readonly Error InvalidActor = new("Platform.Audit.InvalidActor", "Operador de auditoria inválido.");
+        public static readonly Error InvalidAction = new("Platform.Audit.InvalidAction", "Ação de auditoria inválida.");
+    }
+
+    /// <summary>Partner API key errors (9.7).</summary>
+    public static class ApiKey
+    {
+        public static readonly Error InvalidTenant = new("Platform.ApiKey.InvalidTenant", "Tenant inválido para API key.");
+        public static readonly Error InvalidPartnerName = new("Platform.ApiKey.InvalidPartnerName", "Nome do parceiro inválido.");
+        public static readonly Error InvalidSecret = new("Platform.ApiKey.InvalidSecret", "Segredo de API key inválido.");
+        public static readonly Error NotFound = new("Platform.ApiKey.NotFound", "API key não encontrada.");
+        public static readonly Error AlreadyRevoked = new("Platform.ApiKey.AlreadyRevoked", "API key já revogada.");
+        public static readonly Error MissingHeader = new("Platform.ApiKey.MissingHeader", "Cabeçalho X-Api-Key ausente.");
+        public static readonly Error Invalid = new("Platform.ApiKey.Invalid", "API key inválida ou revogada.");
+    }
+
+    /// <summary>Tenant health metrics errors (9.7).</summary>
+    public static class Health
+    {
+        public static readonly Error InvalidTenant = new("Platform.Health.InvalidTenant", "Tenant inválido para health.");
+        public static readonly Error InvalidCounter = new("Platform.Health.InvalidCounter", "Contador de requests inválido.");
+    }
+
     /// <summary>Coupon catalog errors (9.5).</summary>
     public static class Coupon
     {

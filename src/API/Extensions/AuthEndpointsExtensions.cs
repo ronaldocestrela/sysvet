@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Platform.Application.Auditing;
 
 namespace API.Extensions;
 
@@ -22,8 +23,25 @@ public static class AuthEndpointsExtensions
         var group = builder.MapGroup("/api/v1/auth")
             .WithTags("Core", "Auth");
 
-        group.MapPost("/login", async ([FromBody] LoginCommand command, IMediator mediator) =>
-            (await mediator.Send(command)).ToHttpResult());
+        group.MapPost("/login", async ([FromBody] LoginCommand command, HttpContext httpContext, IMediator mediator) =>
+        {
+            var result = await mediator.Send(command);
+            try
+            {
+                await mediator.Send(new RecordPlatformLoginCommand(
+                    command.Email,
+                    result.IsSuccess,
+                    null,
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    httpContext.Request.Headers.UserAgent.ToString()));
+            }
+            catch
+            {
+                // Login audit must not block authentication.
+            }
+
+            return result.ToHttpResult();
+        });
 
         group.MapPost("/refresh", async ([FromBody] RefreshTokenCommand command, IMediator mediator) =>
             (await mediator.Send(command)).ToHttpResult());

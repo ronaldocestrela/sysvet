@@ -57,6 +57,7 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-049](./ADR-049-gateway-assinatura-asaas.md) | Gateway Asaas — assinatura e cobrança (9.4) | Accepted |
 | [ADR-050](./ADR-050-dunning-bloqueio-cupons.md) | Dunning, bloqueio operacional e cupons (9.5) | Accepted |
 | [ADR-051](./ADR-051-nfse-saas-impersonation.md) | NFS-e SaaS e impersonation (9.6) | Accepted |
+| [ADR-052](./ADR-052-auditoria-api-keys-health.md) | Auditoria, API keys e health por tenant (9.7) | Accepted |
 
 Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 

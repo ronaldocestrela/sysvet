@@ -13,6 +13,9 @@ using Platform.Application.Tenants.Commands;
 using Platform.Application.Tenants.Dtos;
 using Platform.Application.Tenants.Queries;
 using Platform.Application.Impersonation;
+using Platform.Application.Auditing;
+using Platform.Application.ApiKeys;
+using Platform.Application.Health;
 using Platform.Domain.Entities;
 
 namespace API.Extensions;
@@ -39,6 +42,8 @@ public static class PlatformEndpointsExtensions
         catalog.MapPost("/coupons", CreateCoupon);
         catalog.MapGet("/impersonation-audits", ListImpersonationAudits);
         catalog.MapPost("/impersonation/{sessionId:guid}/end", EndImpersonation);
+        catalog.MapGet("/login-logs", ListPlatformLoginLogs);
+        catalog.MapGet("/change-audits", ListPlatformChangeAudits);
     }
 
     /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
@@ -73,6 +78,10 @@ public static class PlatformEndpointsExtensions
         group.MapPost("/{tenantId:guid}/billing/coupon", RedeemCoupon);
         group.MapPost("/{tenantId:guid}/billing/invoices/{invoiceId:guid}/nfse", RetrySaasNfse);
         group.MapPost("/{tenantId:guid}/impersonation", StartImpersonation);
+        group.MapGet("/{tenantId:guid}/health", GetTenantHealth);
+        group.MapGet("/{tenantId:guid}/api-keys", ListPartnerApiKeys);
+        group.MapPost("/{tenantId:guid}/api-keys", CreatePartnerApiKey);
+        group.MapPost("/{tenantId:guid}/api-keys/{keyId:guid}/revoke", RevokePartnerApiKey);
 
         return builder;
     }
@@ -153,6 +162,33 @@ public static class PlatformEndpointsExtensions
         IMediator mediator) =>
         mediator.Send(new ListImpersonationAuditsQuery(take <= 0 ? 100 : take));
 
+    private static Task<Result<IReadOnlyList<PlatformLoginLogDto>>> ListPlatformLoginLogs(
+        [FromQuery] Guid? tenantId,
+        [FromQuery] int take,
+        IMediator mediator) =>
+        mediator.Send(new ListPlatformLoginLogsQuery(tenantId, take <= 0 ? 100 : take));
+
+    private static Task<Result<IReadOnlyList<PlatformChangeAuditDto>>> ListPlatformChangeAudits(
+        [FromQuery] Guid? tenantId,
+        [FromQuery] int take,
+        IMediator mediator) =>
+        mediator.Send(new ListPlatformChangeAuditsQuery(tenantId, take <= 0 ? 100 : take));
+
+    private static Task<Result<TenantHealthDto>> GetTenantHealth(Guid tenantId, IMediator mediator) =>
+        mediator.Send(new GetTenantHealthQuery(tenantId));
+
+    private static Task<Result<IReadOnlyList<PartnerApiKeySummaryDto>>> ListPartnerApiKeys(Guid tenantId, IMediator mediator) =>
+        mediator.Send(new ListPartnerApiKeysQuery(tenantId));
+
+    private static Task<Result<CreatePartnerApiKeyResultDto>> CreatePartnerApiKey(
+        Guid tenantId,
+        [FromBody] CreatePartnerApiKeyRequest body,
+        IMediator mediator) =>
+        mediator.Send(new CreatePartnerApiKeyCommand(tenantId, body.PartnerName));
+
+    private static Task<Result> RevokePartnerApiKey(Guid tenantId, Guid keyId, IMediator mediator) =>
+        mediator.Send(new RevokePartnerApiKeyCommand(tenantId, keyId));
+
     private static string ResolveClientIp(HttpContext context) =>
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
@@ -214,4 +250,7 @@ public static class PlatformEndpointsExtensions
 
     /// <summary>Redeem coupon body.</summary>
     public sealed record RedeemCouponRequest(string Code);
+
+    /// <summary>Create partner API key body.</summary>
+    public sealed record CreatePartnerApiKeyRequest(string PartnerName);
 }
