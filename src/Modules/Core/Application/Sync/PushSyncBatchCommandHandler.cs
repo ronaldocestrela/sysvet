@@ -1,3 +1,4 @@
+using Core.Application.Common.Interfaces;
 using Core.Application.Pets.Commands;
 using Core.Application.Tutors.Commands;
 using Core.Domain;
@@ -12,14 +13,22 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
 {
     private readonly IMediator _mediator;
     private readonly IEnumerable<ISyncPushHandler> _modulePushHandlers;
+    private readonly ISyncPushObserver _syncPushObserver;
+    private readonly ITenantContext _tenantContext;
 
     /// <summary>
     /// Creates the handler.
     /// </summary>
-    public PushSyncBatchCommandHandler(IMediator mediator, IEnumerable<ISyncPushHandler> modulePushHandlers)
+    public PushSyncBatchCommandHandler(
+        IMediator mediator,
+        IEnumerable<ISyncPushHandler> modulePushHandlers,
+        ITenantContext tenantContext,
+        ISyncPushObserver syncPushObserver)
     {
         _mediator = mediator;
         _modulePushHandlers = modulePushHandlers;
+        _tenantContext = tenantContext;
+        _syncPushObserver = syncPushObserver;
     }
 
     /// <inheritdoc />
@@ -43,6 +52,7 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
 
             if (command is null)
             {
+                NotifyPushFailure(message.Id, "Sync.UnknownCommandType", true);
                 return Result.Success(new SyncPushResult
                 {
                     ProcessedIds = processed,
@@ -56,13 +66,15 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
             var sendResult = await DispatchAsync(command, cancellationToken);
             if (sendResult.IsFailure)
             {
+                var permanent = SyncOutboxCommandMapper.IsPermanentFailure(sendResult.Error);
+                NotifyPushFailure(message.Id, sendResult.Error.Code, permanent);
                 return Result.Success(new SyncPushResult
                 {
                     ProcessedIds = processed,
                     FailedMessageId = message.Id,
                     ErrorCode = sendResult.Error.Code,
                     ErrorMessage = sendResult.Error.Message,
-                    IsPermanentFailure = SyncOutboxCommandMapper.IsPermanentFailure(sendResult.Error)
+                    IsPermanentFailure = permanent
                 });
             }
 
@@ -70,6 +82,11 @@ public sealed class PushSyncBatchCommandHandler : IRequestHandler<PushSyncBatchC
         }
 
         return Result.Success(new SyncPushResult { ProcessedIds = processed });
+    }
+
+    private void NotifyPushFailure(Guid messageId, string errorCode, bool isPermanentFailure)
+    {
+        _syncPushObserver.OnPushFailure(_tenantContext.TenantId, messageId, errorCode, isPermanentFailure);
     }
 
     private object? TryMapModuleCommand(SyncOutboxMessageDto message)

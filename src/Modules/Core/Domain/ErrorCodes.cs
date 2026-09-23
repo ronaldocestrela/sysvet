@@ -205,5 +205,8 @@ public static class ErrorCodes
         /// Route identifier does not match the command or body identifier.
         /// </summary>
         public static readonly Error RouteIdMismatch = new("Request.RouteIdMismatch", "O ID da rota difere do ID do comando.");
+
+        /// <summary>Malformed or unsafe backup plan parameters.</summary>
+        public static readonly Error InvalidPayload = new("Request.InvalidPayload", "Parâmetros de backup inválidos.");
     }
 }

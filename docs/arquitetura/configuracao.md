@@ -43,6 +43,10 @@ O provider EF Core é definido em `Database:Provider` (`Sqlite` ou `SqlServer`).
 | `Database:ConnectionStringName` | `DefaultConnection` | `DefaultConnection` | Nome da entrada em `ConnectionStrings` |
 | `Cache:Provider` | `Memory` | `Redis` (staging/prod) | Cache distribuído para queries e entitlements (ADR-057) |
 | `Cache:ConnectionString` / `Cache__ConnectionString` | — | **Obrigatório** com Redis | Connection string StackExchange.Redis |
+| `Observability:TraceSampleRatio` | `1.0` | `0.1` (typ.) | Amostragem OpenTelemetry (0–1) |
+| `Observability:OtlpEndpoint` | — | URL collector | Export OTLP; vazio desliga export |
+| `Observability:ConsoleExporter` | `false` | `true` em dev opcional | Trace/metric console |
+| `Backup:RetentionDays` | `14` | `14` | Retenção de arquivos `.bak` no operador |
 
 Segredos **não** devem ser commitados. Em Development, use User Secrets quando preferir não manter o JWT no disco:
 
@@ -270,6 +274,26 @@ O [`CorrelationIdMiddleware`](../../src/API/Middlewares/CorrelationIdMiddleware.
 - Entrada: lê o header `X-Correlation-Id`; se ausente, usa `Activity.Current?.Id` ou `HttpContext.TraceIdentifier`.
 - O valor é fixado em `HttpContext.TraceIdentifier`, devolvido no header de resposta e incluído no escopo de log (`CorrelationId`) via `ILogger.BeginScope`.
 - **Logging estruturado:** em [`appsettings.json`](../../src/API/appsettings.json), o console usa formatter **JSON** com `IncludeScopes: true`, para que agregadores (Datadog, Kibana, etc.) indexem o correlation id sem Serilog.
+
+### OpenTelemetry e alertas operacionais (10.5 — ADR-058)
+
+Composição: [`AddSysVetOpenTelemetry`](../../src/API/Extensions/OpenTelemetryServiceCollectionExtensions.cs) + [`AddOperationalAlerts`](../../src/API/Extensions/OperationalAlertServiceCollectionExtensions.cs).
+
+| Sinal | Origem | Log / métrica |
+|-------|--------|----------------|
+| `Http5xx` | [`Http5xxOperationalAlertMiddleware`](../../src/API/Middlewares/Http5xxOperationalAlertMiddleware.cs) | Scope `OperationalAlert`; counter `operational.alerts.raised` |
+| `SyncPushFailure` | [`PushSyncBatchCommandHandler`](../../src/Modules/Core/Application/Sync/PushSyncBatchCommandHandler.cs) via `ISyncPushObserver` | Janela 1 min (default 5 falhas) |
+| `BillingChargeFailure` | [`BillingPaymentExecutor`](../../src/Modules/Platform/Application/Billing/BillingPaymentExecutor.cs) via `IBillingChargeObserver` | Evento imediato por cobrança falha |
+
+Checks **ops** (tag `ops`, apenas em `GET /health`, não em `ready`):
+
+| Nome | Descrição |
+|------|-----------|
+| `ops-http-5xx` | Degraded se taxa 5xx &gt; limiar |
+| `ops-sync-push` | Degraded se falhas push &gt; limiar |
+| `ops-billing-failures` | Degraded se faturas `Failed` ≥ `Observability:BillingFailedInvoiceThreshold` |
+
+Backup SQL Server: planner [`SqlServerBackupPlan`](../../src/Modules/Core/Application/Operations/SqlServerBackupPlan.cs), operação [`scripts/sqlserver-backup-restore-drill.sh`](../../scripts/sqlserver-backup-restore-drill.sh), runbook [`backup-dr-runbook.md`](./backup-dr-runbook.md).
 
 ## 3. Health Checks
 

@@ -1165,7 +1165,7 @@ flowchart TD
 | **10.2 Métricas SaaS (MRR, churn, LTV, CAC)** | 13 | Concluída |
 | **10.3 Curva ABC, produtividade e adoção de módulos** | 8 | Concluída |
 | **10.4 Performance, cache e escalabilidade** | 8 | Concluída |
-| **10.5 Backup, DR e observabilidade avançada** | 8 | Pendente |
+| **10.5 Backup, DR e observabilidade avançada** | 8 | Concluída |
 | **10.6 Segurança, LGPD e pentest** | 13 | Pendente |
 | **10.7 Testes de carga e rollout** | 8 | Pendente |
 | **Total Fase 10** | **71 SP** | |
@@ -1210,11 +1210,11 @@ flowchart TD
 
 ### 10.5 Backup, DR e observabilidade avançada (8 SP)
 
-- [ ] Backup automático SQL Server; restore testado
-- [ ] APM (Application Insights ou OpenTelemetry)
-- [ ] Alertas: erro 5xx, fila sync, falha billing
+- [x] Backup automático SQL Server; restore testado
+- [x] APM (Application Insights ou OpenTelemetry)
+- [x] Alertas: erro 5xx, fila sync, falha billing
 
-**Aceite:** Restore de backup validado trimestralmente (runbook).
+**Aceite:** Restore de backup validado trimestralmente (runbook). ADR-058; [`backup-dr-runbook.md`](arquitetura/backup-dr-runbook.md); `scripts/sqlserver-backup-restore-drill.sh`; OpenTelemetry + checks `ops-*` em `GET /health`.
 
 ### 10.6 Segurança, LGPD e pentest (13 SP)
 

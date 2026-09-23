@@ -16,6 +16,8 @@ builder.Services.AddProblemDetails(options =>
 builder.Services.AddApiDocumentation();
 builder.Services.AddApplicationModules(builder.Configuration);
 builder.Services.AddApiHealthChecks();
+builder.Services.AddOperationalAlerts(builder.Configuration);
+builder.Services.AddSysVetOpenTelemetry(builder.Configuration, builder.Environment);
 builder.Services.AddBlazorWebCors(builder.Configuration);
 
 var app = builder.Build();
@@ -31,6 +33,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseOperationalAlertMiddleware();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
@@ -46,6 +49,7 @@ app.UseAuthorization();
 app.UseMiddleware<TenantRequestMetricsMiddleware>();
 
 app.MapApiHealthChecks();
+app.MapOperationalAlertProbe();
 
 var routes = app.MapGroup(string.Empty)
     .AddEndpointFilter<ResultEndpointFilter>()

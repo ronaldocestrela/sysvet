@@ -343,9 +343,18 @@ Iniciado o módulo de estoque.
 - Baseline CI: `tests/LoadTests`; runbook [`load-baseline.md`](arquitetura/load-baseline.md).
 - Aceite: P95 &lt; 500 ms no harness CI; staging documentado no runbook.
 
-### 👉 **Próxima Ação: Fase 10.5 — Backup, DR e observabilidade avançada**
+### Fase 10.5 — Backup, DR e observabilidade avançada — Concluída (ADR-058)
 
-Ver [`roadmap.md`](roadmap.md) §10.5.
+- OpenTelemetry na API (`AddSysVetOpenTelemetry`): ASP.NET Core, HttpClient, runtime; OTLP opcional; meter `SysVet.Operations`.
+- Alertas in-process: `OperationalAlertWindow`, log `OperationalAlert` (`Http5xx`, `SyncPushFailure`, `BillingChargeFailure`); middleware 5xx; `ISyncPushObserver` / `IBillingChargeObserver`.
+- Health ops (somente `GET /health`): `ops-http-5xx`, `ops-sync-push`, `ops-billing-failures` — não entram em `/health/ready`.
+- Backup/DR: `SqlServerBackupPlan`, script [`sqlserver-backup-restore-drill.sh`](../scripts/sqlserver-backup-restore-drill.sh), runbook [`backup-dr-runbook.md`](arquitetura/backup-dr-runbook.md).
+- Testes: `Core.Tests` (window, planner, script markers), `Platform.Tests` (billing observer), `API.IntegrationTests` (ops probe, OTEL, fail-fast sample ratio).
+- Aceite trimestral: drill SQL Server documentado no runbook (fora do CI SQLite).
+
+### 👉 **Próxima Ação: Fase 10.6 — Segurança, LGPD e pentest**
+
+Ver [`roadmap.md`](roadmap.md) §10.6.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

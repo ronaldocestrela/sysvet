@@ -18,7 +18,8 @@ public static class BillingPaymentExecutor
         IBillingPaymentMethodRepository paymentMethodRepository,
         IBillingGateway billingGateway,
         DateTimeOffset asOfUtc,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IBillingChargeObserver? chargeObserver = null)
     {
         if (!invoice.IsOutstanding)
         {
@@ -56,6 +57,7 @@ public static class BillingPaymentExecutor
         {
             invoice.MarkFailed();
             subscription.RecordPaymentOverdue(asOfUtc);
+            chargeObserver?.OnChargeFailure(invoice.TenantId, invoice.Id);
             return Result.Failure<string>(gatewayPayment.Error);
         }
 

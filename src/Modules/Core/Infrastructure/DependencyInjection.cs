@@ -104,6 +104,7 @@ public static class DependencyInjection
         services.AddScoped<Core.Application.Common.Interfaces.ICurrentUser, HttpCurrentUser>();
         services.AddScoped<Core.Application.Common.Interfaces.IDomainEventDispatcher, MediatRDomainEventDispatcher>();
         services.TryAddSingleton<ITutorNotificationChannel, NullTutorNotificationChannel>();
+        services.TryAddSingleton<ISyncPushObserver, NullSyncPushObserver>();
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IAccessTokenIssuer, JwtAccessTokenIssuer>();

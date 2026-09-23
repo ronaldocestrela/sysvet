@@ -23,6 +23,7 @@ public sealed class DunningCommandHandlers : IRequestHandler<ProcessDunningComma
     private readonly IDunningNotifier _notifier;
     private readonly IPlatformUnitOfWork _unitOfWork;
     private readonly DunningOptions _options;
+    private readonly IBillingChargeObserver _chargeObserver;
 
     /// <summary>Creates handlers.</summary>
     public DunningCommandHandlers(
@@ -34,7 +35,8 @@ public sealed class DunningCommandHandlers : IRequestHandler<ProcessDunningComma
         IBillingGateway billingGateway,
         IDunningNotifier notifier,
         IPlatformUnitOfWork unitOfWork,
-        IOptions<DunningOptions> options)
+        IOptions<DunningOptions> options,
+        IBillingChargeObserver chargeObserver)
     {
         _subscriptionRepository = subscriptionRepository;
         _invoiceRepository = invoiceRepository;
@@ -45,6 +47,7 @@ public sealed class DunningCommandHandlers : IRequestHandler<ProcessDunningComma
         _notifier = notifier;
         _unitOfWork = unitOfWork;
         _options = options.Value;
+        _chargeObserver = chargeObserver;
     }
 
     /// <inheritdoc />
@@ -113,7 +116,8 @@ public sealed class DunningCommandHandlers : IRequestHandler<ProcessDunningComma
                     _paymentMethodRepository,
                     _billingGateway,
                     request.AsOfUtc,
-                    cancellationToken);
+                    cancellationToken,
+                    _chargeObserver);
                 if (charge.IsSuccess)
                 {
                     CardRetryPolicy.RecordAttemptScheduled(invoice, request.AsOfUtc);

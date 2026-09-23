@@ -19,6 +19,7 @@ public sealed class ClinicBillingCommandHandlers :
     private readonly IBillingPaymentMethodRepository _paymentMethodRepository;
     private readonly IBillingGateway _billingGateway;
     private readonly IPlatformUnitOfWork _unitOfWork;
+    private readonly IBillingChargeObserver _chargeObserver;
 
     /// <summary>Creates handlers.</summary>
     public ClinicBillingCommandHandlers(
@@ -27,7 +28,8 @@ public sealed class ClinicBillingCommandHandlers :
         IBillingCustomerRepository customerRepository,
         IBillingPaymentMethodRepository paymentMethodRepository,
         IBillingGateway billingGateway,
-        IPlatformUnitOfWork unitOfWork)
+        IPlatformUnitOfWork unitOfWork,
+        IBillingChargeObserver chargeObserver)
     {
         _subscriptionRepository = subscriptionRepository;
         _invoiceRepository = invoiceRepository;
@@ -35,6 +37,7 @@ public sealed class ClinicBillingCommandHandlers :
         _paymentMethodRepository = paymentMethodRepository;
         _billingGateway = billingGateway;
         _unitOfWork = unitOfWork;
+        _chargeObserver = chargeObserver;
     }
 
     /// <inheritdoc />
@@ -86,7 +89,8 @@ public sealed class ClinicBillingCommandHandlers :
             _paymentMethodRepository,
             _billingGateway,
             request.AsOfUtc,
-            cancellationToken);
+            cancellationToken,
+            _chargeObserver);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         if (charge.IsFailure)

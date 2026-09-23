@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Platform.Application.Abstractions;
 using Platform.Application.Provisioning;
@@ -47,6 +48,8 @@ public static class DependencyInjection
         services.AddValidatedOptions<DunningOptions>(configuration, DunningOptions.SectionName);
         services.AddValidatedOptions<NfseOptions>(configuration, NfseOptions.SectionName);
         services.AddValidatedOptions<ImpersonationOptions>(configuration, ImpersonationOptions.SectionName);
+
+        services.TryAddSingleton<IBillingChargeObserver, NullBillingChargeObserver>();
 
         services.AddDbContext<PlatformDbContext>((serviceProvider, options) =>
         {
