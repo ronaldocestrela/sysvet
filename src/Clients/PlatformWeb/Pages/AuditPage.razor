@@ -1,0 +1,78 @@
+@page "/audit"
+@inject IPlatformAdminApi PlatformApi
+
+<h1>Auditoria da plataforma</h1>
+
+<h2 class="h5 mt-3">Logins</h2>
+<table class="table table-sm">
+    <thead><tr><th>E-mail</th><th>IP</th><th>Sucesso</th><th>Quando</th></tr></thead>
+    <tbody>
+        @foreach (var row in _loginLogs)
+        {
+            <tr>
+                <td>@row.Email</td>
+                <td>@row.ClientIp</td>
+                <td>@row.Succeeded</td>
+                <td>@row.OccurredAt.LocalDateTime.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2 class="h5 mt-4">Alterações de configuração</h2>
+<table class="table table-sm">
+    <thead><tr><th>Ação</th><th>Resumo</th><th>Quando</th></tr></thead>
+    <tbody>
+        @foreach (var row in _changeAudits)
+        {
+            <tr>
+                <td>@row.Action</td>
+                <td>@row.PayloadSummary</td>
+                <td>@row.OccurredAt.LocalDateTime.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2 class="h5 mt-4">Impersonation</h2>
+<table class="table table-sm">
+    <thead><tr><th>Sessão</th><th>Ação</th><th>IP</th><th>Quando</th></tr></thead>
+    <tbody>
+        @foreach (var row in _impersonationAudits)
+        {
+            <tr>
+                <td>@row.SessionId</td>
+                <td>@row.Action</td>
+                <td>@row.ClientIp</td>
+                <td>@row.OccurredAt.LocalDateTime.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private IReadOnlyList<PlatformLoginLogDto> _loginLogs = [];
+    private IReadOnlyList<PlatformChangeAuditDto> _changeAudits = [];
+    private IReadOnlyList<PlatformImpersonationAuditDto> _impersonationAudits = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var logins = await PlatformApi.ListLoginLogsAsync(null, 50);
+        var changes = await PlatformApi.ListChangeAuditsAsync(null, 50);
+        var impersonation = await PlatformApi.ListImpersonationAuditsAsync(50);
+        if (logins.IsSuccess)
+        {
+            _loginLogs = logins.Value;
+        }
+
+        if (changes.IsSuccess)
+        {
+            _changeAudits = changes.Value;
+        }
+
+        if (impersonation.IsSuccess)
+        {
+            _impersonationAudits = impersonation.Value;
+        }
+    }
+}

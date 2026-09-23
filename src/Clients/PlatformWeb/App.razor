@@ -1,0 +1,7 @@
+@using PlatformWeb.Routing
+
+<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFoundPage)">
+    <Found Context="routeData">
+        <PlatformAuthorizeRouteView RouteData="@routeData" />
+    </Found>
+</Router>

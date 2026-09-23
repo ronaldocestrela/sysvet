@@ -201,7 +201,15 @@ curl -sk -X POST https://localhost:7180/api/v1/auth/login \
 
 - **Build Linux/WSL:** workload `wasm-tools` + pacote `libatomic1` (link nativo WASM/SQLite via `WasmBuildNative`; sem `libatomic.so.1` o `emcc` falha com exit 127).
 - **API base URL:** `src/Clients/BlazorWeb/wwwroot/appsettings.Development.json` → `"ApiBaseUrl": "https://localhost:7180/"`.
-- **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252`, `http://localhost:5259` (BlazorWeb staff) e `https://localhost:7262`, `http://localhost:5260` (TutorPortalWeb).
+- **CORS:** `Cors:AllowedOrigins` na API inclui `https://localhost:7252`, `http://localhost:5259` (BlazorWeb staff), `https://localhost:7262`, `http://localhost:5260` (TutorPortalWeb) e `https://localhost:7282`, `http://localhost:5280` (PlatformWeb Super Admin).
+
+### PlatformWeb Super Admin (Fase 9.8)
+
+- **Client:** `src/Clients/PlatformWeb/` — PWA fino, tokens `platform_*` em localStorage.
+- **API base URL:** `src/Clients/PlatformWeb/wwwroot/appsettings.Development.json` → `"ApiBaseUrl": "https://localhost:7180/"`.
+- **Dev login:** usuário seed `superadmin@vetnexus.app` / `Password123!` (Development).
+- **Run:** `dotnet run --project src/Clients/PlatformWeb/PlatformWeb.csproj` → `https://localhost:7282`.
+- Ver [ADR-053](./ADR-053-platform-super-admin-ui.md).
 
 ### TutorPortal Web Push (Fase 8.5)
 

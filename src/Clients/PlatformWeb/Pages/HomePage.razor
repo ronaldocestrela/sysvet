@@ -1,0 +1,6 @@
+@page "/"
+@inject INavigationService Navigation
+
+@code {
+    protected override void OnInitialized() => Navigation.NavigateTo("/tenants");
+}

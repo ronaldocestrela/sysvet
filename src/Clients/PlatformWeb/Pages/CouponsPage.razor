@@ -1,0 +1,62 @@
+@page "/coupons"
+@inject IPlatformAdminApi PlatformApi
+
+<h1>Cupons promocionais</h1>
+
+<table class="table table-sm mb-4">
+    <thead><tr><th>Código</th><th>Tipo</th><th>Valor</th><th>Usos</th></tr></thead>
+    <tbody>
+        @foreach (var c in _coupons)
+        {
+            <tr>
+                <td>@c.Code</td>
+                <td>@c.DiscountType</td>
+                <td>@c.Value</td>
+                <td>@c.RedemptionCount @(c.MaxRedemptions is { } max ? $"/ {max}" : "")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="card p-3">
+    <h2 class="h6">Novo cupom</h2>
+    <EditForm Model="_create" OnValidSubmit="CreateAsync">
+        <FormField Label="Código"><InputText @bind-Value="_create.Code" class="form-control" /></FormField>
+        <FormField Label="Valor"><InputNumber @bind-Value="_create.Value" class="form-control" /></FormField>
+        <button class="btn btn-primary mt-2">Criar</button>
+    </EditForm>
+</div>
+
+@code {
+    private IReadOnlyList<PlatformCouponSummaryDto> _coupons = [];
+    private readonly CouponFormModel _create = new();
+
+    private sealed class CouponFormModel
+    {
+        public string Code { get; set; } = string.Empty;
+        public PlatformCouponDiscountType DiscountType { get; set; } = PlatformCouponDiscountType.Percent;
+        public decimal Value { get; set; } = 10;
+    }
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        var result = await PlatformApi.ListCouponsAsync();
+        if (result.IsSuccess)
+        {
+            _coupons = result.Value;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        await PlatformApi.CreateCouponAsync(new PlatformCreateCouponRequest(
+            _create.Code,
+            _create.DiscountType,
+            _create.Value,
+            null,
+            null));
+        await ReloadAsync();
+    }
+}

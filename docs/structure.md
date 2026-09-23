@@ -42,9 +42,10 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 │   ├── Clients/                        # Aplicativos clientes.
 │   │   ├── BlazorWeb/                  # Aplicação WebAssembly PWA (staff).
 │   │   ├── TutorPortalWeb/             # PWA do tutor (portal do cliente).
+│   │   ├── PlatformWeb/                # PWA Super Admin VetNexus (9.8, ADR-053).
 │   │   ├── ClinicSiteWeb/              # PWA público do site da clínica (8.7).
 │   │   ├── MauiApp/                    # Aplicação Mobile/Desktop MAUI.
-│   │   ├── Clients.Infrastructure/     # ApiClient, OfflineDbContext, CRM stores, sync outbox.
+│   │   ├── Clients.Infrastructure/     # ApiClient, OfflineDbContext, CRM stores, sync outbox, IPlatformAdminApi.
 │   │   └── SharedUI/                   # RCL — design system (layout, tokens, componentes, serviços UI).
 │   │       ├── Components/             # DataGrid, FormField, Modal, Toast, LoadingState, …
 │   │       ├── Layout/                 # MainLayout, AuthLayout, NavMenu.

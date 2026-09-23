@@ -4,7 +4,9 @@ Este documento detalha as funções exclusivas para a administração geral do S
 
 ---
 
-> **Nota (9.2):** Onboarding, status de tenant, filiais multi-CNPJ e API `/api/v1/platform/tenants` (role `SuperAdmin`) estão entregues (ADR-047). UI Super Admin permanece na **9.8**.
+> **Nota (9.8):** UI Blazor **`PlatformWeb`** (`src/Clients/PlatformWeb/`) consome `/api/v1/platform/*` com role `SuperAdmin` — tenants, planos (leitura), billing, flags, cupons, health, API keys, impersonation e auditoria (ADR-053). Métricas BI globais (MRR, churn) permanecem na Fase **10.2**.
+
+> **Nota (9.2):** Onboarding, status de tenant, filiais multi-CNPJ e API `/api/v1/platform/tenants` (role `SuperAdmin`) estão entregues (ADR-047). UI em **PlatformWeb** (9.8).
 
 ## 1. Gestão de Tenants (Clientes / Estabelecimentos)
 * **Cadastro e Onboarding:** Criação de novas contas para clínicas e petshops (Tenants), com provisionamento automático de banco de dados/schemas e configurações iniciais.
@@ -13,11 +15,11 @@ Este documento detalha as funções exclusivas para a administração geral do S
 * **Monitoramento de Saúde (Health Check):** Visualização do volume de dados, espaço em disco consumido e volume de requisições de cada tenant.
 * **Impersonation (Acesso Suporte):** Capacidade da equipe de suporte logar temporariamente como o cliente (com auditoria estrita) para resolução de chamados.
 
-> **Nota (9.6):** `POST /api/v1/platform/tenants/{id}/impersonation` (JWT curto, trilha append-only), `POST /api/v1/platform/impersonation/{sessionId}/end`, `GET /api/v1/platform/impersonation-audits` (ADR-051). UI Super Admin na **9.8**.
+> **Nota (9.6):** `POST /api/v1/platform/tenants/{id}/impersonation` (JWT curto, trilha append-only), `POST /api/v1/platform/impersonation/{sessionId}/end`, `GET /api/v1/platform/impersonation-audits` (ADR-051). UI em **PlatformWeb** (9.8).
 
 ---
 
-> **Nota (9.3):** Catálogo de planos/add-ons, assinatura por tenant, flags, pró-rata (`PendingBilling`) e enforcement API/menus estão entregues via `/api/v1/platform/*` (ADR-048). UI Super Admin permanece na **9.8**.
+> **Nota (9.3):** Catálogo de planos/add-ons, assinatura por tenant, flags, pró-rata (`PendingBilling`) e enforcement API/menus estão entregues via `/api/v1/platform/*` (ADR-048). UI em **PlatformWeb** (9.8).
 
 ## 2. Gestão de Planos, Módulos e Feature Flags
 Como a arquitetura exige modularidade estrita, permitindo que cada módulo seja comercializado individualmente, o backoffice precisa de controle granular:
@@ -31,7 +33,7 @@ Como a arquitetura exige modularidade estrita, permitindo que cada módulo seja 
 
 > **Nota (9.4):** Gateway Asaas (Fake em CI), cliente/meio de pagamento, cobrança recorrente, webhook e histórico de faturas via `/api/v1/platform/tenants/{id}/billing/*` e `POST /api/v1/platform/webhooks/asaas` (ADR-049).
 > **Nota (9.5):** Régua dunning (`ProcessDunningCommand`, `Platform:Dunning`), bloqueio operacional (`BillingStanding.Locked`, filtro API, `/api/v1/billing/*`, SharedUI `/billing/payment`) e cupons (`/api/v1/platform/coupons`, resgate por tenant) entregues (ADR-050).
-> **Nota (9.6):** NFS-e SaaS na liquidação (`IssueSaasNfseForInvoiceCommand`, `Platform:Nfse` Fake/OpenAc, retry Super Admin) entregue (ADR-051). UI Super Admin na **9.8**.
+> **Nota (9.6):** NFS-e SaaS na liquidação (`IssueSaasNfseForInvoiceCommand`, `Platform:Nfse` Fake/OpenAc, retry Super Admin) entregue (ADR-051). UI em **PlatformWeb** (9.8).
 
 ## 3. Formas de Pagamentos, Faturamento e Cobrança
 * **Integração com Gateway de Pagamento:** Conexão com provedores (ex: Stripe, Pagar.me, Asaas) para processamento de assinaturas do SaaS.

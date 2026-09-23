@@ -6,6 +6,7 @@
       "src/PoC.Sync/PoC.Sync.csproj",
       "src/Clients/BlazorWeb/BlazorWeb.csproj",
       "src/Clients/TutorPortalWeb/TutorPortalWeb.csproj",
+      "src/Clients/PlatformWeb/PlatformWeb.csproj",
       "src/Clients/ClinicSiteWeb/ClinicSiteWeb.csproj",
       "src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj",
       "src/Clients/SharedUI/SharedUI.csproj",

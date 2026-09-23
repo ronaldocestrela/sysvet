@@ -1,0 +1,153 @@
+@page "/tenants"
+@inject IPlatformAdminApi PlatformApi
+@inject IPlatformAuthState AuthState
+@inject INavigationService Navigation
+
+<div class="header-section d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1>Tenants</h1>
+        <p class="text-muted mb-0">Gestão de clínicas e petshops na plataforma.</p>
+    </div>
+    @if (AuthState.IsSuperAdmin)
+    {
+        <button class="btn btn-primary" @onclick="() => _showOnboard = true">Novo tenant</button>
+    }
+</div>
+
+@if (!AuthState.IsSuperAdmin)
+{
+    <div class="alert alert-warning">Acesso negado.</div>
+}
+else if (_loading)
+{
+    <p>Carregando…</p>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Slug</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tenant in _tenants)
+            {
+                <tr>
+                    <td>@tenant.DisplayName</td>
+                    <td>@tenant.Slug</td>
+                    <td>@tenant.Status</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenTenant(tenant.Id)">Gerenciar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (_showOnboard)
+{
+    <Modal Title="Novo tenant" IsVisible="_showOnboard" IsVisibleChanged="OnOnboardModalVisibilityChanged">
+        <EditForm Model="_onboard" OnValidSubmit="OnboardAsync">
+            <FormField Label="Slug"><InputText @bind-Value="_onboard.Slug" class="form-control onboard-slug" /></FormField>
+            <FormField Label="Nome exibição"><InputText @bind-Value="_onboard.DisplayName" class="form-control onboard-name" /></FormField>
+            <FormField Label="E-mail admin"><InputText @bind-Value="_onboard.AdminEmail" class="form-control onboard-email" /></FormField>
+            <FormField Label="Senha admin"><InputText @bind-Value="_onboard.AdminPassword" type="password" class="form-control onboard-password" /></FormField>
+            <FormField Label="CNPJ matriz"><InputText @bind-Value="_onboard.HeadquartersCnpj" class="form-control onboard-cnpj" /></FormField>
+            <FormField Label="Razão social"><InputText @bind-Value="_onboard.HeadquartersLegalName" class="form-control onboard-legal" /></FormField>
+            @if (!string.IsNullOrEmpty(_onboardError))
+            {
+                <div class="alert alert-danger">@_onboardError</div>
+            }
+            <button type="submit" class="btn btn-primary mt-2 onboard-submit" disabled="@_onboarding">Provisionar</button>
+        </EditForm>
+    </Modal>
+}
+
+@code {
+    private bool _loading = true;
+    private bool _showOnboard;
+    private bool _onboarding;
+    private string? _error;
+    private string? _onboardError;
+    private IReadOnlyList<PlatformTenantSummaryDto> _tenants = [];
+    private readonly OnboardFormModel _onboard = new();
+
+    internal sealed class OnboardFormModel
+    {
+        public string Slug { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string AdminEmail { get; set; } = string.Empty;
+        public string AdminPassword { get; set; } = string.Empty;
+        public string HeadquartersCnpj { get; set; } = string.Empty;
+        public string HeadquartersLegalName { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthState.IsSuperAdmin)
+        {
+            _loading = false;
+            return;
+        }
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _error = null;
+        var result = await PlatformApi.ListTenantsAsync();
+        _loading = false;
+        if (result.IsFailure)
+        {
+            _error = result.Error.Message;
+            return;
+        }
+
+        _tenants = result.Value;
+    }
+
+    private void OpenTenant(Guid id) => Navigation.NavigateTo($"/tenants/{id}");
+
+    private void OnOnboardModalVisibilityChanged(bool visible) => _showOnboard = visible;
+
+    private async Task OnboardAsync()
+    {
+        _onboarding = true;
+        _onboardError = null;
+        var result = await PlatformApi.OnboardTenantAsync(new PlatformOnboardTenantRequest(
+            _onboard.Slug,
+            _onboard.DisplayName,
+            _onboard.AdminEmail,
+            _onboard.AdminPassword,
+            _onboard.HeadquartersCnpj,
+            _onboard.HeadquartersLegalName));
+        _onboarding = false;
+        if (result.IsFailure)
+        {
+            _onboardError = result.Error.Message;
+            return;
+        }
+
+        _showOnboard = false;
+        await ReloadAsync();
+    }
+
+#if DEBUG
+    /// <summary>Test seam for bUnit onboarding flow (roadmap 9.8).</summary>
+    internal OnboardFormModel TestOnboardForm => _onboard;
+
+    /// <summary>Test seam for bUnit onboarding flow (roadmap 9.8).</summary>
+    internal Task TestSubmitOnboardAsync() => OnboardAsync();
+#endif
+}

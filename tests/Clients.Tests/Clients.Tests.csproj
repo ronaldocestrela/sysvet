@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Clients\BlazorWeb\BlazorWeb.csproj" />
+    <ProjectReference Include="..\..\src\Clients\PlatformWeb\PlatformWeb.csproj" />
     <ProjectReference Include="..\..\src\Clients\SharedUI\SharedUI.csproj" />
     <ProjectReference Include="..\..\src\Clients\Clients.Infrastructure\Clients.Infrastructure.csproj" />
   </ItemGroup>

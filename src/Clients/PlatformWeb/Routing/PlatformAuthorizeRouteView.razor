@@ -1,0 +1,86 @@
+@using PlatformWeb.Layout
+@using PlatformWeb.Pages
+@using PlatformWeb.Services
+@implements IDisposable
+@inject IPlatformAuthState AuthState
+@inject INavigationService Navigation
+
+@if (_ready)
+{
+    @if (_isAuthorized && _isSuperAdmin || IsPublicRoute())
+    {
+        <RouteView RouteData="@RouteData" DefaultLayout="@(_isAuthorized ? typeof(PlatformMainLayout) : typeof(AuthLayout))" />
+    }
+    else if (_isAuthorized && !_isSuperAdmin)
+    {
+        <div class="alert alert-danger m-4">
+            Acesso restrito a operadores Super Admin.
+            <button class="btn btn-link" @onclick="LogoutAsync">Sair</button>
+        </div>
+    }
+}
+else
+{
+    <p class="p-4">Carregando...</p>
+}
+
+@code {
+    [Parameter] public RouteData RouteData { get; set; } = default!;
+
+    private bool _ready;
+    private bool _isAuthorized;
+    private bool _isSuperAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthState.InitializeAsync();
+        RefreshState();
+        _ready = true;
+
+        if (!_isAuthorized && !IsPublicRoute())
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        if (_isAuthorized && _isSuperAdmin && RouteData.PageType == typeof(LoginPage))
+        {
+            Navigation.NavigateTo("/tenants");
+        }
+
+        AuthState.SessionChanged += OnSessionChanged;
+    }
+
+    private void OnSessionChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            RefreshState();
+            if (!_isAuthorized && !IsPublicRoute())
+            {
+                Navigation.NavigateTo("/login");
+            }
+
+            StateHasChanged();
+            return Task.CompletedTask;
+        });
+    }
+
+    private void RefreshState()
+    {
+        _isAuthorized = AuthState.IsAuthenticated;
+        _isSuperAdmin = AuthState.IsSuperAdmin;
+    }
+
+    private bool IsPublicRoute() =>
+        RouteData.PageType == typeof(LoginPage) ||
+        RouteData.PageType == typeof(NotFoundPage);
+
+    private async Task LogoutAsync()
+    {
+        await AuthState.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
+
+    public void Dispose() => AuthState.SessionChanged -= OnSessionChanged;
+}

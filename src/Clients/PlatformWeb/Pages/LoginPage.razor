@@ -1,0 +1,73 @@
+@page "/login"
+@layout AuthLayout
+@inject ApiClient ApiClient
+@inject IPlatformAuthState AuthState
+@inject INavigationService Navigation
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Super Admin VetNexus</h1>
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger">@_error</div>
+        }
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <FormField Label="E-mail">
+                <InputText @bind-Value="_model.Email" class="form-control" />
+            </FormField>
+            <FormField Label="Senha">
+                <InputText @bind-Value="_model.Password" type="password" class="form-control" />
+            </FormField>
+            <button class="btn btn-primary w-100 mt-2" disabled="@_busy">Entrar</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string? _error;
+    private bool _busy;
+
+    private async Task SubmitAsync()
+    {
+        _busy = true;
+        _error = null;
+        var loginResult = await ApiClient.PostAsync<LoginRequest, AuthTokensDto>(
+            "/api/v1/auth/login",
+            new LoginRequest { Email = _model.Email, Password = _model.Password });
+        if (loginResult.IsFailure)
+        {
+            _busy = false;
+            _error = "Credenciais inválidas.";
+            return;
+        }
+
+        await AuthState.LoginAsync(loginResult.Value.AccessToken, loginResult.Value.RefreshToken);
+        var meResult = await ApiClient.GetAsync<CurrentUserDto>("/api/v1/auth/me");
+        if (meResult.IsFailure)
+        {
+            await AuthState.LogoutAsync();
+            _busy = false;
+            _error = "Não foi possível carregar o perfil.";
+            return;
+        }
+
+        await AuthState.SetRolesAsync(meResult.Value.Roles);
+        if (!AuthState.IsSuperAdmin)
+        {
+            await AuthState.LogoutAsync();
+            _busy = false;
+            _error = "Esta conta não possui permissão Super Admin.";
+            return;
+        }
+
+        _busy = false;
+        Navigation.NavigateTo("/tenants");
+    }
+
+    private sealed class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

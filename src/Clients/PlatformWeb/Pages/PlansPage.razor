@@ -1,0 +1,50 @@
+@page "/plans"
+@inject IPlatformAdminApi PlatformApi
+
+<h1>Planos e add-ons</h1>
+<p class="text-muted">Catálogo comercial (somente leitura).</p>
+
+@if (_loading)
+{
+    <p>Carregando…</p>
+}
+else
+{
+    <h2 class="h5">Planos</h2>
+    <ul>
+        @foreach (var plan in _plans)
+        {
+            <li><strong>@plan.Name</strong> (@plan.Code) — @plan.MonthlyPrice.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</li>
+        }
+    </ul>
+    <h2 class="h5 mt-4">Add-ons</h2>
+    <ul>
+        @foreach (var addOn in _addOns)
+        {
+            <li>@addOn.Name (@addOn.Code)</li>
+        }
+    </ul>
+}
+
+@code {
+    private bool _loading = true;
+    private IReadOnlyList<PlatformPlanSummaryDto> _plans = [];
+    private IReadOnlyList<PlatformAddOnSummaryDto> _addOns = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var plans = await PlatformApi.ListPlansAsync();
+        var addOns = await PlatformApi.ListAddOnsAsync();
+        if (plans.IsSuccess)
+        {
+            _plans = plans.Value;
+        }
+
+        if (addOns.IsSuccess)
+        {
+            _addOns = addOns.Value;
+        }
+
+        _loading = false;
+    }
+}

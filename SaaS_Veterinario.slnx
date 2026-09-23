@@ -6,6 +6,7 @@
   <Folder Name="/src/Clients/">
     <Project Path="src/Clients/BlazorWeb/BlazorWeb.csproj" />
     <Project Path="src/Clients/TutorPortalWeb/TutorPortalWeb.csproj" />
+    <Project Path="src/Clients/PlatformWeb/PlatformWeb.csproj" />
     <Project Path="src/Clients/ClinicSiteWeb/ClinicSiteWeb.csproj" />
     <Project Path="src/Clients/Clients.Infrastructure/Clients.Infrastructure.csproj" />
     <Project Path="src/Clients/MauiApp/MauiApp.csproj">

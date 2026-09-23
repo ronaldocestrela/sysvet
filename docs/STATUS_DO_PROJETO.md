@@ -310,9 +310,14 @@ Iniciado o módulo de estoque.
 - API: `/api/v1/platform/login-logs`, `/change-audits`, `/tenants/{id}/health|api-keys`, `/api/v1/partner/health`.
 - Aceite: `RevokedApiKey_FailsImmediately`; `TenantHealth_Visible_PerTenant`; login log com IP/User-Agent.
 
-### 👉 **Próxima Ação: Fase 9.8 — UI Super Admin (Blazor)**
+### Fase 9.8 — UI Super Admin (Blazor) — Concluída (ADR-053)
 
-Ver [`roadmap.md`](roadmap.md) §9.8.
+- Client `PlatformWeb` (PWA), `IPlatformAdminApi`, telas tenants/planos/billing/flags/cupons/audit/health/API keys/impersonation.
+- Aceite: operador Super Admin gerencia tenant via UI; testes `Clients.Tests/PlatformWeb`.
+
+### 👉 **Próxima Ação: Fase 10.1 — Módulo Intelligence (dashboards tenant)**
+
+Ver [`roadmap.md`](roadmap.md) §10.1.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

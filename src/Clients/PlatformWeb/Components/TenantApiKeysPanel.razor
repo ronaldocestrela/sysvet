@@ -1,0 +1,83 @@
+<div>
+    <h3 class="h5">API keys (parceiros)</h3>
+    @if (!string.IsNullOrEmpty(_createdSecret))
+    {
+        <div class="alert alert-warning">
+            <strong>Secret (copie agora):</strong>
+            <code>@_createdSecret</code>
+        </div>
+    }
+    @if (_loading)
+    {
+        <p>Carregando…</p>
+    }
+    else
+    {
+        <ul class="list-group mb-3">
+            @foreach (var key in _keys)
+            {
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>@key.PartnerName (@key.KeyPrefix…)</span>
+                    @if (key.IsActive)
+                    {
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => RevokeAsync(key.KeyId)">Revogar</button>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Revogada</span>
+                    }
+                </li>
+            }
+        </ul>
+    }
+    <div class="input-group">
+        <input class="form-control" placeholder="Nome do parceiro" @bind="_partnerName" />
+        <button class="btn btn-primary" disabled="@_creating" @onclick="CreateAsync">Criar chave</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid TenantId { get; set; }
+    [Inject] public IPlatformAdminApi PlatformApi { get; set; } = default!;
+
+    private bool _loading = true;
+    private bool _creating;
+    private string _partnerName = string.Empty;
+    private string? _createdSecret;
+    private IReadOnlyList<PlatformPartnerApiKeySummaryDto> _keys = [];
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        var result = await PlatformApi.ListPartnerApiKeysAsync(TenantId);
+        _loading = false;
+        if (result.IsSuccess)
+        {
+            _keys = result.Value;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        _creating = true;
+        _createdSecret = null;
+        var result = await PlatformApi.CreatePartnerApiKeyAsync(TenantId, _partnerName);
+        _creating = false;
+        if (result.IsFailure)
+        {
+            return;
+        }
+
+        _createdSecret = result.Value.Secret;
+        _partnerName = string.Empty;
+        await ReloadAsync();
+    }
+
+    private async Task RevokeAsync(Guid keyId)
+    {
+        await PlatformApi.RevokePartnerApiKeyAsync(TenantId, keyId);
+        await ReloadAsync();
+    }
+}

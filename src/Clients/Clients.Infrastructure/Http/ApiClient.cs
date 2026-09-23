@@ -95,6 +95,14 @@ public class ApiClient
         CancellationToken cancellationToken = default) =>
         SendJsonNoContentAsync(HttpMethod.Put, url, body, idempotencyKey, cancellationToken);
 
+    /// <summary>Performs an HTTP PATCH with JSON body; treats 204 No Content as success.</summary>
+    public Task<Result> PatchAsync<TRequest>(
+        string url,
+        TRequest body,
+        Guid? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendJsonNoContentAsync(HttpMethod.Patch, url, body, idempotencyKey, cancellationToken);
+
     /// <summary>Performs an HTTP PUT with JSON body; supports 200 responses with a body.</summary>
     public Task<Result<TResponse>> PutAsync<TRequest, TResponse>(
         string url,

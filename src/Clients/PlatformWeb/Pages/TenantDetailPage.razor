@@ -1,0 +1,202 @@
+@page "/tenants/{TenantId:guid}"
+@inject IPlatformAdminApi PlatformApi
+@inject INavigationService Navigation
+
+@if (_loading)
+{
+    <p>Carregando…</p>
+}
+else if (_tenant is null)
+{
+    <div class="alert alert-danger">Tenant não encontrado.</div>
+}
+else
+{
+    <div class="mb-3">
+        <button class="btn btn-link ps-0" @onclick="BackToList">← Voltar</button>
+        <h1>@_tenant.DisplayName</h1>
+        <p class="text-muted">@_tenant.Slug · @_tenant.Status</p>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><button type="button" class="nav-link @ActiveTabClass("overview")" @onclick='() => SelectTab("overview")'>Visão geral</button></li>
+        <li class="nav-item"><button type="button" class="nav-link @ActiveTabClass("flags")" @onclick='() => SelectTab("flags")'>Plano e flags</button></li>
+        <li class="nav-item"><button type="button" class="nav-link @ActiveTabClass("billing")" @onclick='() => SelectTab("billing")'>Billing</button></li>
+        <li class="nav-item"><button type="button" class="nav-link @ActiveTabClass("health")" @onclick='() => SelectTab("health")'>Health</button></li>
+        <li class="nav-item"><button type="button" class="nav-link @ActiveTabClass("apikeys")" @onclick='() => SelectTab("apikeys")'>API keys</button></li>
+        <li class="nav-item"><button type="button" class="nav-link @ActiveTabClass("impersonation")" @onclick='() => SelectTab("impersonation")'>Impersonation</button></li>
+    </ul>
+
+    @if (_tab == "overview")
+    {
+        <div class="card p-3">
+            <p>Filiais: @_tenant.BranchCount</p>
+            <label class="form-label">Alterar status</label>
+            <select class="form-select mb-2" @bind="_selectedStatus">
+                @foreach (var status in Enum.GetValues<PlatformTenantStatus>())
+                {
+                    <option value="@status">@status</option>
+                }
+            </select>
+            <button class="btn btn-primary" @onclick="SaveStatusAsync">Salvar status</button>
+            @if (!string.IsNullOrEmpty(_statusMessage))
+            {
+                <p class="mt-2">@_statusMessage</p>
+            }
+        </div>
+    }
+    else if (_tab == "flags")
+    {
+        @if (_subscription is not null)
+        {
+            <p>Plano atual: <strong>@_subscription.PlanCode</strong></p>
+            <div class="input-group mb-3">
+                <input class="form-control" @bind="_newPlanCode" placeholder="Novo plan code" />
+                <button class="btn btn-outline-primary" @onclick="ChangePlanAsync">Trocar plano</button>
+            </div>
+        }
+        <TenantFeatureFlagsPanel TenantId="TenantId" />
+    }
+    else if (_tab == "billing")
+    {
+        <div class="mb-3">
+            <button class="btn btn-primary" @onclick="ChargeAsync">Cobrar ciclo</button>
+            @if (!string.IsNullOrEmpty(_billingMessage))
+            {
+                <span class="ms-2">@_billingMessage</span>
+            }
+        </div>
+        <table class="table table-sm">
+            <thead><tr><th>Período</th><th>Valor</th><th>Status</th></tr></thead>
+            <tbody>
+                @foreach (var inv in _invoices)
+                {
+                    <tr>
+                        <td>@inv.PeriodStart.LocalDateTime.ToString("d") — @inv.PeriodEnd.LocalDateTime.ToString("d")</td>
+                        <td>@inv.Amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))</td>
+                        <td>@inv.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else if (_tab == "health" && _health is not null)
+    {
+        <div class="card p-3">
+            <p>Linhas totais: @_health.TotalRowCount</p>
+            <p>Bytes estimados: @_health.EstimatedBytes</p>
+            <p>Requests hoje: @_health.RequestsToday · 7 dias: @_health.RequestsLast7Days</p>
+        </div>
+    }
+    else if (_tab == "apikeys")
+    {
+        <TenantApiKeysPanel TenantId="TenantId" />
+    }
+    else if (_tab == "impersonation")
+    {
+        <button class="btn btn-warning mb-2" @onclick="StartImpersonationAsync">Iniciar impersonation</button>
+        @if (!string.IsNullOrEmpty(_impersonationToken))
+        {
+            <div class="alert alert-secondary">
+                <strong>JWT (curto):</strong>
+                <code class="small">@_impersonationToken</code>
+            </div>
+        }
+    }
+}
+
+@code {
+    [Parameter] public Guid TenantId { get; set; }
+
+    private bool _loading = true;
+    private string _tab = "overview";
+    private PlatformTenantDetailDto? _tenant;
+    private PlatformTenantSubscriptionDto? _subscription;
+    private PlatformTenantHealthDto? _health;
+    private IReadOnlyList<PlatformBillingInvoiceDto> _invoices = [];
+    private PlatformTenantStatus _selectedStatus;
+    private string? _statusMessage;
+    private string _newPlanCode = string.Empty;
+    private string? _billingMessage;
+    private string? _impersonationToken;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var detail = await PlatformApi.GetTenantAsync(TenantId);
+        if (detail.IsSuccess)
+        {
+            _tenant = detail.Value;
+            _selectedStatus = _tenant.Status;
+        }
+
+        var sub = await PlatformApi.GetSubscriptionAsync(TenantId);
+        if (sub.IsSuccess)
+        {
+            _subscription = sub.Value;
+        }
+
+        _loading = false;
+    }
+
+    private string ActiveTabClass(string tab) => _tab == tab ? "active" : string.Empty;
+
+    private async Task SelectTab(string tab)
+    {
+        _tab = tab;
+        if (_tab == "billing" && _invoices.Count == 0)
+        {
+            var inv = await PlatformApi.ListBillingInvoicesAsync(TenantId);
+            if (inv.IsSuccess)
+            {
+                _invoices = inv.Value;
+            }
+        }
+
+        if (_tab == "health" && _health is null)
+        {
+            var health = await PlatformApi.GetTenantHealthAsync(TenantId);
+            if (health.IsSuccess)
+            {
+                _health = health.Value;
+            }
+        }
+    }
+
+    private async Task SaveStatusAsync()
+    {
+        var result = await PlatformApi.ChangeTenantStatusAsync(TenantId, _selectedStatus);
+        _statusMessage = result.IsSuccess ? "Status atualizado." : result.Error.Message;
+    }
+
+    private async Task ChangePlanAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newPlanCode))
+        {
+            return;
+        }
+
+        await PlatformApi.ChangePlanAsync(TenantId, _newPlanCode);
+    }
+
+    private async Task ChargeAsync()
+    {
+        var result = await PlatformApi.ChargeBillingAsync(TenantId);
+        _billingMessage = result.IsSuccess ? $"Cobrança {result.Value.Amount:C}" : result.Error.Message;
+        var inv = await PlatformApi.ListBillingInvoicesAsync(TenantId);
+        if (inv.IsSuccess)
+        {
+            _invoices = inv.Value;
+        }
+    }
+
+    private async Task StartImpersonationAsync()
+    {
+        var result = await PlatformApi.StartImpersonationAsync(TenantId);
+        _impersonationToken = result.IsSuccess ? result.Value.AccessToken : result.Error.Message;
+    }
+
+    private void BackToList() => Navigation.NavigateTo("/tenants");
+}

@@ -1,0 +1,53 @@
+@inherits LayoutComponentBase
+@inject IPlatformAuthState AuthState
+@inject INavigationService Navigation
+
+<div class="platform-shell">
+    <aside class="platform-sidebar">
+        <div class="p-3 border-bottom">
+            <strong>VetNexus</strong>
+            <div class="small text-muted">Super Admin</div>
+        </div>
+        <nav class="nav flex-column p-2">
+            <a class="nav-link" href="/tenants">Tenants</a>
+            <a class="nav-link" href="/plans">Planos e add-ons</a>
+            <a class="nav-link" href="/coupons">Cupons</a>
+            <a class="nav-link" href="/audit">Auditoria</a>
+        </nav>
+        <div class="p-3 mt-auto border-top">
+            <button class="btn btn-outline-secondary btn-sm w-100" @onclick="LogoutAsync">Sair</button>
+        </div>
+    </aside>
+    <main class="platform-main">
+        @Body
+    </main>
+</div>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await AuthState.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}
+
+<style>
+    .platform-shell {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    .platform-sidebar {
+        width: 220px;
+        background: var(--color-surface);
+        border-right: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .platform-main {
+        flex: 1;
+        padding: var(--spacing-lg);
+        background: var(--color-bg);
+    }
+</style>

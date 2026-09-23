@@ -1070,8 +1070,8 @@ flowchart TD
 | **9.5 Dunning, bloqueio e cupons** | 13 | Concluída |
 | **9.6 NFS-e do SaaS e impersonation** | 13 | Concluída |
 | **9.7 Auditoria, API keys e health por tenant** | 8 | Concluída |
-| **9.8 UI Super Admin (Blazor)** | 13 | Pendente |
-| **Total Fase 9** | **107 SP** | |
+| **9.8 UI Super Admin (Blazor)** | 13 | Concluída |
+| **Total Fase 9** | **107 SP** | Concluída |
 
 ### 9.1 Módulo Platform — estrutura e multi-tenancy (13 SP)
 
@@ -1146,10 +1146,10 @@ flowchart TD
 
 ### 9.8 UI Super Admin (Blazor) (13 SP)
 
-- [ ] App separada ou área `/platform` com role `SuperAdmin`
-- [ ] Telas: tenants, planos, billing, flags, auditoria, métricas SaaS
+- [x] App separada `PlatformWeb` com role `SuperAdmin` (ADR-053)
+- [x] Telas: tenants, planos, billing, flags, auditoria, health por tenant
 
-**Aceite:** Operador VetNexus gerencia tenant sem acesso SQL direto.
+**Aceite:** Operador VetNexus gerencia tenant sem acesso SQL direto (`Clients.Tests/PlatformWeb`; seed `superadmin@vetnexus.app`).
 
 ---
 
@@ -1244,7 +1244,7 @@ flowchart TD
 | 6 | PDV e Estética | 65 | Pendente |
 | 7 | Financeiro e Fiscal | 65 | Pendente |
 | 8 | Relacionamento e Portal do Tutor | 79 | Pendente |
-| 9 | Plataforma e Super Admin | 107 | Pendente |
+| 9 | Plataforma e Super Admin | 107 | Concluída |
 | 10 | Inteligência, Escala e Produção | 71 | Pendente |
 | **Total** | | **619 SP** | **~2% concluído** |
 
