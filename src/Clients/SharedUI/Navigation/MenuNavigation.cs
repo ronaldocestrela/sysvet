@@ -32,7 +32,8 @@ public static class MenuNavigation
             ["stock-alerts"] = new(AppRoutes.StockAlerts, "Alertas de estoque", "bi-exclamation-diamond"),
             ["inventory-counts"] = new(AppRoutes.InventoryCounts, "Inventário", "bi-upc-scan"),
             ["purchase-suggestions"] = new(AppRoutes.PurchaseSuggestions, "Sugestão de compras", "bi-cart-plus"),
-            ["audit"] = new(AppRoutes.Home, "Auditoria", "bi-journal-text")
+            ["audit"] = new(AppRoutes.Home, "Auditoria", "bi-journal-text"),
+            ["intelligence-layouts"] = new(AppRoutes.IntelligenceLayouts, "Dashboard — layouts", "bi-sliders")
         };
 
     /// <summary>

@@ -18,5 +18,8 @@ public static class CatalogCodes
         public const string Fiscal = "Fiscal";
         public const string Automacao = "Automacao";
         public const string PdvOffline = "PdvOffline";
+
+        /// <summary>Operational dashboards add-on (roadmap 10.1).</summary>
+        public const string Intelligence = "Intelligence";
     }
 }

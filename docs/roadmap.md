@@ -41,7 +41,7 @@ Este roadmap define as etapas de desenvolvimento do SaaS veterinário e petshop 
 | MAUI | **Concluído (3.3)** | Blazor Hybrid Android + Windows; JWT/CRM SharedUI; VetNexus branding; job `maui-publish` (Windows CI); ADR-013 |
 | SQLite / Sync offline | **Concluído (3.5–3.6 CRM)** | SQLite + outbox push/pull tutor/pet; PoC E2E em [`sync-poc.md`](arquitetura/sync-poc.md) |
 | CI/CD | **Concluído** | `.github/workflows/ci.yml` — restore/build/test Linux, cobertura, artefato API, Dockerfile, publish MAUI (Windows runner) |
-| Módulos ausentes | **Pendente** | `Intelligence`, `Platform` (`TutorPortal`: 8.4; `Automations`: 8.1; `Finance`: 7.x) |
+| Módulos ausentes | **Parcial** | `Platform` entregue; demais módulos listados nas fases — `Intelligence` (10.1) entregue |
 
 **Progresso estimado:** ~10% da Fase 1 concluída (scaffold + API mínima + `Result<T>`).
 
@@ -1161,7 +1161,7 @@ flowchart TD
 
 | Tarefa | SP | Status |
 |--------|-----|--------|
-| **10.1 Módulo Intelligence — dashboards tenant** | 13 | Pendente |
+| **10.1 Módulo Intelligence — dashboards tenant** | 13 | Concluída |
 | **10.2 Métricas SaaS (MRR, churn, LTV, CAC)** | 13 | Pendente |
 | **10.3 Curva ABC, produtividade e adoção de módulos** | 8 | Pendente |
 | **10.4 Performance, cache e escalabilidade** | 8 | Pendente |
@@ -1172,9 +1172,9 @@ flowchart TD
 
 ### 10.1 Módulo Intelligence — dashboards tenant (13 SP)
 
-- [ ] Criar `src/Modules/Intelligence/`
-- [ ] Painel vendas/serviços tempo real
-- [ ] Widgets configuráveis por perfil
+- [x] Criar `src/Modules/Intelligence/`
+- [x] Painel vendas/serviços tempo real
+- [x] Widgets configuráveis por perfil
 
 **Referência:** `functions.md` § Inteligência.
 

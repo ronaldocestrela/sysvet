@@ -47,7 +47,10 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventSource>(provider => provider.GetRequiredService<PetshopDbContext>());
 
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(ScheduleGroomingAppointmentCommand).Assembly));
+        {
+            cfg.RegisterServicesFromAssembly(typeof(ScheduleGroomingAppointmentCommand).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(Integration.GetGroomingTodayKpisRequestHandler).Assembly);
+        });
 
         FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(ScheduleGroomingAppointmentCommand).Assembly);
 

@@ -43,6 +43,8 @@
     <ProjectReference Include="..\Modules\ClinicSite\Infrastructure\ClinicSite.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Commerce\Application\Commerce.Application.csproj" />
     <ProjectReference Include="..\Modules\Commerce\Infrastructure\Commerce.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Intelligence\Application\Intelligence.Application.csproj" />
+    <ProjectReference Include="..\Modules\Intelligence\Infrastructure\Intelligence.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Platform\Application\Platform.Application.csproj" />
     <ProjectReference Include="..\Modules\Platform\Infrastructure\Platform.Infrastructure.csproj" />
   </ItemGroup>

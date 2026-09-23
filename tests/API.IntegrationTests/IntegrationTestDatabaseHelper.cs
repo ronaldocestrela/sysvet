@@ -29,6 +29,7 @@ internal static class IntegrationTestDatabaseHelper
                      scope.ServiceProvider.GetRequiredService<global::TutorPortal.Infrastructure.Persistence.TutorPortalDbContext>(),
                      scope.ServiceProvider.GetRequiredService<global::ClinicSite.Infrastructure.Persistence.ClinicSiteDbContext>(),
                      scope.ServiceProvider.GetRequiredService<global::Commerce.Infrastructure.Persistence.CommerceDbContext>(),
+                     scope.ServiceProvider.GetRequiredService<global::Intelligence.Infrastructure.Persistence.IntelligenceDbContext>(),
                      scope.ServiceProvider.GetRequiredService<global::Platform.Infrastructure.Persistence.PlatformDbContext>()
                  })
         {
@@ -70,6 +71,9 @@ internal static class IntegrationTestDatabaseHelper
 
         var commerceContext = scope.ServiceProvider.GetRequiredService<global::Commerce.Infrastructure.Persistence.CommerceDbContext>();
         await commerceContext.Database.MigrateAsync();
+
+        var intelligenceContext = scope.ServiceProvider.GetRequiredService<global::Intelligence.Infrastructure.Persistence.IntelligenceDbContext>();
+        await intelligenceContext.Database.MigrateAsync();
 
         var platformContext = scope.ServiceProvider.GetRequiredService<global::Platform.Infrastructure.Persistence.PlatformDbContext>();
         await platformContext.Database.MigrateAsync();

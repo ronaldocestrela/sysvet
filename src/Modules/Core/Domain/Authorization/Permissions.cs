@@ -70,6 +70,9 @@ public static class Permissions
     public const string CommerceRead = "Commerce.Read";
     public const string CommerceWrite = "Commerce.Write";
 
+    public const string IntelligenceRead = "Intelligence.Read";
+    public const string IntelligenceLayoutWrite = "Intelligence.LayoutWrite";
+
     /// <summary>
     /// All defined permission codes in stable order.
     /// </summary>
@@ -95,7 +98,8 @@ public static class Permissions
         AutomationsRead, AutomationsWrite,
         AuditRead,
         ClinicSiteRead, ClinicSiteWrite,
-        CommerceRead, CommerceWrite
+        CommerceRead, CommerceWrite,
+        IntelligenceRead, IntelligenceLayoutWrite
     ];
 
     /// <summary>
@@ -121,7 +125,8 @@ public static class Permissions
         HospitalizationsRead, HospitalizationsWrite,
         VaccinesRead, VaccinesWrite,
         ClinicalQuotesRead, ClinicalQuotesWrite,
-        ProductsRead
+        ProductsRead,
+        IntelligenceRead
     ];
 
     /// <summary>
@@ -143,7 +148,8 @@ public static class Permissions
         FiscalRead, FiscalWrite,
         AutomationsRead, AutomationsWrite,
         ClinicSiteRead, ClinicSiteWrite,
-        CommerceRead, CommerceWrite
+        CommerceRead, CommerceWrite,
+        IntelligenceRead
     ];
 
     /// <summary>
@@ -156,6 +162,7 @@ public static class Permissions
         ProductsRead,
         StockRead,
         ClinicalQuotesRead,
-        FiscalRead, FiscalWrite
+        FiscalRead, FiscalWrite,
+        IntelligenceRead
     ];
 }

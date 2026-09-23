@@ -33,7 +33,8 @@ public static class MenuCatalog
         ["audit"] = Permissions.AuditRead,
         ["clinic-site"] = Permissions.ClinicSiteRead,
         ["commerce-offers"] = Permissions.CommerceRead,
-        ["commerce-orders"] = Permissions.CommerceRead
+        ["commerce-orders"] = Permissions.CommerceRead,
+        ["intelligence-layouts"] = Permissions.IntelligenceLayoutWrite
     };
 
     /// <summary>

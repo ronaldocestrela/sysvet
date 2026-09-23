@@ -136,6 +136,16 @@
   <Folder Name="/src/Modules/Commerce/Infrastructure/">
     <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Intelligence/" />
+  <Folder Name="/src/Modules/Intelligence/Application/">
+    <Project Path="src/Modules/Intelligence/Application/Intelligence.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Intelligence/Domain/">
+    <Project Path="src/Modules/Intelligence/Domain/Intelligence.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Intelligence/Infrastructure/">
+    <Project Path="src/Modules/Intelligence/Infrastructure/Intelligence.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/API.IntegrationTests/API.IntegrationTests.csproj" />
     <Project Path="tests/Clients.Tests/Clients.Tests.csproj" />
@@ -154,5 +164,6 @@
     <Project Path="tests/Modules/ClinicSite.Tests/ClinicSite.Tests.csproj" />
     <Project Path="tests/Modules/Commerce.Tests/Commerce.Tests.csproj" />
     <Project Path="tests/Modules/Platform.Tests/Platform.Tests.csproj" />
+    <Project Path="tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj" />
   </Folder>
 </Solution>

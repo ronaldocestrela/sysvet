@@ -47,7 +47,10 @@ public static class DependencyInjection
         services.AddSingleton<IPaymentTerminal, SimulatedPaymentTerminal>();
 
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(CreateOrderCommand).Assembly));
+        {
+            cfg.RegisterServicesFromAssembly(typeof(CreateOrderCommand).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(Integration.GetSalesTodayKpisRequestHandler).Assembly);
+        });
 
         FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(CreateOrderCommand).Assembly);
 

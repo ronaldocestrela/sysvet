@@ -1,5 +1,7 @@
+using Core.Domain.Entitlements;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.Domain.Catalog;
+using Platform.Domain.Entities;
 using Platform.Domain.Repositories;
 using Platform.Infrastructure.Persistence;
 
@@ -29,6 +31,34 @@ internal static class PlatformCatalogTestSeeder
             }
         }
 
-        await services.GetRequiredService<PlatformDbContext>().SaveChangesAsync(cancellationToken);
+        if (await addOnRepository.GetByCodeAsync(CatalogCodes.AddOns.Fiscal, cancellationToken) is not null
+            && await addOnRepository.GetByCodeAsync(CatalogCodes.AddOns.Intelligence, cancellationToken) is null)
+        {
+            var intelligence = CatalogSeedData.CreateDefaultAddOns()
+                .First(a => a.Code == CatalogCodes.AddOns.Intelligence);
+            await addOnRepository.AddAsync(intelligence, cancellationToken);
+        }
+
+        var context = services.GetRequiredService<PlatformDbContext>();
+        await EnsureIntelligenceOnPaidPlansAsync(planRepository, context, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task EnsureIntelligenceOnPaidPlansAsync(
+        IPlanRepository planRepository,
+        PlatformDbContext context,
+        CancellationToken cancellationToken)
+    {
+        foreach (var code in new[] { CatalogCodes.Plans.Pro, CatalogCodes.Plans.Hospital24h })
+        {
+            var plan = await planRepository.GetByCodeAsync(code, cancellationToken);
+            if (plan is null || plan.GetModuleList().Contains(CommercialModule.Intelligence))
+            {
+                continue;
+            }
+
+            plan.IncludedModules.Add(new PlanIncludedModule(plan.Id, CommercialModule.Intelligence));
+            context.Update(plan);
+        }
     }
 }

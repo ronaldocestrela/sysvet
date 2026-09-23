@@ -123,4 +123,7 @@ public static class AppRoutes
 
     /// <summary>SaaS subscription payment when operationally locked (9.5).</summary>
     public const string BillingPayment = "/billing/payment";
+
+    /// <summary>Dashboard widget layout editor (10.1).</summary>
+    public const string IntelligenceLayouts = "/intelligence/layouts";
 }

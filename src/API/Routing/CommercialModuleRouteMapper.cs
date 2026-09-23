@@ -84,6 +84,11 @@ public static class CommercialModuleRouteMapper
             return CommercialModule.Commerce;
         }
 
+        if (value.StartsWith("/api/v1/intelligence", StringComparison.OrdinalIgnoreCase))
+        {
+            return CommercialModule.Intelligence;
+        }
+
         if (value.StartsWith("/api/v1/tutors", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/v1/pets", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/v1/appointments", StringComparison.OrdinalIgnoreCase)

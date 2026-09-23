@@ -27,6 +27,9 @@ public static class CatalogSeedData
     /// <summary>PdvOffline add-on id.</summary>
     public static readonly Guid PdvOfflineAddOnId = Guid.Parse("22222222-2222-4222-8222-222222222204");
 
+    /// <summary>Intelligence dashboards add-on id.</summary>
+    public static readonly Guid IntelligenceAddOnId = Guid.Parse("22222222-2222-4222-8222-222222222205");
+
     /// <summary>Modules included in Starter.</summary>
     public static IReadOnlyList<CommercialModule> StarterModules { get; } = [CommercialModule.Veterinary];
 
@@ -38,7 +41,8 @@ public static class CatalogSeedData
         CommercialModule.Finance,
         CommercialModule.ClinicSite,
         CommercialModule.Commerce,
-        CommercialModule.TutorPortal
+        CommercialModule.TutorPortal,
+        CommercialModule.Intelligence
     ];
 
     /// <summary>Modules included in Hospital24h (includes Pro + Hospital).</summary>
@@ -62,7 +66,8 @@ public static class CatalogSeedData
             AddOn.Create(EsteticaAddOnId, CatalogCodes.AddOns.Estetica, "Estética", 49m, CommercialModule.Petshop).Value,
             AddOn.Create(FiscalAddOnId, CatalogCodes.AddOns.Fiscal, "Fiscal", 99m, CommercialModule.Fiscal).Value,
             AddOn.Create(AutomacaoAddOnId, CatalogCodes.AddOns.Automacao, "Automação", 79m, CommercialModule.Automations).Value,
-            AddOn.Create(PdvOfflineAddOnId, CatalogCodes.AddOns.PdvOffline, "PDV Offline", 89m, CommercialModule.Sales).Value
+            AddOn.Create(PdvOfflineAddOnId, CatalogCodes.AddOns.PdvOffline, "PDV Offline", 89m, CommercialModule.Sales).Value,
+            AddOn.Create(IntelligenceAddOnId, CatalogCodes.AddOns.Intelligence, "Inteligência", 59m, CommercialModule.Intelligence).Value
         ];
     }
 }

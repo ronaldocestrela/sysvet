@@ -93,6 +93,7 @@ Este documento detalha todas as funções e capacidades do sistema VetNexus, ope
 ---
 
 ## Módulo de Inteligência (Dashboards e BI)
-* Painel visual avançado com indicadores em tempo real de vendas e serviços.
-* Relatórios estratégicos de produtividade e métricas de desempenho da equipe.
-* Geração de ranking de clientes (Curva ABC) e identificação de produtos mais consumidos/rentáveis.
+* **Dashboard tenant (10.1):** painel do dia (`GET /api/v1/intelligence/dashboard`) com vendas PDV, estética, consultas e pedidos online; widgets por `AccessProfile` (`ProfileDashboardLayout`); poll 30s na home Blazor; módulo comercial `Intelligence` (ADR-054).
+* Relatórios estratégicos de produtividade e métricas de desempenho da equipe (Fase 10.3).
+* Geração de ranking de clientes (Curva ABC) e identificação de produtos mais consumidos/rentáveis (Fase 10.3).
+* Métricas SaaS globais (MRR, churn, LTV, CAC) no backoffice VetNexus (Fase 10.2).

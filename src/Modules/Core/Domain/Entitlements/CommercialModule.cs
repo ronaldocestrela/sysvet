@@ -37,5 +37,8 @@ public enum CommercialModule
     Commerce = 10,
 
     /// <summary>Tutor self-service portal integration.</summary>
-    TutorPortal = 11
+    TutorPortal = 11,
+
+    /// <summary>Operational dashboards and tenant BI (roadmap 10.1).</summary>
+    Intelligence = 12
 }

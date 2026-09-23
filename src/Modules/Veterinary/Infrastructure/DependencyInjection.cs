@@ -55,7 +55,10 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventSource>(provider => provider.GetRequiredService<VeterinaryDbContext>());
 
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(ScheduleAppointmentCommand).Assembly));
+        {
+            cfg.RegisterServicesFromAssembly(typeof(ScheduleAppointmentCommand).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(Integration.GetClinicalAppointmentsTodayKpisRequestHandler).Assembly);
+        });
 
         FluentValidation.ServiceCollectionExtensions.AddValidatorsFromAssembly(services, typeof(ScheduleAppointmentCommand).Assembly);
 

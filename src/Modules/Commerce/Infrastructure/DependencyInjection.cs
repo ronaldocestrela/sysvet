@@ -57,7 +57,11 @@ public static class DependencyInjection
             services.AddScoped<IMarketplaceChannel, MercadoLivreChannel>();
         }
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ListProductOffersQuery).Assembly));
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(ListProductOffersQuery).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(Integration.GetOnlineOrdersTodayKpisRequestHandler).Assembly);
+        });
 
         return services;
     }

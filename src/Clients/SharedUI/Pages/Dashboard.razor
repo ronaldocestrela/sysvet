@@ -1,42 +1,188 @@
 @page "/"
-@using SharedUI.Components
+@using System.Text.Json
 @using Clients.Infrastructure.Crm
+@using Clients.Infrastructure.Intelligence
+@using SharedUI.Components
 @inject IVaccineStore VaccineStore
+@inject IIntelligenceApiService IntelligenceApi
+@implements IDisposable
 
 <div class="header-section">
     <h1>Dashboard</h1>
-    <SyncStatusBadge />
-</div>
-
-<div class="dashboard-grid">
-    <div class="card stat-card">
-        <h3>Tutores</h3>
-        <p class="stat-value">124</p>
-    </div>
-    
-    <div class="card stat-card">
-        <h3>Pets</h3>
-        <p class="stat-value">256</p>
-    </div>
-    
-    <div class="card stat-card">
-        <h3>Consultas Hoje</h3>
-        <p class="stat-value">8</p>
-    </div>
-
-    <div class="card stat-card">
-        <h3>Vacinas atrasadas</h3>
-        <p class="stat-value">@_overdueVaccines</p>
+    <div class="header-meta">
+        @if (_businessDate != default)
+        {
+            <span class="business-date">Dia operacional: @_businessDate.ToString("dd/MM/yyyy")</span>
+        }
+        <SyncStatusBadge />
     </div>
 </div>
+
+@if (_loading && _widgets.Count == 0)
+{
+    <p>Carregando indicadores…</p>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <p class="error-text">@_error</p>
+}
+else
+{
+    <div class="dashboard-grid">
+        @foreach (var widget in _widgets)
+        {
+            <div class="card stat-card">
+                <h3>@GetWidgetTitle(widget.Key)</h3>
+                @if (!widget.IsSuccess)
+                {
+                    <p class="error-text">Indisponível</p>
+                }
+                else
+                {
+                    @RenderWidgetBody(widget)
+                }
+            </div>
+        }
+
+        <div class="card stat-card">
+            <h3>Vacinas atrasadas</h3>
+            <p class="stat-value">@_overdueVaccines</p>
+        </div>
+    </div>
+}
 
 @code {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     private int _overdueVaccines;
+    private DateOnly _businessDate;
+    private IReadOnlyList<DashboardWidgetClientDto> _widgets = Array.Empty<DashboardWidgetClientDto>();
+    private bool _loading = true;
+    private string? _error;
+    private PeriodicTimer? _pollTimer;
+    private CancellationTokenSource? _pollCts;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await VaccineStore.CountOverdueAlertsAsync();
-        _overdueVaccines = result.IsSuccess ? result.Value : 0;
+        var vaccineResult = await VaccineStore.CountOverdueAlertsAsync();
+        _overdueVaccines = vaccineResult.IsSuccess ? vaccineResult.Value : 0;
+
+        await RefreshDashboardAsync();
+        StartPolling();
+    }
+
+    private void StartPolling()
+    {
+        _pollCts = new CancellationTokenSource();
+        _pollTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+        _ = PollLoopAsync(_pollCts.Token);
+    }
+
+    private async Task PollLoopAsync(CancellationToken cancellationToken)
+    {
+        while (_pollTimer is not null && await _pollTimer.WaitForNextTickAsync(cancellationToken))
+        {
+            await RefreshDashboardAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task RefreshDashboardAsync()
+    {
+        _loading = true;
+        var result = await IntelligenceApi.GetDashboardAsync();
+        _loading = false;
+
+        if (result.IsFailure)
+        {
+            _error = result.Error.Message;
+            return;
+        }
+
+        _error = null;
+        _businessDate = result.Value.BusinessDate;
+        _widgets = result.Value.Widgets;
+    }
+
+    private static string GetWidgetTitle(string key) => key switch
+    {
+        "SalesToday" => "Vendas do dia",
+        "SalesByHour" => "Vendas por hora",
+        "GroomingToday" => "Estética hoje",
+        "ClinicalAppointmentsToday" => "Consultas hoje",
+        "OnlineOrdersToday" => "Pedidos online",
+        _ => key
+    };
+
+    private RenderFragment RenderWidgetBody(DashboardWidgetClientDto widget) => builder =>
+    {
+        if (widget.Data is null)
+        {
+            builder.AddContent(0, "—");
+            return;
+        }
+
+        var json = widget.Data is JsonElement element
+            ? element.GetRawText()
+            : JsonSerializer.Serialize(widget.Data);
+
+        switch (widget.Key)
+        {
+            case "SalesToday":
+                var sales = JsonSerializer.Deserialize<SalesTodayClientDto>(json, JsonOptions);
+                if (sales is not null)
+                {
+                    builder.OpenElement(1, "p");
+                    builder.AddAttribute(2, "class", "stat-value");
+                    builder.AddContent(3, sales.NetAmount.ToString("C"));
+                    builder.CloseElement();
+                    builder.OpenElement(4, "p");
+                    builder.AddContent(5, $"{sales.OrderCount} pedidos · ticket {sales.AverageTicket:C}");
+                    builder.CloseElement();
+                }
+                break;
+            case "GroomingToday":
+            case "ClinicalAppointmentsToday":
+                var statusMap = JsonSerializer.Deserialize<Dictionary<string, int>>(json, JsonOptions);
+                if (statusMap is not null)
+                {
+                    var total = statusMap.Values.Sum();
+                    builder.OpenElement(10, "p");
+                    builder.AddAttribute(11, "class", "stat-value");
+                    builder.AddContent(12, total);
+                    builder.CloseElement();
+                }
+                break;
+            case "OnlineOrdersToday":
+                var online = JsonSerializer.Deserialize<OnlineOrdersTodayClientDto>(json, JsonOptions);
+                if (online is not null)
+                {
+                    builder.OpenElement(20, "p");
+                    builder.AddAttribute(21, "class", "stat-value");
+                    builder.AddContent(22, online.TotalAmount.ToString("C"));
+                    builder.CloseElement();
+                    builder.OpenElement(23, "p");
+                    builder.AddContent(24, $"{online.OrderCount} pedidos");
+                    builder.CloseElement();
+                }
+                break;
+            default:
+                builder.AddContent(30, "—");
+                break;
+        }
+    };
+
+    public void Dispose()
+    {
+        _pollCts?.Cancel();
+        _pollCts?.Dispose();
+        _pollTimer?.Dispose();
+    }
+
+    private sealed class OnlineOrdersTodayClientDto
+    {
+        public int OrderCount { get; init; }
+        public decimal TotalAmount { get; init; }
     }
 }
 
@@ -46,28 +192,45 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: var(--spacing-xl);
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
     }
-    
+
+    .header-meta {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .business-date {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
     .dashboard-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: var(--spacing-lg);
     }
-    
+
     .stat-card {
         text-align: center;
     }
-    
+
     .stat-card h3 {
         color: var(--color-text-muted);
         font-size: var(--font-size-md);
         margin-bottom: var(--spacing-sm);
     }
-    
+
     .stat-value {
         font-size: 2.5rem;
         font-weight: var(--font-weight-bold);
         color: var(--color-primary);
         margin: 0;
+    }
+
+    .error-text {
+        color: var(--color-danger, #c0392b);
     }
 </style>

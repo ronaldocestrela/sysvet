@@ -49,7 +49,14 @@ public sealed class PlatformCatalogSeedHostedService : IHostedService
                 }
             }
 
-            await context.SaveChangesAsync(cancellationToken);
+            if (await addOnRepository.GetByCodeAsync(CatalogCodes.AddOns.Fiscal, cancellationToken) is not null
+                && await addOnRepository.GetByCodeAsync(CatalogCodes.AddOns.Intelligence, cancellationToken) is null)
+            {
+                var intelligence = CatalogSeedData.CreateDefaultAddOns()
+                    .First(a => a.Code == CatalogCodes.AddOns.Intelligence);
+                await addOnRepository.AddAsync(intelligence, cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
+            }
         }
         catch (Exception ex)
         {

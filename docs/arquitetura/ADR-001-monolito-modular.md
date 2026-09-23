@@ -28,7 +28,7 @@ O SysVet é um SaaS multi-módulo (clínica, petshop, PDV, estoque, fiscal) que 
 
 ## Decisão
 
-Adotar **monólito modular** em .NET 10: um host API compõe os módulos `Core`, `Veterinary`, `Petshop`, `Sales`, `Inventory` e `Fiscal` via extension methods de DI e mapeamento de endpoints. Cada módulo mantém esquema lógico próprio no banco. Módulos futuros (`Finance`, `Automations`, `Intelligence`, `TutorPortal`, `Platform`) seguirão o mesmo padrão quando criados.
+Adotar **monólito modular** em .NET 10: um host API compõe os módulos `Core`, `Veterinary`, `Petshop`, `Sales`, `Inventory`, `Fiscal`, `Finance`, `Automations`, `TutorPortal`, `ClinicSite`, `Commerce`, `Platform` e `Intelligence` via extension methods de DI e mapeamento de endpoints. Cada módulo mantém esquema lógico próprio no banco.
 
 ## Consequências
 

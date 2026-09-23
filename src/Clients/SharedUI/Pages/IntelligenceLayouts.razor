@@ -1,0 +1,170 @@
+@page "/intelligence/layouts"
+@using Clients.Infrastructure.Http
+@using Clients.Infrastructure.Intelligence
+@using SharedUI.Services
+@inject IIntelligenceApiService IntelligenceApi
+@inject ApiClient ApiClient
+@inject IAuthState AuthState
+
+<h1>Layout do dashboard por perfil</h1>
+
+@if (!_canEdit)
+{
+    <p>Você não tem permissão para editar layouts.</p>
+}
+else if (_profiles.Count == 0 && string.IsNullOrEmpty(_message))
+{
+    <p>Carregando perfis…</p>
+}
+else
+{
+    <div class="layout-form">
+        <label>
+            Perfil
+            <select @bind="_selectedProfileId" @bind:after="LoadLayoutAsync">
+                @foreach (var profile in _profiles)
+                {
+                    <option value="@profile.Id">@profile.Name</option>
+                }
+            </select>
+        </label>
+    </div>
+
+    @if (_slots.Count > 0)
+    {
+        <table class="layout-table">
+            <thead>
+                <tr>
+                    <th>Widget</th>
+                    <th>Visível</th>
+                    <th>Ordem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < _slots.Count; i++)
+                {
+                    var index = i;
+                    <tr>
+                        <td>@_slots[index].WidgetKey</td>
+                        <td>
+                            <input type="checkbox" @bind="_slots[index].IsVisible" />
+                        </td>
+                        <td>
+                            <input type="number" min="0" @bind="_slots[index].SortOrder" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <button type="button" class="btn btn-primary" disabled="@_saving" @onclick="SaveAsync">Salvar</button>
+    }
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <p>@_message</p>
+    }
+}
+
+@code {
+    private bool _canEdit;
+    private bool _saving;
+    private string? _message;
+    private Guid _selectedProfileId;
+    private List<AccessProfileListItem> _profiles = new();
+    private List<DashboardWidgetSlotClientDto> _slots = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canEdit = AuthState.Menus.Contains("intelligence-layouts", StringComparer.OrdinalIgnoreCase);
+        if (!_canEdit)
+        {
+            return;
+        }
+
+        await LoadProfilesAsync();
+    }
+
+    private async Task LoadProfilesAsync()
+    {
+        var result = await ApiClient.GetAsync<PagedResultDto<AccessProfileListItem>>("/api/v1/access-profiles?pageSize=50");
+        if (result.IsFailure)
+        {
+            _message = result.Error.Message;
+            return;
+        }
+
+        _profiles = result.Value.Items.ToList();
+        if (_profiles.Count > 0)
+        {
+            _selectedProfileId = _profiles[0].Id;
+            await LoadLayoutAsync();
+        }
+    }
+
+    private async Task LoadLayoutAsync()
+    {
+        if (_selectedProfileId == Guid.Empty)
+        {
+            return;
+        }
+
+        _message = null;
+        var result = await IntelligenceApi.GetLayoutAsync(_selectedProfileId);
+        if (result.IsFailure)
+        {
+            _message = result.Error.Message;
+            _slots = new List<DashboardWidgetSlotClientDto>();
+            return;
+        }
+
+        _slots = result.Value.Slots.Select(s => new DashboardWidgetSlotClientDto
+        {
+            WidgetKey = s.WidgetKey,
+            IsVisible = s.IsVisible,
+            SortOrder = s.SortOrder
+        }).ToList();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _message = null;
+        var payload = new ProfileDashboardLayoutClientDto
+        {
+            AccessProfileId = _selectedProfileId,
+            Slots = _slots
+        };
+
+        var result = await IntelligenceApi.SaveLayoutAsync(_selectedProfileId, payload);
+        _saving = false;
+        _message = result.IsSuccess ? "Layout salvo." : result.Error.Message;
+    }
+
+    private sealed class AccessProfileListItem
+    {
+        public Guid Id { get; init; }
+        public string Name { get; init; } = string.Empty;
+    }
+}
+
+<style>
+    .layout-form {
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: flex-end;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .layout-table {
+        width: 100%;
+        margin-bottom: var(--spacing-lg);
+        border-collapse: collapse;
+    }
+
+    .layout-table th,
+    .layout-table td {
+        border: 1px solid var(--color-border, #ddd);
+        padding: var(--spacing-sm);
+    }
+</style>

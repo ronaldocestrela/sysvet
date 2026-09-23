@@ -12,6 +12,7 @@ using Petshop.Infrastructure;
 using Sales.Infrastructure;
 using ClinicSite.Infrastructure;
 using Commerce.Infrastructure;
+using Intelligence.Infrastructure;
 using TutorPortal.Infrastructure;
 using Platform.Infrastructure;
 using Veterinary.Infrastructure;
@@ -62,6 +63,7 @@ public static class ServiceCollectionExtensions
         services.AddTutorPortalModule(configuration);
         services.AddClinicSiteModule(configuration);
         services.AddCommerceModule(configuration);
+        services.AddIntelligenceModule(configuration);
 
         services.AddSignalR();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GroomingRealtimeBroadcastHandler).Assembly));

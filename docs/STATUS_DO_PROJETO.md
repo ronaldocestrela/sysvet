@@ -315,9 +315,15 @@ Iniciado o módulo de estoque.
 - Client `PlatformWeb` (PWA), `IPlatformAdminApi`, telas tenants/planos/billing/flags/cupons/audit/health/API keys/impersonation.
 - Aceite: operador Super Admin gerencia tenant via UI; testes `Clients.Tests/PlatformWeb`.
 
-### 👉 **Próxima Ação: Fase 10.1 — Módulo Intelligence (dashboards tenant)**
+### Fase 10.1 — Módulo Intelligence (dashboards tenant) — Concluída (ADR-054)
 
-Ver [`roadmap.md`](roadmap.md) §10.1.
+- Módulo `Intelligence`, KPIs do dia via integração Sales/Petshop/Veterinary/Commerce, layouts por `AccessProfile`.
+- API `/api/v1/intelligence/dashboard` e layouts; `CommercialModule.Intelligence`; home Blazor com poll 30s.
+- Aceite: `Dashboard_LoadsTodayKpis_UnderThreeSeconds`; testes `Intelligence.Tests`, `API.IntegrationTests/Intelligence`, bUnit dashboard.
+
+### 👉 **Próxima Ação: Fase 10.2 — Métricas SaaS (MRR, churn, LTV, CAC)**
+
+Ver [`roadmap.md`](roadmap.md) §10.2.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 
