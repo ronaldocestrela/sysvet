@@ -1164,7 +1164,7 @@ flowchart TD
 | **10.1 Módulo Intelligence — dashboards tenant** | 13 | Concluída |
 | **10.2 Métricas SaaS (MRR, churn, LTV, CAC)** | 13 | Concluída |
 | **10.3 Curva ABC, produtividade e adoção de módulos** | 8 | Concluída |
-| **10.4 Performance, cache e escalabilidade** | 8 | Pendente |
+| **10.4 Performance, cache e escalabilidade** | 8 | Concluída |
 | **10.5 Backup, DR e observabilidade avançada** | 8 | Pendente |
 | **10.6 Segurança, LGPD e pentest** | 13 | Pendente |
 | **10.7 Testes de carga e rollout** | 8 | Pendente |
@@ -1202,11 +1202,11 @@ flowchart TD
 
 ### 10.4 Performance, cache e escalabilidade (8 SP)
 
-- [ ] Cache distribuído (Redis) para queries pesadas
-- [ ] Paginação obrigatória em listagens; índices revisados
-- [ ] Load test baseline documentado
+- [x] Cache distribuído (Redis) para queries pesadas
+- [x] Paginação obrigatória em listagens; índices revisados
+- [x] Load test baseline documentado
 
-**Aceite:** P95 API < 500ms em endpoints críticos (ambiente staging).
+**Aceite:** P95 API < 500ms em endpoints críticos (ambiente staging). ADR-057; `tests/LoadTests`; runbook [`load-baseline.md`](arquitetura/load-baseline.md).
 
 ### 10.5 Backup, DR e observabilidade avançada (8 SP)
 

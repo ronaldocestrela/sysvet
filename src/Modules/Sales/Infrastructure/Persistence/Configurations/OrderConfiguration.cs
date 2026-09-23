@@ -24,6 +24,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.DiscountPercent).HasPrecision(5, 2);
         builder.Property(o => o.CreatedAt).IsRequired();
         builder.Property(o => o.PaidAt);
+        builder.HasIndex("TenantId", nameof(Order.PaidAt));
 
         builder.Ignore(o => o.SubtotalAmount);
         builder.Ignore(o => o.DiscountAmount);

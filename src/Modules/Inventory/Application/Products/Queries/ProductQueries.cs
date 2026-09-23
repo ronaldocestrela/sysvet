@@ -8,7 +8,11 @@ namespace Inventory.Application.Products.Queries;
 
 /// <summary>Lists catalog products.</summary>
 [AuthorizeRequest(AuthorizationPolicies.Authenticated, Permissions.ProductsRead)]
-public sealed record ListProductsQuery(bool ActiveOnly = true) : IQuery<IReadOnlyList<ProductListItemDto>>;
+public sealed record ListProductsQuery(
+    bool ActiveOnly = true,
+    int Page = 1,
+    int PageSize = Core.Application.Common.PageRequest.DefaultPageSize,
+    string? Search = null) : IQuery<Core.Application.Common.PagedResult<ProductListItemDto>>;
 
 /// <summary>Gets product detail with lots.</summary>
 [AuthorizeRequest(AuthorizationPolicies.Authenticated, Permissions.ProductsRead)]

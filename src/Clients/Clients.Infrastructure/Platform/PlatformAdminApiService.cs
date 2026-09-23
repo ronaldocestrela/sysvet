@@ -13,10 +13,31 @@ public sealed class PlatformAdminApiService : IPlatformAdminApi
     public PlatformAdminApiService(ApiClient apiClient) => _apiClient = apiClient;
 
     /// <inheritdoc />
-    public Task<Result<IReadOnlyList<PlatformTenantSummaryDto>>> ListTenantsAsync(bool activeOnly = false, CancellationToken cancellationToken = default) =>
-        _apiClient.GetAsync<IReadOnlyList<PlatformTenantSummaryDto>>(
-            $"/api/v1/platform/tenants?activeOnly={activeOnly.ToString().ToLowerInvariant()}",
-            cancellationToken);
+    public async Task<Result<IReadOnlyList<PlatformTenantSummaryDto>>> ListTenantsAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
+    {
+        var all = new List<PlatformTenantSummaryDto>();
+        var page = 1;
+        while (true)
+        {
+            var url =
+                $"/api/v1/platform/tenants?activeOnly={activeOnly.ToString().ToLowerInvariant()}&page={page}&pageSize=100";
+            var pageResult = await _apiClient.GetAsync<PagedResultDto<PlatformTenantSummaryDto>>(url, cancellationToken);
+            if (pageResult.IsFailure)
+            {
+                return Result.Failure<IReadOnlyList<PlatformTenantSummaryDto>>(pageResult.Error);
+            }
+
+            all.AddRange(pageResult.Value!.Items);
+            if (all.Count >= pageResult.Value.TotalCount || pageResult.Value.Items.Count == 0)
+            {
+                break;
+            }
+
+            page++;
+        }
+
+        return Result.Success<IReadOnlyList<PlatformTenantSummaryDto>>(all);
+    }
 
     /// <inheritdoc />
     public Task<Result<PlatformTenantDetailDto>> GetTenantAsync(Guid tenantId, CancellationToken cancellationToken = default) =>

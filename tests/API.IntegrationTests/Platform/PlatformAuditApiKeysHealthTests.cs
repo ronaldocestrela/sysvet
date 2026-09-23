@@ -85,11 +85,14 @@ public class PlatformAuditApiKeysHealthTests : IClassFixture<WebApplicationFacto
         var me = await adminClient.GetAsync("/api/v1/auth/me");
         me.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var logs = await superAdmin.GetAsync("/api/v1/platform/login-logs?take=20");
-        logs.StatusCode.Should().Be(HttpStatusCode.OK);
-        var rows = await logs.Content.ReadFromJsonAsync<List<PlatformLoginLogDto>>();
-        rows.Should().NotBeNull();
-        rows!.Should().Contain(l => l.Succeeded && !string.IsNullOrWhiteSpace(l.ClientIp));
+        var logs = await superAdmin.GetAsync("/api/v1/platform/login-logs?page=1&pageSize=20");
+        var body = await logs.Content.ReadAsStringAsync();
+        logs.StatusCode.Should().Be(HttpStatusCode.OK, because: body);
+        var page = System.Text.Json.JsonSerializer.Deserialize<Core.Application.Common.PagedResult<PlatformLoginLogDto>>(
+            body,
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+        page.Should().NotBeNull();
+        page!.Items.Should().Contain(l => l.Succeeded && !string.IsNullOrWhiteSpace(l.ClientIp));
     }
 
     private async Task<HttpClient> CreateSuperAdminClientAsync()

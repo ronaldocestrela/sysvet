@@ -11,6 +11,8 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
         builder.ToTable("Appointments");
         builder.HasKey(a => a.Id);
 
+        builder.Property<Guid>("TenantId").IsRequired();
+
         builder.Property(a => a.TutorId).IsRequired();
         builder.Property(a => a.PetId).IsRequired();
         builder.Property(a => a.VeterinarianId).IsRequired();
@@ -21,5 +23,7 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
 
         builder.Property(a => a.RowVersion)
             .IsConcurrencyToken();
+
+        builder.HasIndex("TenantId", nameof(Appointment.Status), nameof(Appointment.Date));
     }
 }

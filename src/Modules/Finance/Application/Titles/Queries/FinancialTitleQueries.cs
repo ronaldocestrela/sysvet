@@ -17,4 +17,6 @@ public record ListFinancialTitlesQuery(
     PartyKind? PartyKind = null,
     Guid? PartyId = null,
     DateOnly? DueFrom = null,
-    DateOnly? DueTo = null) : IQuery<IReadOnlyList<FinancialTitleDto>>;
+    DateOnly? DueTo = null,
+    int Page = 1,
+    int PageSize = Core.Application.Common.PageRequest.DefaultPageSize) : IQuery<Core.Application.Common.PagedResult<FinancialTitleDto>>;

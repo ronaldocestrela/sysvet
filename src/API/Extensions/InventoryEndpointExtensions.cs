@@ -36,8 +36,13 @@ public static class InventoryEndpointExtensions
             .RequireAuthorization()
             .WithTags("Inventory");
 
-        group.MapGet("/products", async ([FromQuery] bool? activeOnly, IMediator mediator) =>
-            (await mediator.Send(new ListProductsQuery(activeOnly ?? true))).ToHttpResult());
+        group.MapGet("/products", async (
+            [FromQuery] bool? activeOnly,
+            [FromQuery] int page,
+            [FromQuery] int pageSize,
+            [FromQuery] string? search,
+            IMediator mediator) =>
+            (await mediator.Send(new ListProductsQuery(activeOnly ?? true, page <= 0 ? 1 : page, pageSize, search))).ToHttpResult());
 
         group.MapGet("/products/{id:guid}", async (Guid id, IMediator mediator) =>
             (await mediator.Send(new GetProductByIdQuery(id))).ToHttpResult());

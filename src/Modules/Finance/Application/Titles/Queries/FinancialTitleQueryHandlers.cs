@@ -1,3 +1,4 @@
+using Core.Application.Common;
 using Core.Application.Messaging;
 using Core.Domain;
 using MediatR;
@@ -27,7 +28,7 @@ public sealed class GetFinancialTitleByIdQueryHandler : IRequestHandler<GetFinan
     }
 }
 
-public sealed class ListFinancialTitlesQueryHandler : IRequestHandler<ListFinancialTitlesQuery, Result<IReadOnlyList<FinancialTitleDto>>>
+public sealed class ListFinancialTitlesQueryHandler : IRequestHandler<ListFinancialTitlesQuery, Result<PagedResult<FinancialTitleDto>>>
 {
     private readonly IFinancialTitleRepository _titleRepository;
 
@@ -36,17 +37,27 @@ public sealed class ListFinancialTitlesQueryHandler : IRequestHandler<ListFinanc
         _titleRepository = titleRepository;
     }
 
-    public async Task<Result<IReadOnlyList<FinancialTitleDto>>> Handle(ListFinancialTitlesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PagedResult<FinancialTitleDto>>> Handle(ListFinancialTitlesQuery request, CancellationToken cancellationToken)
     {
-        var titles = await _titleRepository.ListAsync(
+        var pageRequest = PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
+        {
+            return Result.Failure<PagedResult<FinancialTitleDto>>(pageRequest.Error);
+        }
+
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var (titles, total) = await _titleRepository.ListPagedAsync(
             request.Direction,
             request.Status,
             request.PartyKind,
             request.PartyId,
             request.DueFrom,
             request.DueTo,
+            page,
+            pageSize,
             cancellationToken);
 
-        return Result.Success<IReadOnlyList<FinancialTitleDto>>(titles.Select(FinancialTitleMapper.ToDto).ToList());
+        var items = titles.Select(FinancialTitleMapper.ToDto).ToList();
+        return Result.Success(new PagedResult<FinancialTitleDto>(items, page, pageSize, total));
     }
 }

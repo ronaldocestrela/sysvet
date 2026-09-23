@@ -1,3 +1,4 @@
+using Core.Application.Common;
 using Core.Domain;
 using Inventory.Application.Products.Dtos;
 using Inventory.Domain.Repositories;
@@ -6,7 +7,7 @@ using MediatR;
 namespace Inventory.Application.Products.Queries;
 
 /// <summary>Lists products with total quantity.</summary>
-public sealed class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, Result<IReadOnlyList<ProductListItemDto>>>
+public sealed class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, Result<PagedResult<ProductListItemDto>>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IProductLotRepository _lotRepository;
@@ -17,16 +18,24 @@ public sealed class ListProductsQueryHandler : IRequestHandler<ListProductsQuery
         _lotRepository = lotRepository;
     }
 
-    public async Task<Result<IReadOnlyList<ProductListItemDto>>> Handle(ListProductsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PagedResult<ProductListItemDto>>> Handle(ListProductsQuery request, CancellationToken cancellationToken)
     {
-        var products = (await _productRepository.GetAllAsync(cancellationToken)).ToList();
-        if (request.ActiveOnly)
+        var pageRequest = PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
         {
-            products = products.Where(p => p.IsActive).ToList();
+            return Result.Failure<PagedResult<ProductListItemDto>>(pageRequest.Error);
         }
 
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var (products, totalCount) = await _productRepository.ListPagedAsync(
+            request.ActiveOnly,
+            request.Search,
+            page,
+            pageSize,
+            cancellationToken);
+
         var items = new List<ProductListItemDto>();
-        foreach (var product in products.OrderBy(p => p.Name))
+        foreach (var product in products)
         {
             var lots = await _lotRepository.ListByProductIdAsync(product.Id, cancellationToken);
             var totalFromLots = lots.Where(l => l.IsActive).Sum(l => l.Quantity);
@@ -45,7 +54,7 @@ public sealed class ListProductsQueryHandler : IRequestHandler<ListProductsQuery
                 product.IsActive));
         }
 
-        return Result.Success<IReadOnlyList<ProductListItemDto>>(items);
+        return Result.Success(new PagedResult<ProductListItemDto>(items, page, pageSize, totalCount));
     }
 }
 

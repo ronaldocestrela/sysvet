@@ -30,8 +30,8 @@ public static class CommerceEndpointExtensions
                 body.StoreEnabled,
                 body.MercadoLivreEnabled))).ToHttpResult());
 
-        group.MapGet("/orders", async (IMediator mediator) =>
-            (await mediator.Send(new ListOnlineOrdersQuery())).ToHttpResult());
+        group.MapGet("/orders", async ([FromQuery] int page, [FromQuery] int pageSize, IMediator mediator) =>
+            (await mediator.Send(new ListOnlineOrdersQuery(page <= 0 ? 1 : page, pageSize))).ToHttpResult());
 
         group.MapPost("/orders/{orderId:guid}/ready", async (Guid orderId, IMediator mediator) =>
             (await mediator.Send(new MarkOnlineOrderReadyCommand(orderId))).ToHttpResult());

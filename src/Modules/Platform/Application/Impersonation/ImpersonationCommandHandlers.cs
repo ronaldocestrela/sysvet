@@ -16,7 +16,7 @@ namespace Platform.Application.Impersonation;
 public sealed class ImpersonationCommandHandlers :
     IRequestHandler<StartImpersonationCommand, Result<StartImpersonationResultDto>>,
     IRequestHandler<EndImpersonationCommand, Result>,
-    IRequestHandler<ListImpersonationAuditsQuery, Result<IReadOnlyList<ImpersonationAuditDto>>>
+    IRequestHandler<ListImpersonationAuditsQuery, Result<Core.Application.Common.PagedResult<ImpersonationAuditDto>>>
 {
     private readonly ITenantRepository _tenantRepository;
     private readonly IImpersonationSessionRepository _sessionRepository;
@@ -147,12 +147,18 @@ public sealed class ImpersonationCommandHandlers :
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<ImpersonationAuditDto>>> Handle(
+    public async Task<Result<Core.Application.Common.PagedResult<ImpersonationAuditDto>>> Handle(
         ListImpersonationAuditsQuery request,
         CancellationToken cancellationToken)
     {
-        var take = Math.Clamp(request.Take, 1, 500);
-        var rows = await _auditRepository.ListAsync(take, cancellationToken);
+        var pageRequest = Core.Application.Common.PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
+        {
+            return Result.Failure<Core.Application.Common.PagedResult<ImpersonationAuditDto>>(pageRequest.Error);
+        }
+
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var (rows, total) = await _auditRepository.ListPagedAsync(page, pageSize, cancellationToken);
         var dtos = rows.Select(r => new ImpersonationAuditDto(
             r.Id,
             r.SessionId,
@@ -162,6 +168,6 @@ public sealed class ImpersonationCommandHandlers :
             r.OccurredAt,
             r.ClientIp)).ToList();
 
-        return Result.Success<IReadOnlyList<ImpersonationAuditDto>>(dtos);
+        return Result.Success(new Core.Application.Common.PagedResult<ImpersonationAuditDto>(dtos, page, pageSize, total));
     }
 }

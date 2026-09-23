@@ -1,4 +1,5 @@
 using Core.Application.Authorization;
+using Core.Application.Common;
 using Core.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -149,8 +150,12 @@ public static class PlatformEndpointsExtensions
     private static Task<Result<ChargeTenantBillingResultDto>> ChargeTenantBilling(Guid tenantId, IMediator mediator) =>
         mediator.Send(new ChargeTenantBillingCommand(tenantId, DateTimeOffset.UtcNow));
 
-    private static Task<Result<IReadOnlyList<BillingInvoiceDto>>> ListBillingInvoices(Guid tenantId, IMediator mediator) =>
-        mediator.Send(new ListTenantBillingInvoicesQuery(tenantId));
+    private static Task<Result<PagedResult<BillingInvoiceDto>>> ListBillingInvoices(
+        Guid tenantId,
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        IMediator mediator) =>
+        mediator.Send(new ListTenantBillingInvoicesQuery(tenantId, page <= 0 ? 1 : page, pageSize));
 
     private static Task<Result<SaasNfseDto>> RetrySaasNfse(Guid tenantId, Guid invoiceId, IMediator mediator) =>
         mediator.Send(new RetrySaasNfseForInvoiceCommand(tenantId, invoiceId));
@@ -164,22 +169,25 @@ public static class PlatformEndpointsExtensions
     private static Task<Result> EndImpersonation(Guid sessionId, HttpContext httpContext, IMediator mediator) =>
         mediator.Send(new EndImpersonationCommand(sessionId, ResolveClientIp(httpContext)));
 
-    private static Task<Result<IReadOnlyList<ImpersonationAuditDto>>> ListImpersonationAudits(
-        [FromQuery] int take,
+    private static Task<Result<PagedResult<ImpersonationAuditDto>>> ListImpersonationAudits(
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
         IMediator mediator) =>
-        mediator.Send(new ListImpersonationAuditsQuery(take <= 0 ? 100 : take));
+        mediator.Send(new ListImpersonationAuditsQuery(page <= 0 ? 1 : page, pageSize));
 
-    private static Task<Result<IReadOnlyList<PlatformLoginLogDto>>> ListPlatformLoginLogs(
+    private static Task<Result<PagedResult<PlatformLoginLogDto>>> ListPlatformLoginLogs(
         [FromQuery] Guid? tenantId,
-        [FromQuery] int take,
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
         IMediator mediator) =>
-        mediator.Send(new ListPlatformLoginLogsQuery(tenantId, take <= 0 ? 100 : take));
+        mediator.Send(new ListPlatformLoginLogsQuery(tenantId, page <= 0 ? 1 : page, pageSize));
 
-    private static Task<Result<IReadOnlyList<PlatformChangeAuditDto>>> ListPlatformChangeAudits(
+    private static Task<Result<PagedResult<PlatformChangeAuditDto>>> ListPlatformChangeAudits(
         [FromQuery] Guid? tenantId,
-        [FromQuery] int take,
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
         IMediator mediator) =>
-        mediator.Send(new ListPlatformChangeAuditsQuery(tenantId, take <= 0 ? 100 : take));
+        mediator.Send(new ListPlatformChangeAuditsQuery(tenantId, page <= 0 ? 1 : page, pageSize));
 
     private static Task<Result<TenantHealthDto>> GetTenantHealth(Guid tenantId, IMediator mediator) =>
         mediator.Send(new GetTenantHealthQuery(tenantId));
@@ -202,8 +210,12 @@ public static class PlatformEndpointsExtensions
     private static Task<Result<OnboardTenantResultDto>> OnboardTenant([FromBody] OnboardTenantCommand command, IMediator mediator) =>
         mediator.Send(command);
 
-    private static Task<Result<IReadOnlyList<TenantSummaryDto>>> ListTenants([FromQuery] bool activeOnly, IMediator mediator) =>
-        mediator.Send(new ListTenantsQuery(activeOnly));
+    private static Task<Result<PagedResult<TenantSummaryDto>>> ListTenants(
+        [FromQuery] bool activeOnly,
+        [FromQuery] int page,
+        [FromQuery] int pageSize,
+        IMediator mediator) =>
+        mediator.Send(new ListTenantsQuery(activeOnly, page <= 0 ? 1 : page, pageSize));
 
     private static Task<Result<TenantDetailDto>> GetTenant(Guid tenantId, IMediator mediator) =>
         mediator.Send(new GetTenantQuery(tenantId));

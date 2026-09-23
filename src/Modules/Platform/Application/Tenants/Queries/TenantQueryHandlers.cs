@@ -1,3 +1,4 @@
+using Core.Application.Common;
 using Core.Domain;
 using MediatR;
 using Platform.Application.Tenants.Commands;
@@ -8,7 +9,7 @@ using Platform.Domain.Repositories;
 namespace Platform.Application.Tenants.Queries;
 
 /// <summary>Lists tenants.</summary>
-public sealed class ListTenantsQueryHandler : IRequestHandler<ListTenantsQuery, Result<IReadOnlyList<TenantSummaryDto>>>
+public sealed class ListTenantsQueryHandler : IRequestHandler<ListTenantsQuery, Result<PagedResult<TenantSummaryDto>>>
 {
     private readonly ITenantRepository _tenantRepository;
 
@@ -16,18 +17,27 @@ public sealed class ListTenantsQueryHandler : IRequestHandler<ListTenantsQuery, 
     public ListTenantsQueryHandler(ITenantRepository tenantRepository) => _tenantRepository = tenantRepository;
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<TenantSummaryDto>>> Handle(ListTenantsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PagedResult<TenantSummaryDto>>> Handle(ListTenantsQuery request, CancellationToken cancellationToken)
     {
+        var pageRequest = PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
+        {
+            return Result.Failure<PagedResult<TenantSummaryDto>>(pageRequest.Error);
+        }
+
         var tenants = request.ActiveOnly
             ? await _tenantRepository.ListActiveAsync(cancellationToken)
             : await _tenantRepository.ListAsync(cancellationToken);
 
-        IReadOnlyList<TenantSummaryDto> mapped = tenants
+        var filtered = tenants
             .Where(t => t.Status != TenantStatus.Deleted || !request.ActiveOnly)
             .Select(t => new TenantSummaryDto(t.Id, t.Slug, t.DisplayName, t.Status, t.SchemaName, t.UpdatedAt))
+            .OrderBy(t => t.DisplayName)
             .ToList();
 
-        return Result.Success(mapped);
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var pageItems = filtered.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Result.Success(new PagedResult<TenantSummaryDto>(pageItems, page, pageSize, filtered.Count));
     }
 }
 

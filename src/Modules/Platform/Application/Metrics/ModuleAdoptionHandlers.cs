@@ -1,3 +1,4 @@
+using Core.Application.Caching;
 using Core.Domain;
 using MediatR;
 using Platform.Application.Abstractions;
@@ -6,7 +7,14 @@ using Platform.Domain.Services;
 namespace Platform.Application.Metrics;
 
 /// <summary>Loads module adoption heatmap (10.3).</summary>
-public sealed record GetPlatformModuleAdoptionQuery : IRequest<Result<PlatformModuleAdoptionDto>>;
+public sealed record GetPlatformModuleAdoptionQuery : IRequest<Result<PlatformModuleAdoptionDto>>, IPlatformScopedCacheQuery
+{
+    /// <inheritdoc />
+    public string CacheKeySuffix => "snapshot";
+
+    /// <inheritdoc />
+    public TimeSpan CacheDuration => CacheDurations.Analytics;
+}
 
 /// <summary>Exports module adoption matrix as CSV (10.3).</summary>
 public sealed record ExportPlatformModuleAdoptionQuery : IRequest<Result<ModuleAdoptionFileDto>>;

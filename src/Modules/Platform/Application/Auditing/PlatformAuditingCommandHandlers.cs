@@ -1,3 +1,4 @@
+using Core.Application.Common;
 using Core.Application.Messaging;
 using Core.Domain;
 using MediatR;
@@ -10,8 +11,8 @@ namespace Platform.Application.Auditing;
 /// <summary>Platform login and change audit handlers (9.7).</summary>
 public sealed class PlatformAuditingCommandHandlers :
     IRequestHandler<RecordPlatformLoginCommand, Result>,
-    IRequestHandler<ListPlatformLoginLogsQuery, Result<IReadOnlyList<PlatformLoginLogDto>>>,
-    IRequestHandler<ListPlatformChangeAuditsQuery, Result<IReadOnlyList<PlatformChangeAuditDto>>>
+    IRequestHandler<ListPlatformLoginLogsQuery, Result<PagedResult<PlatformLoginLogDto>>>,
+    IRequestHandler<ListPlatformChangeAuditsQuery, Result<PagedResult<PlatformChangeAuditDto>>>
 {
     private readonly IPlatformLoginLogRepository _loginLogRepository;
     private readonly IPlatformChangeAuditRepository _changeAuditRepository;
@@ -64,11 +65,18 @@ public sealed class PlatformAuditingCommandHandlers :
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<PlatformLoginLogDto>>> Handle(
+    public async Task<Result<PagedResult<PlatformLoginLogDto>>> Handle(
         ListPlatformLoginLogsQuery request,
         CancellationToken cancellationToken)
     {
-        var rows = await _loginLogRepository.ListAsync(request.TenantId, request.Take, cancellationToken);
+        var pageRequest = PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
+        {
+            return Result.Failure<PagedResult<PlatformLoginLogDto>>(pageRequest.Error);
+        }
+
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var (rows, total) = await _loginLogRepository.ListPagedAsync(request.TenantId, page, pageSize, cancellationToken);
         var dtos = rows.Select(r => new PlatformLoginLogDto(
             r.Id,
             r.TenantId,
@@ -79,15 +87,22 @@ public sealed class PlatformAuditingCommandHandlers :
             r.Country,
             r.Region,
             r.OccurredAt)).ToList();
-        return Result.Success<IReadOnlyList<PlatformLoginLogDto>>(dtos);
+        return Result.Success(new PagedResult<PlatformLoginLogDto>(dtos, page, pageSize, total));
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<PlatformChangeAuditDto>>> Handle(
+    public async Task<Result<PagedResult<PlatformChangeAuditDto>>> Handle(
         ListPlatformChangeAuditsQuery request,
         CancellationToken cancellationToken)
     {
-        var rows = await _changeAuditRepository.ListAsync(request.TenantId, request.Take, cancellationToken);
+        var pageRequest = PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
+        {
+            return Result.Failure<PagedResult<PlatformChangeAuditDto>>(pageRequest.Error);
+        }
+
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var (rows, total) = await _changeAuditRepository.ListPagedAsync(request.TenantId, page, pageSize, cancellationToken);
         var dtos = rows.Select(r => new PlatformChangeAuditDto(
             r.Id,
             r.ActorUserId,
@@ -96,6 +111,6 @@ public sealed class PlatformAuditingCommandHandlers :
             r.PayloadSummary,
             r.ClientIp,
             r.OccurredAt)).ToList();
-        return Result.Success<IReadOnlyList<PlatformChangeAuditDto>>(dtos);
+        return Result.Success(new PagedResult<PlatformChangeAuditDto>(dtos, page, pageSize, total));
     }
 }

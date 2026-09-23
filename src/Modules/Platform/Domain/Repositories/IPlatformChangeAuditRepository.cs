@@ -10,4 +10,11 @@ public interface IPlatformChangeAuditRepository
 
     /// <summary>Lists recent change audits optionally filtered by tenant.</summary>
     Task<IReadOnlyList<PlatformChangeAuditEntry>> ListAsync(Guid? tenantId, int take, CancellationToken cancellationToken = default);
+
+    /// <summary>Paged change audits (newest first).</summary>
+    Task<(IReadOnlyList<PlatformChangeAuditEntry> Items, int TotalCount)> ListPagedAsync(
+        Guid? tenantId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

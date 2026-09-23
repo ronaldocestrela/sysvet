@@ -10,6 +10,7 @@ internal sealed class GroomingAppointmentConfiguration : IEntityTypeConfiguratio
     {
         builder.ToTable("GroomingAppointments");
         builder.HasKey(a => a.Id);
+        builder.Property<Guid>("TenantId").IsRequired();
         builder.Property(a => a.TutorId).IsRequired();
         builder.Property(a => a.PetId).IsRequired();
         builder.Property(a => a.GroomerId).IsRequired();
@@ -19,5 +20,7 @@ internal sealed class GroomingAppointmentConfiguration : IEntityTypeConfiguratio
         builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(a => a.Notes).HasMaxLength(500);
         builder.Property(a => a.RowVersion).IsConcurrencyToken();
+
+        builder.HasIndex("TenantId", nameof(GroomingAppointment.Status), nameof(GroomingAppointment.Date));
     }
 }

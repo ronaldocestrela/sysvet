@@ -83,6 +83,16 @@ public static class ErrorCodes
         public static readonly Error Error = new("Validation.Error", "A validation error occurred.");
     }
 
+    /// <summary>Pagination parameter validation (Fase 10.4).</summary>
+    public static class Pagination
+    {
+        /// <summary>Page number must be at least 1.</summary>
+        public static readonly Error InvalidPage = new("Pagination.InvalidPage", "Page must be at least 1.");
+
+        /// <summary>Page size exceeds the configured maximum.</summary>
+        public static readonly Error PageSizeTooLarge = new("Pagination.PageSizeTooLarge", "Page size cannot exceed 100.");
+    }
+
     /// <summary>
     /// Tutor aggregate errors.
     /// </summary>

@@ -89,6 +89,40 @@ public sealed class FinancialTitleRepository : IFinancialTitleRepository
         DateOnly? dueTo,
         CancellationToken cancellationToken)
     {
+        var query = BuildListQuery(direction, status, partyKind, partyId, dueFrom, dueTo);
+        return await query.OrderBy(t => t.DueDate).ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<(IReadOnlyList<FinancialTitle> Items, int TotalCount)> ListPagedAsync(
+        TitleDirection? direction,
+        TitleStatus? status,
+        PartyKind? partyKind,
+        Guid? partyId,
+        DateOnly? dueFrom,
+        DateOnly? dueTo,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = BuildListQuery(direction, status, partyKind, partyId, dueFrom, dueTo);
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderBy(t => t.DueDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+        return (items, total);
+    }
+
+    private IQueryable<FinancialTitle> BuildListQuery(
+        TitleDirection? direction,
+        TitleStatus? status,
+        PartyKind? partyKind,
+        Guid? partyId,
+        DateOnly? dueFrom,
+        DateOnly? dueTo)
+    {
         var query = _dbContext.FinancialTitles.Include(t => t.Allocations).AsQueryable();
 
         if (direction.HasValue)
@@ -121,7 +155,7 @@ public sealed class FinancialTitleRepository : IFinancialTitleRepository
             query = query.Where(t => t.DueDate <= dueTo.Value);
         }
 
-        return await query.OrderBy(t => t.DueDate).ToListAsync(cancellationToken);
+        return query;
     }
 
     public async Task<IReadOnlyList<FinancialTitle>> ListForStatementsAsync(

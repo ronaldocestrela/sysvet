@@ -10,4 +10,11 @@ public interface IPlatformLoginLogRepository
 
     /// <summary>Lists recent login logs optionally filtered by tenant.</summary>
     Task<IReadOnlyList<PlatformLoginLog>> ListAsync(Guid? tenantId, int take, CancellationToken cancellationToken = default);
+
+    /// <summary>Paged login logs (newest first).</summary>
+    Task<(IReadOnlyList<PlatformLoginLog> Items, int TotalCount)> ListPagedAsync(
+        Guid? tenantId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

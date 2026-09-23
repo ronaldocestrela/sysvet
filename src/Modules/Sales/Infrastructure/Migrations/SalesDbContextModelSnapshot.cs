@@ -266,6 +266,8 @@ namespace Sales.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TenantId", "PaidAt");
+
                     b.ToTable("Orders", "dbo");
                 });
 

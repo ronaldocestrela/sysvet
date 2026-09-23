@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddValidatedOptions<DatabaseOptions>(configuration, DatabaseOptions.SectionName);
         services.AddValidatedOptions<JwtSettings>(configuration, JwtSettings.SectionName);
         services.AddValidatedOptions<TenancySettings>(configuration, TenancySettings.SectionName);
+        services.AddSysvetDistributedCache(configuration);
         services.AddBlobStorage(configuration);
 
         services.AddDbContext<CoreDbContext>((serviceProvider, options) =>
@@ -132,6 +133,7 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.AuthorizationBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.ValidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.DistributedCacheBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.IdempotencyBehavior<,>));
             cfg.AddOpenBehavior(typeof(Core.Application.Behaviors.TransactionBehavior<,>));
         });

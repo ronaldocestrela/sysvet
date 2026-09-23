@@ -1,7 +1,9 @@
+using System.Text.Json;
+using Core.Application.Caching;
 using Core.Application.Entitlements;
 using Core.Domain.Entitlements;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using Platform.Domain.Repositories;
 using Platform.Domain.Services;
 
@@ -10,16 +12,16 @@ namespace Platform.Infrastructure.Entitlements;
 /// <inheritdoc />
 public sealed class TenantEntitlementReader : ITenantEntitlementReader
 {
-    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly ITenantSubscriptionRepository _subscriptionRepository;
     private readonly IFeatureFlagRepository _featureFlagRepository;
-    private readonly IMemoryCache _cache;
+    private readonly IDistributedCache _cache;
 
     /// <summary>Creates the reader.</summary>
     public TenantEntitlementReader(
         ITenantSubscriptionRepository subscriptionRepository,
         IFeatureFlagRepository featureFlagRepository,
-        IMemoryCache cache)
+        IDistributedCache cache)
     {
         _subscriptionRepository = subscriptionRepository;
         _featureFlagRepository = featureFlagRepository;
@@ -34,14 +36,24 @@ public sealed class TenantEntitlementReader : ITenantEntitlementReader
             return new HashSet<CommercialModule>();
         }
 
-        var cacheKey = CacheKey(tenantId);
-        if (_cache.TryGetValue(cacheKey, out IReadOnlySet<CommercialModule>? cached) && cached is not null)
+        var cacheKey = EntitlementCacheKeys.ForTenant(tenantId);
+        var cachedBytes = await _cache.GetAsync(cacheKey, cancellationToken);
+        if (cachedBytes is { Length: > 0 })
         {
-            return cached;
+            var modules = JsonSerializer.Deserialize<CommercialModule[]>(cachedBytes, JsonOptions);
+            if (modules is not null)
+            {
+                return modules.ToHashSet();
+            }
         }
 
         var effective = await LoadEffectiveAsync(tenantId, cancellationToken);
-        _cache.Set(cacheKey, effective, CacheTtl);
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(effective.ToArray(), JsonOptions);
+        await _cache.SetAsync(
+            cacheKey,
+            bytes,
+            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheDurations.Analytics },
+            cancellationToken);
         return effective;
     }
 
@@ -53,7 +65,7 @@ public sealed class TenantEntitlementReader : ITenantEntitlementReader
     }
 
     /// <inheritdoc />
-    public void Invalidate(Guid tenantId) => _cache.Remove(CacheKey(tenantId));
+    public void Invalidate(Guid tenantId) => _cache.Remove(EntitlementCacheKeys.ForTenant(tenantId));
 
     private async Task<IReadOnlySet<CommercialModule>> LoadEffectiveAsync(Guid tenantId, CancellationToken cancellationToken)
     {
@@ -79,8 +91,6 @@ public sealed class TenantEntitlementReader : ITenantEntitlementReader
             return AllModules();
         }
     }
-
-    private static string CacheKey(Guid tenantId) => $"entitlements:{tenantId:D}";
 
     private static HashSet<CommercialModule> AllModules() => Enum.GetValues<CommercialModule>().ToHashSet();
 }

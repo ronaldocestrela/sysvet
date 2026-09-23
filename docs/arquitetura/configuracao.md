@@ -41,6 +41,8 @@ O provider EF Core é definido em `Database:Provider` (`Sqlite` ou `SqlServer`).
 | `TenancySettings:SingleTenantId` | Não | Dev/staging | Tenant fixo para workers (lembretes/outbox) até varredura multi-tenant (9.x) |
 | `Database:Provider` | `Sqlite` | `SqlServer` | Provider EF Core |
 | `Database:ConnectionStringName` | `DefaultConnection` | `DefaultConnection` | Nome da entrada em `ConnectionStrings` |
+| `Cache:Provider` | `Memory` | `Redis` (staging/prod) | Cache distribuído para queries e entitlements (ADR-057) |
+| `Cache:ConnectionString` / `Cache__ConnectionString` | — | **Obrigatório** com Redis | Connection string StackExchange.Redis |
 
 Segredos **não** devem ser commitados. Em Development, use User Secrets quando preferir não manter o JWT no disco:
 
@@ -56,6 +58,7 @@ Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesma
 | Seção | Tipo | Projeto |
 |-------|------|---------|
 | `JwtSettings` | `JwtSettings` | Core.Infrastructure |
+| `Cache` | `CacheOptions` | Core.Infrastructure |
 | `TenancySettings` | `TenancySettings` | Core.Infrastructure |
 | `Database` | `DatabaseOptions` | Core.Infrastructure |
 | `Veterinary` | `VeterinaryOptions` | Veterinary.Infrastructure |

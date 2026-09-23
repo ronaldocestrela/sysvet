@@ -42,7 +42,6 @@ public static class DependencyInjection
     /// <summary>Adds Platform persistence and tenancy lookup services.</summary>
     public static IServiceCollection AddPlatformModule(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddMemoryCache();
         services.AddValidatedOptions<PlatformOptions>(configuration, PlatformOptions.SectionName);
         services.AddValidatedOptions<BillingOptions>(configuration, BillingOptions.SectionName);
         services.AddValidatedOptions<DunningOptions>(configuration, DunningOptions.SectionName);

@@ -335,9 +335,17 @@ Iniciado o módulo de estoque.
 - UI SharedUI `/intelligence/reports`; PlatformWeb `/adoption`.
 - Aceite: relatórios exportáveis; adoção alinhada a flags/planos; testes domínio + `API.IntegrationTests/Intelligence`.
 
-### 👉 **Próxima Ação: Fase 10.4 — Performance, cache e escalabilidade**
+### Fase 10.4 — Performance, cache e escalabilidade — Concluída (ADR-057)
 
-Ver [`roadmap.md`](roadmap.md) §10.4.
+- `IDistributedCache` Memory/Redis; `DistributedCacheBehavior` + `ICacheableQuery` (dashboard, ABC, métricas, adoção).
+- Entitlements via cache distribuído; `PageRequest` (máx. 100) em produtos, títulos, commerce orders, rotas Platform de volume.
+- Índices `(TenantId, PaidAt)` em Orders; produtividade em Appointments/GroomingAppointments.
+- Baseline CI: `tests/LoadTests`; runbook [`load-baseline.md`](arquitetura/load-baseline.md).
+- Aceite: P95 &lt; 500 ms no harness CI; staging documentado no runbook.
+
+### 👉 **Próxima Ação: Fase 10.5 — Backup, DR e observabilidade avançada**
+
+Ver [`roadmap.md`](roadmap.md) §10.5.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

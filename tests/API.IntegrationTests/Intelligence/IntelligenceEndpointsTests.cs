@@ -76,6 +76,19 @@ public class IntelligenceEndpointsTests : IClassFixture<WebApplicationFactory<Pr
         sw.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(3));
     }
 
+    [Fact]
+    public async Task Dashboard_SecondRequest_ServedFromDistributedCache()
+    {
+        var client = await CreateStaffClientAsync(ApplicationRoles.Admin);
+        (await client.GetAsync("/api/v1/intelligence/dashboard")).EnsureSuccessStatusCode();
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        (await client.GetAsync("/api/v1/intelligence/dashboard")).EnsureSuccessStatusCode();
+        sw.Stop();
+
+        sw.Elapsed.Should().BeLessThan(TimeSpan.FromMilliseconds(500));
+    }
+
     private async Task<HttpClient> CreateStaffClientAsync(string role)
     {
         await using var scope = _factory.Services.CreateAsyncScope();

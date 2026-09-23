@@ -74,6 +74,30 @@ public sealed class OnlineOrderRepository : IOnlineOrderRepository
         return orders;
     }
 
+    /// <inheritdoc />
+    public async Task<(IReadOnlyList<OnlineOrder> Items, int TotalCount)> ListPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _db.OnlineOrders.AsNoTracking();
+        var total = await query.CountAsync(cancellationToken);
+        // SQLite cannot ORDER BY DateTimeOffset; sort in memory, then page.
+        var filtered = await query.ToListAsync(cancellationToken);
+        var orders = filtered
+            .OrderByDescending(x => x.UpdatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        foreach (var order in orders)
+        {
+            await _db.Entry(order).Collection<OnlineOrderLine>("_lines").LoadAsync(cancellationToken);
+        }
+
+        return (orders, total);
+    }
+
     public void Add(OnlineOrder order) => _db.OnlineOrders.Add(order);
 
     public void Update(OnlineOrder order) => _db.OnlineOrders.Update(order);

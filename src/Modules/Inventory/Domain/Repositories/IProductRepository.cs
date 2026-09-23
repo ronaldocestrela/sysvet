@@ -13,4 +13,14 @@ public interface IProductRepository : IRepository<Product>
     Task<ProductBalance?> GetBalanceAsync(Guid productId, CancellationToken cancellationToken = default);
     Task UpdateBalanceAsync(ProductBalance balance, CancellationToken cancellationToken = default);
     Task AddBalanceAsync(ProductBalance balance, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a page of products optionally filtered by name, SKU, or barcode (Fase 10.4).
+    /// </summary>
+    Task<(IReadOnlyList<Product> Items, int TotalCount)> ListPagedAsync(
+        bool activeOnly,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

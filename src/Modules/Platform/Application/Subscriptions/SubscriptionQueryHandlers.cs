@@ -13,7 +13,7 @@ public sealed class SubscriptionQueryHandlers :
     IRequestHandler<ListAddOnsQuery, Result<IReadOnlyList<AddOnSummaryDto>>>,
     IRequestHandler<GetTenantSubscriptionQuery, Result<TenantSubscriptionDto>>,
     IRequestHandler<GetTenantEntitlementsQuery, Result<TenantEntitlementsDto>>,
-    IRequestHandler<ListTenantBillingInvoicesQuery, Result<IReadOnlyList<BillingInvoiceDto>>>
+    IRequestHandler<ListTenantBillingInvoicesQuery, Result<Core.Application.Common.PagedResult<BillingInvoiceDto>>>
 {
     private readonly IPlanRepository _planRepository;
     private readonly IAddOnRepository _addOnRepository;
@@ -87,13 +87,19 @@ public sealed class SubscriptionQueryHandlers :
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<BillingInvoiceDto>>> Handle(
+    public async Task<Result<Core.Application.Common.PagedResult<BillingInvoiceDto>>> Handle(
         ListTenantBillingInvoicesQuery request,
         CancellationToken cancellationToken)
     {
         if (request.TenantId == Guid.Empty)
         {
-            return Result.Failure<IReadOnlyList<BillingInvoiceDto>>(PlatformErrorCodes.Billing.InvalidTenant);
+            return Result.Failure<Core.Application.Common.PagedResult<BillingInvoiceDto>>(PlatformErrorCodes.Billing.InvalidTenant);
+        }
+
+        var pageRequest = Core.Application.Common.PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
+        {
+            return Result.Failure<Core.Application.Common.PagedResult<BillingInvoiceDto>>(pageRequest.Error);
         }
 
         var invoices = await _billingInvoiceRepository.ListByTenantIdAsync(request.TenantId, cancellationToken);
@@ -123,8 +129,10 @@ public sealed class SubscriptionQueryHandlers :
                         c.PixCopyPaste,
                         c.BoletoIdentificationField)).ToList(),
                 nfse);
-        }).ToList();
+        }).OrderByDescending(d => d.PeriodEnd).ToList();
 
-        return Result.Success<IReadOnlyList<BillingInvoiceDto>>(dtos);
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var pageItems = dtos.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Result.Success(new Core.Application.Common.PagedResult<BillingInvoiceDto>(pageItems, page, pageSize, dtos.Count));
     }
 }

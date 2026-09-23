@@ -35,8 +35,10 @@ public static class FinanceEndpointExtensions
             [FromQuery] Guid? partyId,
             [FromQuery] DateOnly? dueFrom,
             [FromQuery] DateOnly? dueTo,
+            [FromQuery] int page,
+            [FromQuery] int pageSize,
             IMediator mediator) =>
-            (await mediator.Send(new ListFinancialTitlesQuery(direction, status, partyKind, partyId, dueFrom, dueTo))).ToHttpResult());
+            (await mediator.Send(new ListFinancialTitlesQuery(direction, status, partyKind, partyId, dueFrom, dueTo, page <= 0 ? 1 : page, pageSize))).ToHttpResult());
 
         titles.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
             (await mediator.Send(new GetFinancialTitleByIdQuery(id))).ToHttpResult());

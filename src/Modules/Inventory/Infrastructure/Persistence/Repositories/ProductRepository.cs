@@ -54,4 +54,38 @@ public class ProductRepository : IProductRepository
     {
         await _dbContext.ProductBalances.AddAsync(balance, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<(IReadOnlyList<Product> Items, int TotalCount)> ListPagedAsync(
+        bool activeOnly,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Products.AsNoTracking().AsQueryable();
+        if (activeOnly)
+        {
+            query = query.Where(p => p.IsActive);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            var upper = term.ToUpperInvariant();
+            query = query.Where(p =>
+                p.Name.Contains(term)
+                || p.Sku.Contains(upper)
+                || (p.Barcode != null && p.Barcode.Contains(term)));
+        }
+
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, total);
+    }
 }

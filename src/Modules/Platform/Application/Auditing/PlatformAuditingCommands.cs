@@ -11,7 +11,13 @@ public sealed record RecordPlatformLoginCommand(
     string UserAgent) : ICommand;
 
 /// <summary>Lists platform login logs.</summary>
-public sealed record ListPlatformLoginLogsQuery(Guid? TenantId, int Take) : IQuery<IReadOnlyList<PlatformLoginLogDto>>;
+public sealed record ListPlatformLoginLogsQuery(
+    Guid? TenantId,
+    int Page = 1,
+    int PageSize = Core.Application.Common.PageRequest.DefaultPageSize) : IQuery<Core.Application.Common.PagedResult<PlatformLoginLogDto>>;
 
 /// <summary>Lists Super Admin configuration change audits.</summary>
-public sealed record ListPlatformChangeAuditsQuery(Guid? TenantId, int Take) : IQuery<IReadOnlyList<PlatformChangeAuditDto>>;
+public sealed record ListPlatformChangeAuditsQuery(
+    Guid? TenantId,
+    int Page = 1,
+    int PageSize = Core.Application.Common.PageRequest.DefaultPageSize) : IQuery<Core.Application.Common.PagedResult<PlatformChangeAuditDto>>;

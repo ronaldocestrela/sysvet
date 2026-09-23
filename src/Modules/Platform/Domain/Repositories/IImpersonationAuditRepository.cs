@@ -10,4 +10,10 @@ public interface IImpersonationAuditRepository
 
     /// <summary>Lists audit entries newest first.</summary>
     Task<IReadOnlyList<ImpersonationAuditEntry>> ListAsync(int take, CancellationToken cancellationToken = default);
+
+    /// <summary>Paged impersonation audits (newest first).</summary>
+    Task<(IReadOnlyList<ImpersonationAuditEntry> Items, int TotalCount)> ListPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

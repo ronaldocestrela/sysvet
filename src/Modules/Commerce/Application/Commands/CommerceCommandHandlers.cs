@@ -121,16 +121,24 @@ public sealed class UpsertProductOfferCommandHandler : IRequestHandler<UpsertPro
 }
 
 /// <summary>Lists online orders.</summary>
-public sealed class ListOnlineOrdersQueryHandler : IRequestHandler<ListOnlineOrdersQuery, Result<IReadOnlyList<OnlineOrderDto>>>
+public sealed class ListOnlineOrdersQueryHandler : IRequestHandler<ListOnlineOrdersQuery, Result<Core.Application.Common.PagedResult<OnlineOrderDto>>>
 {
     private readonly IOnlineOrderRepository _orderRepository;
 
     public ListOnlineOrdersQueryHandler(IOnlineOrderRepository orderRepository) => _orderRepository = orderRepository;
 
-    public async Task<Result<IReadOnlyList<OnlineOrderDto>>> Handle(ListOnlineOrdersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<Core.Application.Common.PagedResult<OnlineOrderDto>>> Handle(ListOnlineOrdersQuery request, CancellationToken cancellationToken)
     {
-        var orders = await _orderRepository.ListAsync(cancellationToken);
-        return Result.Success<IReadOnlyList<OnlineOrderDto>>(orders.Select(CommerceMapping.ToDto).ToList());
+        var pageRequest = Core.Application.Common.PageRequest.TryCreate(request.Page, request.PageSize);
+        if (pageRequest.IsFailure)
+        {
+            return Result.Failure<Core.Application.Common.PagedResult<OnlineOrderDto>>(pageRequest.Error);
+        }
+
+        var (page, pageSize) = (pageRequest.Value.Page, pageRequest.Value.PageSize);
+        var (orders, total) = await _orderRepository.ListPagedAsync(page, pageSize, cancellationToken);
+        var items = orders.Select(CommerceMapping.ToDto).ToList();
+        return Result.Success(new Core.Application.Common.PagedResult<OnlineOrderDto>(items, page, pageSize, total));
     }
 }
 

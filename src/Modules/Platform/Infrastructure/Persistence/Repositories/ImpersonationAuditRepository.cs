@@ -17,11 +17,28 @@ public sealed class ImpersonationAuditRepository : IImpersonationAuditRepository
         await _context.ImpersonationAuditEntries.AddAsync(entry, cancellationToken);
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<ImpersonationAuditEntry>> ListAsync(int take, CancellationToken cancellationToken = default) =>
-        _context.ImpersonationAuditEntries
-            .AsNoTracking()
+    public async Task<IReadOnlyList<ImpersonationAuditEntry>> ListAsync(int take, CancellationToken cancellationToken = default)
+    {
+        var (items, _) = await ListPagedAsync(1, take, cancellationToken);
+        return items;
+    }
+
+    /// <inheritdoc />
+    public async Task<(IReadOnlyList<ImpersonationAuditEntry> Items, int TotalCount)> ListPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.ImpersonationAuditEntries.AsNoTracking();
+        var total = await query.CountAsync(cancellationToken);
+        // SQLite cannot ORDER BY DateTimeOffset; sort in memory after the filter.
+        var filtered = await query.ToListAsync(cancellationToken);
+        var items = filtered
             .OrderByDescending(e => e.OccurredAt)
-            .Take(take)
-            .ToListAsync(cancellationToken)
-            .ContinueWith(t => (IReadOnlyList<ImpersonationAuditEntry>)t.Result, cancellationToken);
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return (items, total);
+    }
 }

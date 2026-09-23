@@ -60,7 +60,8 @@
       "tests/Modules/TutorPortal.Tests/TutorPortal.Tests.csproj",
       "tests/Modules/ClinicSite.Tests/ClinicSite.Tests.csproj",
       "tests/Modules/Commerce.Tests/Commerce.Tests.csproj",
-      "tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj"
+      "tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj",
+      "tests/LoadTests/LoadTests.csproj"
     ]
   }
 }

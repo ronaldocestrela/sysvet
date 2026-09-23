@@ -1,5 +1,6 @@
 using Core.Application.Authorization;
 using Core.Application.Behaviors;
+using Core.Application.Caching;
 using Core.Application.Common.Interfaces;
 using Core.Domain;
 using Core.Domain.Authorization;
@@ -10,15 +11,36 @@ namespace Intelligence.Application.Reports;
 
 /// <summary>ABC customers report query (10.3).</summary>
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.IntelligenceRead)]
-public sealed record GetAbcCustomersReportQuery(DateOnly From, DateOnly To) : IRequest<Result<AbcCustomerReportDto>>;
+public sealed record GetAbcCustomersReportQuery(DateOnly From, DateOnly To) : IRequest<Result<AbcCustomerReportDto>>, ICacheableQuery
+{
+    /// <inheritdoc />
+    public string CacheKeySuffix => $"{From:yyyy-MM-dd}:{To:yyyy-MM-dd}";
+
+    /// <inheritdoc />
+    public TimeSpan CacheDuration => CacheDurations.Analytics;
+}
 
 /// <summary>ABC products report query (10.3).</summary>
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.IntelligenceRead)]
-public sealed record GetAbcProductsReportQuery(DateOnly From, DateOnly To) : IRequest<Result<AbcProductReportDto>>;
+public sealed record GetAbcProductsReportQuery(DateOnly From, DateOnly To) : IRequest<Result<AbcProductReportDto>>, ICacheableQuery
+{
+    /// <inheritdoc />
+    public string CacheKeySuffix => $"{From:yyyy-MM-dd}:{To:yyyy-MM-dd}";
+
+    /// <inheritdoc />
+    public TimeSpan CacheDuration => CacheDurations.Analytics;
+}
 
 /// <summary>Staff productivity report query (10.3).</summary>
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.IntelligenceRead)]
-public sealed record GetProductivityReportQuery(DateOnly From, DateOnly To) : IRequest<Result<ProductivityReportDto>>;
+public sealed record GetProductivityReportQuery(DateOnly From, DateOnly To) : IRequest<Result<ProductivityReportDto>>, ICacheableQuery
+{
+    /// <inheritdoc />
+    public string CacheKeySuffix => $"{From:yyyy-MM-dd}:{To:yyyy-MM-dd}";
+
+    /// <inheritdoc />
+    public TimeSpan CacheDuration => CacheDurations.Analytics;
+}
 
 /// <summary>CSV export for ABC customers.</summary>
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.IntelligenceRead)]

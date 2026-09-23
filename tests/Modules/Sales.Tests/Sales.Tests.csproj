@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="FluentAssertions" Version="8.10.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
     <PackageReference Include="NSubstitute" Version="6.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
@@ -25,6 +26,7 @@
     <ProjectReference Include="..\..\..\src\Modules\Sales\Application\Sales.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Sales\Domain\Sales.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Sales\Infrastructure\Sales.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Core\Infrastructure\Core.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

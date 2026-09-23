@@ -149,6 +149,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/API.IntegrationTests/API.IntegrationTests.csproj" />
     <Project Path="tests/Clients.Tests/Clients.Tests.csproj" />
+    <Project Path="tests/LoadTests/LoadTests.csproj" />
     <Project Path="tests/PoC.SyncTests/PoC.SyncTests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/">

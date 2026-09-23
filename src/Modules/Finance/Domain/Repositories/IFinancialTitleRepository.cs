@@ -31,6 +31,18 @@ public interface IFinancialTitleRepository
         DateOnly? dueTo,
         CancellationToken cancellationToken);
 
+    /// <summary>Paged list with the same filters as <see cref="ListAsync"/>.</summary>
+    Task<(IReadOnlyList<FinancialTitle> Items, int TotalCount)> ListPagedAsync(
+        TitleDirection? direction,
+        TitleStatus? status,
+        PartyKind? partyKind,
+        Guid? partyId,
+        DateOnly? dueFrom,
+        DateOnly? dueTo,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+
     /// <summary>
     /// Loads titles relevant to statements: issue date, due date, or any allocation paid in the inclusive range.
     /// </summary>

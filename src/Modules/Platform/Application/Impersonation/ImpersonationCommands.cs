@@ -10,7 +10,9 @@ public sealed record StartImpersonationCommand(Guid TargetTenantId, string Clien
 public sealed record EndImpersonationCommand(Guid SessionId, string ClientIp) : ICommand;
 
 /// <summary>Lists impersonation audit trail.</summary>
-public sealed record ListImpersonationAuditsQuery(int Take = 100) : IQuery<IReadOnlyList<ImpersonationAuditDto>>;
+public sealed record ListImpersonationAuditsQuery(
+    int Page = 1,
+    int PageSize = Core.Application.Common.PageRequest.DefaultPageSize) : IQuery<Core.Application.Common.PagedResult<ImpersonationAuditDto>>;
 
 /// <summary>Token returned to Super Admin.</summary>
 public sealed record StartImpersonationResultDto(

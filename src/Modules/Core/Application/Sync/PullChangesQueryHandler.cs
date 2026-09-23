@@ -1,3 +1,4 @@
+using Core.Application.Common;
 using Core.Domain;
 using MediatR;
 
@@ -21,8 +22,13 @@ public sealed class PullChangesQueryHandler : IRequestHandler<PullChangesQuery, 
     /// <inheritdoc />
     public async Task<Result<PullChangesResult>> Handle(PullChangesQuery request, CancellationToken cancellationToken)
     {
-        var take = request.Take <= 0 ? 100 : Math.Min(request.Take, 500);
-        var page = await _changeFeedReader.ReadChangesAsync(request.Since, take, cancellationToken);
+        var takeResult = PageRequest.TryNormalizeTake(request.Take);
+        if (takeResult.IsFailure)
+        {
+            return Result.Failure<PullChangesResult>(takeResult.Error);
+        }
+
+        var page = await _changeFeedReader.ReadChangesAsync(request.Since, takeResult.Value, cancellationToken);
         return Result.Success(page);
     }
 }

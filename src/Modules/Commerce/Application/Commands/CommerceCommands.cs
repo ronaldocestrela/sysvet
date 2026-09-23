@@ -21,7 +21,9 @@ public sealed record UpsertProductOfferCommand(
 
 /// <summary>Lists online orders for staff fulfillment.</summary>
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.CommerceRead)]
-public sealed record ListOnlineOrdersQuery : IQuery<IReadOnlyList<OnlineOrderDto>>;
+public sealed record ListOnlineOrdersQuery(
+    int Page = 1,
+    int PageSize = Core.Application.Common.PageRequest.DefaultPageSize) : IQuery<Core.Application.Common.PagedResult<OnlineOrderDto>>;
 
 /// <summary>Marks order ready for pickup.</summary>
 [AuthorizeRequest(AuthorizationPolicies.ClinicStaff, Permissions.CommerceWrite)]

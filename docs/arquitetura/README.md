@@ -61,8 +61,10 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-053](./ADR-053-platform-super-admin-ui.md) | UI Super Admin — client PlatformWeb (9.8) | Accepted |
 | [ADR-054](./ADR-054-intelligence-dashboards-tenant.md) | Intelligence — dashboards tenant (10.1) | Accepted |
 | [ADR-055](./ADR-055-metricas-saas-platform.md) | Métricas SaaS globais — Platform (10.2) | Accepted |
+| [ADR-056](./ADR-056-curva-abc-produtividade-adocao.md) | Curva ABC, produtividade e adoção (10.3) | Accepted |
+| [ADR-057](./ADR-057-cache-paginacao-baseline.md) | Cache, paginação e baseline (10.4) | Accepted |
 
-Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
+Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [load-baseline.md](./load-baseline.md) — baseline P95 staging (10.4); [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 
 Diagramas: [`docs/diagramas/`](../diagramas/) — C4 e sequência de sync.
 
