@@ -277,9 +277,16 @@ Iniciado o módulo de estoque.
 - `ITenantProvisioner`, `ITenantSignInGate`, role `SuperAdmin`.
 - Aceite: `TenantOnboarding_AdminCanAuthenticate_WhenProvisioned`; `SuspendedTenant_ForbiddenOnClinicApi`; `Branch_LinkedToHeadquarters_WhenAdded`.
 
-### 👉 **Próxima Ação: Fase 9.3 — Planos, add-ons e feature flags**
+### Fase 9.3 — Planos, add-ons e feature flags — Concluída (ADR-048)
 
-Ver [`roadmap.md`](roadmap.md) §9.3 e [`backoffice.md`](backoffice.md) §2.
+- Catálogo Starter/Pro/Hospital24h + add-ons; assinatura, trial, pró-rata e flags por tenant.
+- `ITenantEntitlementReader`, filtro `CommercialModuleEndpointFilter`, menus filtrados em `/auth/me`.
+- API Super Admin: `/api/v1/platform/plans`, `/addons`, assinatura, flags e entitlements.
+- Aceite: `FeatureFlag_DisablesModule_OnApiAndMenus`; `PlanChange_ReturnsProration_WhenMidCycle`.
+
+### 👉 **Próxima Ação: Fase 9.4 — Gateway de assinatura e cobrança**
+
+Ver [`roadmap.md`](roadmap.md) §9.4 e [`backoffice.md`](backoffice.md) §3.
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

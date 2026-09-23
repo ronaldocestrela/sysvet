@@ -1,4 +1,5 @@
 using Core.Application.Common.Interfaces;
+using Core.Application.Entitlements;
 using Core.Domain;
 using Core.Infrastructure.Configuration;
 using Core.Infrastructure.Persistence;
@@ -13,9 +14,11 @@ using Platform.Application.Tenancy;
 using Platform.Application.Tenants.Commands;
 using Platform.Domain.Repositories;
 using Platform.Infrastructure.Configuration;
+using Platform.Infrastructure.Entitlements;
 using Platform.Infrastructure.Persistence;
 using Platform.Infrastructure.Persistence.Repositories;
 using Platform.Infrastructure.Persistence.Seeding;
+using Platform.Infrastructure.HostedServices;
 using Platform.Infrastructure.Provisioning;
 using Platform.Infrastructure.Tenancy;
 
@@ -27,6 +30,7 @@ public static class DependencyInjection
     /// <summary>Adds Platform persistence and tenancy lookup services.</summary>
     public static IServiceCollection AddPlatformModule(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddMemoryCache();
         services.AddValidatedOptions<PlatformOptions>(configuration, PlatformOptions.SectionName);
 
         services.AddDbContext<PlatformDbContext>((serviceProvider, options) =>
@@ -39,6 +43,13 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IPlanRepository, PlanRepository>();
+        services.AddScoped<IAddOnRepository, AddOnRepository>();
+        services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
+        services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
+        services.AddScoped<ISubscriptionAdjustmentRepository, SubscriptionAdjustmentRepository>();
+        services.AddScoped<ITenantSubscriptionProvisioner, TenantSubscriptionProvisioner>();
+        services.AddScoped<ITenantEntitlementReader, TenantEntitlementReader>();
         services.AddScoped<IBranchRepository, BranchRepository>();
         services.AddScoped<ITenantSlugLookup, TenantSlugLookup>();
         services.AddScoped<ITenantDirectory, TenantDirectory>();
@@ -48,8 +59,10 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PlatformDbContext>());
 
         services.AddScoped<IDevelopmentSuperAdminSeeder, DevelopmentSuperAdminSeeder>();
+        services.AddHostedService<PlatformCatalogSeedHostedService>();
         services.AddHostedService<PlatformTenantSeedHostedService>();
         services.AddHostedService<DevelopmentSuperAdminSeedHostedService>();
+        services.AddHostedService<TrialExpirationHostedService>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(OnboardTenantCommand).Assembly));
 

@@ -46,7 +46,8 @@ app.MapApiHealthChecks();
 
 var routes = app.MapGroup(string.Empty)
     .AddEndpointFilter<ResultEndpointFilter>()
-    .AddEndpointFilter<TenantRequiredEndpointFilter>();
+    .AddEndpointFilter<TenantRequiredEndpointFilter>()
+    .AddEndpointFilter<CommercialModuleEndpointFilter>();
 
 routes.MapVeterinaryEndpoints();
 routes.MapCoreEndpoints();

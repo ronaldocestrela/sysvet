@@ -7,6 +7,8 @@ using Core.Infrastructure.HealthChecks;
 using Core.Infrastructure.Identity;
 using Core.Application.Authorization;
 using Core.Application.Common.Interfaces;
+using Core.Application.Entitlements;
+using Core.Infrastructure.Entitlements;
 using Core.Application.Sync;
 using Core.Infrastructure.Persistence;
 using Core.Infrastructure.Persistence.Repositories;
@@ -122,6 +124,7 @@ public static class DependencyInjection
         services.AddScoped<IDevelopmentAdminUserSeeder, DevelopmentAdminUserSeeder>();
         services.AddHostedService<IdentityDataSeedHostedService>();
         services.AddHostedService<DevelopmentAdminUserSeedHostedService>();
+        services.TryAddScoped<ITenantEntitlementReader, AllowAllEntitlementReader>();
 
         services.AddMediatR(cfg =>
         {

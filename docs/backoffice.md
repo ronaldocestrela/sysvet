@@ -15,6 +15,8 @@ Este documento detalha as funções exclusivas para a administração geral do S
 
 ---
 
+> **Nota (9.3):** Catálogo de planos/add-ons, assinatura por tenant, flags, pró-rata (`PendingBilling`) e enforcement API/menus estão entregues via `/api/v1/platform/*` (ADR-048). UI Super Admin permanece na **9.8**.
+
 ## 2. Gestão de Planos, Módulos e Feature Flags
 Como a arquitetura exige modularidade estrita, permitindo que cada módulo seja comercializado individualmente, o backoffice precisa de controle granular:
 * **Criação de Planos Base:** Estruturação de pacotes (ex: Starter, Pro, Hospital 24h) com módulos pré-definidos.

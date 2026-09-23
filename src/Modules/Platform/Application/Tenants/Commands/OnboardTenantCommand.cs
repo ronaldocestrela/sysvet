@@ -1,5 +1,6 @@
 using Core.Application.Messaging;
 using Platform.Application.Tenants.Dtos;
+using Platform.Domain.Entities;
 
 namespace Platform.Application.Tenants.Commands;
 
@@ -10,4 +11,7 @@ public sealed record OnboardTenantCommand(
     string AdminEmail,
     string AdminPassword,
     string HeadquartersCnpj,
-    string HeadquartersLegalName) : ICommand<OnboardTenantResultDto>;
+    string HeadquartersLegalName,
+    string? PlanCode = null,
+    int? TrialDays = null,
+    TrialEndAction? TrialEndAction = null) : ICommand<OnboardTenantResultDto>;

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Platform.Application.Provisioning;
 using Platform.Domain.Entities;
 using Platform.Domain.Repositories;
 
@@ -37,21 +38,23 @@ public sealed class PlatformTenantSeedHostedService : IHostedService
 
             var repository = scope.ServiceProvider.GetRequiredService<ITenantRepository>();
             var existing = await repository.GetByIdAsync(DevelopmentAdminUserSeeder.DevTenantId, cancellationToken);
-            if (existing is not null)
+            if (existing is null)
             {
-                return;
+                var tenantResult = Tenant.Create(DevelopmentAdminUserSeeder.DevTenantId, "dev", "Development");
+                if (tenantResult.IsFailure)
+                {
+                    _logger.LogWarning("Platform tenant seed skipped: {Error}", tenantResult.Error.Message);
+                }
+                else
+                {
+
+                    await repository.AddAsync(tenantResult.Value, cancellationToken);
+                    await context.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation("Platform catalog seeded dev tenant {TenantId}", DevelopmentAdminUserSeeder.DevTenantId);
+                }
             }
 
-            var tenantResult = Tenant.Create(DevelopmentAdminUserSeeder.DevTenantId, "dev", "Development");
-            if (tenantResult.IsFailure)
-            {
-                _logger.LogWarning("Platform tenant seed skipped: {Error}", tenantResult.Error.Message);
-                return;
-            }
-
-            await repository.AddAsync(tenantResult.Value, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Platform catalog seeded dev tenant {TenantId}", DevelopmentAdminUserSeeder.DevTenantId);
+            await GrandfatherMissingSubscriptionsAsync(scope.ServiceProvider, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -61,4 +64,14 @@ public sealed class PlatformTenantSeedHostedService : IHostedService
 
     /// <inheritdoc />
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    private static async Task GrandfatherMissingSubscriptionsAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        var tenantRepository = services.GetRequiredService<ITenantRepository>();
+        var subscriptionProvisioner = services.GetRequiredService<ITenantSubscriptionProvisioner>();
+        foreach (var tenant in await tenantRepository.ListAsync(cancellationToken))
+        {
+            await subscriptionProvisioner.ProvisionGrandfatherAsync(tenant.Id, cancellationToken);
+        }
+    }
 }

@@ -1,6 +1,8 @@
 using Core.Application.Auth.Queries;
 using Core.Application.Authorization;
 using Core.Application.Common.Interfaces;
+using Core.Application.Entitlements;
+using Core.Domain.Entitlements;
 using Core.Application.Users.Dtos;
 using Core.Domain;
 using Core.Domain.Authorization;
@@ -22,7 +24,8 @@ public class GetCurrentUserQueryHandlerTests
         var identity = Substitute.For<IIdentityService>();
         var permissionChecker = Substitute.For<IPermissionChecker>();
         var accessProfiles = Substitute.For<IAccessProfileRepository>();
-        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker, accessProfiles);
+        var entitlements = Substitute.For<ITenantEntitlementReader>();
+        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker, accessProfiles, entitlements);
 
         var result = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
 
@@ -59,7 +62,10 @@ public class GetCurrentUserQueryHandlerTests
         var accessProfiles = Substitute.For<IAccessProfileRepository>();
         accessProfiles.GetByIdAsync(profileId, Arg.Any<CancellationToken>())
             .Returns(AccessProfile.CreateSystem("Veterinarian", ApplicationRoles.Veterinarian, Permissions.VeterinarianDefaults()).Value);
-        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker, accessProfiles);
+        var entitlements = Substitute.For<ITenantEntitlementReader>();
+        entitlements.GetEnabledModulesAsync(tenantId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlySet<CommercialModule>>(Enum.GetValues<CommercialModule>().ToHashSet()));
+        var handler = new GetCurrentUserQueryHandler(currentUser, tenantContext, identity, permissionChecker, accessProfiles, entitlements);
 
         var result = await handler.Handle(new GetCurrentUserQuery(), CancellationToken.None);
 

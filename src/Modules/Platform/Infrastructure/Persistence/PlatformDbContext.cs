@@ -15,6 +15,27 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeT
     /// <summary>Tenant legal entities (CNPJ).</summary>
     public DbSet<Branch> Branches => Set<Branch>();
 
+    /// <summary>SaaS base plans.</summary>
+    public DbSet<Plan> Plans => Set<Plan>();
+
+    /// <summary>Plan module inclusions.</summary>
+    public DbSet<PlanIncludedModule> PlanIncludedModules => Set<PlanIncludedModule>();
+
+    /// <summary>SaaS add-on products.</summary>
+    public DbSet<AddOn> AddOns => Set<AddOn>();
+
+    /// <summary>Tenant subscriptions.</summary>
+    public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
+
+    /// <summary>Active tenant add-ons.</summary>
+    public DbSet<TenantAddOn> TenantAddOns => Set<TenantAddOn>();
+
+    /// <summary>Per-tenant module overrides.</summary>
+    public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
+
+    /// <summary>Pending proration rows.</summary>
+    public DbSet<SubscriptionAdjustment> SubscriptionAdjustments => Set<SubscriptionAdjustment>();
+
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)

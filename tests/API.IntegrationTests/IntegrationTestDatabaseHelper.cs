@@ -1,3 +1,4 @@
+using API.IntegrationTests.Platform;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -72,21 +73,24 @@ internal static class IntegrationTestDatabaseHelper
 
         var platformContext = scope.ServiceProvider.GetRequiredService<global::Platform.Infrastructure.Persistence.PlatformDbContext>();
         await platformContext.Database.MigrateAsync();
+        await PlatformCatalogTestSeeder.EnsureCatalogAsync(scope.ServiceProvider);
 
-        await EnsureDefaultPlatformTenantAsync(platformContext);
+        await EnsureDefaultPlatformTenantAsync(scope, platformContext);
     }
 
     private static async Task EnsureDefaultPlatformTenantAsync(
+        IServiceScope scope,
         global::Platform.Infrastructure.Persistence.PlatformDbContext platformContext)
     {
-        if (await platformContext.Tenants.AnyAsync(t => t.Id == SingleTenantId))
+        if (!await platformContext.Tenants.AnyAsync(t => t.Id == SingleTenantId))
         {
-            return;
+            var tenant = global::Platform.Domain.Entities.Tenant.Create(SingleTenantId, "integration", "Integration Test").Value;
+            platformContext.Tenants.Add(tenant);
+            await platformContext.SaveChangesAsync();
         }
 
-        var tenant = global::Platform.Domain.Entities.Tenant.Create(SingleTenantId, "integration", "Integration Test").Value;
-        platformContext.Tenants.Add(tenant);
-        await platformContext.SaveChangesAsync();
+        var provisioner = scope.ServiceProvider.GetRequiredService<global::Platform.Application.Provisioning.ITenantSubscriptionProvisioner>();
+        await provisioner.ProvisionGrandfatherAsync(SingleTenantId);
     }
 
     private static async Task EnsureAutomations821SchemaAsync(global::Automations.Infrastructure.Persistence.AutomationsDbContext context)

@@ -20,6 +20,7 @@ public sealed class OnboardTenantCommandHandler : IRequestHandler<OnboardTenantC
     private readonly IIdentityService _identityService;
     private readonly IAccessProfileRepository _accessProfileRepository;
     private readonly ITenantContext _tenantContext;
+    private readonly ITenantSubscriptionProvisioner _subscriptionProvisioner;
 
     /// <summary>Creates the handler.</summary>
     public OnboardTenantCommandHandler(
@@ -29,7 +30,8 @@ public sealed class OnboardTenantCommandHandler : IRequestHandler<OnboardTenantC
         ITenantProvisioner provisioner,
         IIdentityService identityService,
         IAccessProfileRepository accessProfileRepository,
-        ITenantContext tenantContext)
+        ITenantContext tenantContext,
+        ITenantSubscriptionProvisioner subscriptionProvisioner)
     {
         _tenantRepository = tenantRepository;
         _branchRepository = branchRepository;
@@ -38,6 +40,7 @@ public sealed class OnboardTenantCommandHandler : IRequestHandler<OnboardTenantC
         _identityService = identityService;
         _accessProfileRepository = accessProfileRepository;
         _tenantContext = tenantContext;
+        _subscriptionProvisioner = subscriptionProvisioner;
     }
 
     /// <inheritdoc />
@@ -103,6 +106,18 @@ public sealed class OnboardTenantCommandHandler : IRequestHandler<OnboardTenantC
         {
             await CompensateCatalogAsync(tenant, branch, cancellationToken);
             return Result.Failure<OnboardTenantResultDto>(userResult.Error);
+        }
+
+        var subscription = await _subscriptionProvisioner.ProvisionNewTenantAsync(
+            tenantId,
+            request.PlanCode,
+            request.TrialDays,
+            request.TrialEndAction,
+            cancellationToken);
+        if (subscription.IsFailure)
+        {
+            await CompensateCatalogAsync(tenant, branch, cancellationToken);
+            return Result.Failure<OnboardTenantResultDto>(subscription.Error);
         }
 
         return Result.Success(new OnboardTenantResultDto(tenantId, userResult.Value, slug));

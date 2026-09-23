@@ -1065,7 +1065,7 @@ flowchart TD
 |--------|-----|--------|
 | **9.1 Módulo Platform — estrutura e multi-tenancy** | 13 | Concluído |
 | **9.2 Gestão de tenants e filiais** | 13 | Concluído |
-| **9.3 Planos, add-ons e feature flags** | 13 | Pendente |
+| **9.3 Planos, add-ons e feature flags** | 13 | Concluída |
 | **9.4 Gateway de assinatura e cobrança** | 21 | Pendente |
 | **9.5 Dunning, bloqueio e cupons** | 13 | Pendente |
 | **9.6 NFS-e do SaaS e impersonation** | 13 | Pendente |
@@ -1094,15 +1094,15 @@ flowchart TD
 
 ### 9.3 Planos, add-ons e feature flags (13 SP)
 
-- [ ] Planos base (Starter, Pro, Hospital 24h)
-- [ ] Módulos avulsos (Estética, Fiscal, Automação, PDV Offline)
-- [ ] Feature flags por tenant; cache com invalidação
-- [ ] Upgrades/downgrades com pró-rata
-- [ ] Free trial: dias configuráveis; transição ou bloqueio automático
+- [x] Planos base (Starter, Pro, Hospital 24h)
+- [x] Módulos avulsos (Estética, Fiscal, Automação, PDV Offline)
+- [x] Feature flags por tenant; cache com invalidação
+- [x] Upgrades/downgrades com pró-rata
+- [x] Free trial: dias configuráveis; transição ou bloqueio automático
 
 **Referência:** `backoffice.md` §2.
 
-**Aceite:** Flag desabilita módulo na UI e retorna 403 na API.
+**Aceite:** Flag desabilita módulo na UI e retorna 403 na API (`FeatureFlag_DisablesModule_OnApiAndMenus`; ADR-048).
 
 ### 9.4 Gateway de assinatura e cobrança (21 SP)
 

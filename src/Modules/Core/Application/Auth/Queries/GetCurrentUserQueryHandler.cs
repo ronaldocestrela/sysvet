@@ -1,5 +1,6 @@
 using Core.Application.Auth.Dtos;
 using Core.Application.Common.Interfaces;
+using Core.Application.Entitlements;
 using Core.Domain;
 using Core.Domain.Authorization;
 using MediatR;
@@ -16,19 +17,22 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
     private readonly IIdentityService _identityService;
     private readonly IPermissionChecker _permissionChecker;
     private readonly IAccessProfileRepository _accessProfileRepository;
+    private readonly ITenantEntitlementReader _entitlementReader;
 
     public GetCurrentUserQueryHandler(
         ICurrentUser currentUser,
         ITenantContext tenantContext,
         IIdentityService identityService,
         IPermissionChecker permissionChecker,
-        IAccessProfileRepository accessProfileRepository)
+        IAccessProfileRepository accessProfileRepository,
+        ITenantEntitlementReader entitlementReader)
     {
         _currentUser = currentUser;
         _tenantContext = tenantContext;
         _identityService = identityService;
         _permissionChecker = permissionChecker;
         _accessProfileRepository = accessProfileRepository;
+        _entitlementReader = entitlementReader;
     }
 
     /// <inheritdoc />
@@ -49,6 +53,11 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
 
         var permissions = await _permissionChecker.GetGrantedPermissionsAsync(cancellationToken);
         var menus = MenuCatalog.ResolveMenus(permissions);
+        if (tenantId != Guid.Empty)
+        {
+            var enabledModules = await _entitlementReader.GetEnabledModulesAsync(tenantId, cancellationToken);
+            menus = MenuEntitlementMapper.FilterMenus(menus, enabledModules);
+        }
         var profile = await _accessProfileRepository.GetByIdAsync(staff.Value.AccessProfileId, cancellationToken);
         var maxDiscount = profile?.MaxDiscountPercent ?? 0m;
 

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Core.Domain.Entitlements;
+using Platform.Application.Subscriptions;
 using Platform.Application.Tenants.Commands;
 using Platform.Application.Tenants.Dtos;
 using Platform.Application.Tenants.Queries;
@@ -15,8 +17,25 @@ namespace API.Extensions;
 /// <summary>Super Admin platform tenant management endpoints (roadmap 9.2).</summary>
 public static class PlatformEndpointsExtensions
 {
-    /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
+    /// <summary>Maps Super Admin platform routes (9.2–9.3).</summary>
     public static IEndpointRouteBuilder MapPlatformEndpoints(this IEndpointRouteBuilder builder)
+    {
+        MapPlatformCatalogEndpoints(builder);
+        return MapPlatformTenantEndpoints(builder);
+    }
+
+    private static void MapPlatformCatalogEndpoints(IEndpointRouteBuilder builder)
+    {
+        var catalog = builder.MapGroup("/api/v1/platform")
+            .WithTags("Platform")
+            .RequireAuthorization(AuthorizationPolicies.PlatformAdmin);
+
+        catalog.MapGet("/plans", ListPlans);
+        catalog.MapGet("/addons", ListAddOns);
+    }
+
+    /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
+    public static IEndpointRouteBuilder MapPlatformTenantEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("/api/v1/platform/tenants")
             .WithTags("Platform")
@@ -33,8 +52,39 @@ public static class PlatformEndpointsExtensions
         group.MapPatch("/{tenantId:guid}/branches/{branchId:guid}", UpdateBranch);
         group.MapDelete("/{tenantId:guid}/branches/{branchId:guid}", DeleteBranch);
 
+        group.MapGet("/{tenantId:guid}/subscription", GetSubscription);
+        group.MapPost("/{tenantId:guid}/subscription/change", ChangePlan);
+        group.MapPost("/{tenantId:guid}/addons/{addOnCode}/activate", ActivateAddOn);
+        group.MapPost("/{tenantId:guid}/addons/{addOnCode}/deactivate", DeactivateAddOn);
+        group.MapGet("/{tenantId:guid}/entitlements", GetEntitlements);
+        group.MapPut("/{tenantId:guid}/flags/{module}", SetFeatureFlag);
+
         return builder;
     }
+
+    private static Task<Result<IReadOnlyList<PlanSummaryDto>>> ListPlans(IMediator mediator) =>
+        mediator.Send(new ListPlansQuery());
+
+    private static Task<Result<IReadOnlyList<AddOnSummaryDto>>> ListAddOns(IMediator mediator) =>
+        mediator.Send(new ListAddOnsQuery());
+
+    private static Task<Result<TenantSubscriptionDto>> GetSubscription(Guid tenantId, IMediator mediator) =>
+        mediator.Send(new GetTenantSubscriptionQuery(tenantId));
+
+    private static Task<Result<PlanChangeResultDto>> ChangePlan(Guid tenantId, [FromBody] ChangePlanRequest body, IMediator mediator) =>
+        mediator.Send(new ChangeTenantPlanCommand(tenantId, body.PlanCode));
+
+    private static Task<Result<decimal>> ActivateAddOn(Guid tenantId, string addOnCode, IMediator mediator) =>
+        mediator.Send(new ActivateTenantAddOnCommand(tenantId, addOnCode));
+
+    private static Task<Result<decimal>> DeactivateAddOn(Guid tenantId, string addOnCode, IMediator mediator) =>
+        mediator.Send(new DeactivateTenantAddOnCommand(tenantId, addOnCode));
+
+    private static Task<Result<TenantEntitlementsDto>> GetEntitlements(Guid tenantId, IMediator mediator) =>
+        mediator.Send(new GetTenantEntitlementsQuery(tenantId));
+
+    private static Task<Result> SetFeatureFlag(Guid tenantId, CommercialModule module, [FromBody] SetFeatureFlagRequest body, IMediator mediator) =>
+        mediator.Send(new SetTenantFeatureFlagCommand(tenantId, module, body.State));
 
     private static Task<Result<OnboardTenantResultDto>> OnboardTenant([FromBody] OnboardTenantCommand command, IMediator mediator) =>
         mediator.Send(command);
@@ -71,4 +121,10 @@ public static class PlatformEndpointsExtensions
 
     /// <summary>Update branch body.</summary>
     public sealed record UpdateBranchRequest(string LegalName);
+
+    /// <summary>Plan change body.</summary>
+    public sealed record ChangePlanRequest(string PlanCode);
+
+    /// <summary>Feature flag body.</summary>
+    public sealed record SetFeatureFlagRequest(FeatureFlagState State);
 }
