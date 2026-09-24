@@ -9,6 +9,23 @@ public enum PlatformTenantStatus
     Deleted = 3
 }
 
+/// <summary>Mirror of platform release ring (10.7).</summary>
+public enum PlatformReleaseRing
+{
+    Canary = 0,
+    Beta = 1,
+    GeneralAvailability = 2
+}
+
+/// <summary>Mirror of public status incident impact.</summary>
+public enum PlatformStatusIncidentImpact
+{
+    None = 0,
+    Minor = 1,
+    Major = 2,
+    Critical = 3
+}
+
 /// <summary>Mirror of platform feature flag override state.</summary>
 public enum PlatformFeatureFlagState
 {

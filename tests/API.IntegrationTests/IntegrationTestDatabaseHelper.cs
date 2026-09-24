@@ -81,6 +81,7 @@ internal static class IntegrationTestDatabaseHelper
         await EnsurePlatformNfseImpersonationSchemaAsync(platformContext);
         await EnsurePlatformAuditApiKeysHealthSchemaAsync(platformContext);
         await EnsurePlatformSaasMetricsSchemaAsync(platformContext);
+        await EnsurePlatformRolloutSchemaAsync(platformContext);
         await PlatformCatalogTestSeeder.EnsureCatalogAsync(scope.ServiceProvider);
 
         await EnsureDefaultPlatformTenantAsync(scope, platformContext);
@@ -397,6 +398,34 @@ internal static class IntegrationTestDatabaseHelper
             );
             CREATE UNIQUE INDEX IF NOT EXISTS IX_PlatformAcquisitionSpends_Year_Month_Channel
                 ON PlatformAcquisitionSpends (Year, Month, Channel);
+            """);
+    }
+
+    private static async Task EnsurePlatformRolloutSchemaAsync(global::Platform.Infrastructure.Persistence.PlatformDbContext context)
+    {
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE \"PlatformTenants\" ADD COLUMN \"ReleaseRing\" INTEGER NOT NULL DEFAULT 2;");
+        }
+        catch
+        {
+            // Column already exists.
+        }
+
+        await context.Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS PlatformStatusIncidents (
+                Id TEXT NOT NULL PRIMARY KEY,
+                Title TEXT NOT NULL,
+                Impact INTEGER NOT NULL,
+                Components TEXT NOT NULL,
+                StartedAt TEXT NOT NULL,
+                ResolvedAt TEXT NULL,
+                UpdatedAt TEXT NOT NULL,
+                RowVersion BLOB NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS IX_PlatformStatusIncidents_StartedAt ON PlatformStatusIncidents (StartedAt);
+            CREATE INDEX IF NOT EXISTS IX_PlatformStatusIncidents_ResolvedAt ON PlatformStatusIncidents (ResolvedAt);
             """);
     }
 

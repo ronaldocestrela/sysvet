@@ -360,9 +360,17 @@ Iniciado o módulo de estoque.
 - RIPD [`lgpd-ripd.md`](arquitetura/lgpd-ripd.md); pentest [`security-pentest-runbook.md`](arquitetura/security-pentest-runbook.md) (zero Critical aberto).
 - Aceite: testes `Core.Tests`, `Fiscal.Tests`, `TutorPrivacyEndpointsTests`, `SecurityHeadersTests`.
 
-### 👉 **Próxima Ação: Fase 10.7 — Testes de carga e rollout**
+### Fase 10.7 — Testes de carga e rollout — Concluída (ADR-060)
 
-Ver [`roadmap.md`](roadmap.md) §10.7.
+- Meta 50 tenants; staging 10×5 VUs; CI `MultiTenantConcurrentLoadTests` (3×2 concorrente).
+- `ReleaseRing` no tenant; `PATCH /api/v1/platform/tenants/{id}/release-ring`; PlatformWeb detalhe do tenant.
+- `StatusIncident`; Super Admin `/api/v1/platform/status/incidents`; público `GET /api/v1/public/status`; PlatformWeb `/status-incidents`.
+- Runbooks [`load-capacity.md`](arquitetura/load-capacity.md), [`rollout-runbook.md`](arquitetura/rollout-runbook.md), [`incident-runbook.md`](arquitetura/incident-runbook.md); k6 `scripts/k6/critical-endpoints.js`.
+- Aceite: ADR-060; drill de rollout registrado no runbook (operacional).
+
+### 👉 **Próxima Ação**
+
+Fase 10 concluída — revisar resumo de SP em [`roadmap.md`](roadmap.md).
 
 ### Fase 3.5 (Motor de sincronização) — Concluída (ADR-002)
 

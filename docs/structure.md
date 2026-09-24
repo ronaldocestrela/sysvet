@@ -8,6 +8,7 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 ├── coverage.runsettings                  # Filtros de cobertura (Domain + Application) para testes e CI.
 ├── SaaS_Veterinario.ci.slnf            # Solução filtrada para CI/Linux (exclui MauiApp).
 ├── scripts/assert-coverage.sh          # Gate de cobertura mínima usado no CI.
+├── scripts/k6/critical-endpoints.js    # Carga multi-tenant staging (Fase 10.7; ver load-capacity.md).
 ├── .dockerignore                       # Contexto enxuto para build de container da API.
 ├── docs/                               # Arquitetura detalhada, diagramas de domínio e registros de decisão (ADRs).
 │   ├── arquitetura/

@@ -18,6 +18,7 @@ using Platform.Application.Auditing;
 using Platform.Application.ApiKeys;
 using Platform.Application.Health;
 using Platform.Application.Metrics;
+using Platform.Application.Status;
 using Platform.Domain.Entities;
 
 namespace API.Extensions;
@@ -52,6 +53,10 @@ public static class PlatformEndpointsExtensions
             (await mediator.Send(new GetPlatformModuleAdoptionQuery())).ToHttpResult());
         catalog.MapGet("/adoption/export", async (IMediator mediator) =>
             ToAdoptionFileResult(await mediator.Send(new ExportPlatformModuleAdoptionQuery())));
+
+        catalog.MapGet("/status/incidents", ListStatusIncidents);
+        catalog.MapPost("/status/incidents", CreateStatusIncident);
+        catalog.MapPatch("/status/incidents/{incidentId:guid}/resolve", ResolveStatusIncident);
     }
 
     /// <summary>Maps <c>/api/v1/platform/tenants</c> routes.</summary>
@@ -65,6 +70,7 @@ public static class PlatformEndpointsExtensions
         group.MapGet("/", ListTenants);
         group.MapGet("/{tenantId:guid}", GetTenant);
         group.MapPatch("/{tenantId:guid}/status", ChangeStatus);
+        group.MapPatch("/{tenantId:guid}/release-ring", SetReleaseRing);
         group.MapDelete("/{tenantId:guid}", DeleteTenant);
 
         group.MapGet("/{tenantId:guid}/branches", ListBranches);
@@ -223,6 +229,25 @@ public static class PlatformEndpointsExtensions
     private static Task<Result> ChangeStatus(Guid tenantId, [FromBody] ChangeStatusRequest body, IMediator mediator) =>
         mediator.Send(new ChangeTenantStatusCommand(tenantId, body.Status));
 
+    private static Task<Result> SetReleaseRing(
+        Guid tenantId,
+        [FromBody] SetReleaseRingRequest body,
+        IMediator mediator) =>
+        mediator.Send(new SetTenantReleaseRingCommand(tenantId, body.Ring));
+
+    private static Task<Result<IReadOnlyList<StatusIncidentDto>>> ListStatusIncidents(
+        [FromQuery] int take,
+        IMediator mediator) =>
+        mediator.Send(new ListStatusIncidentsQuery(take <= 0 ? 50 : take));
+
+    private static Task<Result<StatusIncidentDto>> CreateStatusIncident(
+        [FromBody] CreateStatusIncidentRequest body,
+        IMediator mediator) =>
+        mediator.Send(new CreateStatusIncidentCommand(body.Title, body.Impact, body.Components));
+
+    private static Task<Result<StatusIncidentDto>> ResolveStatusIncident(Guid incidentId, IMediator mediator) =>
+        mediator.Send(new ResolveStatusIncidentCommand(incidentId));
+
     private static Task<Result> DeleteTenant(Guid tenantId, IMediator mediator) =>
         mediator.Send(new DeleteTenantCommand(tenantId));
 
@@ -240,6 +265,15 @@ public static class PlatformEndpointsExtensions
 
     /// <summary>Status change body.</summary>
     public sealed record ChangeStatusRequest(TenantStatus Status);
+
+    /// <summary>Release ring body (10.7).</summary>
+    public sealed record SetReleaseRingRequest(ReleaseRing Ring);
+
+    /// <summary>Create status incident body.</summary>
+    public sealed record CreateStatusIncidentRequest(
+        string Title,
+        StatusIncidentImpact Impact,
+        string Components);
 
     /// <summary>Add branch body.</summary>
     public sealed record AddBranchRequest(string Cnpj, string LegalName, bool IsHeadquarters = false);

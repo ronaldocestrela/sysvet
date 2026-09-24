@@ -89,6 +89,9 @@ partial class PlatformDbContextModelSnapshot : ModelSnapshot
                     .HasMaxLength(63)
                     .HasColumnType("TEXT");
 
+                b.Property<int>("ReleaseRing")
+                    .HasColumnType("INTEGER");
+
                 b.Property<int>("Status")
                     .HasColumnType("INTEGER");
 
@@ -100,6 +103,48 @@ partial class PlatformDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("Slug");
 
                 b.ToTable("PlatformTenants");
+            });
+
+        modelBuilder.Entity("Platform.Domain.Entities.StatusIncident", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Components")
+                    .IsRequired()
+                    .HasMaxLength(512)
+                    .HasColumnType("TEXT");
+
+                b.Property<int>("Impact")
+                    .HasColumnType("INTEGER");
+
+                b.Property<DateTimeOffset?>("ResolvedAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<byte[]>("RowVersion")
+                    .IsConcurrencyToken()
+                    .IsRequired()
+                    .HasColumnType("BLOB");
+
+                b.Property<DateTimeOffset>("StartedAt")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ResolvedAt");
+
+                b.HasIndex("StartedAt");
+
+                b.ToTable("PlatformStatusIncidents");
             });
 #pragma warning restore 612, 618
     }

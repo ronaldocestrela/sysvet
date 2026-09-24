@@ -1,0 +1,83 @@
+@page "/status-incidents"
+@inject IPlatformAdminApi PlatformApi
+
+<h1>Status e incidentes</h1>
+<p class="text-muted">Publicação em <code>/api/v1/public/status</code></p>
+
+<div class="card p-3 mb-3">
+    <h2 class="h5">Abrir incidente</h2>
+    <input class="form-control mb-2" @bind="_title" placeholder="Título" />
+    <select class="form-select mb-2" @bind="_impact">
+        @foreach (var impact in Enum.GetValues<PlatformStatusIncidentImpact>())
+        {
+            <option value="@impact">@impact</option>
+        }
+    </select>
+    <input class="form-control mb-2" @bind="_components" placeholder="Componentes (api,sync,billing)" />
+    <button class="btn btn-danger" @onclick="CreateAsync">Publicar</button>
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <p class="mt-2">@_message</p>
+    }
+</div>
+
+<table class="table table-sm">
+    <thead><tr><th>Título</th><th>Impacto</th><th>Início</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var item in _incidents)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@item.Impact</td>
+                <td>@item.StartedAt.LocalDateTime.ToString("g")</td>
+                <td>@(item.ResolvedAt is null ? "Aberto" : "Resolvido")</td>
+                <td>
+                    @if (item.ResolvedAt is null)
+                    {
+                        <button class="btn btn-sm btn-outline-success" @onclick="() => ResolveAsync(item.Id)">Resolver</button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private IReadOnlyList<PlatformStatusIncidentDto> _incidents = [];
+    private string _title = string.Empty;
+    private PlatformStatusIncidentImpact _impact = PlatformStatusIncidentImpact.Minor;
+    private string _components = "api";
+    private string? _message;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        var list = await PlatformApi.ListStatusIncidentsAsync();
+        if (list.IsSuccess)
+        {
+            _incidents = list.Value;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        var result = await PlatformApi.CreateStatusIncidentAsync(new PlatformCreateStatusIncidentRequest(_title, _impact, _components));
+        _message = result.IsSuccess ? "Incidente publicado." : result.Error.Message;
+        if (result.IsSuccess)
+        {
+            _title = string.Empty;
+            await ReloadAsync();
+        }
+    }
+
+    private async Task ResolveAsync(Guid id)
+    {
+        var result = await PlatformApi.ResolveStatusIncidentAsync(id);
+        _message = result.IsSuccess ? "Incidente resolvido." : result.Error.Message;
+        if (result.IsSuccess)
+        {
+            await ReloadAsync();
+        }
+    }
+}

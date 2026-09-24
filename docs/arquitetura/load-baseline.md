@@ -37,4 +37,4 @@ dotnet test tests/LoadTests/LoadTests.csproj --filter CriticalEndpoints_P95
 | `/api/v1/inventory/products` | | | |
 | `/api/v1/financial-titles` | | | |
 
-Carga multi-tenant permanece na Fase **10.7**.
+Carga multi-tenant: Fase **10.7** — [`load-capacity.md`](./load-capacity.md) e ADR-060.

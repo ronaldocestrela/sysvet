@@ -31,7 +31,7 @@ public sealed class ListTenantsQueryHandler : IRequestHandler<ListTenantsQuery, 
 
         var filtered = tenants
             .Where(t => t.Status != TenantStatus.Deleted || !request.ActiveOnly)
-            .Select(t => new TenantSummaryDto(t.Id, t.Slug, t.DisplayName, t.Status, t.SchemaName, t.UpdatedAt))
+            .Select(t => new TenantSummaryDto(t.Id, t.Slug, t.DisplayName, t.Status, t.ReleaseRing, t.SchemaName, t.UpdatedAt))
             .OrderBy(t => t.DisplayName)
             .ToList();
 
@@ -69,6 +69,7 @@ public sealed class GetTenantQueryHandler : IRequestHandler<GetTenantQuery, Resu
             tenant.Slug,
             tenant.DisplayName,
             tenant.Status,
+            tenant.ReleaseRing,
             tenant.SchemaName,
             tenant.UpdatedAt,
             branches.Count));

@@ -1167,7 +1167,7 @@ flowchart TD
 | **10.4 Performance, cache e escalabilidade** | 8 | Concluída |
 | **10.5 Backup, DR e observabilidade avançada** | 8 | Concluída |
 | **10.6 Segurança, LGPD e pentest** | 13 | Concluída |
-| **10.7 Testes de carga e rollout** | 8 | Pendente |
+| **10.7 Testes de carga e rollout** | 8 | Concluída |
 | **Total Fase 10** | **71 SP** | |
 
 ### 10.1 Módulo Intelligence — dashboards tenant (13 SP)
@@ -1226,11 +1226,11 @@ flowchart TD
 
 ### 10.7 Testes de carga e rollout (8 SP)
 
-- [ ] Teste carga: N tenants × M usuários simultâneos
-- [ ] Estratégia rollout: canary → beta → GA
-- [ ] Runbook incidentes e status page
+- [x] Teste carga: N tenants × M usuários simultâneos
+- [x] Estratégia rollout: canary → beta → GA
+- [x] Runbook incidentes e status page
 
-**Aceite:** Sistema suporta meta de tenants definida em ADR; rollout executado.
+**Aceite:** Sistema suporta meta de tenants definida em ADR; rollout executado. ADR-060; `tests/LoadTests/MultiTenantConcurrentLoadTests`; [`load-capacity.md`](arquitetura/load-capacity.md); [`rollout-runbook.md`](arquitetura/rollout-runbook.md); [`incident-runbook.md`](arquitetura/incident-runbook.md); `ReleaseRing`; `GET /api/v1/public/status`.
 
 ---
 

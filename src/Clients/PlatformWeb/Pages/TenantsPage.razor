@@ -143,11 +143,9 @@ else
         await ReloadAsync();
     }
 
-#if DEBUG
     /// <summary>Test seam for bUnit onboarding flow (roadmap 9.8).</summary>
     internal OnboardFormModel TestOnboardForm => _onboard;
 
     /// <summary>Test seam for bUnit onboarding flow (roadmap 9.8).</summary>
     internal Task TestSubmitOnboardAsync() => OnboardAsync();
-#endif
 }

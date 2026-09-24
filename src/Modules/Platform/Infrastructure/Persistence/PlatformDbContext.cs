@@ -84,6 +84,9 @@ public sealed class PlatformDbContext : DbContext, IPlatformUnitOfWork, IChangeT
     /// <summary>Marketing acquisition spend for CAC (10.2).</summary>
     public DbSet<AcquisitionSpend> AcquisitionSpends => Set<AcquisitionSpend>();
 
+    /// <summary>Operational incidents for public status (10.7).</summary>
+    public DbSet<StatusIncident> StatusIncidents => Set<StatusIncident>();
+
     /// <summary>Creates the platform catalog context.</summary>
     public PlatformDbContext(DbContextOptions<PlatformDbContext> options)
         : base(options)

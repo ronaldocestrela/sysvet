@@ -176,4 +176,14 @@ public static class ErrorCodes
         public static readonly Error InvalidChannel = new("Platform.Metrics.InvalidChannel", "Canal de aquisição inválido.");
         public static readonly Error InvalidAmount = new("Platform.Metrics.InvalidAmount", "Valor de aquisição inválido.");
     }
+
+    /// <summary>Public status incident validation errors (10.7).</summary>
+    public static class StatusIncident
+    {
+        public static readonly Error NotFound = new("Platform.StatusIncident.NotFound", "Incidente não encontrado.");
+        public static readonly Error InvalidTitle = new("Platform.StatusIncident.InvalidTitle", "Título do incidente inválido.");
+        public static readonly Error InvalidComponents = new("Platform.StatusIncident.InvalidComponents", "Componentes do incidente inválidos.");
+        public static readonly Error AlreadyResolved = new("Platform.StatusIncident.AlreadyResolved", "Incidente já foi resolvido.");
+        public static readonly Error InvalidResolutionTime = new("Platform.StatusIncident.InvalidResolutionTime", "Horário de resolução inválido.");
+    }
 }

@@ -77,6 +77,7 @@ routes.MapCommerceEndpoints();
 routes.MapCommercePublicEndpoints();
 routes.MapIntelligenceEndpoints();
 routes.MapPlatformEndpoints();
+routes.MapPlatformPublicEndpoints();
 routes.MapPartnerEndpoints();
 routes.MapClinicBillingEndpoints();
 routes.MapPlatformBillingWebhookEndpoints();

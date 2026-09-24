@@ -8,6 +8,7 @@ public sealed record TenantSummaryDto(
     string Slug,
     string DisplayName,
     TenantStatus Status,
+    ReleaseRing ReleaseRing,
     string SchemaName,
     DateTimeOffset UpdatedAt);
 
@@ -17,6 +18,7 @@ public sealed record TenantDetailDto(
     string Slug,
     string DisplayName,
     TenantStatus Status,
+    ReleaseRing ReleaseRing,
     string SchemaName,
     DateTimeOffset UpdatedAt,
     int BranchCount);

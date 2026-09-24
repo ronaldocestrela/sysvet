@@ -81,6 +81,7 @@ public static class DependencyInjection
         services.AddScoped<IPartnerApiKeyRepository, PartnerApiKeyRepository>();
         services.AddScoped<ITenantRequestDailyRepository, TenantRequestDailyRepository>();
         services.AddScoped<IAcquisitionSpendRepository, AcquisitionSpendRepository>();
+        services.AddScoped<IStatusIncidentRepository, StatusIncidentRepository>();
         services.AddScoped<ISaasMetricsReader, SaasMetricsReader>();
         services.AddScoped<IModuleAdoptionReader, ModuleAdoptionReader>();
         services.AddScoped<PlatformBackofficeAuditRecorder>();

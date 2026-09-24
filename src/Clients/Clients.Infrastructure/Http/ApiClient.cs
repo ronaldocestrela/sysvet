@@ -111,6 +111,14 @@ public class ApiClient
         CancellationToken cancellationToken = default) =>
         SendJsonAsync<TRequest, TResponse>(HttpMethod.Put, url, body, idempotencyKey, cancellationToken);
 
+    /// <summary>Performs an HTTP PATCH with JSON body; supports 200 responses with a body.</summary>
+    public Task<Result<TResponse>> PatchAsync<TRequest, TResponse>(
+        string url,
+        TRequest body,
+        Guid? idempotencyKey = null,
+        CancellationToken cancellationToken = default) =>
+        SendJsonAsync<TRequest, TResponse>(HttpMethod.Patch, url, body, idempotencyKey, cancellationToken);
+
     /// <summary>Performs an HTTP DELETE; treats 204 No Content as success.</summary>
     public async Task<Result> DeleteAsync(
         string url,

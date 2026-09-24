@@ -13,7 +13,7 @@ public sealed class FakePlatformAdminApi : IPlatformAdminApi
     public (Guid TenantId, CommercialModule Module, PlatformFeatureFlagState State)? LastFlag { get; private set; }
     public IReadOnlyList<PlatformTenantSummaryDto> Tenants { get; set; } =
     [
-        new(Guid.NewGuid(), "clinica-a", "Clínica A", PlatformTenantStatus.Active, "tenant_a", DateTimeOffset.UtcNow)
+        new(Guid.NewGuid(), "clinica-a", "Clínica A", PlatformTenantStatus.Active, PlatformReleaseRing.GeneralAvailability, "tenant_a", DateTimeOffset.UtcNow)
     ];
 
     public Task<Result<IReadOnlyList<PlatformTenantSummaryDto>>> ListTenantsAsync(bool activeOnly = false, CancellationToken cancellationToken = default) =>
@@ -162,6 +162,30 @@ public sealed class FakePlatformAdminApi : IPlatformAdminApi
 
     public Task<Result<DownloadedFile>> ExportModuleAdoptionAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Result.Success(new DownloadedFile(Array.Empty<byte>(), "text/csv", "adocao-modulos.csv")));
+
+    public Task<Result> SetReleaseRingAsync(Guid tenantId, PlatformReleaseRing ring, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Success());
+
+    public Task<Result<IReadOnlyList<PlatformStatusIncidentDto>>> ListStatusIncidentsAsync(int take = 50, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Success<IReadOnlyList<PlatformStatusIncidentDto>>([]));
+
+    public Task<Result<PlatformStatusIncidentDto>> CreateStatusIncidentAsync(PlatformCreateStatusIncidentRequest request, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Success(new PlatformStatusIncidentDto(
+            Guid.NewGuid(),
+            request.Title,
+            request.Impact,
+            request.Components,
+            DateTimeOffset.UtcNow,
+            null)));
+
+    public Task<Result<PlatformStatusIncidentDto>> ResolveStatusIncidentAsync(Guid incidentId, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result.Success(new PlatformStatusIncidentDto(
+            incidentId,
+            "Resolved",
+            PlatformStatusIncidentImpact.Minor,
+            "api",
+            DateTimeOffset.UtcNow.AddHours(-1),
+            DateTimeOffset.UtcNow)));
 }
 
 /// <summary>Configurable auth state for platform UI tests.</summary>

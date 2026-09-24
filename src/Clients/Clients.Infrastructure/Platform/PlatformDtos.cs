@@ -23,6 +23,10 @@ public interface IPlatformAdminApi
     Task<Result<decimal>> DeactivateAddOnAsync(Guid tenantId, string addOnCode, CancellationToken cancellationToken = default);
     Task<Result<PlatformTenantEntitlementsDto>> GetEntitlementsAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task<Result> SetFeatureFlagAsync(Guid tenantId, CommercialModule module, PlatformFeatureFlagState state, CancellationToken cancellationToken = default);
+    Task<Result> SetReleaseRingAsync(Guid tenantId, PlatformReleaseRing ring, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<PlatformStatusIncidentDto>>> ListStatusIncidentsAsync(int take = 50, CancellationToken cancellationToken = default);
+    Task<Result<PlatformStatusIncidentDto>> CreateStatusIncidentAsync(PlatformCreateStatusIncidentRequest request, CancellationToken cancellationToken = default);
+    Task<Result<PlatformStatusIncidentDto>> ResolveStatusIncidentAsync(Guid incidentId, CancellationToken cancellationToken = default);
     Task<Result<PlatformBillingCustomerDto>> UpsertBillingCustomerAsync(Guid tenantId, PlatformUpsertBillingCustomerRequest request, CancellationToken cancellationToken = default);
     Task<Result<PlatformBillingPaymentMethodDto>> UpsertBillingPaymentMethodAsync(Guid tenantId, PlatformUpsertBillingPaymentMethodRequest request, CancellationToken cancellationToken = default);
     Task<Result<PlatformChargeBillingResultDto>> ChargeBillingAsync(Guid tenantId, CancellationToken cancellationToken = default);
@@ -52,6 +56,7 @@ public sealed record PlatformTenantSummaryDto(
     string Slug,
     string DisplayName,
     PlatformTenantStatus Status,
+    PlatformReleaseRing ReleaseRing,
     string SchemaName,
     DateTimeOffset UpdatedAt);
 
@@ -61,9 +66,25 @@ public sealed record PlatformTenantDetailDto(
     string Slug,
     string DisplayName,
     PlatformTenantStatus Status,
+    PlatformReleaseRing ReleaseRing,
     string SchemaName,
     DateTimeOffset UpdatedAt,
     int BranchCount);
+
+/// <summary>Status incident row.</summary>
+public sealed record PlatformStatusIncidentDto(
+    Guid Id,
+    string Title,
+    PlatformStatusIncidentImpact Impact,
+    string Components,
+    DateTimeOffset StartedAt,
+    DateTimeOffset? ResolvedAt);
+
+/// <summary>Create status incident body.</summary>
+public sealed record PlatformCreateStatusIncidentRequest(
+    string Title,
+    PlatformStatusIncidentImpact Impact,
+    string Components);
 
 /// <summary>Onboarding request body.</summary>
 public sealed record PlatformOnboardTenantRequest(

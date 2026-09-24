@@ -26,4 +26,7 @@ public static class PlatformChangeActions
 
     /// <summary>Partner API key revoked.</summary>
     public const string ApiKeyRevoked = "ApiKeyRevoked";
+
+    /// <summary>Tenant release ring updated (10.7).</summary>
+    public const string ReleaseRingSet = "ReleaseRingSet";
 }

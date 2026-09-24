@@ -26,6 +26,9 @@ public sealed class Tenant : Entity
     /// <summary>When subscription was cancelled; used for logo churn (10.2).</summary>
     public DateTimeOffset? CancelledAt { get; private set; }
 
+    /// <summary>Operational release ring for staged rollout (ADR-060).</summary>
+    public ReleaseRing ReleaseRing { get; private set; } = ReleaseRing.GeneralAvailability;
+
 #pragma warning disable CS8618
     private Tenant()
     {
@@ -61,9 +64,23 @@ public sealed class Tenant : Entity
             DisplayName = displayName,
             SchemaName = TenantSchema.FromId(id),
             Status = TenantStatus.Active,
+            ReleaseRing = ReleaseRing.GeneralAvailability,
             UpdatedAt = DateTimeOffset.UtcNow,
             RowVersion = new byte[8]
         });
+    }
+
+    /// <summary>Assigns the tenant to a release ring (Super Admin rollout).</summary>
+    public Result SetReleaseRing(ReleaseRing ring)
+    {
+        if (Status == TenantStatus.Deleted)
+        {
+            return Result.Failure(ErrorCodes.Tenant.AlreadyDeleted);
+        }
+
+        ReleaseRing = ring;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        return Result.Success();
     }
 
     /// <summary>Legacy factory for dev seed (display name derived from slug).</summary>

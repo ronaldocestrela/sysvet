@@ -65,8 +65,9 @@ Registros curtos de decisões arquiteturais do SysVet / VetNexus. Mantidos como 
 | [ADR-057](./ADR-057-cache-paginacao-baseline.md) | Cache, paginação e baseline (10.4) | Accepted |
 | [ADR-058](./ADR-058-backup-dr-observabilidade.md) | Backup, DR e observabilidade avançada (10.5) | Accepted |
 | [ADR-059](./ADR-059-lgpd-seguranca-pentest.md) | LGPD, hardening e pentest (10.6) | Accepted |
+| [ADR-060](./ADR-060-carga-rollout-status.md) | Carga multi-tenant, rollout e status (10.7) | Accepted |
 
-Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [load-baseline.md](./load-baseline.md) — baseline P95 staging (10.4); [backup-dr-runbook.md](./backup-dr-runbook.md) — drill trimestral SQL Server (10.5); [lgpd-ripd.md](./lgpd-ripd.md) — RIPD titular tutor (10.6); [security-pentest-runbook.md](./security-pentest-runbook.md) — pentest e registro de achados (10.6); [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
+Documentação complementar (não ADR): [configuracao.md](./configuracao.md) — options, health checks, correlation id; [load-baseline.md](./load-baseline.md) — baseline P95 staging (10.4); [load-capacity.md](./load-capacity.md) — carga N×M staging (10.7); [rollout-runbook.md](./rollout-runbook.md) e [incident-runbook.md](./incident-runbook.md) — rollout e status (10.7); [backup-dr-runbook.md](./backup-dr-runbook.md) — drill trimestral SQL Server (10.5); [lgpd-ripd.md](./lgpd-ripd.md) — RIPD titular tutor (10.6); [security-pentest-runbook.md](./security-pentest-runbook.md) — pentest e registro de achados (10.6); [sync-poc.md](./sync-poc.md) — PoC E2E offline → nuvem (Fase 3.6).
 
 Diagramas: [`docs/diagramas/`](../diagramas/) — C4 e sequência de sync.
 

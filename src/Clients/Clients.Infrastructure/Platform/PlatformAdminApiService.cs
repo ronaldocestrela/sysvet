@@ -121,6 +121,35 @@ public sealed class PlatformAdminApiService : IPlatformAdminApi
             cancellationToken: cancellationToken);
 
     /// <inheritdoc />
+    public Task<Result> SetReleaseRingAsync(Guid tenantId, PlatformReleaseRing ring, CancellationToken cancellationToken = default) =>
+        _apiClient.PatchAsync(
+            $"/api/v1/platform/tenants/{tenantId}/release-ring",
+            new SetReleaseRingBody(ring),
+            cancellationToken: cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<PlatformStatusIncidentDto>>> ListStatusIncidentsAsync(int take = 50, CancellationToken cancellationToken = default) =>
+        _apiClient.GetAsync<IReadOnlyList<PlatformStatusIncidentDto>>(
+            $"/api/v1/platform/status/incidents?take={take}",
+            cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<PlatformStatusIncidentDto>> CreateStatusIncidentAsync(
+        PlatformCreateStatusIncidentRequest request,
+        CancellationToken cancellationToken = default) =>
+        _apiClient.PostAsync<PlatformCreateStatusIncidentRequest, PlatformStatusIncidentDto>(
+            "/api/v1/platform/status/incidents",
+            request,
+            cancellationToken: cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<PlatformStatusIncidentDto>> ResolveStatusIncidentAsync(Guid incidentId, CancellationToken cancellationToken = default) =>
+        _apiClient.PatchAsync<object, PlatformStatusIncidentDto>(
+            $"/api/v1/platform/status/incidents/{incidentId}/resolve",
+            new { },
+            cancellationToken: cancellationToken);
+
+    /// <inheritdoc />
     public Task<Result<PlatformBillingCustomerDto>> UpsertBillingCustomerAsync(
         Guid tenantId,
         PlatformUpsertBillingCustomerRequest request,
@@ -267,6 +296,7 @@ public sealed class PlatformAdminApiService : IPlatformAdminApi
     private sealed record ChangeStatusBody(PlatformTenantStatus Status);
     private sealed record ChangePlanBody(string PlanCode);
     private sealed record SetFeatureFlagBody(PlatformFeatureFlagState State);
+    private sealed record SetReleaseRingBody(PlatformReleaseRing Ring);
     private sealed record RedeemCouponBody(string Code);
     private sealed record CreatePartnerApiKeyBody(string PartnerName);
 }
