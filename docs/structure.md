@@ -10,6 +10,9 @@ Este documento detalha a estrutura de pastas e diretórios da primeira versão d
 ├── scripts/assert-coverage.sh          # Gate de cobertura mínima usado no CI.
 ├── scripts/k6/critical-endpoints.js    # Carga multi-tenant staging (Fase 10.7; ver load-capacity.md).
 ├── .dockerignore                       # Contexto enxuto para build de container da API.
+├── docker-compose.yml                  # Produção local/staging: API, PWAs Blazor e Redis (SQL externo via .env).
+├── docker/blazor/                      # Dockerfile nginx + entrypoint para PWAs WASM (ApiBaseUrl via env).
+├── .env.example                        # Template de variáveis sensíveis; copiar para .env (gitignored).
 ├── docs/                               # Arquitetura detalhada, diagramas de domínio e registros de decisão (ADRs).
 │   ├── arquitetura/
 │   │   ├── README.md                   # Índice de ADRs e template MADR.

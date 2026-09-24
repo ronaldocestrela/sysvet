@@ -10,3 +10,9 @@
 **/*.md
 **/docs
 **/.gemini
+tests/
+src/Clients/MauiApp/
+**/*.db
+.env
+.env.*
+!.env.example

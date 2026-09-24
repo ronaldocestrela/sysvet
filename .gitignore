@@ -68,3 +68,6 @@ Cobertura.xml
 .DS_Store
 Thumbs.db
 bin\\Debug/
+
+# Local Docker production secrets
+.env

@@ -56,7 +56,51 @@ dotnet user-secrets set "JwtSettings:Secret" "your-local-secret-min-16-chars" --
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Data Source=sysvet.db" --project src/API
 ```
 
-Containers ( [`src/API/Dockerfile`](../../src/API/Dockerfile) ) recebem as mesmas chaves como variáveis de ambiente no orquestrador.
+Containers recebem as mesmas chaves como variáveis de ambiente (notação `__` no shell/Docker, ex.: `JwtSettings__Secret`).
+
+#### Docker de produção (API + PWAs, sem SQL Server no compose)
+
+Arquivos na raiz do repositório:
+
+| Arquivo | Função |
+|---------|--------|
+| [`src/API/Dockerfile`](../../src/API/Dockerfile) | Imagem multi-stage .NET 10 (`Production`, usuário não-root, healthcheck `/health/live`) |
+| [`docker/blazor/Dockerfile`](../../docker/blazor/Dockerfile) | PWAs Blazor WASM publicados + nginx (build arg `BLAZOR_PROJECT`) |
+| [`docker-compose.yml`](../../docker-compose.yml) | `api`, `redis` e frontends `blazorweb`, `tutor-portal`, `platform-web`, `clinic-site` — **não** inclui SQL Server |
+| [`.env.example`](../../.env.example) | Placeholders; copiar para `.env` (nunca commitar) |
+
+Fluxo:
+
+```bash
+cp .env.example .env
+# Editar .env: ConnectionStrings__DefaultConnection (SQL externo), JwtSettings__Secret,
+# REDIS_PASSWORD, Cache__ConnectionString, API_PUBLIC_BASE_URL (URL da API no browser),
+# Cors__AllowedOrigins__* (origens dos PWAs) e portas BLAZOR_* se necessário.
+
+docker compose --env-file .env up -d --build
+```
+
+| Serviço compose | App | Porta host (default) |
+|-----------------|-----|----------------------|
+| `blazorweb` | Staff (`BlazorWeb`) | `8081` |
+| `tutor-portal` | Portal do tutor | `8082` |
+| `platform-web` | Super Admin | `8083` |
+| `clinic-site` | Site público da clínica | `8084` |
+
+Cada PWA recebe `API_PUBLIC_BASE_URL` no startup do container; o entrypoint grava `wwwroot/appsettings.json` com `ApiBaseUrl` antes do nginx subir (sem segredos na imagem).
+
+- **Banco:** SQL Server gerenciado ou host existente; connection string só via env. Migrations EF Core rodam **fora** do container (ver seção Migrations abaixo).
+- **Redis:** cache distribuído (staging/produção); senha via `REDIS_PASSWORD` / `Cache__ConnectionString`.
+- **CORS:** incluir no `.env` da API as origens públicas dos PWAs (`Cors__AllowedOrigins__0`, …) alinhadas às portas expostas.
+- **TLS:** terminação no proxy reverso; containers expõem HTTP (`API_HTTP_PORT`, `BLAZOR_HTTP_PORT`, …).
+- **Health:** API — `GET /health/live` / `GET /health/ready`; PWAs — nginx na porta `8080` interna.
+
+Build isolado (mesmos padrões do CI):
+
+```bash
+docker build -f src/API/Dockerfile .
+docker build -f docker/blazor/Dockerfile --build-arg BLAZOR_PROJECT=src/Clients/BlazorWeb/BlazorWeb.csproj .
+```
 
 ### Options por módulo
 
